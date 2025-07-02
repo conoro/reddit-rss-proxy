@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-02T09:25:01+00:00</updated>
+  <updated>2025-07-02T09:38:43+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1lp01c7</id>
-    <title>Deepseek R1 at 6,5 tk/s on an Nvidia Tesla P40</title>
-    <updated>2025-07-01T12:12:19+00:00</updated>
-    <author>
-      <name>/u/dc740</name>
-      <uri>https://old.reddit.com/user/dc740</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I figured I'd post my final setup since many people asked about the P40 and assumed you couldn't do much with it (but you can!).&lt;/p&gt; &lt;pre&gt;&lt;code&gt;numactl --cpunodebind=0 -- ./ik_llama.cpp/build/bin/llama-cli \ --numa numactl \ --model models/unsloth/DeepSeek-R1-0528-GGUF/UD-Q2_K_XL/DeepSeek-R1-0528-UD-Q2_K_XL-00001-of-00006.gguf \ --threads 40 \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --top-p 0.95 \ --temp 0.6 \ --ctx-size 32768 \ --seed 3407 \ --n-gpu-layers 62 \ -ot &amp;quot;exps=CPU&amp;quot; \ --mlock \ --no-mmap \ -mla 2 -fa -fmoe \ -ser 5,1 \ -amb 512 \ --prompt &amp;quot;&amp;lt;｜User｜&amp;gt;Create a Flappy Bird game in Python.&amp;lt;｜Assistant｜&amp;gt;&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The result at the end of the run is around 6.5tk/s. &amp;lt;EDIT: Did another run and added the results. 7tk/s!&amp;gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama_print_timings: load time = 896376.08 ms llama_print_timings: sample time = 594.81 ms / 2549 runs ( 0.23 ms per token, 4285.42 tokens per second) llama_print_timings: prompt eval time = 1193.93 ms / 12 tokens ( 99.49 ms per token, 10.05 tokens per second) llama_print_timings: eval time = 363871.92 ms / 2548 runs ( 142.81 ms per token, 7.00 tokens per second) llama_print_timings: total time = 366975.53 ms / 2560 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I'm open to ideas on how to improve it.&lt;/p&gt; &lt;p&gt;Hardware:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Fully populated Dell R740 (in performance profile)&lt;/li&gt; &lt;li&gt;Nvidia Tesla P40 (24GB vram)&lt;/li&gt; &lt;li&gt;Xeon Gold 6138&lt;/li&gt; &lt;li&gt;1.5TB of ram (all ram slots populated)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For other models, like Mistral or QwQ I get around 10tk/s&lt;/p&gt; &lt;p&gt;These are my QwQ settings (I use the regular llama.cpp for this one)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;numactl --cpunodebind=0 -- ./llama.cpp/build/bin/llama-cli \ --numa numactl \ --model models/unsloth/unsloth-QwQ-32B-GGUF/QwQ-32B-Q4_K_M.gguf \ --threads 40 \ --ctx-size 16384 \ --n-gpu-layers 99 \ --seed 3407 \ --temp 0.6 \ --repeat-penalty 1.1 \ --min-p 0.01 \ --top-k 40 \ --top-p 0.95 \ --dry-multiplier 0.5 \ --mlock \ --no-mmap \ --prio 3 \ -no-cnv \ -fa \ --samplers &amp;quot;top_k;top_p;min_p;temperature;dry;typ_p;xtc&amp;quot; \ --prompt &amp;quot;&amp;lt;|im_start|&amp;gt;user\nCreate a Flappy Bird game in Python. You must include these things:\n1. You must use pygame.\n2. The background color should be randomly chosen and is a light shade. Start with a light blue color.\n3. Pressing SPACE multiple times will accelerate the bird.\n4. The bird's shape should be randomly chosen as a square, circle or triangle. The color should be randomly chosen as a dark color.\n5. Place on the bottom some land colored as dark brown or yellow chosen randomly.\n6. Make a score shown on the top right side. Increment if you pass pipes and don't hit them.\n7. Make randomly spaced pipes with enough space. Color them randomly as dark green or light brown or a dark gray shade.\n8. When you lose, show the best score. Make the text inside the screen. Pressing q or Esc will quit the game. Restarting is pressing SPACE again.\nThe final game should be inside a markdown section in Python. Check your code for errors and fix them before the final markdown section.&amp;lt;|im_end|&amp;gt;\n&amp;lt;|im_start|&amp;gt;assistant\n&amp;lt;think&amp;gt;\n&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The details on the selected quants are in the model path. Surprisingly, using ik_llama.cpp optimized models from &lt;em&gt;ubergarm&lt;/em&gt; did not speed up Deepseek, but it slowed it down greatly.&lt;/p&gt; &lt;p&gt;Feel free to suggest improvements. For models different than deepseek, ik_llama.cpp was giving me a lot of gibberish output if I enabled fast attention. And some models I couldn't even run on it, so that's why I still use the regular llama.cpp for some of them.&lt;/p&gt; &lt;p&gt;-----&lt;/p&gt; &lt;p&gt;EDIT&lt;/p&gt; &lt;p&gt;I left it running in the background while doing other stuff, and with the community suggestions, I'm up to 7.57 tk/s! Thank you all! (notice that I can now use the 80 threads, but the performance is the same as 40 threads, because the bottleneck is in the memory bandwidth)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;numactl --interleave=all -- ./ik_llama.cpp/build/bin/llama-cli \ --numa numactl \ --model models/unsloth/DeepSeek-R1-0528-GGUF/UD-Q2_K_XL/DeepSeek-R1-0528-UD-Q2_K_XL-00001-of-00006.gguf \ --threads 80 \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --top-p 0.95 \ --temp 0.6 \ --ctx-size 32768 \ --seed 3407 \ --n-gpu-layers 62 \ -ot &amp;quot;exps=CPU&amp;quot; \ --mlock \ --no-mmap \ -mla 2 -fa -fmoe \ -ser 5,1 \ -amb 512 \ --run-time-repack -b 4096 -ub 4096 \ --prompt &amp;quot;&amp;lt;｜User｜&amp;gt;Create a Flappy Bird game in Python.&amp;lt;｜Assistant｜&amp;gt;&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Results:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama_print_timings: load time = 210631.90 ms llama_print_timings: sample time = 600.64 ms / 2410 runs ( 0.25 ms per token, 4012.41 tokens per second) llama_print_timings: prompt eval time = 686.07 ms / 12 tokens ( 57.17 ms per token, 17.49 tokens per second) llama_print_timings: eval time = 317916.13 ms / 2409 runs ( 131.97 ms per token, 7.58 tokens per second) llama_print_timings: total time = 320903.99 ms / 2421 tokens &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dc740"&gt; /u/dc740 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lp01c7/deepseek_r1_at_65_tks_on_an_nvidia_tesla_p40/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lp01c7/deepseek_r1_at_65_tks_on_an_nvidia_tesla_p40/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lp01c7/deepseek_r1_at_65_tks_on_an_nvidia_tesla_p40/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-01T12:12:19+00:00</published>
-  </entry>
   <entry>
     <id>t3_1lp5pt0</id>
     <title>Day 7/50: Building a Small Language Model from Scratch – Coding Positional Embeddings</title>
@@ -73,6 +60,19 @@
     <published>2025-07-02T03:50:04+00:00</published>
   </entry>
   <entry>
+    <id>t3_1lprfbx</id>
+    <title>Just me, or MNN chat is looping a lot</title>
+    <updated>2025-07-02T09:31:20+00:00</updated>
+    <author>
+      <name>/u/ExtremeAcceptable289</name>
+      <uri>https://old.reddit.com/user/ExtremeAcceptable289</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I'm trying MNN chat but for me it seems to be repeating itself a lot. I tried qwen3 0.6b, and when I try a simple request like&lt;/p&gt; &lt;p&gt;What is lasagna?&lt;/p&gt; &lt;p&gt;Lascange is a dish that is made from pasta. It is a very popular dish in Italy. The main ingredients are pasta and sauce. The sauce is made from various ingredients. It is also a dish that is popular in many countries around the world. It is a very popular dish. It is also a dish that is made from pasta. It is also a dish that is made from various ingredients. It is also a dish that is popular in many countries around the world. It is a very popular dish. It is also a dish that is made from pasta. It is also a dish that is made from various ingredients. It is also a dish that is popular in many countries around the world. It is a very popular dish. It is also a dish that is made from pasta. It is also a dish that is made from various ingredients. It is &lt;/p&gt; &lt;p&gt;Is this an inherent MNN issue or just a model issue?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ExtremeAcceptable289"&gt; /u/ExtremeAcceptable289 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lprfbx/just_me_or_mnn_chat_is_looping_a_lot/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lprfbx/just_me_or_mnn_chat_is_looping_a_lot/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lprfbx/just_me_or_mnn_chat_is_looping_a_lot/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T09:31:20+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1lp8kfw</id>
     <title>Sophgo TPU SC11 FP300, 256GB, 1.1Tb/s, PCIE-5</title>
     <updated>2025-07-01T17:57:16+00:00</updated>
@@ -112,19 +112,6 @@
     <published>2025-07-02T08:53:40+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lpkhdc</id>
-    <title>Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation</title>
-    <updated>2025-07-02T02:28:13+00:00</updated>
-    <author>
-      <name>/u/Deep-Jellyfish6717</name>
-      <uri>https://old.reddit.com/user/Deep-Jellyfish6717</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"&gt; &lt;img alt="Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation" src="https://external-preview.redd.it/dDlyZGM3ZGdnZGFmMd6_yl4KD4SDfLlRzY-8FYANWGWkzq3vBHvX2byZMrhl.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d8adc2f94ef20d963b1c6f6311511954660da6f1" title="Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Deep-Jellyfish6717"&gt; /u/Deep-Jellyfish6717 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/71tan5dggdaf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-02T02:28:13+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lpl3mv</id>
     <title>Hosting your local Huanyuan A13B MOE</title>
     <updated>2025-07-02T03:00:05+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl3mv/hosting_your_local_huanyuan_a13b_moe/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-02T03:00:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lpkhdc</id>
+    <title>Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation</title>
+    <updated>2025-07-02T02:28:13+00:00</updated>
+    <author>
+      <name>/u/Deep-Jellyfish6717</name>
+      <uri>https://old.reddit.com/user/Deep-Jellyfish6717</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"&gt; &lt;img alt="Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation" src="https://external-preview.redd.it/dDlyZGM3ZGdnZGFmMd6_yl4KD4SDfLlRzY-8FYANWGWkzq3vBHvX2byZMrhl.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d8adc2f94ef20d963b1c6f6311511954660da6f1" title="Watch a Photo Come to Life: AI Singing Video via Audio-Driven Animation" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Deep-Jellyfish6717"&gt; /u/Deep-Jellyfish6717 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/71tan5dggdaf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpkhdc/watch_a_photo_come_to_life_ai_singing_video_via/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T02:28:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1lp653l</id>
@@ -203,19 +203,6 @@
     <published>2025-07-02T07:15:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lpoju6</id>
-    <title>World's first Intermediate thinking AI model is now Open Source</title>
-    <updated>2025-07-02T06:17:24+00:00</updated>
-    <author>
-      <name>/u/Quiet-Moment-338</name>
-      <uri>https://old.reddit.com/user/Quiet-Moment-338</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Link: &lt;a href="https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview"&gt;https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Launch video: &lt;a href="https://www.youtube.com/watch?v=QMnmcXngoks"&gt;https://www.youtube.com/watch?v=QMnmcXngoks&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Quiet-Moment-338"&gt; /u/Quiet-Moment-338 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-02T06:17:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lpmx00</id>
     <title>I built a cli tool to automatically figure out tensor overrides in llama.cpp</title>
     <updated>2025-07-02T04:38:28+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpmx00/i_built_a_cli_tool_to_automatically_figure_out/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-02T04:38:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lpoju6</id>
+    <title>World's first Intermediate thinking AI model is now Open Source</title>
+    <updated>2025-07-02T06:17:24+00:00</updated>
+    <author>
+      <name>/u/Quiet-Moment-338</name>
+      <uri>https://old.reddit.com/user/Quiet-Moment-338</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Link: &lt;a href="https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview"&gt;https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Launch video: &lt;a href="https://www.youtube.com/watch?v=QMnmcXngoks"&gt;https://www.youtube.com/watch?v=QMnmcXngoks&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Quiet-Moment-338"&gt; /u/Quiet-Moment-338 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T06:17:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1lp5nhy</id>
@@ -268,19 +268,6 @@
     <published>2025-07-02T03:57:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lpl656</id>
-    <title>GLM-4.1V-Thinking</title>
-    <updated>2025-07-02T03:03:37+00:00</updated>
-    <author>
-      <name>/u/AaronFeng47</name>
-      <uri>https://old.reddit.com/user/AaronFeng47</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"&gt; &lt;img alt="GLM-4.1V-Thinking" src="https://external-preview.redd.it/bgfOhKzxcgalBLIa5eyKdcFfts71dHE0qj65OmHVMu0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d1f66974e5478d143d6f55b57fcf633e79edaf66" title="GLM-4.1V-Thinking" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AaronFeng47"&gt; /u/AaronFeng47 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/THUDM/glm-41v-thinking-6862bbfc44593a8601c2578d"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-02T03:03:37+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lp9gh2</id>
     <title>Huawei releases an open weight model Pangu Pro 72B A16B. Weights are on HF. It should be competitive with Qwen3 32B and it was trained entirely on Huawei Ascend NPUs. (2505.21411)</title>
     <updated>2025-07-01T18:30:51+00:00</updated>
@@ -294,17 +281,17 @@
     <published>2025-07-01T18:30:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lpoqlu</id>
-    <title>DiffuCoder 7B - New coding diffusion LLM by Apple</title>
-    <updated>2025-07-02T06:29:47+00:00</updated>
+    <id>t3_1lpl656</id>
+    <title>GLM-4.1V-Thinking</title>
+    <updated>2025-07-02T03:03:37+00:00</updated>
     <author>
-      <name>/u/DunklerErpel</name>
-      <uri>https://old.reddit.com/user/DunklerErpel</uri>
+      <name>/u/AaronFeng47</name>
+      <uri>https://old.reddit.com/user/AaronFeng47</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt; &lt;img alt="DiffuCoder 7B - New coding diffusion LLM by Apple" src="https://external-preview.redd.it/WJ1Mt_9K-aAaMAebSityZ71IWIFD1yMghVJOklMW6Xo.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed4a0394c2c1d722f620e6214e63d44c79d3e340" title="DiffuCoder 7B - New coding diffusion LLM by Apple" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/apple/DiffuCoder-7B-cpGRPO"&gt;https://huggingface.co/apple/DiffuCoder-7B-cpGRPO&lt;/a&gt; (base and instruct also available)&lt;/p&gt; &lt;p&gt;Currently trying - and failing - to run test it on Colab, but really looking forward to it!&lt;/p&gt; &lt;p&gt;Also, anyone got an idea how I can run it on Apple Silicon?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/s19j3dmfneaf1.png?width=1176&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=927e506f764ded47a4e715aea53c223e56ea7ae6"&gt;Benchmarks compared to other coding and diffusion models&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://arxiv.org/pdf/2506.20639"&gt;https://arxiv.org/pdf/2506.20639&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DunklerErpel"&gt; /u/DunklerErpel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"&gt; &lt;img alt="GLM-4.1V-Thinking" src="https://external-preview.redd.it/bgfOhKzxcgalBLIa5eyKdcFfts71dHE0qj65OmHVMu0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d1f66974e5478d143d6f55b57fcf633e79edaf66" title="GLM-4.1V-Thinking" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AaronFeng47"&gt; /u/AaronFeng47 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/THUDM/glm-41v-thinking-6862bbfc44593a8601c2578d"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpl656/glm41vthinking/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-02T06:29:47+00:00</published>
+    <published>2025-07-02T03:03:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1lpep3m</id>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpep3m/tenstorrent_blackhole_cards/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-01T21:56:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lpoqlu</id>
+    <title>DiffuCoder 7B - New coding diffusion LLM by Apple</title>
+    <updated>2025-07-02T06:29:47+00:00</updated>
+    <author>
+      <name>/u/DunklerErpel</name>
+      <uri>https://old.reddit.com/user/DunklerErpel</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt; &lt;img alt="DiffuCoder 7B - New coding diffusion LLM by Apple" src="https://external-preview.redd.it/WJ1Mt_9K-aAaMAebSityZ71IWIFD1yMghVJOklMW6Xo.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed4a0394c2c1d722f620e6214e63d44c79d3e340" title="DiffuCoder 7B - New coding diffusion LLM by Apple" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/apple/DiffuCoder-7B-cpGRPO"&gt;https://huggingface.co/apple/DiffuCoder-7B-cpGRPO&lt;/a&gt; (base and instruct also available)&lt;/p&gt; &lt;p&gt;Currently trying - and failing - to run test it on Colab, but really looking forward to it!&lt;/p&gt; &lt;p&gt;Also, anyone got an idea how I can run it on Apple Silicon?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/s19j3dmfneaf1.png?width=1176&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=927e506f764ded47a4e715aea53c223e56ea7ae6"&gt;Benchmarks compared to other coding and diffusion models&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://arxiv.org/pdf/2506.20639"&gt;https://arxiv.org/pdf/2506.20639&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DunklerErpel"&gt; /u/DunklerErpel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoqlu/diffucoder_7b_new_coding_diffusion_llm_by_apple/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T06:29:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1lphhj3</id>
