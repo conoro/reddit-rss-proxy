@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-02T09:38:43+00:00</updated>
+  <updated>2025-07-02T09:50:16+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1lp5pt0</id>
-    <title>Day 7/50: Building a Small Language Model from Scratch – Coding Positional Embeddings</title>
-    <updated>2025-07-01T16:09:54+00:00</updated>
-    <author>
-      <name>/u/Prashant-Lakhera</name>
-      <uri>https://old.reddit.com/user/Prashant-Lakhera</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yesterday, we discussed &lt;em&gt;what&lt;/em&gt; &lt;a href="https://www.ideaweaver.ai/blog/day6.html"&gt;positional embeddings &lt;/a&gt;are and &lt;em&gt;why&lt;/em&gt; they’re essential in Transformer models. Today, let’s jump into the code and see exactly how they're implemented.&lt;/p&gt; &lt;p&gt;The reference implementation comes from an open-source GPT-style model I’ve been experimenting with &lt;a href="https://github.com/ideaweaver-ai/Tiny-Children-Stories-30M-model"&gt;Tiny Children Stories 30M&lt;/a&gt;. It's designed to generate short children's stories and offers a clean, minimal setup perfect for understanding the internals.&lt;/p&gt; &lt;h1&gt;Quick Recap: Why Transformers Need Positional Embeddings&lt;/h1&gt; &lt;p&gt;Transformer models process all tokens in parallel (unlike RNNs), so they don’t naturally understand word order. For example:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;The cat sat on the mat&amp;quot; &amp;quot;The mat sat on the cat&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;To a transformer without positional embeddings, those look identical, same tokens, shuffled order, same representation. That’s a problem.&lt;/p&gt; &lt;h1&gt;What Are Positional Embeddings?&lt;/h1&gt; &lt;p&gt;They’re additional vectors that encode the &lt;em&gt;position&lt;/em&gt; of each token in the sequence. These are added to token embeddings so that the model knows what the token is and where it is located.&lt;/p&gt; &lt;h1&gt;&lt;a href="https://github.com/ideaweaver-ai/Tiny-Children-Stories-30M-model/blob/main/src/model/gpt.py"&gt;Step-by-Step Code Walkthrough&lt;/a&gt;&lt;/h1&gt; &lt;h1&gt;1. Model Config&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;u/dataclass class GPTConfig: vocab_size: int = 50257 block_size: int = 1024 n_layer: int = 6 n_head: int = 8 n_embd: int = 512 dropout: float = 0.1 bias: bool = True &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;code&gt;block_size&lt;/code&gt; defines the maximum sequence length and thus the number of positional embeddings needed.&lt;/p&gt; &lt;h1&gt;2. Defining the Embedding Layers&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;self.transformer = nn.ModuleDict(dict( wte=nn.Embedding(config.vocab_size, config.n_embd), # token embeddings wpe=nn.Embedding(config.block_size, config.n_embd), # positional embeddings ... )) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Both embeddings are of shape &lt;code&gt;(sequence_length, embedding_dim)&lt;/code&gt;, so they can be added together.&lt;/p&gt; &lt;h1&gt;3. Forward Pass&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;pos = torch.arange(0, t, dtype=torch.long, device=device) tok_emb = self.transformer.wte(idx) pos_emb = self.transformer.wpe(pos) x = self.transformer.drop(tok_emb + pos_emb) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This does:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Generate position indices &lt;code&gt;[0, 1, 2, ..., t-1]&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Look up token and position embeddings&lt;/li&gt; &lt;li&gt;Add them&lt;/li&gt; &lt;li&gt;Apply dropout&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Example&lt;/h1&gt; &lt;p&gt;Input: &lt;code&gt;&amp;quot;The cat sat&amp;quot;&lt;/code&gt;&lt;br /&gt; Token IDs: &lt;code&gt;[464, 2368, 3290]&lt;/code&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Token&lt;/th&gt; &lt;th align="left"&gt;Token Embedding&lt;/th&gt; &lt;th align="left"&gt;Positional Embedding&lt;/th&gt; &lt;th align="left"&gt;Combined Embedding&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;The&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.1, -0.3, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.0, 0.1, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.1, -0.2, …]&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cat&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.5, 0.2, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.1, 0.0, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.6, 0.2, …]&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;sat&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[-0.2, 0.8, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.2, -0.1, …]&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;[0.0, 0.7, …]&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Now the model knows both the identity and the order of the tokens.&lt;/p&gt; &lt;h1&gt;Now the question is why This Matters&lt;/h1&gt; &lt;p&gt;By adding token + position, the model learns:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Semantics&lt;/strong&gt; (what the word is)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Context&lt;/strong&gt; (where the word is)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This is crucial in generation tasks like storytelling, where position changes meaning.&lt;/p&gt; &lt;h1&gt;Limitations&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Fixed length&lt;/strong&gt;: Can’t handle sequences longer than &lt;code&gt;block_size&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;No relative awareness&lt;/strong&gt;: Doesn't know how far two tokens are apart.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Sparse training&lt;/strong&gt;: If you never train on long sequences, performance drops.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Alternatives&lt;/h1&gt; &lt;h1&gt;Sinusoidal Positional Embeddings&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;def get_sinusoidal_embeddings(seq_len, embed_dim): pos = torch.arange(seq_len).unsqueeze(1) div_term = torch.exp(torch.arange(0, embed_dim, 2) * -(math.log(10000.0) / embed_dim)) pe = torch.zeros(seq_len, embed_dim) pe[:, 0::2] = torch.sin(pos * div_term) pe[:, 1::2] = torch.cos(pos * div_term) return pe &lt;/code&gt;&lt;/pre&gt; &lt;ul&gt; &lt;li&gt;Infinite length&lt;/li&gt; &lt;li&gt;No learned parameters&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Relative Positional Embeddings&lt;/h1&gt; &lt;p&gt;Rather than saying &amp;quot;this is position 5&amp;quot;, you tell the model &amp;quot;this token is 3 positions to the left of that one.&amp;quot;&lt;/p&gt; &lt;p&gt;Great for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Reasoning&lt;/li&gt; &lt;li&gt;Long document understanding&lt;/li&gt; &lt;li&gt;Question answering&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Tips&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Don’t overextend &lt;code&gt;block_size,&lt;/code&gt; it increases memory consumption fast.&lt;/li&gt; &lt;li&gt;Ensure your training data has diverse sequence lengths.&lt;/li&gt; &lt;li&gt;For long inputs, check out RoPE or relative embeddings.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Final Thoughts&lt;/h1&gt; &lt;p&gt;Positional embeddings are the quiet workhorses of transformer models. Just by combining two vectors (token + position), we enable the model to process ordered text meaningfully.&lt;/p&gt; &lt;p&gt;Without this, a model wouldn't know if “The End” belongs at the start or the finish of your story.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Coming Up Next:&lt;/strong&gt;&lt;br /&gt; Tomorrow we’ll dive into Rotary Positional Embeddings (RoPE), a more scalable and elegant solution to position encoding.&lt;/p&gt; &lt;p&gt;If you're following this series, feel free to share or &lt;a href="https://www.linkedin.com/in/prashant-lakhera-696119b/"&gt;connect&lt;/a&gt;.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Prashant-Lakhera"&gt; /u/Prashant-Lakhera &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lp5pt0/day_750_building_a_small_language_model_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lp5pt0/day_750_building_a_small_language_model_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lp5pt0/day_750_building_a_small_language_model_from/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-01T16:09:54+00:00</published>
-  </entry>
   <entry>
     <id>t3_1lp2ji0</id>
     <title>Reasoning models are risky. Anyone else experiencing this?</title>
@@ -58,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpm1k8/any_recommendations_on_b200_servers/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-02T03:50:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lpqyra</id>
+    <title>Drafting RFP answers with Jamba, Mistral, Mixtral</title>
+    <updated>2025-07-02T09:00:46+00:00</updated>
+    <author>
+      <name>/u/NullPointerJack</name>
+      <uri>https://old.reddit.com/user/NullPointerJack</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Sharing notes in case it helps anyone. I don't often find people talking about models like Jamba and we have access to it, so figure it might be useful.&lt;/p&gt; &lt;p&gt;- &lt;/p&gt; &lt;p&gt;Been testing local models for drafting first-pass answers to internal RFPs. The source material is rough. Basically a mix of PDF exports, old responses in docx, inconsistent product specs, wiki dumps and suchlike.&lt;/p&gt; &lt;p&gt;I'm running a basic RAG pipeline over it using section-level chunking and a semantic search index. Nothing too exotic. Retrieval pulls five chunks per query and I'm prompting each model to answer strictly from the provided input. Tried Jamba, Mistral 7B and Mixtral on the same prompts.&lt;/p&gt; &lt;p&gt;My findings:&lt;/p&gt; &lt;p&gt;Mixtral gave the most natural writing style. Handled formatting like bullet points well, but when chunks were overlapping or contradicting, it sometimes mashed them together. Sounded coherent, but didn't track to any one source.&lt;/p&gt; &lt;p&gt;Mistral played it safer but the answers often felt incomplete. Would stop early or skip chunks if they weren't clearly relevant. Better than Mixtral at avoiding noise but I had to rerun prompts more often to get full coverage.&lt;/p&gt; &lt;p&gt;Jamba was slightly slower and more verbose, but I could actually trace the language back to the retrieved text most of the time. It didn't try to fill in gaps with guesswork and it stayed anchored to the input without inventing policy language. It was more useful in review. Didn't have to figure out where something came from.&lt;/p&gt; &lt;p&gt;Still experimenting with reranking to clean up the retrieval layer. Jamba has been the most consistent in situations where accuracy matters more than polish. Might try pairing it with. post-processing model to tighten up the tone without losing the original source trail.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NullPointerJack"&gt; /u/NullPointerJack &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpqyra/drafting_rfp_answers_with_jamba_mistral_mixtral/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpqyra/drafting_rfp_answers_with_jamba_mistral_mixtral/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpqyra/drafting_rfp_answers_with_jamba_mistral_mixtral/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T09:00:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1lprfbx</id>
@@ -216,19 +216,6 @@
     <published>2025-07-02T04:38:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lpoju6</id>
-    <title>World's first Intermediate thinking AI model is now Open Source</title>
-    <updated>2025-07-02T06:17:24+00:00</updated>
-    <author>
-      <name>/u/Quiet-Moment-338</name>
-      <uri>https://old.reddit.com/user/Quiet-Moment-338</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Link: &lt;a href="https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview"&gt;https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Launch video: &lt;a href="https://www.youtube.com/watch?v=QMnmcXngoks"&gt;https://www.youtube.com/watch?v=QMnmcXngoks&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Quiet-Moment-338"&gt; /u/Quiet-Moment-338 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-02T06:17:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lp5nhy</id>
     <title>Gemma 3n Fine-tuning now in Unsloth - 1.5x faster with 50% less VRAM + Fixes</title>
     <updated>2025-07-01T16:07:29+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lp5nhy/gemma_3n_finetuning_now_in_unsloth_15x_faster/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-01T16:07:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lpoju6</id>
+    <title>World's first Intermediate thinking AI model is now Open Source</title>
+    <updated>2025-07-02T06:17:24+00:00</updated>
+    <author>
+      <name>/u/Quiet-Moment-338</name>
+      <uri>https://old.reddit.com/user/Quiet-Moment-338</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Link: &lt;a href="https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview"&gt;https://huggingface.co/HelpingAI/Dhanishtha-2.0-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Launch video: &lt;a href="https://www.youtube.com/watch?v=QMnmcXngoks"&gt;https://www.youtube.com/watch?v=QMnmcXngoks&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Quiet-Moment-338"&gt; /u/Quiet-Moment-338 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lpoju6/worlds_first_intermediate_thinking_ai_model_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-02T06:17:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1lpejnj</id>
