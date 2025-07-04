@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-04T20:49:21+00:00</updated>
+  <updated>2025-07-04T21:06:01+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -99,19 +99,6 @@
     <published>2025-07-04T14:05:55+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lrsx20</id>
-    <title>How RAG actually works — a toy example with real math</title>
-    <updated>2025-07-04T20:44:15+00:00</updated>
-    <author>
-      <name>/u/Main-Fisherman-2075</name>
-      <uri>https://old.reddit.com/user/Main-Fisherman-2075</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most RAG explainers jump into theories and scary infra diagrams. Here’s the tiny end-to-end demo that can easy to understand for me:&lt;/p&gt; &lt;p&gt;Suppose we have a documentation like this: &amp;quot;Boil an egg. Poach an egg. How to change a tire&amp;quot;&lt;/p&gt; &lt;h1&gt;Step 1: Chunk&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;S0: &amp;quot;Boil an egg&amp;quot; S1: &amp;quot;Poach an egg&amp;quot; S2: &amp;quot;How to change a tire&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Step 2: Embed&lt;/h1&gt; &lt;p&gt;After the words “Boil an egg” pass through a pretrained transformer, the model compresses its hidden states into a single 4-dimensional vector; each value is just one coordinate of that learned “meaning point” in vector space.&lt;/p&gt; &lt;p&gt;Toy demo values:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;V0 = [ 0.90, 0.10, 0.00, 0.10] # “Boil an egg” V1 = [ 0.88, 0.12, 0.00, 0.09] # “Poach an egg” V2 = [-0.20, 0.40, 0.80, 0.10] # “How to change a tire” &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;(Real models spit out 384-D to 3072-D vectors; 4-D keeps the math readable.)&lt;/p&gt; &lt;h1&gt;Step 3: Normalize&lt;/h1&gt; &lt;p&gt;Put every vector on the unit sphere:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Normalised (unit-length) vectors V0̂ = [ 0.988, 0.110, 0.000, 0.110] # 0.988² + 0.110² + 0.000² + 0.110² ≈ 1.000 → 1 V1̂ = [ 0.986, 0.134, 0.000, 0.101] # 0.986² + 0.134² + 0.000² + 0.101² ≈ 1.000 → 1 V2̂ = [-0.217, 0.434, 0.868, 0.108] # (-0.217)² + 0.434² + 0.868² + 0.108² ≈ 1.001 → 1 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Step 4: Index&lt;/h1&gt; &lt;p&gt;Drop V0^,V1^,V2^ into a similarity index (FAISS, Qdrant, etc.).&lt;br /&gt; Keep a side map &lt;code&gt;{0:S0, 1:S1, 2:S2}&lt;/code&gt; so IDs can turn back into text later.&lt;/p&gt; &lt;h1&gt;Step 5: Similarity Search&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;User asks&lt;/strong&gt;&lt;br /&gt; “Best way to cook an egg?”&lt;/p&gt; &lt;p&gt;We embed this sentence and normalize it as well, which gives us something like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Vi^ = [0.989, 0.086, 0.000, 0.118] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then we need to find the vector that’s &lt;em&gt;closest&lt;/em&gt; to this one.&lt;br /&gt; The most common way is cosine similarity — often written as:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cos(θ) = (A ⋅ B) / (‖A‖ × ‖B‖) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;But since we already normalized all vectors,&lt;br /&gt; ‖A‖ = ‖B‖ = 1 → so the formula becomes just:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cos(θ) = A ⋅ B &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This means we just need to calculate the &lt;strong&gt;dot product&lt;/strong&gt; between the user input vector and each stored vector.&lt;br /&gt; If two vectors are exactly the same, dot product = 1.&lt;br /&gt; So we sort by which ones have values closest to 1 - higher = more similar.&lt;/p&gt; &lt;p&gt;Let’s calculate the scores (example, not real)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Vi^ ⋅ V0̂ = (0.989)(0.988) + (0.086)(0.110) + (0)(0) + (0.118)(0.110) ≈ 0.977 + 0.009 + 0 + 0.013 = 0.999 Vi^ ⋅ V1̂ = (0.989)(0.986) + (0.086)(0.134) + (0)(0) + (0.118)(0.101) ≈ 0.975 + 0.012 + 0 + 0.012 = 0.999 Vi^ ⋅ V2̂ = (0.989)(-0.217) + (0.086)(0.434) + (0)(0.868) + (0.118)(0.108) ≈ -0.214 + 0.037 + 0 + 0.013 = -0.164 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So we find that sentence 0 (“Boil an egg”) and sentence 1 (“Poach an egg”)&lt;br /&gt; are both very close to the user input.&lt;/p&gt; &lt;p&gt;We &lt;strong&gt;retrieve those two as context&lt;/strong&gt;, and pass them to the LLM.&lt;br /&gt; Now the LLM has relevant info to answer accurately, instead of guessing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Main-Fisherman-2075"&gt; /u/Main-Fisherman-2075 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-04T20:44:15+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lroopr</id>
     <title>Llama.cpp and continuous batching for performance</title>
     <updated>2025-07-04T17:40:03+00:00</updated>
@@ -138,19 +125,6 @@
     <published>2025-07-04T18:44:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lqvovt</id>
-    <title>A project to bring CUDA to non-Nvidia GPUs is making major progress</title>
-    <updated>2025-07-03T17:35:16+00:00</updated>
-    <author>
-      <name>/u/OwnWitness2836</name>
-      <uri>https://old.reddit.com/user/OwnWitness2836</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"&gt; &lt;img alt="A project to bring CUDA to non-Nvidia GPUs is making major progress" src="https://external-preview.redd.it/ADNOrzyLUcH9GZiKV8wujT8yD5FQYGEatyugJVGa73E.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0b1a092718ebc960a0b1d79e4d2f8bc6ea6c934f" title="A project to bring CUDA to non-Nvidia GPUs is making major progress" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OwnWitness2836"&gt; /u/OwnWitness2836 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.tomshardware.com/software/a-project-to-bring-cuda-to-non-nvidia-gpus-is-making-major-progress-zluda-update-now-has-two-full-time-developers-working-on-32-bit-physx-support-and-llms-amongst-other-things"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-03T17:35:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lre3x9</id>
     <title>Apple M4 Max or AMD Ryzen AI Max+ 395 (Framwork Desktop)</title>
     <updated>2025-07-04T09:02:33+00:00</updated>
@@ -164,6 +138,19 @@
     <published>2025-07-04T09:02:33+00:00</published>
   </entry>
   <entry>
+    <id>t3_1lqvovt</id>
+    <title>A project to bring CUDA to non-Nvidia GPUs is making major progress</title>
+    <updated>2025-07-03T17:35:16+00:00</updated>
+    <author>
+      <name>/u/OwnWitness2836</name>
+      <uri>https://old.reddit.com/user/OwnWitness2836</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"&gt; &lt;img alt="A project to bring CUDA to non-Nvidia GPUs is making major progress" src="https://external-preview.redd.it/ADNOrzyLUcH9GZiKV8wujT8yD5FQYGEatyugJVGa73E.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0b1a092718ebc960a0b1d79e4d2f8bc6ea6c934f" title="A project to bring CUDA to non-Nvidia GPUs is making major progress" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OwnWitness2836"&gt; /u/OwnWitness2836 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.tomshardware.com/software/a-project-to-bring-cuda-to-non-nvidia-gpus-is-making-major-progress-zluda-update-now-has-two-full-time-developers-working-on-32-bit-physx-support-and-llms-amongst-other-things"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lqvovt/a_project_to_bring_cuda_to_nonnvidia_gpus_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-03T17:35:16+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1lrlmco</id>
     <title>How are the casual users here using LLMs or/and MCPs?</title>
     <updated>2025-07-04T15:31:52+00:00</updated>
@@ -175,32 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrlmco/how_are_the_casual_users_here_using_llms_orand/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-04T15:31:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1lrrvva</id>
-    <title>Run `huggingface-cli scan-cache` occasionally to see what models are taking up space. Then run `huggingface-cli delete-cache` to delete the ones you don't use. (See text post)</title>
-    <updated>2025-07-04T19:57:16+00:00</updated>
-    <author>
-      <name>/u/The_frozen_one</name>
-      <uri>https://old.reddit.com/user/The_frozen_one</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The &lt;code&gt;~/.cache/huggingface&lt;/code&gt; location is where a lot of stuff gets stored (on Windows it's &lt;code&gt;$HOME\.cache\huggingface&lt;/code&gt;). You could just delete it every so often, but then you'll be re-downloading stuff you use.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How to:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;code&gt;uv pip install 'huggingface_hub[cli]'&lt;/code&gt; (&lt;a href="https://docs.astral.sh/uv/"&gt;use uv&lt;/a&gt; it's worth it)&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;huggingface-cli scan-cache&lt;/code&gt;. It'll show you all the model files you have downloaded.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;huggingface-cli delete-cache&lt;/code&gt;. This shows you a TUI that lets you select which models to delete.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I recovered several hundred GBs by clearing out model files I hadn't used in a while. I'm sure &lt;code&gt;google/t5-v1_1-xxl&lt;/code&gt; was worth the 43GB when I was doing something with it, but I'm happy to delete it now and get the space back.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/The_frozen_one"&gt; /u/The_frozen_one &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-04T19:57:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1lrsf6x</id>
-    <title>OCRFlux-3B</title>
-    <updated>2025-07-04T20:21:20+00:00</updated>
-    <author>
-      <name>/u/k-en</name>
-      <uri>https://old.reddit.com/user/k-en</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"&gt; &lt;img alt="OCRFlux-3B" src="https://external-preview.redd.it/x9gxRnW-oFgiJds7kCEygtLLuK_ZzX-0pJcvDDyr2xk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5dcd5f194d87db7612ad57b0c05d46dc6f0cfae3" title="OCRFlux-3B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;From the HF repo:&lt;/p&gt; &lt;p&gt;&amp;quot;OCRFlux is a multimodal large language model based toolkit for converting PDFs and images into clean, readable, plain Markdown text. It aims to push the current state-of-the-art to a significantly higher level.&amp;quot;&lt;/p&gt; &lt;p&gt;Claims to beat other models like olmOCR and Nanonets-OCR-s by a substantial margin. Read online that it can also merge content spanning multiple pages such as long tables. There's also a docker container with the full toolkit and a github repo. What are your thoughts on this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/k-en"&gt; /u/k-en &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/ChatDOC/OCRFlux-3B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-04T20:21:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1lroonm</id>
@@ -227,6 +188,45 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrss4u/thudmglm41v9bthinking_looks_impressive/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-04T20:37:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lrrvva</id>
+    <title>Run `huggingface-cli scan-cache` occasionally to see what models are taking up space. Then run `huggingface-cli delete-cache` to delete the ones you don't use. (See text post)</title>
+    <updated>2025-07-04T19:57:16+00:00</updated>
+    <author>
+      <name>/u/The_frozen_one</name>
+      <uri>https://old.reddit.com/user/The_frozen_one</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The &lt;code&gt;~/.cache/huggingface&lt;/code&gt; location is where a lot of stuff gets stored (on Windows it's &lt;code&gt;$HOME\.cache\huggingface&lt;/code&gt;). You could just delete it every so often, but then you'll be re-downloading stuff you use.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How to:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;code&gt;uv pip install 'huggingface_hub[cli]'&lt;/code&gt; (&lt;a href="https://docs.astral.sh/uv/"&gt;use uv&lt;/a&gt; it's worth it)&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;huggingface-cli scan-cache&lt;/code&gt;. It'll show you all the model files you have downloaded.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;huggingface-cli delete-cache&lt;/code&gt;. This shows you a TUI that lets you select which models to delete.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I recovered several hundred GBs by clearing out model files I hadn't used in a while. I'm sure &lt;code&gt;google/t5-v1_1-xxl&lt;/code&gt; was worth the 43GB when I was doing something with it, but I'm happy to delete it now and get the space back.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/The_frozen_one"&gt; /u/The_frozen_one &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrrvva/run_huggingfacecli_scancache_occasionally_to_see/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-04T19:57:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lrsx20</id>
+    <title>How RAG actually works — a toy example with real math</title>
+    <updated>2025-07-04T20:44:15+00:00</updated>
+    <author>
+      <name>/u/Main-Fisherman-2075</name>
+      <uri>https://old.reddit.com/user/Main-Fisherman-2075</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most RAG explainers jump into theories and scary infra diagrams. Here’s the tiny end-to-end demo that can easy to understand for me:&lt;/p&gt; &lt;p&gt;Suppose we have a documentation like this: &amp;quot;Boil an egg. Poach an egg. How to change a tire&amp;quot;&lt;/p&gt; &lt;h1&gt;Step 1: Chunk&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;S0: &amp;quot;Boil an egg&amp;quot; S1: &amp;quot;Poach an egg&amp;quot; S2: &amp;quot;How to change a tire&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Step 2: Embed&lt;/h1&gt; &lt;p&gt;After the words “Boil an egg” pass through a pretrained transformer, the model compresses its hidden states into a single 4-dimensional vector; each value is just one coordinate of that learned “meaning point” in vector space.&lt;/p&gt; &lt;p&gt;Toy demo values:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;V0 = [ 0.90, 0.10, 0.00, 0.10] # “Boil an egg” V1 = [ 0.88, 0.12, 0.00, 0.09] # “Poach an egg” V2 = [-0.20, 0.40, 0.80, 0.10] # “How to change a tire” &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;(Real models spit out 384-D to 3072-D vectors; 4-D keeps the math readable.)&lt;/p&gt; &lt;h1&gt;Step 3: Normalize&lt;/h1&gt; &lt;p&gt;Put every vector on the unit sphere:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Normalised (unit-length) vectors V0̂ = [ 0.988, 0.110, 0.000, 0.110] # 0.988² + 0.110² + 0.000² + 0.110² ≈ 1.000 → 1 V1̂ = [ 0.986, 0.134, 0.000, 0.101] # 0.986² + 0.134² + 0.000² + 0.101² ≈ 1.000 → 1 V2̂ = [-0.217, 0.434, 0.868, 0.108] # (-0.217)² + 0.434² + 0.868² + 0.108² ≈ 1.001 → 1 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Step 4: Index&lt;/h1&gt; &lt;p&gt;Drop V0^,V1^,V2^ into a similarity index (FAISS, Qdrant, etc.).&lt;br /&gt; Keep a side map &lt;code&gt;{0:S0, 1:S1, 2:S2}&lt;/code&gt; so IDs can turn back into text later.&lt;/p&gt; &lt;h1&gt;Step 5: Similarity Search&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;User asks&lt;/strong&gt;&lt;br /&gt; “Best way to cook an egg?”&lt;/p&gt; &lt;p&gt;We embed this sentence and normalize it as well, which gives us something like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Vi^ = [0.989, 0.086, 0.000, 0.118] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then we need to find the vector that’s &lt;em&gt;closest&lt;/em&gt; to this one.&lt;br /&gt; The most common way is cosine similarity — often written as:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cos(θ) = (A ⋅ B) / (‖A‖ × ‖B‖) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;But since we already normalized all vectors,&lt;br /&gt; ‖A‖ = ‖B‖ = 1 → so the formula becomes just:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cos(θ) = A ⋅ B &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This means we just need to calculate the &lt;strong&gt;dot product&lt;/strong&gt; between the user input vector and each stored vector.&lt;br /&gt; If two vectors are exactly the same, dot product = 1.&lt;br /&gt; So we sort by which ones have values closest to 1 - higher = more similar.&lt;/p&gt; &lt;p&gt;Let’s calculate the scores (example, not real)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Vi^ ⋅ V0̂ = (0.989)(0.988) + (0.086)(0.110) + (0)(0) + (0.118)(0.110) ≈ 0.977 + 0.009 + 0 + 0.013 = 0.999 Vi^ ⋅ V1̂ = (0.989)(0.986) + (0.086)(0.134) + (0)(0) + (0.118)(0.101) ≈ 0.975 + 0.012 + 0 + 0.012 = 0.999 Vi^ ⋅ V2̂ = (0.989)(-0.217) + (0.086)(0.434) + (0)(0.868) + (0.118)(0.108) ≈ -0.214 + 0.037 + 0 + 0.013 = -0.164 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So we find that sentence 0 (“Boil an egg”) and sentence 1 (“Poach an egg”)&lt;br /&gt; are both very close to the user input.&lt;/p&gt; &lt;p&gt;We &lt;strong&gt;retrieve those two as context&lt;/strong&gt;, and pass them to the LLM.&lt;br /&gt; Now the LLM has relevant info to answer accurately, instead of guessing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Main-Fisherman-2075"&gt; /u/Main-Fisherman-2075 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsx20/how_rag_actually_works_a_toy_example_with_real/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-04T20:44:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lrsf6x</id>
+    <title>OCRFlux-3B</title>
+    <updated>2025-07-04T20:21:20+00:00</updated>
+    <author>
+      <name>/u/k-en</name>
+      <uri>https://old.reddit.com/user/k-en</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"&gt; &lt;img alt="OCRFlux-3B" src="https://external-preview.redd.it/x9gxRnW-oFgiJds7kCEygtLLuK_ZzX-0pJcvDDyr2xk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5dcd5f194d87db7612ad57b0c05d46dc6f0cfae3" title="OCRFlux-3B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;From the HF repo:&lt;/p&gt; &lt;p&gt;&amp;quot;OCRFlux is a multimodal large language model based toolkit for converting PDFs and images into clean, readable, plain Markdown text. It aims to push the current state-of-the-art to a significantly higher level.&amp;quot;&lt;/p&gt; &lt;p&gt;Claims to beat other models like olmOCR and Nanonets-OCR-s by a substantial margin. Read online that it can also merge content spanning multiple pages such as long tables. There's also a docker container with the full toolkit and a github repo. What are your thoughts on this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/k-en"&gt; /u/k-en &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/ChatDOC/OCRFlux-3B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lrsf6x/ocrflux3b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-04T20:21:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1lreu44</id>
