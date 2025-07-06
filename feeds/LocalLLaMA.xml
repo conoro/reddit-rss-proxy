@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-06T09:35:41+00:00</updated>
+  <updated>2025-07-06T09:48:43+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1lsses1</id>
-    <title>Vibecoding: Exploring Dynamic Quantization for LLMs: My PoC with Qwen-0.6B</title>
-    <updated>2025-07-06T04:17:37+00:00</updated>
-    <author>
-      <name>/u/jasonmbrown</name>
-      <uri>https://old.reddit.com/user/jasonmbrown</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Note: The following was generated via Gemini, simply because I am lazy and don't wanna summarize things personally. You can view the code &lt;a href="https://pastebin.com/82Cn7022"&gt;Here&lt;/a&gt;, and the text output comparisons &lt;a href="https://pastebin.com/73Zn2bP4"&gt;Here&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I used the Puffin dataset for the Proof of concept, all in all it at least seems promising. Sadly its purely simulated, its my understanding that we would need custom cuda code in order to on the fly quantize (if its even currently possible with current hardware).&lt;/p&gt; &lt;p&gt;Given that this was a quick vibecoded proof of concept attempt to see how qwen3 0.6b would handle on the fly dynamic quantization in different sized chunks, I am rather impressed. But I don't know if the results were genuine. I would love to hear from other people about the topic.&lt;/p&gt; &lt;p&gt;Finally the End goal for this would be:&lt;br /&gt; Keep entire Model Loaded in system Memory. Quantize on the fly based off the current prompt.&lt;br /&gt; Update the gpu based on the new quantized values.&lt;br /&gt; Think Dynamic Mixture of Experts but using quantization over an entire model based on current tasks.&lt;/p&gt; &lt;p&gt;[Edit: I should mention that the accuracy is based off the Full models output (Using Puffin dataset for the prompts/context) and compared with the quantized output. At no point did the accuracy compare with the datasets expected output]&lt;/p&gt; &lt;p&gt;Ok what follows was an AI generated summary from Gemini of my results.&lt;br /&gt; ------&lt;/p&gt; &lt;p&gt;I've been experimenting with &lt;strong&gt;dynamic quantization&lt;/strong&gt; for Large Language Models, and I wanted to share what I've found and get some community input.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Idea:&lt;/strong&gt; My goal is to make LLMs more efficient by having them adjust the precision (bit-width) of their weights &lt;em&gt;as they process input&lt;/em&gt;. Think of it as a model deciding, &amp;quot;Okay, this simple query can use 4-bit, but that complex reasoning part needs 16-bit,&amp;quot; all to save VRAM and potentially speed things up.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My Setup:&lt;/strong&gt; I'm using the &lt;strong&gt;Qwen3-0.6B&lt;/strong&gt; model (which is typically BF16) and a smaller, separate neural network I'm calling the &amp;quot;&lt;strong&gt;Quantization Controller&lt;/strong&gt;.&amp;quot; This controller's job is to predict the best bit-width (from 0-bit pruning to 32-bit full precision) for small &amp;quot;chunks&amp;quot; of the LLM's weights for each specific input.&lt;/p&gt; &lt;p&gt;I'm training this controller to balance two things:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Output Similarity:&lt;/strong&gt; Keep the quantized model's output logits as close as possible to the full-precision model's.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;VRAM Use:&lt;/strong&gt; Add a penalty for using higher bit-widths to encourage memory savings. The VRAM penalty changes dynamically based on how well the quantized model is doing on accuracy – if it's too accurate, the penalty for VRAM goes up, pushing it to compress more; if accuracy drops, the penalty goes down, letting it use more bits.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;What I've Seen So Far:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;VRAM Savings:&lt;/strong&gt; I've managed to get the simulated VRAM footprint down from around 2.2GB (full BF16) to about 1.1GB, which is a pretty good reduction.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Token-Level Accuracy:&lt;/strong&gt; On my small dataset, the quantized model often matches the full-precision model almost perfectly in terms of predicting the next token.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;&amp;quot;Settling&amp;quot; Bit-widths:&lt;/strong&gt; Even with the dynamic penalty, the controller seems to mostly stick to a couple of main bit-widths (like 9-bit and 11-bit) for most chunks. Only a small fraction of chunks (e.g., 8-30 out of ~4500) actually change their quantization level per step. This makes it feel more like it's found a good static setup for these specific prompts.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Quality vs. Accuracy Gap:&lt;/strong&gt; The interesting part is, even with high token accuracy, the &lt;em&gt;generated text&lt;/em&gt; from the quantized model can sometimes be incoherent or factually wrong (e.g., saying something is &amp;quot;not feasible&amp;quot; when it clearly is). This suggests that while it gets the next token right, some of the deeper semantic quality is lost with aggressive quantization.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Questions for Discussion:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;More Dynamic Behavior:&lt;/strong&gt; How can I get the controller to truly adapt more dynamically, meaning more fluctuation in bit-widths per chunk per prompt? Should I increase the &amp;quot;entropy penalty&amp;quot; in the controller's loss function to encourage it to explore more?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Improving Output Quality:&lt;/strong&gt; To fix the coherence issues, I'm thinking about adding &lt;strong&gt;trainable adapters (like LoRA)&lt;/strong&gt; to the quantized LLM. The idea is these small adapters would learn to correct the errors caused by quantization. Does this sound like a good next step, or are there other efficient ways to tackle this?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Generating LoRA Weights?&lt;/strong&gt; A more out-there idea: could a &lt;em&gt;tiny, separate model&lt;/em&gt; be trained to &lt;em&gt;generate&lt;/em&gt; those LoRA weights dynamically for each input? (I know this is complex, but curious if anyone's explored this &amp;quot;hypernetwork&amp;quot; approach for quantization).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Real-World Quantization:&lt;/strong&gt; My current setup &amp;quot;fakes&amp;quot; quantization (values are re-mapped in BF16, but the actual memory footprint doesn't change). How do people typically test and implement &lt;em&gt;true&lt;/em&gt; dynamic quantization with actual low-bit integer types (like 4-bit or 8-bit) in PyTorch, especially since libraries like &lt;code&gt;bitsandbytes&lt;/code&gt; don't seem to expose easy dynamic per-chunk switching?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I'm pretty excited about the potential of adaptive quantization to make LLMs more accessible and efficient. Any thoughts, relevant papers, or advice would be super helpful!&lt;/p&gt; &lt;p&gt;Thanks for reading!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jasonmbrown"&gt; /u/jasonmbrown &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsses1/vibecoding_exploring_dynamic_quantization_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsses1/vibecoding_exploring_dynamic_quantization_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsses1/vibecoding_exploring_dynamic_quantization_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-06T04:17:37+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1lsflii</id>
-    <title>Anyone built a home 2× A100 SXM4 node?</title>
-    <updated>2025-07-05T17:45:34+00:00</updated>
-    <author>
-      <name>/u/Fun_Nefariousness228</name>
-      <uri>https://old.reddit.com/user/Fun_Nefariousness228</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m doing self-funded AI research and recently got access to 2× NVIDIA A100 SXM4 GPUs. I want to build a quiet, stable node at home to run local models and training workloads — no cloud.&lt;/p&gt; &lt;p&gt;Has anyone here actually built a DIY system with A100 SXM4s (not PCIe)? If so: What HGX carrier board or server chassis did you use? How did you handle power + cooling safely at home? Any tips on finding used baseboards or reference systems?&lt;/p&gt; &lt;p&gt;I’m not working for any company — just serious about doing advanced AI work locally and learning by building. Happy to share progress once it’s working.&lt;/p&gt; &lt;p&gt;Thanks in advance — would love any help or photos from others doing the same.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fun_Nefariousness228"&gt; /u/Fun_Nefariousness228 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsflii/anyone_built_a_home_2_a100_sxm4_node/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsflii/anyone_built_a_home_2_a100_sxm4_node/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsflii/anyone_built_a_home_2_a100_sxm4_node/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-05T17:45:34+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ls9jvu</id>
     <title>Which open source LLM has the most genuine sense of humor?</title>
@@ -58,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsfmcj/i_created_this_tool_i_named_reddsummarycom_just/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-05T17:46:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lsv7j1</id>
+    <title>Using local LLM for anonymizing prompts before sending to cloud LLM - are there any open source solutions?</title>
+    <updated>2025-07-06T07:13:58+00:00</updated>
+    <author>
+      <name>/u/cesarean722</name>
+      <uri>https://old.reddit.com/user/cesarean722</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want to use flagship models for coding, without worrying that some personal/business specific data leaks to cloud. Was thinking maybe there is a solution that would do something like this:&lt;/p&gt; &lt;p&gt;local model:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;detects personal or business specific data in prompts, &lt;/li&gt; &lt;li&gt;creates mapping dictionary&lt;/li&gt; &lt;li&gt;warns if replace is not feasible&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;proxy app:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;executes string replace according to rules in dictionary&lt;/li&gt; &lt;li&gt;routes requests to cloud LLM api&lt;/li&gt; &lt;li&gt;passes LLM warnings to user &lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cesarean722"&gt; /u/cesarean722 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-06T07:13:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1lsdxc2</id>
@@ -151,6 +138,32 @@
     <published>2025-07-06T08:41:21+00:00</published>
   </entry>
   <entry>
+    <id>t3_1lsx9pn</id>
+    <title>Advice Needed: Building an In-House LLM System Using Latest Tech — Recommendations?</title>
+    <updated>2025-07-06T09:35:48+00:00</updated>
+    <author>
+      <name>/u/No_Edge2098</name>
+      <uri>https://old.reddit.com/user/No_Edge2098</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm currently working on setting up an &lt;strong&gt;in-house Large Language Model (LLM) system&lt;/strong&gt; for internal organizational projects. Given the rapid advancements in AI technology, I’d greatly value your professional insights and recommendations to ensure we're leveraging the latest tools and methods effectively.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Here's our current plan and key considerations:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. Model Selection:&lt;/strong&gt; We're considering open-source models such as GPT-3 (EleutherAI), T5, or FLAN-T5. Are there any standout alternatives or specific models you've successfully implemented lately?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Data Pipeline:&lt;/strong&gt; We’re using Apache Kafka for real-time data ingestion and Apache Spark for batch processing. Have you come across any newer or more efficient tools and practices beneficial for handling large-scale datasets?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Training &amp;amp; Fine-Tuning:&lt;/strong&gt; Planning to utilize Ray Tune and Weights &amp;amp; Biases for hyperparameter optimization and experiment tracking. GPU costs remain a concern—any advice on cost-effective or emerging platforms for fine-tuning large models?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. Deployment &amp;amp; Serving:&lt;/strong&gt; Considering Kubernetes, Docker, and FastAPI for deployment. Would you recommend NVIDIA Triton Server or TensorRT for better performance? What has your experience been?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Performance &amp;amp; Scalability:&lt;/strong&gt; Ensuring real-time scalability and minimal latency is crucial. How do you efficiently manage scalability and parallel inference when deploying multiple models concurrently?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;6. Ethics &amp;amp; Bias Mitigation:&lt;/strong&gt; Effective bias detection and mitigation frameworks are essential for us. Can you suggest recent effective tools or methods for ethical AI deployment?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;We'd appreciate your input on:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Key tools or strategies that significantly improved your LLM workflows in 2025.&lt;/li&gt; &lt;li&gt;Recommendations for cost-effective GPU management and training setups.&lt;/li&gt; &lt;li&gt;Preferred tools for robust monitoring, logging, and performance analysis (e.g., Prometheus, Grafana).&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Edge2098"&gt; /u/No_Edge2098 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsx9pn/advice_needed_building_an_inhouse_llm_system/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsx9pn/advice_needed_building_an_inhouse_llm_system/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsx9pn/advice_needed_building_an_inhouse_llm_system/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-06T09:35:48+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lsxfpt</id>
+    <title>Is this good enough for AI work?</title>
+    <updated>2025-07-06T09:47:45+00:00</updated>
+    <author>
+      <name>/u/ZealousidealDish7334</name>
+      <uri>https://old.reddit.com/user/ZealousidealDish7334</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsxfpt/is_this_good_enough_for_ai_work/"&gt; &lt;img alt="Is this good enough for AI work?" src="https://preview.redd.it/1ewapxek68bf1.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=18752b6a4cf566964b73f0f24499a8a96eca87f3" title="Is this good enough for AI work?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am just getting started with Ollama, after Jan and Gpt4all. Where should i begin?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZealousidealDish7334"&gt; /u/ZealousidealDish7334 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/1ewapxek68bf1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsxfpt/is_this_good_enough_for_ai_work/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsxfpt/is_this_good_enough_for_ai_work/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-06T09:47:45+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1lsi0gj</id>
     <title>Open-sourced image description models (Object detection, OCR, Image processing, CNN) make LLMs SOTA in AI agentic benchmarks like Android World and Android Control</title>
     <updated>2025-07-05T19:31:10+00:00</updated>
@@ -162,19 +175,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsi0gj/opensourced_image_description_models_object/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-05T19:31:10+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1lsv7j1</id>
-    <title>Using local LLM for anonymizing prompts before sending to cloud LLM - are there any open source solutions?</title>
-    <updated>2025-07-06T07:13:58+00:00</updated>
-    <author>
-      <name>/u/cesarean722</name>
-      <uri>https://old.reddit.com/user/cesarean722</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want to use flagship models for coding, without worrying that some personal/business specific data leaks to cloud. Was thinking maybe there is a solution that would do something like this:&lt;/p&gt; &lt;p&gt;local model:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;detects personal or business specific data in prompts, &lt;/li&gt; &lt;li&gt;creates mapping dictionary&lt;/li&gt; &lt;li&gt;warns if replace is not feasible&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;proxy app:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;executes string replace according to rules in dictionary&lt;/li&gt; &lt;li&gt;routes requests to cloud LLM api&lt;/li&gt; &lt;li&gt;passes LLM warnings to user &lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cesarean722"&gt; /u/cesarean722 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsv7j1/using_local_llm_for_anonymizing_prompts_before/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-06T07:13:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1ls5b89</id>
@@ -203,19 +203,6 @@
     <published>2025-07-06T08:48:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1lswnto</id>
-    <title>gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code.</title>
-    <updated>2025-07-06T08:54:21+00:00</updated>
-    <author>
-      <name>/u/PieBru</name>
-      <uri>https://old.reddit.com/user/PieBru</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt; &lt;img alt="gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code." src="https://b.thumbs.redditmedia.com/nT92tKjMkTLoLC9uXWz050-DcHqgcFo8BpiZvSZgM8I.jpg" title="gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/9n9zbmftv7bf1.png?width=2348&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=442e283d1f39378d1799de954c2c1806310333f5"&gt;https://preview.redd.it/9n9zbmftv7bf1.png?width=2348&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=442e283d1f39378d1799de954c2c1806310333f5&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm a huge open source fan, but I think the gemini-cli fallback from &amp;quot;pro&amp;quot; to &amp;quot;flash&amp;quot; will divert more &amp;quot;real&amp;quot; coders to claude-code than convince them to get a gemini-pro subscription.&lt;/p&gt; &lt;p&gt;The gemini-cli doc states that &amp;quot;To ensure you rarely, if ever, hit a limit during this preview, we offer the industry’s largest allowance: 60 model requests per minute and 1,000 requests per day at no charge.&amp;quot;. That's good, but it doesn't mention the throttling from pro to flash. When I try to build something out of the Erathostene Sieve, the throttling causes a code mess and soon reaches the limits (err 429) without a useful solution, because of the flash incapacity to solve &amp;quot;real&amp;quot; coding problems.&lt;/p&gt; &lt;p&gt;gemini-cli at this early stage can't compare to claude-code, so loosing &amp;quot;real&amp;quot; community devs isn't the best strategy to win the battle, IMO.&lt;/p&gt; &lt;p&gt;At the end, I'm looking for alternative solutions, without discarding the auto-build of a similar tool that with some agentic LLM routing can substitute closed-source and cloud solutions.&lt;/p&gt; &lt;p&gt;Meanwhile, the above solutions + context engineering may be used to build some &amp;quot;private&amp;quot; solution.&lt;/p&gt; &lt;p&gt;What do you think?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PieBru"&gt; /u/PieBru &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-06T08:54:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1lsuje6</id>
     <title>Anyone building a local coding cli or coding agent?</title>
     <updated>2025-07-06T06:30:07+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lsuje6/anyone_building_a_local_coding_cli_or_coding_agent/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-06T06:30:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1lswnto</id>
+    <title>gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code.</title>
+    <updated>2025-07-06T08:54:21+00:00</updated>
+    <author>
+      <name>/u/PieBru</name>
+      <uri>https://old.reddit.com/user/PieBru</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt; &lt;img alt="gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code." src="https://b.thumbs.redditmedia.com/nT92tKjMkTLoLC9uXWz050-DcHqgcFo8BpiZvSZgM8I.jpg" title="gemini-cli: falling back to gemini-flash is the best marketing strategy Anthropic could have dreamed of for claude-code." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/9n9zbmftv7bf1.png?width=2348&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=442e283d1f39378d1799de954c2c1806310333f5"&gt;https://preview.redd.it/9n9zbmftv7bf1.png?width=2348&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=442e283d1f39378d1799de954c2c1806310333f5&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm a huge open source fan, but I think the gemini-cli fallback from &amp;quot;pro&amp;quot; to &amp;quot;flash&amp;quot; will divert more &amp;quot;real&amp;quot; coders to claude-code than convince them to get a gemini-pro subscription.&lt;/p&gt; &lt;p&gt;The gemini-cli doc states that &amp;quot;To ensure you rarely, if ever, hit a limit during this preview, we offer the industry’s largest allowance: 60 model requests per minute and 1,000 requests per day at no charge.&amp;quot;. That's good, but it doesn't mention the throttling from pro to flash. When I try to build something out of the Erathostene Sieve, the throttling causes a code mess and soon reaches the limits (err 429) without a useful solution, because of the flash incapacity to solve &amp;quot;real&amp;quot; coding problems.&lt;/p&gt; &lt;p&gt;gemini-cli at this early stage can't compare to claude-code, so loosing &amp;quot;real&amp;quot; community devs isn't the best strategy to win the battle, IMO.&lt;/p&gt; &lt;p&gt;At the end, I'm looking for alternative solutions, without discarding the auto-build of a similar tool that with some agentic LLM routing can substitute closed-source and cloud solutions.&lt;/p&gt; &lt;p&gt;Meanwhile, the above solutions + context engineering may be used to build some &amp;quot;private&amp;quot; solution.&lt;/p&gt; &lt;p&gt;What do you think?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PieBru"&gt; /u/PieBru &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1lswnto/geminicli_falling_back_to_geminiflash_is_the_best/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-06T08:54:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1lsw9vz</id>
