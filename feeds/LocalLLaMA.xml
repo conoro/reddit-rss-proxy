@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-24T12:11:49+00:00</updated>
+  <updated>2025-07-24T12:29:04+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1m7ci3s</id>
-    <title>HOWTO: Use Qwen3-Coder (or any other LLM) with Claude Code (via LiteLLM)</title>
-    <updated>2025-07-23T15:35:43+00:00</updated>
-    <author>
-      <name>/u/WolframRavenwolf</name>
-      <uri>https://old.reddit.com/user/WolframRavenwolf</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7ci3s/howto_use_qwen3coder_or_any_other_llm_with_claude/"&gt; &lt;img alt="HOWTO: Use Qwen3-Coder (or any other LLM) with Claude Code (via LiteLLM)" src="https://preview.redd.it/5p7u0le68nef1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=052b75b74825ad0e1f536d20305b7b06a2c2db8c" title="HOWTO: Use Qwen3-Coder (or any other LLM) with Claude Code (via LiteLLM)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here's a simple way for Claude Code users to switch from the costly Claude models to the newly released SOTA open-source/weights coding model, Qwen3-Coder, via OpenRouter using LiteLLM on your local machine.&lt;/p&gt; &lt;p&gt;This process is quite universal and can be easily adapted to suit your needs. Feel free to explore other models (including local ones) as well as different providers and coding agents.&lt;/p&gt; &lt;p&gt;I'm sharing what works for me. This guide is set up so you can just copy and paste the commands into your terminal.&lt;/p&gt; &lt;p&gt;\1. Clone the official LiteLLM repo:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh git clone https://github.com/BerriAI/litellm.git cd litellm &lt;/code&gt;&lt;/p&gt; &lt;p&gt;\2. Create an &lt;code&gt;.env&lt;/code&gt; file with your OpenRouter API key (make sure to insert your own API key!):&lt;/p&gt; &lt;p&gt;```sh cat &amp;lt;&amp;lt;\EOF &amp;gt;.env LITELLM_MASTER_KEY = &amp;quot;sk-1234&amp;quot;&lt;/p&gt; &lt;h1&gt;OpenRouter&lt;/h1&gt; &lt;p&gt;OPENROUTER_API_KEY = &amp;quot;sk-or-v1-…&amp;quot; # 🚩 EOF ```&lt;/p&gt; &lt;p&gt;\3. Create a &lt;code&gt;config.yaml&lt;/code&gt; file that replaces Anthropic models with Qwen3-Coder (with all the recommended parameters):&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh cat &amp;lt;&amp;lt;\EOF &amp;gt;config.yaml model_list: - model_name: &amp;quot;anthropic/*&amp;quot; litellm_params: model: &amp;quot;openrouter/qwen/qwen3-coder&amp;quot; # Qwen/Qwen3-Coder-480B-A35B-Instruct max_tokens: 65536 repetition_penalty: 1.05 temperature: 0.7 top_k: 20 top_p: 0.8 EOF &lt;/code&gt;&lt;/p&gt; &lt;p&gt;\4. Create a &lt;code&gt;docker-compose.yml&lt;/code&gt; file that loads &lt;code&gt;config.yaml&lt;/code&gt; (it's easier to just create a finished one with all the required changes than to edit the original file):&lt;/p&gt; &lt;p&gt;```sh cat &amp;lt;&amp;lt;\EOF &amp;gt;docker-compose.yml services: litellm: build: context: . args: target: runtime ############################################################################ command: - &amp;quot;--config=/app/config.yaml&amp;quot; container_name: litellm hostname: litellm image: ghcr.io/berriai/litellm:main-stable restart: unless-stopped volumes: - ./config.yaml:/app/config.yaml ############################################################################ ports: - &amp;quot;4000:4000&amp;quot; # Map the container port to the host, change the host port if necessary environment: DATABASE_URL: &amp;quot;postgresql://llmproxy:dbpassword9090@db:5432/litellm&amp;quot; STORE_MODEL_IN_DB: &amp;quot;True&amp;quot; # allows adding models to proxy via UI env_file: - .env # Load local .env file depends_on: - db # Indicates that this service depends on the 'db' service, ensuring 'db' starts first healthcheck: # Defines the health check configuration for the container test: [ &amp;quot;CMD-SHELL&amp;quot;, &amp;quot;wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1&amp;quot; ] # Command to execute for health check interval: 30s # Perform health check every 30 seconds timeout: 10s # Health check command times out after 10 seconds retries: 3 # Retry up to 3 times if health check fails start_period: 40s # Wait 40 seconds after container start before beginning health checks&lt;/p&gt; &lt;p&gt;db: image: postgres:16 restart: always container_name: litellm_db environment: POSTGRES_DB: litellm POSTGRES_USER: llmproxy POSTGRES_PASSWORD: dbpassword9090 ports: - &amp;quot;5432:5432&amp;quot; volumes: - postgres_data:/var/lib/postgresql/data # Persists Postgres data across container restarts healthcheck: test: [&amp;quot;CMD-SHELL&amp;quot;, &amp;quot;pg_isready -d litellm -U llmproxy&amp;quot;] interval: 1s timeout: 5s retries: 10&lt;/p&gt; &lt;p&gt;volumes: postgres_data: name: litellm_postgres_data # Named volume for Postgres data persistence EOF ```&lt;/p&gt; &lt;p&gt;\5. Build and run LiteLLM (this is important, as some required fixes are not yet in the published image as of 2025-07-23):&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh docker compose up -d --build &lt;/code&gt;&lt;/p&gt; &lt;p&gt;\6. Export environment variables that make Claude Code use Qwen3-Coder via LiteLLM (remember to execute this before starting Claude Code or include it in your shell profile (&lt;code&gt;.zshrc&lt;/code&gt;, &lt;code&gt;.bashrc&lt;/code&gt;, etc.) for persistence):&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh export ANTHROPIC_AUTH_TOKEN=sk-1234 export ANTHROPIC_BASE_URL=http://localhost:4000 export ANTHROPIC_MODEL=openrouter/qwen/qwen3-coder export ANTHROPIC_SMALL_FAST_MODEL=openrouter/qwen/qwen3-coder export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 # Optional: Disables telemetry, error reporting, and auto-updates &lt;/code&gt;&lt;/p&gt; &lt;p&gt;\7. Start Claude Code and it'll use Qwen3-Coder via OpenRouter instead of the expensive Claude models (you can check with the &lt;code&gt;/model&lt;/code&gt; command that it's using a custom model):&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh claude &lt;/code&gt;&lt;/p&gt; &lt;p&gt;\8. Optional: Add an alias to your shell profile (&lt;code&gt;.zshrc&lt;/code&gt;, &lt;code&gt;.bashrc&lt;/code&gt;, etc.) to make it easier to use (e.g. &lt;code&gt;qlaude&lt;/code&gt; for &amp;quot;Claude with Qwen&amp;quot;):&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh alias qlaude='ANTHROPIC_AUTH_TOKEN=sk-1234 ANTHROPIC_BASE_URL=http://localhost:4000 ANTHROPIC_MODEL=openrouter/qwen/qwen3-coder ANTHROPIC_SMALL_FAST_MODEL=openrouter/qwen/qwen3-coder claude' &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Have fun and happy coding!&lt;/p&gt; &lt;p&gt;PS: There are other ways to do this using dedicated Claude Code proxies, of which there are quite a few on GitHub. Before implementing this with LiteLLM, I reviewed some of them, but they all had issues, such as not handling the recommended inference parameters. I prefer using established projects with a solid track record and a large user base, which is why I chose LiteLLM. Open Source offers many options, so feel free to explore other projects and find what works best for you.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WolframRavenwolf"&gt; /u/WolframRavenwolf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/5p7u0le68nef1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7ci3s/howto_use_qwen3coder_or_any_other_llm_with_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7ci3s/howto_use_qwen3coder_or_any_other_llm_with_claude/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-23T15:35:43+00:00</published>
-  </entry>
   <entry>
     <id>t3_1m7lj3x</id>
     <title>Higgs Audio V2 - Open Multi-Speaker TTS Model - Impressive Testing Results</title>
@@ -34,17 +21,17 @@
     <published>2025-07-23T21:17:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1m7xclf</id>
-    <title>5090 vs 4090 vs smt else for inference?</title>
-    <updated>2025-07-24T06:52:43+00:00</updated>
+    <id>t3_1m82w07</id>
+    <title>Free uncensored LLM model that I can deploy to Gradio.</title>
+    <updated>2025-07-24T12:20:29+00:00</updated>
     <author>
-      <name>/u/Rich_Artist_8327</name>
-      <uri>https://old.reddit.com/user/Rich_Artist_8327</uri>
+      <name>/u/NeutronSchool</name>
+      <uri>https://old.reddit.com/user/NeutronSchool</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Which GPUs should I purchase for inferencing?&lt;br /&gt; I have found 5090 about same price as 4090, why is that?&lt;br /&gt; Is there some problems with 5090 or why is the pricing so? Does it have melting problems still?&lt;br /&gt; Is 5090 more power efficient than 4090? I need at least 2 maybe 4.&lt;br /&gt; Which is currently the way to go GPU? Are datacenter versions getting cheaper?&lt;/p&gt; &lt;p&gt;EDIT: another way could be new Radeon R9700 32GB but it will be much slower. What is the situation with 5090 pytorch support etc drivers for inferencing (ollama ofcourse should work) and also RDNA4, is it pain in the ass related to software?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Rich_Artist_8327"&gt; /u/Rich_Artist_8327 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7xclf/5090_vs_4090_vs_smt_else_for_inference/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7xclf/5090_vs_4090_vs_smt_else_for_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7xclf/5090_vs_4090_vs_smt_else_for_inference/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I need help finding an uncensored AI LLM model fhat has absolutely no restrictions. &lt;/p&gt; &lt;p&gt;Background: I'm writing a story that involves violence, gore, and explicit cuss words spoken by the characters.&lt;/p&gt; &lt;p&gt;ChatGPT 4o can occassionally (and under rare circumstances) curse and say &amp;quot;fuck&amp;quot; &amp;quot;bitch&amp;quot; and &amp;quot;ass&amp;quot; (albeit with a ton of asterisks). However, I need an LLM that can curse far more harsh and crudely. &lt;/p&gt; &lt;p&gt;And at the moment, I dont have any money on my hands due to financial problems. So I'd appreciate it if you could link a free LLM that doesnt require credit top ups or anything.&lt;/p&gt; &lt;p&gt;Plus my laptop specs are 8GB RAM, GTX 1650 and i5 10th gen CPU, if thats relevant, which seems far too small. So I'd also appreciate it if you could link a model that I can deploy to Gradio.&lt;/p&gt; &lt;p&gt;I'm a rookie in these things, so I apologise in advance if you see any ignorance in my post.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NeutronSchool"&gt; /u/NeutronSchool &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m82w07/free_uncensored_llm_model_that_i_can_deploy_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m82w07/free_uncensored_llm_model_that_i_can_deploy_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m82w07/free_uncensored_llm_model_that_i_can_deploy_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-24T06:52:43+00:00</published>
+    <published>2025-07-24T12:20:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1m7d9d9</id>
@@ -86,6 +73,19 @@
     <published>2025-07-23T17:21:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1m82lwo</id>
+    <title>Leaked List Shows Which Websites Contractors Can Use to Train Anthropic's LLMs</title>
+    <updated>2025-07-24T12:07:03+00:00</updated>
+    <author>
+      <name>/u/Amgadoz</name>
+      <uri>https://old.reddit.com/user/Amgadoz</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m82lwo/leaked_list_shows_which_websites_contractors_can/"&gt; &lt;img alt="Leaked List Shows Which Websites Contractors Can Use to Train Anthropic's LLMs" src="https://external-preview.redd.it/4EDmTvD3Q75TbsFu3bs2bpESx7dmxOeoPUkJraEGC8I.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=42380fe0539f546fdb60963fca95595cf9e80e4c" title="Leaked List Shows Which Websites Contractors Can Use to Train Anthropic's LLMs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;BI obtained an internal list of websites that could and couldn't be used for training Anthropic's latest AI models. &lt;/p&gt; &lt;p&gt;Anthropic's contractor Surge AI left the list fully public on Google Docs. &lt;/p&gt; &lt;p&gt;'Sites you can use' include Bloomberg, Harvard, &amp;amp; the Mayo Clinic.&lt;/p&gt; &lt;p&gt;Many of the whitelisted sources copyright or otherwise restrict their content. &lt;/p&gt; &lt;p&gt;At least 3 - the Mayo Clinic, Cornell University, &amp;amp; Morningstar - told BI they didn't have any AI training agreements with Anthropic.&lt;/p&gt; &lt;p&gt;The spreadsheet also includes a blacklist of websites that Surge AI's gig workers were &amp;quot;now disallowed&amp;quot; from using. &lt;/p&gt; &lt;p&gt;The blacklist includes companies like the NYT &amp;amp; Reddit which have sued AI startups for scraping without permission.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Amgadoz"&gt; /u/Amgadoz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.businessinsider.com/anthropic-surge-ai-leaked-list-sites-2025-7"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m82lwo/leaked_list_shows_which_websites_contractors_can/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m82lwo/leaked_list_shows_which_websites_contractors_can/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-24T12:07:03+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1m7c2gr</id>
     <title>Kimi K2 vs Sonnet 4 for Agentic Coding (Tested on Claude Code)</title>
     <updated>2025-07-23T15:19:01+00:00</updated>
@@ -97,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7c2gr/kimi_k2_vs_sonnet_4_for_agentic_coding_tested_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-23T15:19:01+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1m820ry</id>
-    <title>I used a local LLM and http proxy to create a "Digital Twin" from my web browsing for my AI agents</title>
-    <updated>2025-07-24T11:37:24+00:00</updated>
-    <author>
-      <name>/u/kuaythrone</name>
-      <uri>https://old.reddit.com/user/kuaythrone</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"&gt; &lt;img alt="I used a local LLM and http proxy to create a &amp;quot;Digital Twin&amp;quot; from my web browsing for my AI agents" src="https://external-preview.redd.it/hcMsPXl9sueJ7whcsnuoPIiGx_1AAO5_J25JC13RT88.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c930ae840780c055e12d46587ee78dbe04d08779" title="I used a local LLM and http proxy to create a &amp;quot;Digital Twin&amp;quot; from my web browsing for my AI agents" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built an open-source tool called &lt;strong&gt;Digital Twin Proxy&lt;/strong&gt; that uses a local LLM (via Ollama) to analyze my browsing history and create a personal &amp;quot;digital twin.&amp;quot; This gives my other AI agents real-time context about what I'm working on.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub Repo:&lt;/strong&gt; &lt;a href="https://github.com/kstonekuan/digital-twin-proxy"&gt;https://github.com/kstonekuan/digital-twin-proxy&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It works by routing traffic through a Squid proxy, and then a Rust app sends the logs to a local model (I'm using Llama 3) for analysis. This way, I can create a more personalized AI experience without my data ever leaving my machine.&lt;/p&gt; &lt;p&gt;The goal is to enable &amp;quot;context engineering,&amp;quot; where agents can anticipate needs or tailor responses based on my current web activity.&lt;/p&gt; &lt;p&gt;I'd love to get feedback, let me know what you think&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kuaythrone"&gt; /u/kuaythrone &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/kstonekuan/digital-twin-proxy"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-24T11:37:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1m80tkf</id>
@@ -164,6 +151,19 @@
     <published>2025-07-24T00:14:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1m820ry</id>
+    <title>I used a local LLM and http proxy to create a "Digital Twin" from my web browsing for my AI agents</title>
+    <updated>2025-07-24T11:37:24+00:00</updated>
+    <author>
+      <name>/u/kuaythrone</name>
+      <uri>https://old.reddit.com/user/kuaythrone</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"&gt; &lt;img alt="I used a local LLM and http proxy to create a &amp;quot;Digital Twin&amp;quot; from my web browsing for my AI agents" src="https://external-preview.redd.it/hcMsPXl9sueJ7whcsnuoPIiGx_1AAO5_J25JC13RT88.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c930ae840780c055e12d46587ee78dbe04d08779" title="I used a local LLM and http proxy to create a &amp;quot;Digital Twin&amp;quot; from my web browsing for my AI agents" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built an open-source tool called &lt;strong&gt;Digital Twin Proxy&lt;/strong&gt; that uses a local LLM (via Ollama) to analyze my browsing history and create a personal &amp;quot;digital twin.&amp;quot; This gives my other AI agents real-time context about what I'm working on.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub Repo:&lt;/strong&gt; &lt;a href="https://github.com/kstonekuan/digital-twin-proxy"&gt;https://github.com/kstonekuan/digital-twin-proxy&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It works by routing traffic through a Squid proxy, and then a Rust app sends the logs to a local model (I'm using Llama 3) for analysis. This way, I can create a more personalized AI experience without my data ever leaving my machine.&lt;/p&gt; &lt;p&gt;The goal is to enable &amp;quot;context engineering,&amp;quot; where agents can anticipate needs or tailor responses based on my current web activity.&lt;/p&gt; &lt;p&gt;I'd love to get feedback, let me know what you think&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kuaythrone"&gt; /u/kuaythrone &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/kstonekuan/digital-twin-proxy"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m820ry/i_used_a_local_llm_and_http_proxy_to_create_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-24T11:37:24+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1m7ypyb</id>
     <title>Why is B200 performing similarly to H200? (ArtificialAnalysis)</title>
     <updated>2025-07-24T08:19:04+00:00</updated>
@@ -177,19 +177,6 @@
     <published>2025-07-24T08:19:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1m7wqi3</id>
-    <title>Tool Use Reasoning Dataset Release on Huggingface</title>
-    <updated>2025-07-24T06:15:23+00:00</updated>
-    <author>
-      <name>/u/interstellar-ninja</name>
-      <uri>https://old.reddit.com/user/interstellar-ninja</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"&gt; &lt;img alt="Tool Use Reasoning Dataset Release on Huggingface" src="https://preview.redd.it/w54k1k58lref1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=14ab53a6d727323250320d7b6f742e07264054cb" title="Tool Use Reasoning Dataset Release on Huggingface" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h2&gt;🚀 Released: 50k Rows of Tool-Use Reasoning Dataset on Huggingface!&lt;/h2&gt; &lt;p&gt;I've just published a &lt;strong&gt;50,000-row dataset compilation&lt;/strong&gt; focused on &lt;strong&gt;tool-use reasoning&lt;/strong&gt;, now live on Huggingface!&lt;/p&gt; &lt;h3&gt;🧠 What’s Inside?&lt;/h3&gt; &lt;p&gt;This dataset covers key &lt;strong&gt;BFCL scenarios&lt;/strong&gt; for tool-use reasoning: - 🔧 &lt;strong&gt;Single-turn tool-use&lt;/strong&gt; - 🔁 &lt;strong&gt;Multi-turn tool-use&lt;/strong&gt; - 🧩 &lt;strong&gt;Multi-step tool-use&lt;/strong&gt; - 🎯 &lt;strong&gt;Relevance reasoning&lt;/strong&gt;&lt;/p&gt; &lt;h2&gt;We've enhanced previous &lt;strong&gt;Hermes function calling datasets&lt;/strong&gt; and other &lt;strong&gt;open-source tool-use datasets&lt;/strong&gt;, enriching them with &lt;strong&gt;reasoning traces&lt;/strong&gt; for deeper learning.&lt;/h2&gt; &lt;h3&gt;📂 Dataset:&lt;/h3&gt; &lt;p&gt;&lt;strong&gt;Hermes Tool Use Reasoning Dataset&lt;/strong&gt;&lt;br /&gt; 🔗 &lt;a href="https://huggingface.co/datasets/interstellarninja/hermes_reasoning_tool_use"&gt;https://huggingface.co/datasets/interstellarninja/hermes_reasoning_tool_use&lt;/a&gt;&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;🛠️ How It Was Built:&lt;/h3&gt; &lt;p&gt;We used &lt;a href="https://github.com/NousResearch/atropos/pull/160"&gt;&lt;strong&gt;Nous Research's Atropos&lt;/strong&gt;&lt;/a&gt; to create a &lt;strong&gt;multi-turn tool-use RL environment&lt;/strong&gt; with: - ✅ &lt;strong&gt;Turn-based &amp;amp; trajectory-based rewards&lt;/strong&gt; - 🔄 &lt;strong&gt;Rejection sampling-based SFT dataset generation&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This supports better generalization for models needing structured multi-turn reasoning.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/interstellar-ninja"&gt; /u/interstellar-ninja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/w54k1k58lref1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-24T06:15:23+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1m7o3u8</id>
     <title>Is there a future for local models?</title>
     <updated>2025-07-23T23:01:46+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7o3u8/is_there_a_future_for_local_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-23T23:01:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1m7wqi3</id>
+    <title>Tool Use Reasoning Dataset Release on Huggingface</title>
+    <updated>2025-07-24T06:15:23+00:00</updated>
+    <author>
+      <name>/u/interstellar-ninja</name>
+      <uri>https://old.reddit.com/user/interstellar-ninja</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"&gt; &lt;img alt="Tool Use Reasoning Dataset Release on Huggingface" src="https://preview.redd.it/w54k1k58lref1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=14ab53a6d727323250320d7b6f742e07264054cb" title="Tool Use Reasoning Dataset Release on Huggingface" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h2&gt;🚀 Released: 50k Rows of Tool-Use Reasoning Dataset on Huggingface!&lt;/h2&gt; &lt;p&gt;I've just published a &lt;strong&gt;50,000-row dataset compilation&lt;/strong&gt; focused on &lt;strong&gt;tool-use reasoning&lt;/strong&gt;, now live on Huggingface!&lt;/p&gt; &lt;h3&gt;🧠 What’s Inside?&lt;/h3&gt; &lt;p&gt;This dataset covers key &lt;strong&gt;BFCL scenarios&lt;/strong&gt; for tool-use reasoning: - 🔧 &lt;strong&gt;Single-turn tool-use&lt;/strong&gt; - 🔁 &lt;strong&gt;Multi-turn tool-use&lt;/strong&gt; - 🧩 &lt;strong&gt;Multi-step tool-use&lt;/strong&gt; - 🎯 &lt;strong&gt;Relevance reasoning&lt;/strong&gt;&lt;/p&gt; &lt;h2&gt;We've enhanced previous &lt;strong&gt;Hermes function calling datasets&lt;/strong&gt; and other &lt;strong&gt;open-source tool-use datasets&lt;/strong&gt;, enriching them with &lt;strong&gt;reasoning traces&lt;/strong&gt; for deeper learning.&lt;/h2&gt; &lt;h3&gt;📂 Dataset:&lt;/h3&gt; &lt;p&gt;&lt;strong&gt;Hermes Tool Use Reasoning Dataset&lt;/strong&gt;&lt;br /&gt; 🔗 &lt;a href="https://huggingface.co/datasets/interstellarninja/hermes_reasoning_tool_use"&gt;https://huggingface.co/datasets/interstellarninja/hermes_reasoning_tool_use&lt;/a&gt;&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;🛠️ How It Was Built:&lt;/h3&gt; &lt;p&gt;We used &lt;a href="https://github.com/NousResearch/atropos/pull/160"&gt;&lt;strong&gt;Nous Research's Atropos&lt;/strong&gt;&lt;/a&gt; to create a &lt;strong&gt;multi-turn tool-use RL environment&lt;/strong&gt; with: - ✅ &lt;strong&gt;Turn-based &amp;amp; trajectory-based rewards&lt;/strong&gt; - 🔄 &lt;strong&gt;Rejection sampling-based SFT dataset generation&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This supports better generalization for models needing structured multi-turn reasoning.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/interstellar-ninja"&gt; /u/interstellar-ninja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/w54k1k58lref1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1m7wqi3/tool_use_reasoning_dataset_release_on_huggingface/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-24T06:15:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1m7u02i</id>
