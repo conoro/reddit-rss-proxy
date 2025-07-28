@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2025-07-28T11:24:08+00:00</updated>
+  <updated>2025-07-28T11:36:33+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1maqgmr</id>
-    <title>Strategies for handling transient Server-Sent Events (SSE) errors from LLM responses</title>
-    <updated>2025-07-27T16:20:46+00:00</updated>
-    <author>
-      <name>/u/AdditionalWeb107</name>
-      <uri>https://old.reddit.com/user/AdditionalWeb107</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Posting an internal debate for feedback from the senior dev community. Would love thoughts and feedback&lt;/p&gt; &lt;p&gt;We see a lot of traffic flow through our open source edge/service proxy for LLM-based apps. One failure mode that most recently tripped us up (as we scaled deployments of &lt;a href="https://github.com/katanemo/archgw"&gt;archgw&lt;/a&gt; at a telco) were transient errors in streaming LLM responses.&lt;/p&gt; &lt;p&gt;Specifically, if the upstream LLM hangs midstream (this could be an API-based LLM or a local model running via vLLM or ollama) while streaming we fail rather painfully today. By default we have timeouts for connections made upstream and backoff/retry policies, But that resiliency logic doesn't incorporate the more nuanced failure modes where LLMs can hang mid stream, and then the retry behavior isn't obvious. Here are two immediate strategies we are debating, and would love the feedback:&lt;/p&gt; &lt;p&gt;1/ If we detect the stream to be hung for say X seconds, we could buffer the state up until that point, reconstruct the assistant messages and try again. This would replay the state back to the LLM up until that point and have it try generate its messages from that point. For example, lets say we are calling the chat.completions endpoint, with the following user message:&lt;/p&gt; &lt;p&gt;&lt;em&gt;{&amp;quot;role&amp;quot;: &amp;quot;user&amp;quot;, &amp;quot;content&amp;quot;: &amp;quot;What's the Greek name for Sun? (A) Sol (B) Helios (C) Sun&amp;quot;},&lt;/em&gt;&lt;/p&gt; &lt;p&gt;And mid stream the LLM hangs at this point&lt;/p&gt; &lt;p&gt;&lt;em&gt;[{&amp;quot;type&amp;quot;: &amp;quot;text&amp;quot;, &amp;quot;text&amp;quot;: &amp;quot;The best answer is (&amp;quot;}]&lt;/em&gt;&lt;/p&gt; &lt;p&gt;We could then try with the following message to the upstream LLM&lt;/p&gt; &lt;p&gt;&lt;em&gt;[&lt;/em&gt;&lt;br /&gt; &lt;em&gt;{&amp;quot;role&amp;quot;: &amp;quot;user&amp;quot;, &amp;quot;content&amp;quot;: &amp;quot;What's the Greek name for Sun? (A) Sol (B) Helios (C) Sun&amp;quot;},&lt;/em&gt;&lt;br /&gt; &lt;em&gt;{&amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;, &amp;quot;content&amp;quot;: &amp;quot;The best answer is (&amp;quot;}&lt;/em&gt;&lt;br /&gt; &lt;em&gt;]&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Which would result in a response like&lt;/p&gt; &lt;p&gt;&lt;em&gt;[{&amp;quot;type&amp;quot;: &amp;quot;text&amp;quot;, &amp;quot;text&amp;quot;: &amp;quot;B)&amp;quot;}]&lt;/em&gt;&lt;/p&gt; &lt;p&gt;This would be elegant, but we'll have to contend with potentially long buffer sizes, image content (although that is base64'd) and iron out any gotchas with how we use multiplexing to reduce connection overhead. But because the stream replay is stateful, I am not sure if we will expose ourselves to different downstream issues.&lt;/p&gt; &lt;p&gt;2/ fail hard, and don't retry. Two options here a) simply to break the connection upstream and have the client handle the error like a fatal failures or b) send a streaming error event. We could end up sending something like:&lt;br /&gt; &lt;em&gt;event: error&lt;/em&gt;&lt;br /&gt; &lt;em&gt;data: {&amp;quot;error&amp;quot;:&amp;quot;502 Bad Gateway&amp;quot;, &amp;quot;message&amp;quot;:&amp;quot;upstream failure&amp;quot;}&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Because we would have already send partial data to the upstream client, we won't be able to modify the HTTP response code to 502. There are trade offs on both approaches, but from a great developer experience vs. control and visibility where would you lean and why?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AdditionalWeb107"&gt; /u/AdditionalWeb107 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1maqgmr/strategies_for_handling_transient_serversent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1maqgmr/strategies_for_handling_transient_serversent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1maqgmr/strategies_for_handling_transient_serversent/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2025-07-27T16:20:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1maiiwr</id>
-    <title>How did AI go from failing at Excel parsing to powering legal document analysis? What's actually happening under the hood?</title>
-    <updated>2025-07-27T09:59:36+00:00</updated>
-    <author>
-      <name>/u/VaderStateOfMind</name>
-      <uri>https://old.reddit.com/user/VaderStateOfMind</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A year ago, most LLMs would choke on a basic Excel file or mess up simple math. Now companies like Harvey are building entire legal practices around AI document processing.&lt;/p&gt; &lt;p&gt;The problem was real. Early models treated documents as glorified text blobs. Feed them a spreadsheet and they'd hallucinate formulas, miss table relationships, or completely bungle numerical operations. Math? Forget about it.&lt;/p&gt; &lt;p&gt;So what changed technically?&lt;/p&gt; &lt;p&gt;The breakthrough seems to be multi-modal architecture plus specialized preprocessing. Modern systems don't just read documents - they understand structure. They're parsing tables into proper data formats, maintaining cell relationships, and crucially - they're calling external tools for computation rather than doing math in their heads.&lt;/p&gt; &lt;p&gt;The Harvey approach (and similar companies) appears to layer several components: - Document structure extraction (OCR → layout analysis → semantic parsing) - Domain-specific fine-tuning on legal documents - Tool integration for calculations and data manipulation - Retrieval systems for precedent matching&lt;/p&gt; &lt;p&gt;But here's what I'm curious about: Are these companies actually solving document understanding, or are they just getting really good at preprocessing documents into formats that existing LLMs can handle?&lt;/p&gt; &lt;p&gt;Because there's a difference between &amp;quot;AI that understands documents&amp;quot; and &amp;quot;really smart document conversion + AI that works with clean data.&amp;quot;&lt;/p&gt; &lt;p&gt;What's your take? Have you worked with these newer document AI systems? Are we seeing genuine multimodal understanding or just better engineering around the limitations?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/VaderStateOfMind"&gt; /u/VaderStateOfMind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1maiiwr/how_did_ai_go_from_failing_at_excel_parsing_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1maiiwr/how_did_ai_go_from_failing_at_excel_parsing_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1maiiwr/how_did_ai_go_from_failing_at_excel_parsing_to/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2025-07-27T09:59:36+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mand5b</id>
     <title>Claude Agents Power – An intelligent MCP server that analyzes projects and recommends team compositions from 100+ professional roles across company departments, with automatic agent downloading for specialized tasks.</title>
@@ -292,6 +266,32 @@
     <link href="https://old.reddit.com/r/mcp/comments/1malxhc/why_mcp_over_http/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2025-07-27T13:11:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mbdqct</id>
+    <title>How to make ticket booking agent with langGraph</title>
+    <updated>2025-07-28T11:33:15+00:00</updated>
+    <author>
+      <name>/u/jenasuraj</name>
+      <uri>https://old.reddit.com/user/jenasuraj</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Actually I have built things like ai travel planner and so far Integrated things like GitHub mcp server as well, but wondering how can I make something like movie ticket booking app using langGraph? I feel I might need some inbuilt mcp servers though but which one ? Please guide me !&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jenasuraj"&gt; /u/jenasuraj &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mbdqct/how_to_make_ticket_booking_agent_with_langgraph/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mbdqct/how_to_make_ticket_booking_agent_with_langgraph/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1mbdqct/how_to_make_ticket_booking_agent_with_langgraph/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2025-07-28T11:33:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mbdk95</id>
+    <title>why's mcp treated as a server when it's really a protocol?</title>
+    <updated>2025-07-28T11:24:06+00:00</updated>
+    <author>
+      <name>/u/AccidentallyGotHere</name>
+      <uri>https://old.reddit.com/user/AccidentallyGotHere</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm quite new to this so I'm genuinely asking.&lt;/p&gt; &lt;p&gt;I set up an mcp server and provide it to my agent. It works great. But I want to allow the agent to run mcp tools in parallel. While the agent can technically call tools in parallel, they're obv not really executed in parallel.... since they all sit on one server.&lt;/p&gt; &lt;p&gt;I tried to circumvent that and make each mcp tool call spawn a new mcp server (just like an api call would spawn a new lambda function instance).&lt;/p&gt; &lt;p&gt;But I keep getting held back by the fact that the LLM is expecting to have one single mcp server it communicates with. All LLM integrations with mcp servers require a server to be initialized before the run &amp;amp; would not allow any on-the-fly setup.&lt;/p&gt; &lt;p&gt;Why? &lt;/p&gt; &lt;p&gt;afaik, mcp is a protocol. Just like API. Nothing fancier. Why does it constrain my backend handling then? Why can't I just expose an mcp like I'd expose an API, without all these initialization &amp;amp; stuff, which I'd want the LLM framework to be blind to.&lt;/p&gt; &lt;p&gt;🥴&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AccidentallyGotHere"&gt; /u/AccidentallyGotHere &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mbdk95/whys_mcp_treated_as_a_server_when_its_really_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mbdk95/whys_mcp_treated_as_a_server_when_its_really_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1mbdk95/whys_mcp_treated_as_a_server_when_its_really_a/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2025-07-28T11:24:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1mb8xm6</id>
