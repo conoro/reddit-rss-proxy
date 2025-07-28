@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-07-28T20:51:26+00:00</updated>
+  <updated>2025-07-28T21:06:45+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -32,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mb6jzz/why_im_betting_against_ai_agents_in_2025_despite/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-28T04:12:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mbs4dw</id>
+    <title>8600G / 760M llama-bench with Gemma 3 (4, 12, 27B), Mistral Small, Qwen 3 (4, 8, 14, 32B) and Qwen 3 MoE 30B-A3B</title>
+    <updated>2025-07-28T20:55:42+00:00</updated>
+    <author>
+      <name>/u/SunRayWhisper</name>
+      <uri>https://old.reddit.com/user/SunRayWhisper</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I couldn't find any extensive benchmarks when researching this APU, so I'm sharing my findings with the community.&lt;/p&gt; &lt;p&gt;The benchmarks with the iGPU 760M results ~35% faster than the CPU alone (see the tests below, with ngl 0, no layers offloaded to the GPU), the prompt processing is also faster, and it appears to produce less heat.&lt;/p&gt; &lt;p&gt;It allows me to chat with Gemma 3 27B at ~5 tokens per second (t/s), and Qwen 3 30B-A3B works at around 35 t/s.&lt;/p&gt; &lt;p&gt;So it's not a 3090, a Mac, or a Strix Halo, obviously, but gives access to these models without being power-hungry, expensive, and it's widely available.&lt;/p&gt; &lt;p&gt;Another thing I was looking for was how it compared to my Steam Deck. Apparently, with LLMs, the 8600G is about twice as fast.&lt;/p&gt; &lt;p&gt;Note 1: if you have in mind a gaming PC, unless you just want a small machine with only the APU, a regular 7600 or 9600 has more cache, PCIe lanes, and PCIe 5 support. However, the 8600G is still faster at 1080p with games than the Steam Deck at 800p. So, well, it's usable for light gaming and doesn't consume too much power, but it's not the best choice for a gaming PC.&lt;/p&gt; &lt;p&gt;Note 2: there are mini-PCs with similar AMD APUs; however, if you have enough space, a desktop case offers better cooling and is probably quieter. Plus, if you want to add a GPU, mini-PCs require complex and costly eGPU setups (when the option is available), while with a desktop PC it's straightforward (even though the 8600G is lane-limited, so still not the ideal).&lt;/p&gt; &lt;p&gt;Note 3: the 8700G comes with a better cooler (though still mediocre), a slightly better iGPU (but only about 10% faster in games, and the difference for LLMs is likely negligible), and two extra cores; however, it's definitively more expensive.&lt;/p&gt; &lt;p&gt;=== Setup and notes ===&lt;/p&gt; &lt;pre&gt;&lt;code&gt;OS: Kubuntu 24.04 RAM: 64GB DDR5-6000 IOMMU: disabled &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Apparently, &lt;strong&gt;IOMMU&lt;/strong&gt; slows it down noticeably:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Gemma 3 4B pp512 tg12 IOMMU off = ~395 32.70 IOMMU on = ~360 29.6 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Hence, the following benchmarks are with IOMMU disabled.&lt;/p&gt; &lt;p&gt;The 8600G default is 65W, but &lt;strong&gt;at 35W it loses very little performance&lt;/strong&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Gemma 3 4B pp512 tg12 65W = ~395 32.70 35W = ~372 31.86 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Also the stock fan seems better suited for the APU set at 35W. At 65W it could still barely handle the CPU-only Gemma3-12B benchmark (at least in my airflow case), but it thermal-throttles with larger models.&lt;/p&gt; &lt;p&gt;Anyway, for consistency, the following tests are at 65W and I limited the CPU-only tests to the smaller models.&lt;/p&gt; &lt;p&gt;Benchmarks:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama.cpp build: 01612b74 (5922) ggml_vulkan: 0 = AMD Radeon Graphics (RADV GFX1103_R1) (radv) | uma: 1 | fp16: 1 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat backend: RPC, Vulcan === Gemma 3 q4_0_QAT (by stduhpf) | model | size | params | ngl | test | t/s | ------------------------------ | --------: | ------: | --: | ----: | ------------: (4B, iGPU 760M) | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 99 | pp128 | 378.02 ± 1.44 | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 99 | pp256 | 396.18 ± 1.88 | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 99 | pp512 | 395.16 ± 1.79 | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 99 | tg128 | 32.70 ± 0.04 (4B, CPU) | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 0 | pp512 | 313.53 ± 2.00 | gemma3 4B Q4_0 | 2.19 GiB | 3.88 B | 0 | tg128 | 24.09 ± 0.02 (12B, iGPU 760M) | gemma3 12B Q4_0 | 6.41 GiB | 11.77 B | 99 | pp512 | 121.56 ± 0.18 | gemma3 12B Q4_0 | 6.41 GiB | 11.77 B | 99 | tg128 | 11.45 ± 0.03 (12B, CPU) | gemma3 12B Q4_0 | 6.41 GiB | 11.77 B | 0 | pp512 | 98.25 ± 0.52 | gemma3 12B Q4_0 | 6.41 GiB | 11.77 B | 0 | tg128 | 8.39 ± 0.01 (27B, iGPU 760M) | gemma3 27B Q4_0 | 14.49 GiB | 27.01 B | 99 | pp512 | 52.22 ± 0.01 | gemma3 27B Q4_0 | 14.49 GiB | 27.01 B | 99 | tg128 | 5.37 ± 0.01 === Mistral Small (24B) 3.2 2506 (UD-Q4_K_XL by unsloth) | model | size | params | test | t/s | ------------------------------ | ---------: | -------: | ----: | -------------: | llama 13B Q4_K - Medium | 13.50 GiB | 23.57 B | pp512 | 52.49 ± 0.04 | llama 13B Q4_K - Medium | 13.50 GiB | 23.57 B | tg128 | 5.90 ± 0.00 [oddly, it's identified as &amp;quot;llama 13B&amp;quot;] === Qwen 3 | model | size | params | test | t/s | ------------------------------ | ---------: | -------: | ----: | -------------: (4B Q4_K_L by Bartowski) | qwen3 4B Q4_K - Medium | 2.41 GiB | 4.02 B | pp512 | 299.86 ± 0.44 | qwen3 4B Q4_K - Medium | 2.41 GiB | 4.02 B | tg128 | 29.91 ± 0.03 (8B Q4 Q4_K_M by unsloth) | qwen3 8B Q4_K - Medium | 4.68 GiB | 8.19 B | pp512 | 165.73 ± 0.13 | qwen3 8B Q4_K - Medium | 4.68 GiB | 8.19 B | tg128 | 17.75 ± 0.01 [Note: UD-Q4_K_XL by unsloth is only slightly slower with pp512 164.68 ± 0.20, tg128 16.84 ± 0.01] (8B Q6 UD-Q6_K_XL by unsloth) | qwen3 8B Q6_K | 6.97 GiB | 8.19 B | pp512 | 167.45 ± 0.14 | qwen3 8B Q6_K | 6.97 GiB | 8.19 B | tg128 | 12.45 ± 0.00 (8B Q8_0 by unsloth) | qwen3 8B Q8_0 | 8.11 GiB | 8.19 B | pp512 | 177.91 ± 0.13 | qwen3 8B Q8_0 | 8.11 GiB | 8.19 B | tg128 | 10.66 ± 0.00 (14B UD-Q4_K_XL by unsloth) | qwen3 14B Q4_K - Medium | 8.53 GiB | 14.77 B | pp512 | 87.37 ± 0.14 | qwen3 14B Q4_K - Medium | 8.53 GiB | 14.77 B | tg128 | 9.39 ± 0.01 (32B Q4_K_L by Bartowski) | qwen3 32B Q4_K - Medium | 18.94 GiB | 32.76 B | pp512 | 36.64 ± 0.02 | qwen3 32B Q4_K - Medium | 18.94 GiB | 32.76 B | tg128 | 4.36 ± 0.00 === Qwen 3 30B-A3B MoE (UD-Q4_K_XL by unsloth) | model | size | params | test | t/s | ------------------------------ | ---------: | -------: | ----: | -------------: | qwen3moe 30B.A3B Q4_K - Medium | 16.49 GiB | 30.53 B | pp512 | 83.43 ± 0.35 | qwen3moe 30B.A3B Q4_K - Medium | 16.49 GiB | 30.53 B | tg128 | 34.77 ± 0.27 &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SunRayWhisper"&gt; /u/SunRayWhisper &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbs4dw/8600g_760m_llamabench_with_gemma_3_4_12_27b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbs4dw/8600g_760m_llamabench_with_gemma_3_4_12_27b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbs4dw/8600g_760m_llamabench_with_gemma_3_4_12_27b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-28T20:55:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1mbavi1</id>
@@ -164,19 +177,6 @@
     <published>2025-07-28T14:30:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mbppbg</id>
-    <title>Direct access(🇨🇳) original GLM-4.5 is insane. Outperforms Frontier Models opus 4, o3-pro, &amp; grok 4 in Coding. Just one-shotted* my chess LLM &amp; Veo 3 free unlimited</title>
-    <updated>2025-07-28T19:24:17+00:00</updated>
-    <author>
-      <name>/u/balianone</name>
-      <uri>https://old.reddit.com/user/balianone</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbppbg/direct_access_original_glm45_is_insane/"&gt; &lt;img alt="Direct access(🇨🇳) original GLM-4.5 is insane. Outperforms Frontier Models opus 4, o3-pro, &amp;amp; grok 4 in Coding. Just one-shotted* my chess LLM &amp;amp; Veo 3 free unlimited" src="https://preview.redd.it/f9caaoek1off1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7ad362f2120451512008e840df0518788a3ea399" title="Direct access(🇨🇳) original GLM-4.5 is insane. Outperforms Frontier Models opus 4, o3-pro, &amp;amp; grok 4 in Coding. Just one-shotted* my chess LLM &amp;amp; Veo 3 free unlimited" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/balianone"&gt; /u/balianone &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/f9caaoek1off1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbppbg/direct_access_original_glm45_is_insane/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbppbg/direct_access_original_glm45_is_insane/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-28T19:24:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mbflkv</id>
     <title>GLM-4.5 - a zai-org Collection</title>
     <updated>2025-07-28T13:03:43+00:00</updated>
@@ -203,19 +203,6 @@
     <published>2025-07-28T19:02:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mbm4a0</id>
-    <title>Tried Wan2.2 on RTX 4090, quite impressed</title>
-    <updated>2025-07-28T17:12:24+00:00</updated>
-    <author>
-      <name>/u/Technical-Love-8479</name>
-      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I tried my hands with wan 2.2, the latest AI video generation model on nvidia GeForce rtx 4090 (cloud based), the 5B version and it took about 15 minutes for 3 videos. The quality is okish but running a video gen model on RTX 4090 is a dream come true. You can check the experiment here : &lt;a href="https://youtu.be/trDnvLWdIx0?si=qa1WvcUytuMLoNL8"&gt;https://youtu.be/trDnvLWdIx0?si=qa1WvcUytuMLoNL8&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-28T17:12:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mbfhgp</id>
     <title>Early GLM 4.5 Benchmarks, Claiming to surpass Qwen 3 Coder</title>
     <updated>2025-07-28T12:59:10+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbfhgp/early_glm_45_benchmarks_claiming_to_surpass_qwen/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-28T12:59:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mbm4a0</id>
+    <title>Tried Wan2.2 on RTX 4090, quite impressed</title>
+    <updated>2025-07-28T17:12:24+00:00</updated>
+    <author>
+      <name>/u/Technical-Love-8479</name>
+      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I tried my hands with wan 2.2, the latest AI video generation model on nvidia GeForce rtx 4090 (cloud based), the 5B version and it took about 15 minutes for 3 videos. The quality is okish but running a video gen model on RTX 4090 is a dream come true. You can check the experiment here : &lt;a href="https://youtu.be/trDnvLWdIx0?si=qa1WvcUytuMLoNL8"&gt;https://youtu.be/trDnvLWdIx0?si=qa1WvcUytuMLoNL8&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbm4a0/tried_wan22_on_rtx_4090_quite_impressed/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-28T17:12:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1mbdm6t</id>
@@ -255,19 +255,6 @@
     <published>2025-07-28T12:09:02+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mbny6o</id>
-    <title>100x faster and 100x cheaper transcription with open models vs proprietary</title>
-    <updated>2025-07-28T18:19:36+00:00</updated>
-    <author>
-      <name>/u/crookedstairs</name>
-      <uri>https://old.reddit.com/user/crookedstairs</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Open-weight ASR models have gotten super competitive with proprietary providers (eg deepgram, assemblyai) in recent months. On some leaderboards like &lt;a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard"&gt;HuggingFace's ASR leaderboard&lt;/a&gt; they're posting up crazy WER and RTFx numbers. Parakeet in particular claims to process 3000+ minutes of audio in less than a minute, which means you can save a lot of money if you self-host.&lt;/p&gt; &lt;p&gt;We at Modal benchmarked cost, throughput, and accuracy of the latest ASR models against a popular proprietary model: &lt;a href="https://modal.com/blog/fast-cheap-batch-transcription"&gt;https://modal.com/blog/fast-cheap-batch-transcription&lt;/a&gt;. We also wrote up a bunch of engineering tips on how to best optimize a batch transcription service for max throughput. If you're currently using either open source or proprietary ASR models would love to know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/crookedstairs"&gt; /u/crookedstairs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-07-28T18:19:36+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mbihcz</id>
     <title>GLM shattered the record for "worst benchmark JPEG ever published" - wow.</title>
     <updated>2025-07-28T14:59:02+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbihcz/glm_shattered_the_record_for_worst_benchmark_jpeg/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-07-28T14:59:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mbny6o</id>
+    <title>100x faster and 100x cheaper transcription with open models vs proprietary</title>
+    <updated>2025-07-28T18:19:36+00:00</updated>
+    <author>
+      <name>/u/crookedstairs</name>
+      <uri>https://old.reddit.com/user/crookedstairs</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Open-weight ASR models have gotten super competitive with proprietary providers (eg deepgram, assemblyai) in recent months. On some leaderboards like &lt;a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard"&gt;HuggingFace's ASR leaderboard&lt;/a&gt; they're posting up crazy WER and RTFx numbers. Parakeet in particular claims to process 3000+ minutes of audio in less than a minute, which means you can save a lot of money if you self-host.&lt;/p&gt; &lt;p&gt;We at Modal benchmarked cost, throughput, and accuracy of the latest ASR models against a popular proprietary model: &lt;a href="https://modal.com/blog/fast-cheap-batch-transcription"&gt;https://modal.com/blog/fast-cheap-batch-transcription&lt;/a&gt;. We also wrote up a bunch of engineering tips on how to best optimize a batch transcription service for max throughput. If you're currently using either open source or proprietary ASR models would love to know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/crookedstairs"&gt; /u/crookedstairs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mbny6o/100x_faster_and_100x_cheaper_transcription_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-07-28T18:19:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1mb9uy8</id>
