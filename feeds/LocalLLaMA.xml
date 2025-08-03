@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-03T18:08:26+00:00</updated>
+  <updated>2025-08-03T18:25:45+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mgljhp</id>
-    <title>Teaching LM Studio to Browse the Internet When Answering Questions</title>
-    <updated>2025-08-03T15:05:38+00:00</updated>
-    <author>
-      <name>/u/ievkz</name>
-      <uri>https://old.reddit.com/user/ievkz</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I really like LM Studio because it allows you to run AI models locally, preserving the privacy of your conversations with the AI. However, compared to commercial online models, LM Studio doesn’t support internet browsing “out of the box.” Those models can’t use up-to-date information from the Internet to answer questions.&lt;/p&gt; &lt;p&gt;Not long ago, LM Studio added the ability to connect MCP servers to models. The very first thing I did was write a small MCP server that can extract text from a URL. It can also extract the links present on the page. This makes it possible, when querying the AI, to specify an address and ask it to extract text from there or retrieve links to use in its response.&lt;/p&gt; &lt;p&gt;To get all of this working, we first create a &lt;code&gt;pyproject.toml&lt;/code&gt; file in the &lt;code&gt;mcp-server&lt;/code&gt; folder.&lt;/p&gt; &lt;p&gt;```toml [build-system] requires = [&amp;quot;setuptools&amp;gt;=42&amp;quot;, &amp;quot;wheel&amp;quot;] build-backend = &amp;quot;setuptools.build_meta&amp;quot;&lt;/p&gt; &lt;p&gt;[project] name = &amp;quot;url-text-fetcher&amp;quot; version = &amp;quot;0.1.0&amp;quot; description = &amp;quot;FastMCP server for URL text fetching&amp;quot; authors = [{ name=&amp;quot;Evgeny Igumnov&amp;quot;, email=&amp;quot;&lt;a href="mailto:igumnovnsk@gmail.com"&gt;igumnovnsk@gmail.com&lt;/a&gt;&amp;quot; }] dependencies = [ &amp;quot;fastmcp&amp;quot;, &amp;quot;requests&amp;quot;, &amp;quot;beautifulsoup4&amp;quot;, ] [project.scripts] url-text-fetcher = &amp;quot;url_text_fetcher.mcp_server:main&amp;quot; &lt;code&gt; Then we create the `mcp_server.py` file in the `mcp-server/url_text_fetcher` folder. &lt;/code&gt;python from mcp.server.fastmcp import FastMCP import requests from bs4 import BeautifulSoup from typing import List # for type hints&lt;/p&gt; &lt;p&gt;mcp = FastMCP(&amp;quot;URL Text Fetcher&amp;quot;)&lt;/p&gt; &lt;p&gt;@mcp.tool() def fetch_url_text(url: str) -&amp;gt; str: &amp;quot;&amp;quot;&amp;quot;Download the text from a URL.&amp;quot;&amp;quot;&amp;quot; resp = requests.get(url, timeout=10) resp.raise_for_status() soup = BeautifulSoup(resp.text, &amp;quot;html.parser&amp;quot;) return soup.get_text(separator=&amp;quot;\n&amp;quot;, strip=True)&lt;/p&gt; &lt;p&gt;@mcp.tool() def fetch_page_links(url: str) -&amp;gt; List[str]: &amp;quot;&amp;quot;&amp;quot;Return a list of all URLs found on the given page.&amp;quot;&amp;quot;&amp;quot; resp = requests.get(url, timeout=10) resp.raise_for_status() soup = BeautifulSoup(resp.text, &amp;quot;html.parser&amp;quot;) # Extract all href attributes from &amp;lt;a&amp;gt; tags links = [a['href'] for a in soup.find_all('a', href=True)] return links&lt;/p&gt; &lt;p&gt;def main(): mcp.run()&lt;/p&gt; &lt;p&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;quot;&lt;strong&gt;main&lt;/strong&gt;&amp;quot;: main() ```&lt;/p&gt; &lt;p&gt;Next, create an empty &lt;code&gt;__init__.py&lt;/code&gt; in the &lt;code&gt;mcp-server/url_text_fetcher&lt;/code&gt; folder.&lt;/p&gt; &lt;p&gt;And finally, for the MCP server to work, you need to install it:&lt;/p&gt; &lt;p&gt;&lt;code&gt;bash pip install -e . &lt;/code&gt;&lt;/p&gt; &lt;p&gt;At the bottom of the chat window in LM Studio, where you enter your query, you can choose an MCP server via “Integrations.” By clicking “Install” and then “Edit mcp.json,” you can add your own MCP server in that file.&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;mcpServers&amp;quot;: { &amp;quot;url-text-fetcher&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;python&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-m&amp;quot;, &amp;quot;url_text_fetcher.mcp_server&amp;quot; ] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;The second thing I did was integrate an existing MCP server from the Brave search engine, which allows you to instruct the AI—in a request—to search the Internet for information to answer a question. To do this, first check that you have &lt;code&gt;npx&lt;/code&gt; installed. Then install &lt;code&gt;@modelcontextprotocol/server-brave-search&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;&lt;code&gt;bash npm i -D @modelcontextprotocol/server-brave-search &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Here’s how you can connect it in the &lt;code&gt;mcp.json&lt;/code&gt; file:&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;mcpServers&amp;quot;: { &amp;quot;brave-search&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;npx&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-y&amp;quot;, &amp;quot;@modelcontextprotocol/server-brave-search&amp;quot; ], &amp;quot;env&amp;quot;: { &amp;quot;BRAVE_API_KEY&amp;quot;: &amp;quot;..................&amp;quot; } }, &amp;quot;url-text-fetcher&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;python&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-m&amp;quot;, &amp;quot;url_text_fetcher.mcp_server&amp;quot; ] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;You can obtain the &lt;code&gt;BRAVE_API_KEY&lt;/code&gt; for free, with minor limitations of up to 2,000 requests per month and no more than one request per second.&lt;/p&gt; &lt;p&gt;As a result, at the bottom of the chat window in LM Studio—where the user enters their query—you can select the MCP server via “Integrations,” and you should see two MCP servers listed: “mcp/url-text-fetcher” and “mcp/brave-search.”&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ievkz"&gt; /u/ievkz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T15:05:38+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mgk2nm</id>
     <title>Your proud AI setup</title>
@@ -47,6 +34,19 @@
     <published>2025-08-03T13:31:48+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mgljhp</id>
+    <title>Teaching LM Studio to Browse the Internet When Answering Questions</title>
+    <updated>2025-08-03T15:05:38+00:00</updated>
+    <author>
+      <name>/u/ievkz</name>
+      <uri>https://old.reddit.com/user/ievkz</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I really like LM Studio because it allows you to run AI models locally, preserving the privacy of your conversations with the AI. However, compared to commercial online models, LM Studio doesn’t support internet browsing “out of the box.” Those models can’t use up-to-date information from the Internet to answer questions.&lt;/p&gt; &lt;p&gt;Not long ago, LM Studio added the ability to connect MCP servers to models. The very first thing I did was write a small MCP server that can extract text from a URL. It can also extract the links present on the page. This makes it possible, when querying the AI, to specify an address and ask it to extract text from there or retrieve links to use in its response.&lt;/p&gt; &lt;p&gt;To get all of this working, we first create a &lt;code&gt;pyproject.toml&lt;/code&gt; file in the &lt;code&gt;mcp-server&lt;/code&gt; folder.&lt;/p&gt; &lt;p&gt;```toml [build-system] requires = [&amp;quot;setuptools&amp;gt;=42&amp;quot;, &amp;quot;wheel&amp;quot;] build-backend = &amp;quot;setuptools.build_meta&amp;quot;&lt;/p&gt; &lt;p&gt;[project] name = &amp;quot;url-text-fetcher&amp;quot; version = &amp;quot;0.1.0&amp;quot; description = &amp;quot;FastMCP server for URL text fetching&amp;quot; authors = [{ name=&amp;quot;Evgeny Igumnov&amp;quot;, email=&amp;quot;&lt;a href="mailto:igumnovnsk@gmail.com"&gt;igumnovnsk@gmail.com&lt;/a&gt;&amp;quot; }] dependencies = [ &amp;quot;fastmcp&amp;quot;, &amp;quot;requests&amp;quot;, &amp;quot;beautifulsoup4&amp;quot;, ] [project.scripts] url-text-fetcher = &amp;quot;url_text_fetcher.mcp_server:main&amp;quot; &lt;code&gt; Then we create the `mcp_server.py` file in the `mcp-server/url_text_fetcher` folder. &lt;/code&gt;python from mcp.server.fastmcp import FastMCP import requests from bs4 import BeautifulSoup from typing import List # for type hints&lt;/p&gt; &lt;p&gt;mcp = FastMCP(&amp;quot;URL Text Fetcher&amp;quot;)&lt;/p&gt; &lt;p&gt;@mcp.tool() def fetch_url_text(url: str) -&amp;gt; str: &amp;quot;&amp;quot;&amp;quot;Download the text from a URL.&amp;quot;&amp;quot;&amp;quot; resp = requests.get(url, timeout=10) resp.raise_for_status() soup = BeautifulSoup(resp.text, &amp;quot;html.parser&amp;quot;) return soup.get_text(separator=&amp;quot;\n&amp;quot;, strip=True)&lt;/p&gt; &lt;p&gt;@mcp.tool() def fetch_page_links(url: str) -&amp;gt; List[str]: &amp;quot;&amp;quot;&amp;quot;Return a list of all URLs found on the given page.&amp;quot;&amp;quot;&amp;quot; resp = requests.get(url, timeout=10) resp.raise_for_status() soup = BeautifulSoup(resp.text, &amp;quot;html.parser&amp;quot;) # Extract all href attributes from &amp;lt;a&amp;gt; tags links = [a['href'] for a in soup.find_all('a', href=True)] return links&lt;/p&gt; &lt;p&gt;def main(): mcp.run()&lt;/p&gt; &lt;p&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;quot;&lt;strong&gt;main&lt;/strong&gt;&amp;quot;: main() ```&lt;/p&gt; &lt;p&gt;Next, create an empty &lt;code&gt;__init__.py&lt;/code&gt; in the &lt;code&gt;mcp-server/url_text_fetcher&lt;/code&gt; folder.&lt;/p&gt; &lt;p&gt;And finally, for the MCP server to work, you need to install it:&lt;/p&gt; &lt;p&gt;&lt;code&gt;bash pip install -e . &lt;/code&gt;&lt;/p&gt; &lt;p&gt;At the bottom of the chat window in LM Studio, where you enter your query, you can choose an MCP server via “Integrations.” By clicking “Install” and then “Edit mcp.json,” you can add your own MCP server in that file.&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;mcpServers&amp;quot;: { &amp;quot;url-text-fetcher&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;python&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-m&amp;quot;, &amp;quot;url_text_fetcher.mcp_server&amp;quot; ] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;The second thing I did was integrate an existing MCP server from the Brave search engine, which allows you to instruct the AI—in a request—to search the Internet for information to answer a question. To do this, first check that you have &lt;code&gt;npx&lt;/code&gt; installed. Then install &lt;code&gt;@modelcontextprotocol/server-brave-search&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;&lt;code&gt;bash npm i -D @modelcontextprotocol/server-brave-search &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Here’s how you can connect it in the &lt;code&gt;mcp.json&lt;/code&gt; file:&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;mcpServers&amp;quot;: { &amp;quot;brave-search&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;npx&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-y&amp;quot;, &amp;quot;@modelcontextprotocol/server-brave-search&amp;quot; ], &amp;quot;env&amp;quot;: { &amp;quot;BRAVE_API_KEY&amp;quot;: &amp;quot;..................&amp;quot; } }, &amp;quot;url-text-fetcher&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;python&amp;quot;, &amp;quot;args&amp;quot;: [ &amp;quot;-m&amp;quot;, &amp;quot;url_text_fetcher.mcp_server&amp;quot; ] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;You can obtain the &lt;code&gt;BRAVE_API_KEY&lt;/code&gt; for free, with minor limitations of up to 2,000 requests per month and no more than one request per second.&lt;/p&gt; &lt;p&gt;As a result, at the bottom of the chat window in LM Studio—where the user enters their query—you can select the MCP server via “Integrations,” and you should see two MCP servers listed: “mcp/url-text-fetcher” and “mcp/brave-search.”&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ievkz"&gt; /u/ievkz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgljhp/teaching_lm_studio_to_browse_the_internet_when/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-03T15:05:38+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mgdypr</id>
     <title>Best Medical Embedding Model Released</title>
     <updated>2025-08-03T08:17:31+00:00</updated>
@@ -58,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgdypr/best_medical_embedding_model_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-03T08:17:31+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mgo662</id>
-    <title>Jin 3.5 - Does anyone know anything about this model?</title>
-    <updated>2025-08-03T16:53:16+00:00</updated>
-    <author>
-      <name>/u/z_3454_pfk</name>
-      <uri>https://old.reddit.com/user/z_3454_pfk</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I literally can't find anything on this model. I saw somewhere on discord that it's similar to claude (which I doubt). any info? and no i'm not promoting this website or any bs like that idk anything about it&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/z_3454_pfk"&gt; /u/z_3454_pfk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://jin.elpa.ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgo662/jin_35_does_anyone_know_anything_about_this_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgo662/jin_35_does_anyone_know_anything_about_this_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T16:53:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1mgbprh</id>
@@ -99,6 +86,19 @@
     <published>2025-08-03T01:51:15+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mgo662</id>
+    <title>Jin 3.5 - Does anyone know anything about this model?</title>
+    <updated>2025-08-03T16:53:16+00:00</updated>
+    <author>
+      <name>/u/z_3454_pfk</name>
+      <uri>https://old.reddit.com/user/z_3454_pfk</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I literally can't find anything on this model. I saw somewhere on discord that it's similar to claude (which I doubt). any info? and no i'm not promoting this website or any bs like that idk anything about it&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/z_3454_pfk"&gt; /u/z_3454_pfk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://jin.elpa.ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgo662/jin_35_does_anyone_know_anything_about_this_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgo662/jin_35_does_anyone_know_anything_about_this_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-03T16:53:16+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mgl1qz</id>
     <title>Is EXL3 doomed?</title>
     <updated>2025-08-03T14:45:24+00:00</updated>
@@ -110,19 +110,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgl1qz/is_exl3_doomed/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-03T14:45:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mgn94g</id>
-    <title>If Horizon Models is not from OpenAI, who would be?</title>
-    <updated>2025-08-03T16:15:20+00:00</updated>
-    <author>
-      <name>/u/AMOVCS</name>
-      <uri>https://old.reddit.com/user/AMOVCS</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This model is seriously impressive, feels really powerful, and that fits with what people have been saying about it being 120B parameters in size. It's big enough to be smart without being so huge it steps on OpenAI’s toes. In my experience with the model, here some notes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;It works &lt;em&gt;really&lt;/em&gt; well with agents and tools&lt;/li&gt; &lt;li&gt;It can handle long contexts (i tested up to around 50k tokens), which is something most open-source models struggle with, only the biggest ones can do that reliably.&lt;/li&gt; &lt;li&gt;It’s fantastic with languages other than English, a weakness often sees in Chinese models.&lt;/li&gt; &lt;li&gt;It can be based on GPT-5 architecture, even being a smaller version from it (like Gemma models), this would explain why has some differences from current OpenAi models&lt;/li&gt; &lt;li&gt;The way it writes is very similar to OpenAI’s style.&lt;/li&gt; &lt;li&gt;Plus, whoever made this has &lt;em&gt;serious&lt;/em&gt; computing power... they're giving away billions of tokens for &amp;quot;free&amp;quot; at a really fast speed&lt;/li&gt; &lt;li&gt;The model says its an OpenAI model. Very common in Chinese models but very unlikely from a US model (unless is really from OpenAI)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;But ok, lets consider other players:&lt;br /&gt; - Chinese labs: except Deepseek, we had so many new models recently, very hard to think they have more, unless is DeepSeek behind it, but i doubt because of things that i said above. Also when they want to test something they just drop the weights directly&lt;br /&gt; - Anthropic: Naah&lt;br /&gt; - Meta: could be, but i think its too early for the new Meta team already made something so much better than Llama, besides i don't see Meta training on OpenAI data since there already have so many data. Llama was not very good because was technologically behind, data is not the problem.&lt;br /&gt; - Amazon or Microsoft: Would be my second guess&lt;br /&gt; - Google: Naah, they have Aistudio, when wants feedback they launch the model there&lt;br /&gt; - IBM or Cohere: Hard to think, but they are very capable companies&lt;/p&gt; &lt;p&gt;Honestly, it’s hard to imagine anyone other than OpenAI being behind this. Two things that i am sure that is a US model and has very capable infra. I know some people aren’t fans of CloseAI, but if they say they’re releasing an open-source model, let’s be optimistic, its a win-win situation. It could be great for us. And with so many good Chinese models becoming popular, maybe OpenAI realized its better to join the open-source world than stay completely closed off.&lt;/p&gt; &lt;p&gt;So, what you guys think?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AMOVCS"&gt; /u/AMOVCS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T16:15:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1mg3i48</id>
@@ -164,6 +151,19 @@
     <published>2025-08-03T00:41:41+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mgn94g</id>
+    <title>If Horizon Models is not from OpenAI, who would be?</title>
+    <updated>2025-08-03T16:15:20+00:00</updated>
+    <author>
+      <name>/u/AMOVCS</name>
+      <uri>https://old.reddit.com/user/AMOVCS</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This model is seriously impressive, feels really powerful, and that fits with what people have been saying about it being 120B parameters in size. It's big enough to be smart without being so huge it steps on OpenAI’s toes. In my experience with the model, here some notes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;It works &lt;em&gt;really&lt;/em&gt; well with agents and tools&lt;/li&gt; &lt;li&gt;It can handle long contexts (i tested up to around 50k tokens), which is something most open-source models struggle with, only the biggest ones can do that reliably.&lt;/li&gt; &lt;li&gt;It’s fantastic with languages other than English, a weakness often sees in Chinese models.&lt;/li&gt; &lt;li&gt;It can be based on GPT-5 architecture, even being a smaller version from it (like Gemma models), this would explain why has some differences from current OpenAi models&lt;/li&gt; &lt;li&gt;The way it writes is very similar to OpenAI’s style.&lt;/li&gt; &lt;li&gt;Plus, whoever made this has &lt;em&gt;serious&lt;/em&gt; computing power... they're giving away billions of tokens for &amp;quot;free&amp;quot; at a really fast speed&lt;/li&gt; &lt;li&gt;The model says its an OpenAI model. Very common in Chinese models but very unlikely from a US model (unless is really from OpenAI)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;But ok, lets consider other players:&lt;br /&gt; - Chinese labs: except Deepseek, we had so many new models recently, very hard to think they have more, unless is DeepSeek behind it, but i doubt because of things that i said above. Also when they want to test something they just drop the weights directly&lt;br /&gt; - Anthropic: Naah&lt;br /&gt; - Meta: could be, but i think its too early for the new Meta team already made something so much better than Llama, besides i don't see Meta training on OpenAI data since there already have so many data. Llama was not very good because was technologically behind, data is not the problem.&lt;br /&gt; - Amazon or Microsoft: Would be my second guess&lt;br /&gt; - Google: Naah, they have Aistudio, when wants feedback they launch the model there&lt;br /&gt; - IBM or Cohere: Hard to think, but they are very capable companies&lt;/p&gt; &lt;p&gt;Honestly, it’s hard to imagine anyone other than OpenAI being behind this. Two things that i am sure that is a US model and has very capable infra. I know some people aren’t fans of CloseAI, but if they say they’re releasing an open-source model, let’s be optimistic, its a win-win situation. It could be great for us. And with so many good Chinese models becoming popular, maybe OpenAI realized its better to join the open-source world than stay completely closed off.&lt;/p&gt; &lt;p&gt;So, what you guys think?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AMOVCS"&gt; /u/AMOVCS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgn94g/if_horizon_models_is_not_from_openai_who_would_be/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-03T16:15:20+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mgm8d3</id>
     <title>Daydreaming of a new Gemma model</title>
     <updated>2025-08-03T15:33:53+00:00</updated>
@@ -177,19 +177,6 @@
     <published>2025-08-03T15:33:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mgmx8w</id>
-    <title>Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM</title>
-    <updated>2025-08-03T16:01:53+00:00</updated>
-    <author>
-      <name>/u/dlp_randombk</name>
-      <uri>https://old.reddit.com/user/dlp_randombk</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"&gt; &lt;img alt="Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM" src="https://external-preview.redd.it/JMH4JviM3uUr7o0BdE49mxUti-kj575to7zYT_Rzt3A.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=50d687fd0b27b1fc30b1175e432b4518d7d1f15d" title="Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dlp_randombk"&gt; /u/dlp_randombk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/randombk/chatterbox-vllm"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T16:01:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mgbs6r</id>
     <title>We enabled Multi-GPU training in Unsloth AI — a feature that’s usually paid — using just 2 Copilot prompts!</title>
     <updated>2025-08-03T05:58:01+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgbs6r/we_enabled_multigpu_training_in_unsloth_ai_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-03T05:58:01+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mgmx8w</id>
+    <title>Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM</title>
+    <updated>2025-08-03T16:01:53+00:00</updated>
+    <author>
+      <name>/u/dlp_randombk</name>
+      <uri>https://old.reddit.com/user/dlp_randombk</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"&gt; &lt;img alt="Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM" src="https://external-preview.redd.it/JMH4JviM3uUr7o0BdE49mxUti-kj575to7zYT_Rzt3A.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=50d687fd0b27b1fc30b1175e432b4518d7d1f15d" title="Open Source Voice Cloning at 16x real-time: Porting Chatterbox to vLLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dlp_randombk"&gt; /u/dlp_randombk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/randombk/chatterbox-vllm"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgmx8w/open_source_voice_cloning_at_16x_realtime_porting/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-03T16:01:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1mgccyc</id>
@@ -242,17 +242,17 @@
     <published>2025-08-03T12:24:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mgpb8t</id>
-    <title>Reimplemention of Qwen 2 from scratch</title>
-    <updated>2025-08-03T17:38:43+00:00</updated>
+    <id>t3_1mgjlek</id>
+    <title>Are Chinese LLM companies effectively price dumping?</title>
+    <updated>2025-08-03T13:43:23+00:00</updated>
     <author>
-      <name>/u/CodingWithSatyam</name>
-      <uri>https://old.reddit.com/user/CodingWithSatyam</uri>
+      <name>/u/uutnt</name>
+      <uri>https://old.reddit.com/user/uutnt</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;🧠 Just Finished: Implementing Qwen 2 (1.5B) from Scratch A few days ago, I built the Qwen 2 language model (1.5B) completely from scratch, making it the second LLM I’ve implemented after Gemma 🚀. This was a major milestone for me, especially since there’s no open-source implementation of Qwen 2 available online (at least none I could find).&lt;/p&gt; &lt;p&gt;What makes this build special: ✅ Implemented without access to source code 📖 Based entirely on the Qwen 1 &amp;amp; Qwen 2 research papers 🧱 Supports Qwen 2-1.5B architecture (more sizes coming soon!) ⚠️ Does not support Mixture of Experts (MoE) yet&lt;/p&gt; &lt;p&gt;This project pushed my understanding of transformer architectures even further, and I’m excited to keep going. If you're into LLMs, model replication, or want to see how Qwen 2 works under the hood, this might interest you!&lt;/p&gt; &lt;p&gt;Source code: &lt;a href="https://github.com/introlix/Swiftlet"&gt;https://github.com/introlix/Swiftlet&lt;/a&gt; Kaggle: &lt;a href="https://www.kaggle.com/code/apibrains/qwen2-model-swiftlet"&gt;https://www.kaggle.com/code/apibrains/qwen2-model-swiftlet&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CodingWithSatyam"&gt; /u/CodingWithSatyam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;People here seem to assume that Chinese AI companies are developing and releasing these models, which cost tens of millions of dollars to develop, for free out of the goodness of their heart.&lt;/p&gt; &lt;p&gt;I think this is absurd, considering these are for-profit companies, with shareholders who expect an ROI. In the case of Meta (and perhaps AliBaba), the explanation was it's about &lt;a href="https://gwern.net/complement"&gt;commoditizing your complement&lt;/a&gt;. But for many of these companies, which are pure play AI Labs, this simply does not hold.&lt;/p&gt; &lt;p&gt;So the question remains, why are they doing this?&lt;/p&gt; &lt;p&gt;One theory I would put forward is, they are playing the long game, and attempting to disincentivize investment in US AI labs, with the premise that investors will never recoup their investment, since similar capabilities will be offered for free. There is &lt;a href="https://chatgpt.com/s/dr_688f65761670819181f5f8f5e52f9838"&gt;a precedent&lt;/a&gt; of Chinese companies doing similarly, in the context of mineral production, which has resulted in most production moving to China.&lt;/p&gt; &lt;p&gt;If this is the case, it will be good for consumers in the short-term, but less so in the long-term, at least for non-Chinese entities. If you don't find this theory convincing, I would be interested in hearing other alternative explanations for the rise in Chinese open-source models.&lt;/p&gt; &lt;p&gt;What prompted this question, was the &lt;a href="https://youtu.be/mYDSSRS-B5U?t=2203"&gt;recent interview&lt;/a&gt; with Dario from Anthropic, where he was asked about the threat to the business model posed by open-source models. (I don't find his response very compelling).&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;One aside, its known that Twitter is banned in China. Yet, we see many Chinese-based AI researchers communicating there, on a daily basis. Sure it can be accessed via VPN, but these are publicly known figures, so there is no anonymity. What explains this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/uutnt"&gt; /u/uutnt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T17:38:43+00:00</published>
+    <published>2025-08-03T13:43:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1mgnwnx</id>
@@ -268,17 +268,17 @@
     <published>2025-08-03T16:42:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mgjlek</id>
-    <title>Are Chinese LLM companies effectively price dumping?</title>
-    <updated>2025-08-03T13:43:23+00:00</updated>
+    <id>t3_1mgpb8t</id>
+    <title>Reimplemention of Qwen 2 from scratch</title>
+    <updated>2025-08-03T17:38:43+00:00</updated>
     <author>
-      <name>/u/uutnt</name>
-      <uri>https://old.reddit.com/user/uutnt</uri>
+      <name>/u/CodingWithSatyam</name>
+      <uri>https://old.reddit.com/user/CodingWithSatyam</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;People here seem to assume that Chinese AI companies are developing and releasing these models, which cost tens of millions of dollars to develop, for free out of the goodness of their heart.&lt;/p&gt; &lt;p&gt;I think this is absurd, considering these are for-profit companies, with shareholders who expect an ROI. In the case of Meta (and perhaps AliBaba), the explanation was it's about &lt;a href="https://gwern.net/complement"&gt;commoditizing your complement&lt;/a&gt;. But for many of these companies, which are pure play AI Labs, this simply does not hold.&lt;/p&gt; &lt;p&gt;So the question remains, why are they doing this?&lt;/p&gt; &lt;p&gt;One theory I would put forward is, they are playing the long game, and attempting to disincentivize investment in US AI labs, with the premise that investors will never recoup their investment, since similar capabilities will be offered for free. There is &lt;a href="https://chatgpt.com/s/dr_688f65761670819181f5f8f5e52f9838"&gt;a precedent&lt;/a&gt; of Chinese companies doing similarly, in the context of mineral production, which has resulted in most production moving to China.&lt;/p&gt; &lt;p&gt;If this is the case, it will be good for consumers in the short-term, but less so in the long-term, at least for non-Chinese entities. If you don't find this theory convincing, I would be interested in hearing other alternative explanations for the rise in Chinese open-source models.&lt;/p&gt; &lt;p&gt;What prompted this question, was the &lt;a href="https://youtu.be/mYDSSRS-B5U?t=2203"&gt;recent interview&lt;/a&gt; with Dario from Anthropic, where he was asked about the threat to the business model posed by open-source models. (I don't find his response very compelling).&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;One aside, its known that Twitter is banned in China. Yet, we see many Chinese-based AI researchers communicating there, on a daily basis. Sure it can be accessed via VPN, but these are publicly known figures, so there is no anonymity. What explains this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/uutnt"&gt; /u/uutnt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgjlek/are_chinese_llm_companies_effectively_price/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;🧠 Just Finished: Implementing Qwen 2 (1.5B) from Scratch A few days ago, I built the Qwen 2 language model (1.5B) completely from scratch, making it the second LLM I’ve implemented after Gemma 🚀. This was a major milestone for me, especially since there’s no open-source implementation of Qwen 2 available online (at least none I could find).&lt;/p&gt; &lt;p&gt;What makes this build special: ✅ Implemented without access to source code 📖 Based entirely on the Qwen 1 &amp;amp; Qwen 2 research papers 🧱 Supports Qwen 2-1.5B architecture (more sizes coming soon!) ⚠️ Does not support Mixture of Experts (MoE) yet&lt;/p&gt; &lt;p&gt;This project pushed my understanding of transformer architectures even further, and I’m excited to keep going. If you're into LLMs, model replication, or want to see how Qwen 2 works under the hood, this might interest you!&lt;/p&gt; &lt;p&gt;Source code: &lt;a href="https://github.com/introlix/Swiftlet"&gt;https://github.com/introlix/Swiftlet&lt;/a&gt; Kaggle: &lt;a href="https://www.kaggle.com/code/apibrains/qwen2-model-swiftlet"&gt;https://www.kaggle.com/code/apibrains/qwen2-model-swiftlet&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CodingWithSatyam"&gt; /u/CodingWithSatyam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mgpb8t/reimplemention_of_qwen_2_from_scratch/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-03T13:43:23+00:00</published>
+    <published>2025-08-03T17:38:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1mggku0</id>
