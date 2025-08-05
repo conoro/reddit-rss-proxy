@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-05T16:07:06+00:00</updated>
+  <updated>2025-08-05T16:25:08+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mi5s6w</id>
-    <title>Mi50 32gb (Working config, weirdness and performance)</title>
-    <updated>2025-08-05T10:43:56+00:00</updated>
-    <author>
-      <name>/u/Danternas</name>
-      <uri>https://old.reddit.com/user/Danternas</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Thought I'd share some knowledge after a week with an Mi50 32gb bought from Ebay. Was originally supposed to be a response but hyper-focus took over and this is more suited as a post.&lt;/p&gt; &lt;p&gt;It arrived new-looking. Anti-static bag, not a spec of dust and plastic peel still on the AMD Instinct branded shroud. Mine came with an extra radial fan which can be mounted on the back and connected to a 12v header. Some tape was necessary to direct the air into the heat-sink. I was sceptical about the capability of this small radial fan but it seem to keep the GPU edge under 80C under heavy use, though I have not stress tested it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Weirdness&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;One weird thing is how it is listed in lspci:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;0a:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Vega 20 [Radeon Pro Vega II/Radeon Pro Vega II Duo] [1002:66a3]&lt;/p&gt; &lt;p&gt;Subsystem: Apple Inc. Vega 20 [Radeon Pro Vega II/Radeon Pro Vega II Duo] [106b:0201]&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Which suggests it is not an Mi50 at all? Or some weird Chinese shifting of components. Note the Apple subsystem. In rocm-smi it does boost over 1700mhz and pull near 300w, which is consistent with Mi50 specs. However, Mi50 seem to be a cut down Radeon Pro Vega II. So maybe it is a Radeon Pro Vega II put on a Mi50 board and flashed with Mi50 BIOS? Could it be flashed back to a Radeon Pro Vega II. I have no idea, even less why that would make any sense. Maybe I'm just overthinking it.&lt;/p&gt; &lt;p&gt;Another curious thing is that the card lacks a fan or even fan header but reports fan speed in rocm-smi.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Working configuration&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I got it to work on the following configuration&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;GPU: AMD Instinct MI50 (32 GB, gfx906)&lt;/p&gt; &lt;p&gt;Proxmox: 8.4.6&lt;/p&gt; &lt;p&gt;Kernel: 6.8.12-4-pve (downgraded from 6.8.12-13-pve, though I am unsure if this mattered)&lt;/p&gt; &lt;p&gt;OS in the Proxmox host: Debian 12 (Bookworm) + Ubuntu 24.04 (&amp;quot;Noble&amp;quot;) repositories for ROCm&lt;/p&gt; &lt;p&gt;ROCm-version: 6.4.2&lt;/p&gt; &lt;p&gt;Driver: amdgpu-dkms installed after headers&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;My method was as stupid as it sounds. But it worked after hours if trial and error. Right now I am just happy it works.&lt;/p&gt; &lt;p&gt;&lt;a href="https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html"&gt;https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Run the commands for ROCm Ubuntu 24.04, then AMDGPU driver commands for Ubuntu 24.04, and then the commands for ROCm Ubuntu 24.04 again. There's probably some way simpler way and maybe something else I did contributed. But right now I am happy it works without installing a 5.15 Ubuntu kernel and I can still use Proxmox.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Pass-through not working, LXC working fine&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Once it register in rocm-smi it was easy to use the OpenWebUI LXC community script to make an LXC container. Then I manually installed Ollama inside of it. I did not get it to work pass-through and I have not seen any example where this works. AMD also lists it as not compatible with pass-through. Use it bare metal. Make sure to give the LXC the resources /dev/kfd, /dev/dri/card0, and /dev/dri/renderD128 with the right GID.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Power draw&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Idle power draw is 25w according to rocm-smi, which seems accurate compared to measure usage from the wall and UPS. During benchmarking it reached 220-260w and 68c.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The card is in a server with a Ryzen 5 3600 and 64gb of ram, where the LXC container is limited to 8 cores and 8gb of ram. This seem to be overkill as basically all computation is done in the GPU and usage is under 20% of the 8 logical cores/4gb. The Mi50 boosts all the way to 1730mhz/&amp;gt;95% usage and remains there.&lt;/p&gt; &lt;p&gt;llm_benchmark:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;mistral:7b Median run average of eval rate: 63.754 tokens/s&lt;/p&gt; &lt;p&gt;llama3.1:8b Median run average of eval rate: 56.772 tokens/s&lt;/p&gt; &lt;p&gt;gemma2:9b Median run average of eval rate: 43.736 tokens/s&lt;/p&gt; &lt;p&gt;llava:7b Median run average of eval rate: 74.874 tokens/s&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;It had a dip in performance on the 2nd run of 5 prompts and for some reason couldn't finish deepseek-r1:8b. Not sure why as I have been able to do deepseek-r1:32b just fine in OpenWebUI.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;VRAM&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;VRAM is absolutely fantastic of course and the main reason to consider the Mi50 in my opinion. If not for the VRAM you may as well get an RTX 3060 12gb or similar from Nvidia to save you from some AMD driver headaches. 30b models doesn't seem to be any issues at all with vram to spare.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The Mi50 right now gives you big GPU capability for a cheap price. In my opinion it is mainly for you who want the 32gb. I see less point in the 16gb, but it is even cheaper I suppose. Be aware though that AMD considers the Mi50 unsupported and depending on your use-case you may encounter a poor experience getting the drivers to work properly. Not to mention I don't think it works at all in Windows. It is not a card for someone who just want things to work, but it is cheap 32gb of HBM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Danternas"&gt; /u/Danternas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi5s6w/mi50_32gb_working_config_weirdness_and_performance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi5s6w/mi50_32gb_working_config_weirdness_and_performance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi5s6w/mi50_32gb_working_config_weirdness_and_performance/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-05T10:43:56+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mi8bkb</id>
     <title>Try Chatgpt agent and GLM4.5 on slides making</title>
@@ -47,19 +34,6 @@
     <published>2025-08-04T18:30:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mhe1rl</id>
-    <title>r/LocalLLaMA right now</title>
-    <updated>2025-08-04T13:52:26+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"&gt; &lt;img alt="r/LocalLLaMA right now" src="https://preview.redd.it/f0xr7mshc0hf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a0d701cbdf33b1ec6ea47dd4b4874202dbea647e" title="r/LocalLLaMA right now" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/f0xr7mshc0hf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-04T13:52:26+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mi7pei</id>
     <title>DeepSeek R1 vs. V3 - Going Head-To-Head In AI Roleplay</title>
     <updated>2025-08-05T12:22:52+00:00</updated>
@@ -71,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi7pei/deepseek_r1_vs_v3_going_headtohead_in_ai_roleplay/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-05T12:22:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mhe1rl</id>
+    <title>r/LocalLLaMA right now</title>
+    <updated>2025-08-04T13:52:26+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"&gt; &lt;img alt="r/LocalLLaMA right now" src="https://preview.redd.it/f0xr7mshc0hf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a0d701cbdf33b1ec6ea47dd4b4874202dbea647e" title="r/LocalLLaMA right now" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/f0xr7mshc0hf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mhe1rl/rlocalllama_right_now/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-04T13:52:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1mht910</id>
@@ -151,19 +138,6 @@
     <published>2025-08-04T15:58:55+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mibuho</id>
-    <title>Kitten-TTS : Smallest ever TTS model (25MB, 15M params), runs on CPU</title>
-    <updated>2025-08-05T15:11:00+00:00</updated>
-    <author>
-      <name>/u/Technical-Love-8479</name>
-      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just checked out Kitten-TTS, an open-sourced TTS model 1/5th the size of Kokoro 82M, and giving out decent enough results. The model is optimized for CPU and looks great given its size. Also, the inference is quite fast and is able to generate samples within seconds on a CPU as well. &lt;/p&gt; &lt;p&gt;HuggingFace: &lt;a href="https://huggingface.co/KittenML/kitten-tts-nano-0.1"&gt;https://huggingface.co/KittenML/kitten-tts-nano-0.1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Demo: &lt;a href="https://youtu.be/oyu58Aei6U4"&gt;https://youtu.be/oyu58Aei6U4&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-05T15:11:00+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mi1vov</id>
     <title>Qwen-image now supported in ComfyUI</title>
     <updated>2025-08-05T06:37:16+00:00</updated>
@@ -175,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi1vov/qwenimage_now_supported_in_comfyui/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-05T06:37:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1midi67</id>
+    <title>GPT-OSS today?</title>
+    <updated>2025-08-05T16:14:54+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1midi67/gptoss_today/"&gt; &lt;img alt="GPT-OSS today?" src="https://preview.redd.it/2br9oi8178hf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=20cd517e2220fa7745b9e909a9f4bfcf589d5f03" title="GPT-OSS today?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;because this is almost merged &lt;a href="https://github.com/ggml-org/llama.cpp/pull/15091"&gt;https://github.com/ggml-org/llama.cpp/pull/15091&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/2br9oi8178hf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1midi67/gptoss_today/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1midi67/gptoss_today/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-05T16:14:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1mibd4n</id>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi45h1/kitten_tts_web_demo/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-05T09:04:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mibuho</id>
+    <title>Kitten-TTS : Smallest ever TTS model (25MB, 15M params), runs on CPU</title>
+    <updated>2025-08-05T15:11:00+00:00</updated>
+    <author>
+      <name>/u/Technical-Love-8479</name>
+      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just checked out Kitten-TTS, an open-sourced TTS model 1/5th the size of Kokoro 82M, and giving out decent enough results. The model is optimized for CPU and looks great given its size. Also, the inference is quite fast and is able to generate samples within seconds on a CPU as well. &lt;/p&gt; &lt;p&gt;HuggingFace: &lt;a href="https://huggingface.co/KittenML/kitten-tts-nano-0.1"&gt;https://huggingface.co/KittenML/kitten-tts-nano-0.1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Demo: &lt;a href="https://youtu.be/oyu58Aei6U4"&gt;https://youtu.be/oyu58Aei6U4&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mibuho/kittentts_smallest_ever_tts_model_25mb_15m_params/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-05T15:11:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1mi1fdc</id>
@@ -255,17 +255,17 @@
     <published>2025-08-05T11:13:33+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mic8kf</id>
-    <title>Llama.cpp: Add GPT-OSS</title>
-    <updated>2025-08-05T15:25:57+00:00</updated>
+    <id>t3_1mi0co2</id>
+    <title>Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!</title>
+    <updated>2025-08-05T05:06:08+00:00</updated>
     <author>
-      <name>/u/atgctg</name>
-      <uri>https://old.reddit.com/user/atgctg</uri>
+      <name>/u/MrJiks</name>
+      <uri>https://old.reddit.com/user/MrJiks</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"&gt; &lt;img alt="Llama.cpp: Add GPT-OSS" src="https://external-preview.redd.it/SMmA2lbsQDUuflgGCV0_YBw5k-KcfZS-9iAMN58tb_s.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95a9e3e605eab496c9ba148173f1d7e68a1d7e9f" title="Llama.cpp: Add GPT-OSS" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/atgctg"&gt; /u/atgctg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/15091"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"&gt; &lt;img alt="Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!" src="https://preview.redd.it/9z1vbpnsu4hf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bafb282a6194808b25822f60262b2b9d1dd1570e" title="Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;From Dario Amodei's recent interview on Big Technology Podcast discussing open source AI models. Thoughts on this reasoning?&lt;/p&gt; &lt;p&gt;Source: &lt;a href="https://x.com/jikkujose/status/1952588432280051930"&gt;https://x.com/jikkujose/status/1952588432280051930&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrJiks"&gt; /u/MrJiks &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/9z1vbpnsu4hf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-05T15:25:57+00:00</published>
+    <published>2025-08-05T05:06:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1mi6brm</id>
@@ -281,19 +281,6 @@
     <published>2025-08-05T11:13:52+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mi0co2</id>
-    <title>Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!</title>
-    <updated>2025-08-05T05:06:08+00:00</updated>
-    <author>
-      <name>/u/MrJiks</name>
-      <uri>https://old.reddit.com/user/MrJiks</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"&gt; &lt;img alt="Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!" src="https://preview.redd.it/9z1vbpnsu4hf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bafb282a6194808b25822f60262b2b9d1dd1570e" title="Anthropic's CEO dismisses open source as 'red herring' - but his reasoning seems to miss the point entirely!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;From Dario Amodei's recent interview on Big Technology Podcast discussing open source AI models. Thoughts on this reasoning?&lt;/p&gt; &lt;p&gt;Source: &lt;a href="https://x.com/jikkujose/status/1952588432280051930"&gt;https://x.com/jikkujose/status/1952588432280051930&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrJiks"&gt; /u/MrJiks &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/9z1vbpnsu4hf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi0co2/anthropics_ceo_dismisses_open_source_as_red/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-05T05:06:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mi8lbl</id>
     <title>Qwen3 Coder vs. Kimi K2 vs. Sonnet 4 Coding Comparison (Tested on Qwen CLI)</title>
     <updated>2025-08-05T13:02:08+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mi8lbl/qwen3_coder_vs_kimi_k2_vs_sonnet_4_coding/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-05T13:02:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mic8kf</id>
+    <title>Llama.cpp: Add GPT-OSS</title>
+    <updated>2025-08-05T15:25:57+00:00</updated>
+    <author>
+      <name>/u/atgctg</name>
+      <uri>https://old.reddit.com/user/atgctg</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"&gt; &lt;img alt="Llama.cpp: Add GPT-OSS" src="https://external-preview.redd.it/SMmA2lbsQDUuflgGCV0_YBw5k-KcfZS-9iAMN58tb_s.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95a9e3e605eab496c9ba148173f1d7e68a1d7e9f" title="Llama.cpp: Add GPT-OSS" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/atgctg"&gt; /u/atgctg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/15091"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mic8kf/llamacpp_add_gptoss/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-05T15:25:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1mi7bem</id>
