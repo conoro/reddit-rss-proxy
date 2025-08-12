@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-12T07:49:04+00:00</updated>
+  <updated>2025-08-12T08:09:05+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mnin8k</id>
-    <title>My beautiful vLLM adventure</title>
-    <updated>2025-08-11T17:02:45+00:00</updated>
-    <author>
-      <name>/u/ilintar</name>
-      <uri>https://old.reddit.com/user/ilintar</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So, there was this rant post on vLLM the other day. Seeing as I have some time on my hands and wanting to help the open source community, I decided I'd try documenting the common use cases and proving that, hey, this vLLM thing isn't really *that hard to run*. And I must say, after the tests, I have no idea what you're talking about vLLM being hard to use. Here's how easily I managed to actually run an inference server on it.&lt;/p&gt; &lt;p&gt;First though: hey, let's go for OSS-20B, runs nicely enough on my hardware on llama.cpp, let's see what we get.&lt;/p&gt; &lt;p&gt;Of course, `vllm serve openai/gpt-oss-20b` out of the box would fail, I don't have 12 GB of VRAM (3080 with 10GB of VRAM here plus 24 GB of RAM). I need offloading.&lt;/p&gt; &lt;p&gt;Fortunately, vLLm *does* provide offloading, I know it from my previous fights with it. The setting is `--cpu-offload-gb X`. The behavior is the following: out of the entire model, X GB gets offloaded to CPU and the rest is loaded on the GPU. So if the model has 12GB and you want it to use 7 GB of VRAM, you need `--cpu-offload-gb 5`. Simple math!&lt;/p&gt; &lt;p&gt;Oh yeah, and of course there's `--gpu-memory-utilization`. If your GPU has residual stuff using it, you need to tell vLLM to only use X of the GPU memory or it's gonna crash. &lt;/p&gt; &lt;p&gt;Attempt 2: `vllm serve openai/gpt-oss-20b --gpu-memory-utilization 0.85 --cpu-offload-gb 5`&lt;/p&gt; &lt;p&gt;OOM CRASH&lt;/p&gt; &lt;p&gt;(no, we're no telling you why the OOM crash happened, figure it out on your own; we'll just tell you that YOU DON'T HAVE ENOUGH VRAM period)&lt;/p&gt; &lt;p&gt;`(APIServer pid=571098) INFO 08-11 18:19:32 [__init__.py:1731] Using max model len 262144`&lt;/p&gt; &lt;p&gt;Ah yes, unlike the other backends, vLLM will use the model's *maximum* context length as default. Of course I don't have that much. Let's fix it!&lt;/p&gt; &lt;p&gt;Attempt 3: `vllm serve openai/gpt-oss-20b --gpu-memory-utilization 0.85 --cpu-offload-gb 5 --max-model-len 40000`&lt;/p&gt; &lt;p&gt;OOM CRASH&lt;/p&gt; &lt;p&gt;This time we got to the KV cache though, so I get info that my remaining VRAM is simply not enough for the KV cache. Oh yeah, quantized KV cache, here we come... but only fp8, since vLLM doesn't support any lower options.&lt;/p&gt; &lt;p&gt;Attempt 4: `vllm serve openai/gpt-oss-20b --gpu-memory-utilization 0.85 --cpu-offload-gb 5 --max-model-len 40000 --kv-cache-dtype fp8`&lt;/p&gt; &lt;p&gt;... model loads ...&lt;br /&gt; ERROR: unsupported architecture for cache type 'mxfp4', compute capability: 86, minimum capability: 90&lt;/p&gt; &lt;p&gt;(translation: You pleb, you tried to run the shiny new MXFP4 quants on a 30x0 card, but a minimum of 40x0 cards are required)&lt;/p&gt; &lt;p&gt;Oh well, this is proof-of-concept after all, right? Let's run something easy. Qwen3-8B-FP8. Should fit nicely, should run OK, right?&lt;/p&gt; &lt;p&gt;Attempt 5: `VLLM_ATTENTION_BACKEND=FLASHINFER vllm serve --cpu-offload-gb 6 --gpu-memory-utilization 0.85 Qwen/Qwen3-8B-FP8 --max-model-len 40000 --kv-cache-dtype fp8` (what is this Flashinfer witchcraft, you ask? Well, the debugging messages suggested running on Flashinfer for FP8 quants, so I went and got it. Yes, you have to compile it manually. With `--no-build-isolation`, preferrably. Don't ask. Just accept)&lt;/p&gt; &lt;p&gt;... models loads ...&lt;br /&gt; ... no unsupported architecture errors ...&lt;br /&gt; ... computing CUDA graphs ...&lt;/p&gt; &lt;p&gt;ERROR: cannot find #include_next &amp;quot;math.h&amp;quot;&lt;/p&gt; &lt;p&gt;WTF?!?! Okay, to the internets. ChatGPT says it's probably a problem of C++ compiler and NVCC compiler mismatch. Maybe recompile VLLM with G++-12? No, sorry mate, ain't doing that.&lt;/p&gt; &lt;p&gt;Okay, symlinking `math.h` and `stdlib.h` from `/usr/include` to `/usr/x86_64-linux-gnu` gets the job done.&lt;/p&gt; &lt;p&gt;Attempt 6: same line as before. &lt;/p&gt; &lt;p&gt;Hooray, it loads!&lt;/p&gt; &lt;p&gt;... I get 1.8 t/s throughput because all the optimizations are not for my pleb graphics card ;)&lt;/p&gt; &lt;p&gt;And you're saying it's not user friendly? That wasn't even half the time and effort it took to get a printer working in Linux back in the 1990s!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ilintar"&gt; /u/ilintar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mnin8k/my_beautiful_vllm_adventure/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mnin8k/my_beautiful_vllm_adventure/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mnin8k/my_beautiful_vllm_adventure/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-11T17:02:45+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mnqyw3</id>
     <title>I built Nore, a free desktop UI to manage all your local and cloud AI models in one place.</title>
@@ -86,6 +73,19 @@
     <published>2025-08-11T06:17:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mo1vre</id>
+    <title>Why stop at 'Strawberry'? Lets up the game with 'How many c's are there in 'pneumonoultramicroscopicsilicovolcanoconiosis'.</title>
+    <updated>2025-08-12T07:08:27+00:00</updated>
+    <author>
+      <name>/u/riwritingreddit</name>
+      <uri>https://old.reddit.com/user/riwritingreddit</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1vre/why_stop_at_strawberry_lets_up_the_game_with_how/"&gt; &lt;img alt="Why stop at 'Strawberry'? Lets up the game with 'How many c's are there in 'pneumonoultramicroscopicsilicovolcanoconiosis'." src="https://preview.redd.it/2e65cn38fjif1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=da4ffea4883b21f3e637daf2a89cb44028cbdb31" title="Why stop at 'Strawberry'? Lets up the game with 'How many c's are there in 'pneumonoultramicroscopicsilicovolcanoconiosis'." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Qwen 4B got it right after thinking 30 Sec.ZLM thought for almost 2 min .GPT-5 took 5 sec.Gemini took less than 2 sec,and told me use count() function in Python which it used. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/riwritingreddit"&gt; /u/riwritingreddit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/2e65cn38fjif1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1vre/why_stop_at_strawberry_lets_up_the_game_with_how/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1vre/why_stop_at_strawberry_lets_up_the_game_with_how/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-12T07:08:27+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mnzh4v</id>
     <title>Interactive Reasoning Benchmarks | ARC-AGI-3 Preview</title>
     <updated>2025-08-12T04:45:14+00:00</updated>
@@ -97,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mnzh4v/interactive_reasoning_benchmarks_arcagi3_preview/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-12T04:45:14+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mo1pv4</id>
-    <title>Uncensored gpt-oss-20b released</title>
-    <updated>2025-08-12T06:58:18+00:00</updated>
-    <author>
-      <name>/u/No-Solution-8341</name>
-      <uri>https://old.reddit.com/user/No-Solution-8341</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jinx is a &amp;quot;helpful-only&amp;quot; variant of popular open-weight language models that responds to all queries without safety refusals. &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Jinx-org/Jinx-gpt-oss-20b"&gt;https://huggingface.co/Jinx-org/Jinx-gpt-oss-20b&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Solution-8341"&gt; /u/No-Solution-8341 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-12T06:58:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1mnh0s5</id>
@@ -151,6 +138,19 @@
     <published>2025-08-11T09:38:57+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mo1pv4</id>
+    <title>Uncensored gpt-oss-20b released</title>
+    <updated>2025-08-12T06:58:18+00:00</updated>
+    <author>
+      <name>/u/No-Solution-8341</name>
+      <uri>https://old.reddit.com/user/No-Solution-8341</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jinx is a &amp;quot;helpful-only&amp;quot; variant of popular open-weight language models that responds to all queries without safety refusals. &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Jinx-org/Jinx-gpt-oss-20b"&gt;https://huggingface.co/Jinx-org/Jinx-gpt-oss-20b&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Solution-8341"&gt; /u/No-Solution-8341 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1pv4/uncensored_gptoss20b_released/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-12T06:58:18+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mnedxo</id>
     <title>SOTA on 41 benchmarks! GLM-4.5V -- A new open-source VLM from China</title>
     <updated>2025-08-11T14:24:03+00:00</updated>
@@ -188,19 +188,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mnd144/am_i_the_only_one_who_never_really_liked_ollama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-11T13:30:22+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mo2gg7</id>
-    <title>Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro</title>
-    <updated>2025-08-12T07:45:23+00:00</updated>
-    <author>
-      <name>/u/Delicious_Focus3465</name>
-      <uri>https://old.reddit.com/user/Delicious_Focus3465</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"&gt; &lt;img alt="Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro" src="https://preview.redd.it/niaetccbljif1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83cb98af8850f5f113bf6d7f37db6c95989b888f" title="Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, this is Bach from Jan. We're releasing Jan v1 today. In our evals, Jan v1 delivers 91% SimpleQA accuracy, slightly outperforming Perplexity Pro while running fully locally.&lt;/p&gt; &lt;p&gt;It's built on the new version of Qwen's &lt;a href="https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507"&gt;Qwen3-4B-Thinking&lt;/a&gt; (up to 256k context length), fine-tuned for reasoning and tool use in Jan.&lt;/p&gt; &lt;h1&gt;How to run it:&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Jan&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Download Jan v1 via Jan Hub&lt;/li&gt; &lt;li&gt;Enable search in Jan: &lt;ul&gt; &lt;li&gt;Settings → Experimental Features → On&lt;/li&gt; &lt;li&gt;Settings → MCP Servers → enable Search-related MCP (e.g. Serper)&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Plus you can run the model in llama.cpp and vLLM.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Model links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Jan-v1-4B: &lt;a href="https://huggingface.co/janhq/Jan-v1-4B"&gt;https://huggingface.co/janhq/Jan-v1-4B&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Jan-v1-4B-GGUF: &lt;a href="https://huggingface.co/janhq/Jan-v1-4B-GGUF"&gt;https://huggingface.co/janhq/Jan-v1-4B-GGUF&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Recommended parameters:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;temperature: 0.6&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;top_p: 0.95&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;top_k: 20&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;min_p: 0.0&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;max_tokens: 2048&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;We'd love for you to try Jan v1 and share your feedback, including what works well and where it falls short.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Delicious_Focus3465"&gt; /u/Delicious_Focus3465 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/niaetccbljif1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-12T07:45:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1mnhgt0</id>
@@ -242,19 +229,6 @@
     <published>2025-08-11T20:25:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mo1mb1</id>
-    <title>GLM 4.5 AIR IS SO FKING GOODDD</title>
-    <updated>2025-08-12T06:52:07+00:00</updated>
-    <author>
-      <name>/u/boneMechBoy69420</name>
-      <uri>https://old.reddit.com/user/boneMechBoy69420</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just got to try it with our agentic system , it's so fast and perfect with its tool calls , but mostly it's freakishly fast too , thanks z.ai i love you 😘💋&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/boneMechBoy69420"&gt; /u/boneMechBoy69420 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-12T06:52:07+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mnc8lx</id>
     <title>I built Excel Add-in for Ollama</title>
     <updated>2025-08-11T12:56:39+00:00</updated>
@@ -266,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mnc8lx/i_built_excel_addin_for_ollama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-11T12:56:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mo1mb1</id>
+    <title>GLM 4.5 AIR IS SO FKING GOODDD</title>
+    <updated>2025-08-12T06:52:07+00:00</updated>
+    <author>
+      <name>/u/boneMechBoy69420</name>
+      <uri>https://old.reddit.com/user/boneMechBoy69420</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just got to try it with our agentic system , it's so fast and perfect with its tool calls , but mostly it's freakishly fast too , thanks z.ai i love you 😘💋&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/boneMechBoy69420"&gt; /u/boneMechBoy69420 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1mb1/glm_45_air_is_so_fking_gooddd/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-12T06:52:07+00:00</published>
   </entry>
   <entry>
     <id>t3_1mnxwmw</id>
@@ -294,17 +281,17 @@
     <published>2025-08-11T21:04:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mo1o3d</id>
-    <title>Google is cooking something...</title>
-    <updated>2025-08-12T06:55:15+00:00</updated>
+    <id>t3_1mo2gg7</id>
+    <title>Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro</title>
+    <updated>2025-08-12T07:45:23+00:00</updated>
     <author>
-      <name>/u/Ok_Ninja7526</name>
-      <uri>https://old.reddit.com/user/Ok_Ninja7526</uri>
+      <name>/u/Delicious_Focus3465</name>
+      <uri>https://old.reddit.com/user/Delicious_Focus3465</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"&gt; &lt;img alt="Google is cooking something..." src="https://preview.redd.it/8zf0or9odjif1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=02efc5f521ba2e517fbf43631afcf28f7eab9422" title="Google is cooking something..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Ninja7526"&gt; /u/Ok_Ninja7526 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8zf0or9odjif1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"&gt; &lt;img alt="Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro" src="https://preview.redd.it/niaetccbljif1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83cb98af8850f5f113bf6d7f37db6c95989b888f" title="Jan v1: 4B model for web search with 91% SimpleQA, slightly outperforms Perplexity Pro" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, this is Bach from Jan. We're releasing Jan v1 today. In our evals, Jan v1 delivers 91% SimpleQA accuracy, slightly outperforming Perplexity Pro while running fully locally.&lt;/p&gt; &lt;p&gt;It's built on the new version of Qwen's &lt;a href="https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507"&gt;Qwen3-4B-Thinking&lt;/a&gt; (up to 256k context length), fine-tuned for reasoning and tool use in Jan.&lt;/p&gt; &lt;h1&gt;How to run it:&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Jan&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Download Jan v1 via Jan Hub&lt;/li&gt; &lt;li&gt;Enable search in Jan: &lt;ul&gt; &lt;li&gt;Settings → Experimental Features → On&lt;/li&gt; &lt;li&gt;Settings → MCP Servers → enable Search-related MCP (e.g. Serper)&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Plus you can run the model in llama.cpp and vLLM.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Model links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Jan-v1-4B: &lt;a href="https://huggingface.co/janhq/Jan-v1-4B"&gt;https://huggingface.co/janhq/Jan-v1-4B&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Jan-v1-4B-GGUF: &lt;a href="https://huggingface.co/janhq/Jan-v1-4B-GGUF"&gt;https://huggingface.co/janhq/Jan-v1-4B-GGUF&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Recommended parameters:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;temperature: 0.6&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;top_p: 0.95&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;top_k: 20&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;min_p: 0.0&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;max_tokens: 2048&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;We'd love for you to try Jan v1 and share your feedback, including what works well and where it falls short.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Delicious_Focus3465"&gt; /u/Delicious_Focus3465 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/niaetccbljif1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo2gg7/jan_v1_4b_model_for_web_search_with_91_simpleqa/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-12T06:55:15+00:00</published>
+    <published>2025-08-12T07:45:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1mncrqp</id>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mncrqp/ollama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-11T13:19:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mo1o3d</id>
+    <title>Google is cooking something...</title>
+    <updated>2025-08-12T06:55:15+00:00</updated>
+    <author>
+      <name>/u/Ok_Ninja7526</name>
+      <uri>https://old.reddit.com/user/Ok_Ninja7526</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"&gt; &lt;img alt="Google is cooking something..." src="https://preview.redd.it/8zf0or9odjif1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=02efc5f521ba2e517fbf43631afcf28f7eab9422" title="Google is cooking something..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Ninja7526"&gt; /u/Ok_Ninja7526 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8zf0or9odjif1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mo1o3d/google_is_cooking_something/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-12T06:55:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1mnxodk</id>
