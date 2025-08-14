@@ -2,62 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-14T01:37:07+00:00</updated>
+  <updated>2025-08-14T02:26:23+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1mpdjx9</id>
-    <title>Case study: hybrid SSM + sparse-attention LM that holds up at 32k ctx (w/ sane throughput)</title>
-    <updated>2025-08-13T19:09:07+00:00</updated>
+    <id>t3_1mpe9p2</id>
+    <title>GLM 4.5 Air, local setup issues, vllm and llama.cpp</title>
+    <updated>2025-08-13T19:36:17+00:00</updated>
     <author>
-      <name>/u/gpu_mamba</name>
-      <uri>https://old.reddit.com/user/gpu_mamba</uri>
+      <name>/u/bfroemel</name>
+      <uri>https://old.reddit.com/user/bfroemel</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Would love to hear your thoughts on this in the comments. Anything I should play around w next?&lt;/p&gt; &lt;p&gt;TLDR: I swapped ~40% of self-attn layers for Mamba-style SSM blocks and added a block-shifted local attention pattern and a bunch of tiny global tokens. On a 1.3B LM trained ~300B tokens, I’m seeing ~1.35× more tokens/s and ~40% lower VRAM at 32k context vs a same-size vanilla Transformer, with basically iso perplexity.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why I tried this&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Long context is still rough: O(N&lt;sup&gt;2)&lt;/sup&gt; attn, tiny batches, random OOMs. Pure SSMs are fast but can miss global mixing. My hypothesis: use SSM for cheap local mixing and keep just enough attention for routing/global hops&lt;/p&gt; &lt;p&gt;&lt;strong&gt;model&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Interleave: 4 SSM blocks -&amp;gt; 1 global-attn layer, repeat through depth.&lt;/li&gt; &lt;li&gt;Block-shifted local attn: 512-token windows. each layer shifts/dilates so tokens meet fresh neighbors deeper in the net.&lt;/li&gt; &lt;li&gt;Mini-globals: 8 learned “global” tokens per layer that let info jump far without full attention.&lt;/li&gt; &lt;li&gt;less important parts: RMSNorm everywhere, SwiGLU MLPs, RoPE only on the attention layers. SSM uses a selective scan w/ gating (chunk len 1k) and a fused kernel.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;training setup&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;machines: 8 nodes × 8×H100 80GB (64 GPUs total), NVSwitch inside nodes, fast IB (3.2TB/s) between nodes.&lt;/li&gt; &lt;li&gt;provider: TensorPool (solid on-demand multinode availability)&lt;/li&gt; &lt;li&gt;dist: torch &amp;amp; DeepSpeed ZeRO-3; Flash-Attn2 on the global layers; grad-ckpt on SSM+MLP. Pure data parallel (model small enough).&lt;/li&gt; &lt;li&gt;I/O: WebDataset tar shards, per-node NVMe cache, 6–8 loader workers/GPU to keep the pipes fed.&lt;/li&gt; &lt;li&gt;Curriculum: context 4k -&amp;gt; 8k -&amp;gt;16k -&amp;gt; 32k, packed samples.&lt;/li&gt; &lt;li&gt;Optim: AdamW (β1/β2=0.9/0.95), wd=0.1, cosine, 3k warmup, bf16. μP-ish MLP scaling.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;numbers&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;perplexity (The Pile val): 5.92 → 5.88 (basically iso)&lt;/li&gt; &lt;li&gt;Long-ctx retrieval (Needle @32k): 72% → 96% hit rate&lt;/li&gt; &lt;li&gt;BookSum long ROUGE-L: +0.9&lt;/li&gt; &lt;li&gt;HumanEval: 27.4 → 27.6 (noise) -Peak VRAM @32k, bs=1/GPU: ~69GB → ~41GB.&lt;/li&gt; &lt;li&gt;Tokens/s/GPU @32k: ~+35%.&lt;/li&gt; &lt;li&gt;scaling efficiency @64 GPUs: ~88–92% once comms tuned.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;final thoughts&lt;/strong&gt; I’d be happy to share my DeepSpeed/NCCL configs and a tiny ~130M “mini-BSMT” toy run if yall wanna try on a single node first. Also curious if anyone’s tried MoE-on-MLP with SSM-dense blocks. This seems like the next obvious move for quality without destroying latency. YMMV, but for long-doc tasks this hybrid felt like the right trade-off: keeps global routing, drops most of the O(N²) pain.&lt;/p&gt; &lt;p&gt;Cheers!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gpu_mamba"&gt; /u/gpu_mamba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdjx9/case_study_hybrid_ssm_sparseattention_lm_that/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdjx9/case_study_hybrid_ssm_sparseattention_lm_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdjx9/case_study_hybrid_ssm_sparseattention_lm_that/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I seem to be not quite able to match GLM 4.5 Air model output between what's running on &lt;a href="http://chat.z.ai/bigmodel.cn"&gt;chat.z.ai/bigmodel.cn&lt;/a&gt; and my local 4x RTX3090 vllm/llama.cpp setup. I tried cpatonn/GLM-4.5-Air-AWQ-4bit, QuantTrio/GLM-4.5-Air-AWQ-FP16Mix, unsloth/GLM-4.5-Air-GGUF (q4_k_m, ud-q4_k_xl, ud-q5_k_xl, ud-q6_k_xl) - all under &amp;quot;normal&amp;quot; sampler defaults and the suggested temperature of 0.7). One very obvious prompt is just this short question:&lt;/p&gt; &lt;p&gt;&amp;gt; How to benchmark perplexity with llama.cpp?&lt;/p&gt; &lt;p&gt;On my local setup it leads to a lot of ruminating/attention problems (example: &lt;a href="https://pastebin.com/yaNdWNFb"&gt;https://pastebin.com/yaNdWNFb&lt;/a&gt; more than 200 lines), every single attempt on any of the tried quants and both on vllm (AWQ quants) and llama.cpp (gguf quants). On zai/bigmodel the prompt leads on every attempt to a comparatively concise reasoning output (see: &lt;a href="https://pastebin.com/9GSyR1Dz"&gt;https://pastebin.com/9GSyR1Dz&lt;/a&gt; less than 60 lines).&lt;/p&gt; &lt;p&gt;Very much appreciated, if someone who also runs GLM 4.5 Air locally could try that prompt and report whether the output is similar to zai/bigmodel, or like the one I get. If similar to zai/bigmodel, please share your local setup details (inference hardware, drivers, inference engine, versions, arguments, used model incl. quantization, etc.). Many thanks!&lt;/p&gt; &lt;p&gt;btw: having an additional strange issue with vllm and concurrent requests; seemingly only with GLM 4.5 Air quants and only if multiple requests run simultaneously I end up with responses like this:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&amp;lt;think&amp;gt;Okay, the user just sent a simple &amp;quot;Hi&amp;quot; as their first message. HmmHello! How can I assist you today?&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;This is without reasoning parser, just to make it more visible that the model fails to produce the closing &amp;lt;/think&amp;gt; tag and just &amp;quot;continues&amp;quot; mid-thought with the message content &amp;quot;Hello! ...&amp;quot;. If the glm45 reasoning parser is used it gets confused as well, i.e., the message content ends up in the reasoning_content and the message content is empty.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bfroemel"&gt; /u/bfroemel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpe9p2/glm_45_air_local_setup_issues_vllm_and_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpe9p2/glm_45_air_local_setup_issues_vllm_and_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpe9p2/glm_45_air_local_setup_issues_vllm_and_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T19:09:07+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mpee0x</id>
-    <title>GPT OSS 120b 34th on Simple bench, roughly on par with Llama 3.3 70b</title>
-    <updated>2025-08-13T19:40:46+00:00</updated>
-    <author>
-      <name>/u/and_human</name>
-      <uri>https://old.reddit.com/user/and_human</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/and_human"&gt; /u/and_human &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://simple-bench.com/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpee0x/gpt_oss_120b_34th_on_simple_bench_roughly_on_par/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpee0x/gpt_oss_120b_34th_on_simple_bench_roughly_on_par/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T19:40:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mpdzgz</id>
-    <title>Which is the best small model to fine-tune?</title>
-    <updated>2025-08-13T19:25:33+00:00</updated>
-    <author>
-      <name>/u/IllustriousSearch411</name>
-      <uri>https://old.reddit.com/user/IllustriousSearch411</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey, I have started to learn more about fine-tuning, LLMs and Lora recently, I have already tried to fine-tune some models using unsloth + lora on google colab, mostly Llama 3 8B, and got some OK results, but I feel it could be a lot better.&lt;/p&gt; &lt;p&gt;I have a Nvidia 3060 12gb VRAM available, which is probably better than the colab GPU, the dataset I am using for this is pretty small too, around 1400 entries and I want to fine-tune a model that can perform better than what I have previously done, I was thinking about qwen models which seems to be on top of discussions recently but I dont really know which one to choose.&lt;/p&gt; &lt;p&gt;If anyone needs more info comment here that I can add more context to the post, and I appreciate any intereactions.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IllustriousSearch411"&gt; /u/IllustriousSearch411 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdzgz/which_is_the_best_small_model_to_finetune/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdzgz/which_is_the_best_small_model_to_finetune/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpdzgz/which_is_the_best_small_model_to_finetune/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T19:25:33+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mpmq7s</id>
-    <title>Will the new 5070 Ti Super 24GB be local LLM new favourite 🙂</title>
-    <updated>2025-08-14T01:18:01+00:00</updated>
-    <author>
-      <name>/u/Redinaj</name>
-      <uri>https://old.reddit.com/user/Redinaj</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just saw this updated leak on prices so Im wondering... Will 5070 ti Super 24GB be local LLM new favourite? &lt;a href="https://overclock3d.net/news/gpu-displays/nvidia-geforce-rtx-50-super-pricing-leaks/"&gt;https://overclock3d.net/news/gpu-displays/nvidia-geforce-rtx-50-super-pricing-leaks/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Looks on par with 3090 for similar price used/new but newest tech will offer considerably more performance and future proofing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Redinaj"&gt; /u/Redinaj &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-14T01:18:01+00:00</published>
+    <published>2025-08-13T19:36:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpb0mo</id>
@@ -73,19 +34,6 @@
     <published>2025-08-13T17:36:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mpk834</id>
-    <title>Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s.</title>
-    <updated>2025-08-13T23:27:12+00:00</updated>
-    <author>
-      <name>/u/swagonflyyyy</name>
-      <uri>https://old.reddit.com/user/swagonflyyyy</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"&gt; &lt;img alt="Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s." src="https://external-preview.redd.it/dTd1ZDB2NnBldmlmMavIpB9AHSfqY-PSwwptUZpoVAt7ZMaVO0xQLghP-sG0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=65f0830ecafdacba42b232e8ce354f02aa9a68f2" title="Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/swagonflyyyy"&gt; /u/swagonflyyyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ycrl1u6pevif1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T23:27:12+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mp1ras</id>
     <title>[Beta] Local TTS Studio with Kokoro, Kitten TTS, and Piper built in, completely in JavaScript (930+ voices to choose from)</title>
     <updated>2025-08-13T11:24:08+00:00</updated>
@@ -97,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mp1ras/beta_local_tts_studio_with_kokoro_kitten_tts_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-13T11:24:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mpee0x</id>
+    <title>GPT OSS 120b 34th on Simple bench, roughly on par with Llama 3.3 70b</title>
+    <updated>2025-08-13T19:40:46+00:00</updated>
+    <author>
+      <name>/u/and_human</name>
+      <uri>https://old.reddit.com/user/and_human</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/and_human"&gt; /u/and_human &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://simple-bench.com/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpee0x/gpt_oss_120b_34th_on_simple_bench_roughly_on_par/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpee0x/gpt_oss_120b_34th_on_simple_bench_roughly_on_par/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-13T19:40:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1mp4vxe</id>
@@ -112,30 +73,17 @@
     <published>2025-08-13T13:44:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mpmeba</id>
-    <title>Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude</title>
-    <updated>2025-08-14T01:03:04+00:00</updated>
+    <id>t3_1mpk834</id>
+    <title>Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s.</title>
+    <updated>2025-08-13T23:27:12+00:00</updated>
     <author>
-      <name>/u/rm-rf-rm</name>
-      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
+      <name>/u/swagonflyyyy</name>
+      <uri>https://old.reddit.com/user/swagonflyyyy</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"&gt; &lt;img alt="Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude" src="https://b.thumbs.redditmedia.com/3X645e074wAZwFAUEsvdDQTEHHMP4k46jGqsiJfXi6w.jpg" title="Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Following up to &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1mov3d9/i_tried_the_janv1_model_released_today_and_here/?utm_source=share&amp;amp;utm_medium=web3x&amp;amp;utm_name=web3xcss&amp;amp;utm_term=1&amp;amp;utm_content=share_button"&gt;this post&lt;/a&gt; yesterday, here are the updated results using Q8 of the Jan V1 model with Serper search.&lt;/p&gt; &lt;p&gt;Summaries corresponding to each image:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Jan V1 Q8 with brave search: Actually produces an answer. But it gives the result for 2023.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Jan V1 Q8 with serper: Same result as above. It seems to make the mistake in the first thinking step in initiating the search - &amp;quot;Let me phrase the query as &amp;quot;US GDP current value&amp;quot; or something similar. Let me check the parameters: I need to specify a query. Let's go with &amp;quot;US GDP 2023 latest&amp;quot; to get recent data.&amp;quot; It thinks its way to the wrong query... &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Qwen3 A3B:30B via OpenRouter (with Msty's inbuilt web search): It had the right answer but then included numbers from 1999 and was far too verbose. &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;GPT-OSS 20B via OpenRouter (with Msty's inbuilt web search): On the ball but a tad verbose&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Perplexity Pro: nailed it&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Claude Desktop w Sonnet 4: got it as well, but again more info than requested.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I didnt bother trying anything more.. Its harsh to jump to conclusions with just 1 question but its hard for me to see how Jan V1 is actually better than Perplexity or any other LLM+search tool &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1mpmeba"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"&gt; &lt;img alt="Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s." src="https://external-preview.redd.it/dTd1ZDB2NnBldmlmMavIpB9AHSfqY-PSwwptUZpoVAt7ZMaVO0xQLghP-sG0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=65f0830ecafdacba42b232e8ce354f02aa9a68f2" title="Testing qwen3-30b-a3b-q8_0 with my RTX Pro 6000 Blackwell MaxQ. Significant speed improvement. Around 120 t/s." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/swagonflyyyy"&gt; /u/swagonflyyyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ycrl1u6pevif1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk834/testing_qwen330ba3bq8_0_with_my_rtx_pro_6000/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-14T01:03:04+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mpgkap</id>
-    <title>Why it’s a mistake to ask chatbots about their mistakes</title>
-    <updated>2025-08-13T21:02:24+00:00</updated>
-    <author>
-      <name>/u/Educational_Sun_8813</name>
-      <uri>https://old.reddit.com/user/Educational_Sun_8813</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;em&gt;The tendency to ask AI bots to explain themselves reveals widespread misconceptions about how they work.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://arstechnica.com/ai/2025/08/why-its-a-mistake-to-ask-chatbots-about-their-mistakes/"&gt;https://arstechnica.com/ai/2025/08/why-its-a-mistake-to-ask-chatbots-about-their-mistakes/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Educational_Sun_8813"&gt; /u/Educational_Sun_8813 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T21:02:24+00:00</published>
+    <published>2025-08-13T23:27:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpa1ew</id>
@@ -151,6 +99,32 @@
     <published>2025-08-13T17:00:27+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mpgkap</id>
+    <title>Why it’s a mistake to ask chatbots about their mistakes</title>
+    <updated>2025-08-13T21:02:24+00:00</updated>
+    <author>
+      <name>/u/Educational_Sun_8813</name>
+      <uri>https://old.reddit.com/user/Educational_Sun_8813</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;em&gt;The tendency to ask AI bots to explain themselves reveals widespread misconceptions about how they work.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://arstechnica.com/ai/2025/08/why-its-a-mistake-to-ask-chatbots-about-their-mistakes/"&gt;https://arstechnica.com/ai/2025/08/why-its-a-mistake-to-ask-chatbots-about-their-mistakes/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Educational_Sun_8813"&gt; /u/Educational_Sun_8813 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpgkap/why_its_a_mistake_to_ask_chatbots_about_their/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-13T21:02:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mpmq7s</id>
+    <title>Will the new 5070 Ti Super 24GB be local LLM new favourite 🙂</title>
+    <updated>2025-08-14T01:18:01+00:00</updated>
+    <author>
+      <name>/u/Redinaj</name>
+      <uri>https://old.reddit.com/user/Redinaj</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just saw this updated leak on prices so Im wondering... Will 5070 ti Super 24GB be local LLM new favourite? &lt;a href="https://overclock3d.net/news/gpu-displays/nvidia-geforce-rtx-50-super-pricing-leaks/"&gt;https://overclock3d.net/news/gpu-displays/nvidia-geforce-rtx-50-super-pricing-leaks/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Looks on par with 3090 for similar price used/new but newest tech will offer considerably more performance and future proofing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Redinaj"&gt; /u/Redinaj &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmq7s/will_the_new_5070_ti_super_24gb_be_local_llm_new/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-14T01:18:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mp7cfe</id>
     <title>awesome-private-ai: all things for your AI data sovereign</title>
     <updated>2025-08-13T15:20:08+00:00</updated>
@@ -164,17 +138,17 @@
     <published>2025-08-13T15:20:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mpm8kr</id>
-    <title>ERNIE 4.5 21BA3B appreciation post.</title>
-    <updated>2025-08-14T00:55:45+00:00</updated>
+    <id>t3_1mpmeba</id>
+    <title>Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude</title>
+    <updated>2025-08-14T01:03:04+00:00</updated>
     <author>
-      <name>/u/thebadslime</name>
-      <uri>https://old.reddit.com/user/thebadslime</uri>
+      <name>/u/rm-rf-rm</name>
+      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think it's the best model of it's size, outshining gpt-oss 20 and qwen 3 30BA3B.&lt;/p&gt; &lt;p&gt;It's not as good at coding, but it runs without error even at decent context. I find the qwen a3b to be better for code gen, but prefer ernie for everythign else.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/thebadslime"&gt; /u/thebadslime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"&gt; &lt;img alt="Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude" src="https://b.thumbs.redditmedia.com/3X645e074wAZwFAUEsvdDQTEHHMP4k46jGqsiJfXi6w.jpg" title="Jan-v1 trial results follow-up and comparison to Qwen3, Perplexity, Claude" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Following up to &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1mov3d9/i_tried_the_janv1_model_released_today_and_here/?utm_source=share&amp;amp;utm_medium=web3x&amp;amp;utm_name=web3xcss&amp;amp;utm_term=1&amp;amp;utm_content=share_button"&gt;this post&lt;/a&gt; yesterday, here are the updated results using Q8 of the Jan V1 model with Serper search.&lt;/p&gt; &lt;p&gt;Summaries corresponding to each image:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Jan V1 Q8 with brave search: Actually produces an answer. But it gives the result for 2023.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Jan V1 Q8 with serper: Same result as above. It seems to make the mistake in the first thinking step in initiating the search - &amp;quot;Let me phrase the query as &amp;quot;US GDP current value&amp;quot; or something similar. Let me check the parameters: I need to specify a query. Let's go with &amp;quot;US GDP 2023 latest&amp;quot; to get recent data.&amp;quot; It thinks its way to the wrong query... &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Qwen3 A3B:30B via OpenRouter (with Msty's inbuilt web search): It had the right answer but then included numbers from 1999 and was far too verbose. &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;GPT-OSS 20B via OpenRouter (with Msty's inbuilt web search): On the ball but a tad verbose&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Perplexity Pro: nailed it&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Claude Desktop w Sonnet 4: got it as well, but again more info than requested.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I didnt bother trying anything more.. Its harsh to jump to conclusions with just 1 question but its hard for me to see how Jan V1 is actually better than Perplexity or any other LLM+search tool &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1mpmeba"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpmeba/janv1_trial_results_followup_and_comparison_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-14T00:55:45+00:00</published>
+    <published>2025-08-14T01:03:04+00:00</published>
   </entry>
   <entry>
     <id>t3_1mp92nc</id>
@@ -268,17 +242,17 @@
     <published>2025-08-13T11:12:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mpez1p</id>
-    <title>Added locally generated dialogue + voice acting to my game!</title>
-    <updated>2025-08-13T20:02:24+00:00</updated>
+    <id>t3_1mpm8kr</id>
+    <title>ERNIE 4.5 21BA3B appreciation post.</title>
+    <updated>2025-08-14T00:55:45+00:00</updated>
     <author>
-      <name>/u/LandoRingel</name>
-      <uri>https://old.reddit.com/user/LandoRingel</uri>
+      <name>/u/thebadslime</name>
+      <uri>https://old.reddit.com/user/thebadslime</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"&gt; &lt;img alt="Added locally generated dialogue + voice acting to my game!" src="https://external-preview.redd.it/N2szZGNtMzRldWlmMZmQp7O5BpjYg7UqegAgE9IdgP7TYx8Szh9dJVqIheQu.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=eccefbf13830c4a641bc7633ab5e9b01c2c86540" title="Added locally generated dialogue + voice acting to my game!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LandoRingel"&gt; /u/LandoRingel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/t1qgim34euif1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think it's the best model of it's size, outshining gpt-oss 20 and qwen 3 30BA3B.&lt;/p&gt; &lt;p&gt;It's not as good at coding, but it runs without error even at decent context. I find the qwen a3b to be better for code gen, but prefer ernie for everythign else.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/thebadslime"&gt; /u/thebadslime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpm8kr/ernie_45_21ba3b_appreciation_post/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-13T20:02:24+00:00</published>
+    <published>2025-08-14T00:55:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpabh1</id>
@@ -292,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpabh1/matrixgame_20_first_opensource_realtime/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-13T17:10:32+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mpez1p</id>
+    <title>Added locally generated dialogue + voice acting to my game!</title>
+    <updated>2025-08-13T20:02:24+00:00</updated>
+    <author>
+      <name>/u/LandoRingel</name>
+      <uri>https://old.reddit.com/user/LandoRingel</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"&gt; &lt;img alt="Added locally generated dialogue + voice acting to my game!" src="https://external-preview.redd.it/N2szZGNtMzRldWlmMZmQp7O5BpjYg7UqegAgE9IdgP7TYx8Szh9dJVqIheQu.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=eccefbf13830c4a641bc7633ab5e9b01c2c86540" title="Added locally generated dialogue + voice acting to my game!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LandoRingel"&gt; /u/LandoRingel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/t1qgim34euif1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpez1p/added_locally_generated_dialogue_voice_acting_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-13T20:02:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1mp2wq3</id>
@@ -331,6 +318,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mp5bjc/god_i_love_qwen_and_llamacpp_so_much/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-13T14:01:37+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mpng2r</id>
+    <title>Too many people seem to forget that.</title>
+    <updated>2025-08-14T01:50:49+00:00</updated>
+    <author>
+      <name>/u/Final_Wheel_7486</name>
+      <uri>https://old.reddit.com/user/Final_Wheel_7486</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpng2r/too_many_people_seem_to_forget_that/"&gt; &lt;img alt="Too many people seem to forget that." src="https://preview.redd.it/j3xmip845wif1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=62516a5d13eeecdbe94d2d8f6b3b1454baca0f80" title="Too many people seem to forget that." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Final_Wheel_7486"&gt; /u/Final_Wheel_7486 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/j3xmip845wif1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mpng2r/too_many_people_seem_to_forget_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpng2r/too_many_people_seem_to_forget_that/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-14T01:50:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1mjf5ol</id>
