@@ -2,49 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-19T07:48:41+00:00</updated>
+  <updated>2025-08-19T08:09:00+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1mtsbsk</id>
-    <title>I wish we could actually use Gemma 3n</title>
-    <updated>2025-08-18T17:19:27+00:00</updated>
+    <id>t3_1mu3tln</id>
+    <title>Why does Qwen3-Coder not work in Qwen-Code aka what's going on with tool calling?</title>
+    <updated>2025-08-19T00:40:48+00:00</updated>
     <author>
-      <name>/u/ai_fonsi</name>
-      <uri>https://old.reddit.com/user/ai_fonsi</uri>
+      <name>/u/Pristine-Woodpecker</name>
+      <uri>https://old.reddit.com/user/Pristine-Woodpecker</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It would be the perfect model to run on my Nvidia Jetson Orin Nano, with native audio and video support. It's a great model that punches way above its weight and I like the general vibe a lot. And most importantly, it has some really cool optimizations for low-memory edge devices such as per-layer embeddings that can be loaded from flash memory (in theory).&lt;/p&gt; &lt;p&gt;However, all inference engines I tried either don't support the multimodal features (llama.cpp) or use much more memory than they're supposed to (HF transformers, mistral.rs). ONNX loads the weights in memory twice on the GPU executor for some reason and even Google's own &lt;a href="https://github.com/google-ai-edge/LiteRT-LM"&gt;LiteRT-LM&lt;/a&gt; doesn't support CUDA or &lt;a href="https://github.com/google-ai-edge/LiteRT-LM/issues/351"&gt;multimodal features in any environment&lt;/a&gt; yet (???). The engines' maintainers mostly don't seem to be actively working on improving the situation, at least as far as I can tell.&lt;/p&gt; &lt;p&gt;Don't get me wrong, I'm not trying to blame the OSS devs trying their best to support the current onslaught of models in their engines. However, I wish Google wouldn't &lt;a href="https://developers.googleblog.com/en/introducing-gemma-3n-developer-guide/#get-started-with-gemma-3n-today"&gt;boast about how their model is supported by so many tools&lt;/a&gt; when they clearly didn't provide enough help to support half the features or optimizations necessary to unlock the full potential. Contrast this with GPT-OSS, which mostly worked fine out of the box despite architectural differences. It's just a shame given how many cool things this model would have going for it (audio, PLE, MatFormer)...&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ai_fonsi"&gt; /u/ai_fonsi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtsbsk/i_wish_we_could_actually_use_gemma_3n/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtsbsk/i_wish_we_could_actually_use_gemma_3n/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mtsbsk/i_wish_we_could_actually_use_gemma_3n/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;These issues are driving me nuts.&lt;/p&gt; &lt;p&gt;So, my config is with using llama.cpp. Let's assume that is a requirement because of the need to do partial offloading. Of course, we use the very latest from git. Same for qwen-code.&lt;/p&gt; &lt;p&gt;We get a nice GGUF from &lt;a href="https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF"&gt;https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF&lt;/a&gt; in some reasonable quant. It was last updated 2 weeks ago. We use &lt;code&gt;--jinja&lt;/code&gt; for the server to get the right template.&lt;/p&gt; &lt;p&gt;Now, we try some queries in qwen-code. And the screen gets full of:&lt;/p&gt; &lt;p&gt;&lt;code&gt;&amp;lt;tool_call&amp;gt;&amp;lt;function=search_file_content&lt;/code&gt;&lt;/p&gt; &lt;p&gt;And similar junk. It's clearly not expecting the response format it is getting. So what's going on here? It seems the model isn't even really implemented in llama.cpp yet: &lt;a href="https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/discussions/10#689ccab85457dccd3df19ad2"&gt;https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/discussions/10#689ccab85457dccd3df19ad2&lt;/a&gt; Note there's some remarks there explaining Roo/Cline/Kilo completely ignore the built-in tool support and that's both why they work but also break when context gets longer (and the model has problems remembering the custom instructions).&lt;/p&gt; &lt;p&gt;Through OpenRouter stats I noticed &amp;quot;Crush&amp;quot;. Interestingly, it seems to parse the Qwen3-Coder responses from llama.cpp correctly. What's up here? Did they hackfix this in their interface?&lt;/p&gt; &lt;p&gt;Now, if I really want to go on a further rant, let's talk about GLM 4.5 (Air), which doesn't seem to be able to tool call in &lt;strong&gt;any&lt;/strong&gt; CLI. At least qwen-code causes a server-side error, and codex nor Crush are able to deal with tool calling, the latter not understanding e.g.&lt;/p&gt; &lt;p&gt;&lt;code&gt;&amp;lt;tool_call&amp;gt;agent&amp;lt;arg_key&amp;gt;prompt&amp;lt;/arg_key&amp;gt;&amp;lt;arg_value&amp;gt;&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Now, why, despite having several VERY GOOD models that are runnable locally, like Qwen3-30B-A3B and GLM 4.5 Air, and having several open source agentic CLI (qwen-cli, codex, Crush, etc), does nothing actually work together? Is it because nobody is actually running these configs? The model drops are to score points but you're really supposed to use the API? It's a bit telling the most popular tools on OpenRouter (Roo/Cline/Kilo) have tried to work around the tool calling issue, but not entirely with success. &lt;/p&gt; &lt;p&gt;For running the models locally, I would praise the OpenAI guys here, who had launch day support in llama.cpp - including prompt caching - and it even mostly works in codex and Crush...but there's &lt;code&gt;&amp;lt;|channel|&amp;gt;analysis&amp;lt;|message|&amp;gt;&lt;/code&gt; spam all over, so for now that's an &amp;quot;almost&amp;quot;.&lt;/p&gt; &lt;p&gt;tl;dr Locallama.cpp dreams crushed because qwen-code doesn't even support Qwen-Coder properly when running local.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Pristine-Woodpecker"&gt; /u/Pristine-Woodpecker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu3tln/why_does_qwen3coder_not_work_in_qwencode_aka/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu3tln/why_does_qwen3coder_not_work_in_qwencode_aka/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mu3tln/why_does_qwen3coder_not_work_in_qwencode_aka/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-18T17:19:27+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1muabfm</id>
-    <title>My PR that adds Mikupad (with extra features) as an alternative webUI for ik_llama.cpp</title>
-    <updated>2025-08-19T06:03:36+00:00</updated>
-    <author>
-      <name>/u/AdventLogin2021</name>
-      <uri>https://old.reddit.com/user/AdventLogin2021</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AdventLogin2021"&gt; /u/AdventLogin2021 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ikawrakow/ik_llama.cpp/pull/558"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1muabfm/my_pr_that_adds_mikupad_with_extra_features_as_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1muabfm/my_pr_that_adds_mikupad_with_extra_features_as_an/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-19T06:03:36+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mu9hpi</id>
-    <title>Seems like many open source models struggle with this.</title>
-    <updated>2025-08-19T05:15:55+00:00</updated>
-    <author>
-      <name>/u/Neither_Egg_4773</name>
-      <uri>https://old.reddit.com/user/Neither_Egg_4773</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Many open source models, except for the GPT-OSS model, fail to genuinely grasp the details of &lt;strong&gt;recently published articles&lt;/strong&gt;. For example, if an article states, &amp;quot;last week this event happened...&amp;quot;. When asked about the date of the event, it becomes lost, even though the news articles on websites show the dates when they were published. Somehow, the GPT-OSS model understands the article and identifies the dates. Not only that, open-source models like Qwen have trouble quoting information from articles found during searches; however, it can definitely quote material from it's training data (&lt;em&gt;downside: it will hallucinate&lt;/em&gt;). But again, GPT-OSS can quote from recently published articles during searches. Hopefully, there will be a change soon in many of these open-source LLMs, as I use these open-source LLMs for source findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Neither_Egg_4773"&gt; /u/Neither_Egg_4773 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-19T05:15:55+00:00</published>
+    <published>2025-08-19T00:40:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1mthavv</id>
@@ -73,6 +47,19 @@
     <published>2025-08-18T14:51:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1muabfm</id>
+    <title>My PR that adds Mikupad (with extra features) as an alternative webUI for ik_llama.cpp</title>
+    <updated>2025-08-19T06:03:36+00:00</updated>
+    <author>
+      <name>/u/AdventLogin2021</name>
+      <uri>https://old.reddit.com/user/AdventLogin2021</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AdventLogin2021"&gt; /u/AdventLogin2021 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ikawrakow/ik_llama.cpp/pull/558"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1muabfm/my_pr_that_adds_mikupad_with_extra_features_as_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1muabfm/my_pr_that_adds_mikupad_with_extra_features_as_an/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-19T06:03:36+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mtvh0j</id>
     <title>NVIDIA Nemotron Nano 2 and the Nemotron Pretraining Dataset v1</title>
     <updated>2025-08-18T19:12:27+00:00</updated>
@@ -97,6 +84,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mu8h32/new_nvidia_models_9bv2base_vs_9bv2/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-19T04:19:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mu9hpi</id>
+    <title>Seems like many open source models struggle with this.</title>
+    <updated>2025-08-19T05:15:55+00:00</updated>
+    <author>
+      <name>/u/Neither_Egg_4773</name>
+      <uri>https://old.reddit.com/user/Neither_Egg_4773</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Many open source models, except for the GPT-OSS model, fail to genuinely grasp the details of &lt;strong&gt;recently published articles&lt;/strong&gt;. For example, if an article states, &amp;quot;last week this event happened...&amp;quot;. When asked about the date of the event, it becomes lost, even though the news articles on websites show the dates when they were published. Somehow, the GPT-OSS model understands the article and identifies the dates. Not only that, open-source models like Qwen have trouble quoting information from articles found during searches; however, it can definitely quote material from it's training data (&lt;em&gt;downside: it will hallucinate&lt;/em&gt;). But again, GPT-OSS can quote from recently published articles during searches. Hopefully, there will be a change soon in many of these open-source LLMs, as I use these open-source LLMs for source findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Neither_Egg_4773"&gt; /u/Neither_Egg_4773 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mu9hpi/seems_like_many_open_source_models_struggle_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-19T05:15:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1mtwzx2</id>
@@ -125,19 +125,6 @@
     <published>2025-08-18T18:42:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mtqz3u</id>
-    <title>Test: can Qwen 2.5 Omni actually hear guitar chords?</title>
-    <updated>2025-08-18T16:30:44+00:00</updated>
-    <author>
-      <name>/u/Weary-Wing-6806</name>
-      <uri>https://old.reddit.com/user/Weary-Wing-6806</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"&gt; &lt;img alt="Test: can Qwen 2.5 Omni actually hear guitar chords?" src="https://external-preview.redd.it/ZHl5dWUwbXl6c2pmMYMQwk04cVObnLQ8K0JceAGBOHlOc1BqIEw787XqJHGO.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3f00d3d8d78e6d2d5c31925df7d0e8a596f74c0a" title="Test: can Qwen 2.5 Omni actually hear guitar chords?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tried Qwen 2.5 Omni locally with vision + speech to see if it could hear music instead of just speech.&lt;/p&gt; &lt;p&gt;I played guitar, and it did a surprisingly solid job telling me which chords I was playing in real-time. At the end, I debugged what the LLM was “hearing,” and input quality likely explained some of the misses it did have.&lt;/p&gt; &lt;p&gt;Next test: run it with the guitar out of sight, so we can confirm it’s not cheating by “seeing” the guitar instead of listening. Will share results when I try that.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Weary-Wing-6806"&gt; /u/Weary-Wing-6806 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/848676nyzsjf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-18T16:30:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mtct4y</id>
     <title>Elon didn't deliver on this announcement. It's already Monday.</title>
     <updated>2025-08-18T04:59:00+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mtct4y/elon_didnt_deliver_on_this_announcement_its/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-18T04:59:00+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mtqz3u</id>
+    <title>Test: can Qwen 2.5 Omni actually hear guitar chords?</title>
+    <updated>2025-08-18T16:30:44+00:00</updated>
+    <author>
+      <name>/u/Weary-Wing-6806</name>
+      <uri>https://old.reddit.com/user/Weary-Wing-6806</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"&gt; &lt;img alt="Test: can Qwen 2.5 Omni actually hear guitar chords?" src="https://external-preview.redd.it/ZHl5dWUwbXl6c2pmMYMQwk04cVObnLQ8K0JceAGBOHlOc1BqIEw787XqJHGO.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3f00d3d8d78e6d2d5c31925df7d0e8a596f74c0a" title="Test: can Qwen 2.5 Omni actually hear guitar chords?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tried Qwen 2.5 Omni locally with vision + speech to see if it could hear music instead of just speech.&lt;/p&gt; &lt;p&gt;I played guitar, and it did a surprisingly solid job telling me which chords I was playing in real-time. At the end, I debugged what the LLM was “hearing,” and input quality likely explained some of the misses it did have.&lt;/p&gt; &lt;p&gt;Next test: run it with the guitar out of sight, so we can confirm it’s not cheating by “seeing” the guitar instead of listening. Will share results when I try that.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Weary-Wing-6806"&gt; /u/Weary-Wing-6806 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/848676nyzsjf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mtqz3u/test_can_qwen_25_omni_actually_hear_guitar_chords/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-18T16:30:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1mtzn4b</id>
