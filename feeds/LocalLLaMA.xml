@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-20T23:23:50+00:00</updated>
+  <updated>2025-08-20T23:34:36+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -99,19 +99,6 @@
     <published>2025-08-20T06:14:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mviuzq</id>
-    <title>Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)</title>
-    <updated>2025-08-20T16:00:19+00:00</updated>
-    <author>
-      <name>/u/aquarat</name>
-      <uri>https://old.reddit.com/user/aquarat</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt; &lt;img alt="Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)" src="https://external-preview.redd.it/MaUSRoNLAJ1LyKjA9wGag9Te4pvp93JxB__k_YVVUBI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95a08347bd804d947ea5c5b82647272167dc6fca" title="Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'd really like to get something decent running locally, like one of the Deepseek models. I figure this will need 600 GBs of VRAM to run comfortably with one of the Unsloth models. Buying this amount of VRAM via Nvidia GPUs isn't workable for me, but the AMD Strix Halo 395+ machines should make this possible, eventually 😅.&lt;/p&gt; &lt;p&gt;An option is the Framework Desktop, but about 2 months back HP ran a very short-lived special on their HP Z2 Mini G1a Strix machines... so I bought two. I found the ROCM system/libs to be pretty unusable but things are improving.&lt;/p&gt; &lt;p&gt;One machine runs Ubuntu (kernel 6.14.0-27) and another runs Fedora Rawhide (FR is really nice...) (kernel 6.17.0-0.rc0.250808g37816488247d.14.fc43.x86_64)&lt;/p&gt; &lt;p&gt;I recently found this repository via a post on Framework's forum: &lt;a href="https://github.com/kyuz0/amd-strix-halo-toolboxes"&gt;https://github.com/kyuz0/amd-strix-halo-toolboxes&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I modified the Dockerfile slightly to also build llama.cpp's RPC server and then tried out the result. To my surprise it worked with GPT OSS 120b (Unsloth Q4_K_XL variant).&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/92p4bsxv17kf1.png?width=1710&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1ed952d17fbb988151abf8a2523ed8cf84759f15"&gt;https://preview.redd.it/92p4bsxv17kf1.png?width=1710&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1ed952d17fbb988151abf8a2523ed8cf84759f15&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Some caveats: one machine is running Ubuntu, another is running Fedora Rawhide with a bleeding edge kernel. They're connected via 2.5 gigabit ethernet. &lt;code&gt;nvtop&lt;/code&gt; doesn't work very well on the Ubuntu machine, I assume because the kernel is old.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 5294.35 ms / 2491 tokens ( 2.13 ms per token, 470.50 tokens per second) eval time = 3586.47 ms / 109 tokens ( 32.90 ms per token, 30.39 tokens per second) total time = 8880.82 ms / 2600 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and a follow-up prompt:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 5082.28 ms / 2313 tokens ( 2.20 ms per token, 455.11 tokens per second) eval time = 152837.44 ms / 4085 tokens ( 37.41 ms per token, 26.73 tokens per second) total time = 157919.71 ms / 6398 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I'm using a modified version of the &lt;code&gt;rocm-7rc-rocwmma&lt;/code&gt; docker image:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;RUN cmake -S . -B build \ -DGGML_HIP=ON \ -DAMDGPU_TARGETS=gfx1151 \ -DCMAKE_BUILD_TYPE=Release \ -DLLAMA_HIP_UMA=ON \ -DGGML_HIP_ROCWMMA_FATTN=ON \ -DGGML_RPC=ON \ &amp;amp;&amp;amp; cmake --build build --config Release -- -j$(nproc) \ &amp;amp;&amp;amp; cmake --install build --config Release RUN find build -type f -name 'libggm*.so' -exec cp -v {} /opt/rocm-7.0/lib/ \; RUN cp ./build/bin/rpc-server /usr/local/bin/ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and I run it like so:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Build the image docker build -t &amp;lt;your account on docker hub&amp;gt;/llama-rocm-7rc-rocwmma:2508201616 -f Dockerfile.rocm-7rc-rocwmma --push . // secondary node / start first docker run --rm -ti --device /dev/dri --device /dev/kfd --group-add video --group-add render -p 50052:50052 --name llama --security-opt seccomp=unconfined docker.io/aquarat/llama-rocm-7rc-rocwmma:2508201616 rpc-server -H 0.0.0.0 // primary node docker run --rm -ti -v /home/user/models-llama:/models --name llama --device /dev/dri --device /dev/kfd --group-add video --group-add render -p 11434:11434 --security-opt seccomp=unconfined docker.io/aquarat/llama-rocm-7rc-rocwmma:2508201616 llama-server --no-mmap -ngl 999 -fa -m /models/gpt-oss/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf --port 11434 --host 0.0.0.0 -c 100000 --jinja --reasoning-format auto --rpc 192.168.0.39:50052 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I thought this might be usable to someone 🤷‍♂️&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/l6z8a6ak67kf1.png?width=631&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7f13cb6fb46388ad264eb42481ad735465aeb751"&gt;https://preview.redd.it/l6z8a6ak67kf1.png?width=631&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7f13cb6fb46388ad264eb42481ad735465aeb751&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aquarat"&gt; /u/aquarat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-20T16:00:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mvts3i</id>
     <title>2x RTX 5060ti 16GB - inference benchmarks in Ollama</title>
     <updated>2025-08-20T22:41:21+00:00</updated>
@@ -123,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvts3i/2x_rtx_5060ti_16gb_inference_benchmarks_in_ollama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-20T22:41:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mviuzq</id>
+    <title>Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)</title>
+    <updated>2025-08-20T16:00:19+00:00</updated>
+    <author>
+      <name>/u/aquarat</name>
+      <uri>https://old.reddit.com/user/aquarat</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt; &lt;img alt="Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)" src="https://external-preview.redd.it/MaUSRoNLAJ1LyKjA9wGag9Te4pvp93JxB__k_YVVUBI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95a08347bd804d947ea5c5b82647272167dc6fca" title="Cluster of two AMD Strix Halo machines (HP Z2 Mini G1a)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'd really like to get something decent running locally, like one of the Deepseek models. I figure this will need 600 GBs of VRAM to run comfortably with one of the Unsloth models. Buying this amount of VRAM via Nvidia GPUs isn't workable for me, but the AMD Strix Halo 395+ machines should make this possible, eventually 😅.&lt;/p&gt; &lt;p&gt;An option is the Framework Desktop, but about 2 months back HP ran a very short-lived special on their HP Z2 Mini G1a Strix machines... so I bought two. I found the ROCM system/libs to be pretty unusable but things are improving.&lt;/p&gt; &lt;p&gt;One machine runs Ubuntu (kernel 6.14.0-27) and another runs Fedora Rawhide (FR is really nice...) (kernel 6.17.0-0.rc0.250808g37816488247d.14.fc43.x86_64)&lt;/p&gt; &lt;p&gt;I recently found this repository via a post on Framework's forum: &lt;a href="https://github.com/kyuz0/amd-strix-halo-toolboxes"&gt;https://github.com/kyuz0/amd-strix-halo-toolboxes&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I modified the Dockerfile slightly to also build llama.cpp's RPC server and then tried out the result. To my surprise it worked with GPT OSS 120b (Unsloth Q4_K_XL variant).&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/92p4bsxv17kf1.png?width=1710&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1ed952d17fbb988151abf8a2523ed8cf84759f15"&gt;https://preview.redd.it/92p4bsxv17kf1.png?width=1710&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1ed952d17fbb988151abf8a2523ed8cf84759f15&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Some caveats: one machine is running Ubuntu, another is running Fedora Rawhide with a bleeding edge kernel. They're connected via 2.5 gigabit ethernet. &lt;code&gt;nvtop&lt;/code&gt; doesn't work very well on the Ubuntu machine, I assume because the kernel is old.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 5294.35 ms / 2491 tokens ( 2.13 ms per token, 470.50 tokens per second) eval time = 3586.47 ms / 109 tokens ( 32.90 ms per token, 30.39 tokens per second) total time = 8880.82 ms / 2600 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and a follow-up prompt:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 5082.28 ms / 2313 tokens ( 2.20 ms per token, 455.11 tokens per second) eval time = 152837.44 ms / 4085 tokens ( 37.41 ms per token, 26.73 tokens per second) total time = 157919.71 ms / 6398 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I'm using a modified version of the &lt;code&gt;rocm-7rc-rocwmma&lt;/code&gt; docker image:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;RUN cmake -S . -B build \ -DGGML_HIP=ON \ -DAMDGPU_TARGETS=gfx1151 \ -DCMAKE_BUILD_TYPE=Release \ -DLLAMA_HIP_UMA=ON \ -DGGML_HIP_ROCWMMA_FATTN=ON \ -DGGML_RPC=ON \ &amp;amp;&amp;amp; cmake --build build --config Release -- -j$(nproc) \ &amp;amp;&amp;amp; cmake --install build --config Release RUN find build -type f -name 'libggm*.so' -exec cp -v {} /opt/rocm-7.0/lib/ \; RUN cp ./build/bin/rpc-server /usr/local/bin/ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and I run it like so:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Build the image docker build -t &amp;lt;your account on docker hub&amp;gt;/llama-rocm-7rc-rocwmma:2508201616 -f Dockerfile.rocm-7rc-rocwmma --push . // secondary node / start first docker run --rm -ti --device /dev/dri --device /dev/kfd --group-add video --group-add render -p 50052:50052 --name llama --security-opt seccomp=unconfined docker.io/aquarat/llama-rocm-7rc-rocwmma:2508201616 rpc-server -H 0.0.0.0 // primary node docker run --rm -ti -v /home/user/models-llama:/models --name llama --device /dev/dri --device /dev/kfd --group-add video --group-add render -p 11434:11434 --security-opt seccomp=unconfined docker.io/aquarat/llama-rocm-7rc-rocwmma:2508201616 llama-server --no-mmap -ngl 999 -fa -m /models/gpt-oss/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf --port 11434 --host 0.0.0.0 -c 100000 --jinja --reasoning-format auto --rpc 192.168.0.39:50052 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I thought this might be usable to someone 🤷‍♂️&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/l6z8a6ak67kf1.png?width=631&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7f13cb6fb46388ad264eb42481ad735465aeb751"&gt;https://preview.redd.it/l6z8a6ak67kf1.png?width=631&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7f13cb6fb46388ad264eb42481ad735465aeb751&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aquarat"&gt; /u/aquarat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mviuzq/cluster_of_two_amd_strix_halo_machines_hp_z2_mini/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-20T16:00:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1mvjjxe</id>
@@ -203,19 +203,6 @@
     <published>2025-08-20T06:54:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mvol0o</id>
-    <title>Running Qwen3-Coder-30B-A3 Q4_LM in Cursor with Agent Mode unlocked</title>
-    <updated>2025-08-20T19:24:29+00:00</updated>
-    <author>
-      <name>/u/ConfidentDinner6648</name>
-      <uri>https://old.reddit.com/user/ConfidentDinner6648</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been testing ways to make Cursor usable without relying only on their default “auto” model (which honestly feels pretty bad). While experimenting, I noticed something interesting:&lt;/p&gt; &lt;p&gt;If you run a model locally and just register it under the name &lt;code&gt;gpt-4o&lt;/code&gt;, Cursor unlocks &lt;strong&gt;Agent Mode&lt;/strong&gt; (function calling, todo list, etc.) and everything works as if it were an official endpoint.&lt;/p&gt; &lt;p&gt;I tried this with &lt;strong&gt;Qwen3-Coder-30B-A3 Q4_LM&lt;/strong&gt; (through LM Studio + ngrok) and here’s what I got:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Outperforms Gemini Flash and Gemini Pro on many coding tasks&lt;/li&gt; &lt;li&gt;In some cases, feels close to Sonnet 4 (which is wild for a quantized 30B)&lt;/li&gt; &lt;li&gt;Function calling works smoothly, no errors so far&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This obviously isn’t official support, but it shows that Cursor &lt;em&gt;could&lt;/em&gt; support local/self-hosted models natively without much issue.&lt;/p&gt; &lt;p&gt;Anyone else tried running Qwen3 (or others) inside Cursor like this? Curious to hear results.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ConfidentDinner6648"&gt; /u/ConfidentDinner6648 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-20T19:24:29+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mvgw9k</id>
     <title>DiffMem: Using Git as a Differential Memory Backend for AI Agents - Open-Source PoC</title>
     <updated>2025-08-20T14:48:46+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvgw9k/diffmem_using_git_as_a_differential_memory/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-20T14:48:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mvol0o</id>
+    <title>Running Qwen3-Coder-30B-A3 Q4_LM in Cursor with Agent Mode unlocked</title>
+    <updated>2025-08-20T19:24:29+00:00</updated>
+    <author>
+      <name>/u/ConfidentDinner6648</name>
+      <uri>https://old.reddit.com/user/ConfidentDinner6648</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been testing ways to make Cursor usable without relying only on their default “auto” model (which honestly feels pretty bad). While experimenting, I noticed something interesting:&lt;/p&gt; &lt;p&gt;If you run a model locally and just register it under the name &lt;code&gt;gpt-4o&lt;/code&gt;, Cursor unlocks &lt;strong&gt;Agent Mode&lt;/strong&gt; (function calling, todo list, etc.) and everything works as if it were an official endpoint.&lt;/p&gt; &lt;p&gt;I tried this with &lt;strong&gt;Qwen3-Coder-30B-A3 Q4_LM&lt;/strong&gt; (through LM Studio + ngrok) and here’s what I got:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Outperforms Gemini Flash and Gemini Pro on many coding tasks&lt;/li&gt; &lt;li&gt;In some cases, feels close to Sonnet 4 (which is wild for a quantized 30B)&lt;/li&gt; &lt;li&gt;Function calling works smoothly, no errors so far&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This obviously isn’t official support, but it shows that Cursor &lt;em&gt;could&lt;/em&gt; support local/self-hosted models natively without much issue.&lt;/p&gt; &lt;p&gt;Anyone else tried running Qwen3 (or others) inside Cursor like this? Curious to hear results.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ConfidentDinner6648"&gt; /u/ConfidentDinner6648 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvol0o/running_qwen3coder30ba3_q4_lm_in_cursor_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-20T19:24:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1mvo9ko</id>
@@ -281,19 +281,6 @@
     <published>2025-08-20T18:32:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mvjj8q</id>
-    <title>Seed-OSS-36B-Instruct</title>
-    <updated>2025-08-20T16:23:50+00:00</updated>
-    <author>
-      <name>/u/NeterOster</name>
-      <uri>https://old.reddit.com/user/NeterOster</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct"&gt;https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Introduction:&lt;/p&gt; &lt;p&gt;Seed-OSS is a series of open-source large language models developed by ByteDance's Seed Team, designed for powerful long-context, reasoning, agent and general capabilities, and versatile developer-friendly features. Although trained with only 12T tokens, Seed-OSS achieves excellent performance on several popular open benchmarks.&lt;/p&gt; &lt;p&gt;We release this series of models to the open-source community under the Apache-2.0 license.&lt;/p&gt; &lt;blockquote&gt; &lt;/blockquote&gt; &lt;h1&gt;Key Features&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Flexible Control of Thinking Budget&lt;/strong&gt;: Allowing users to flexibly adjust the reasoning length as needed. This capability of dynamically controlling the reasoning length enhances inference efficiency in practical application scenarios.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Enhanced Reasoning Capability&lt;/strong&gt;: Specifically optimized for reasoning tasks while maintaining balanced and excellent general capabilities.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Agentic Intelligence&lt;/strong&gt;: Performs exceptionally well in agentic tasks such as tool-using and issue resolving.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Research-Friendly&lt;/strong&gt;: Given that the inclusion of synthetic instruction data in pre-training may affect the post-training research, we released pre-trained models both with and without instruction data, providing the research community with more diverse options.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Native Long Context&lt;/strong&gt;: Trained with up-to-512K long context natively.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NeterOster"&gt; /u/NeterOster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-20T16:23:50+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mv6go1</id>
     <title>We beat Google Deepmind but got killed by a chinese lab</title>
     <updated>2025-08-20T05:46:26+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mv6go1/we_beat_google_deepmind_but_got_killed_by_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-20T05:46:26+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mvjj8q</id>
+    <title>Seed-OSS-36B-Instruct</title>
+    <updated>2025-08-20T16:23:50+00:00</updated>
+    <author>
+      <name>/u/NeterOster</name>
+      <uri>https://old.reddit.com/user/NeterOster</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct"&gt;https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Introduction:&lt;/p&gt; &lt;p&gt;Seed-OSS is a series of open-source large language models developed by ByteDance's Seed Team, designed for powerful long-context, reasoning, agent and general capabilities, and versatile developer-friendly features. Although trained with only 12T tokens, Seed-OSS achieves excellent performance on several popular open benchmarks.&lt;/p&gt; &lt;p&gt;We release this series of models to the open-source community under the Apache-2.0 license.&lt;/p&gt; &lt;blockquote&gt; &lt;/blockquote&gt; &lt;h1&gt;Key Features&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Flexible Control of Thinking Budget&lt;/strong&gt;: Allowing users to flexibly adjust the reasoning length as needed. This capability of dynamically controlling the reasoning length enhances inference efficiency in practical application scenarios.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Enhanced Reasoning Capability&lt;/strong&gt;: Specifically optimized for reasoning tasks while maintaining balanced and excellent general capabilities.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Agentic Intelligence&lt;/strong&gt;: Performs exceptionally well in agentic tasks such as tool-using and issue resolving.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Research-Friendly&lt;/strong&gt;: Given that the inclusion of synthetic instruction data in pre-training may affect the post-training research, we released pre-trained models both with and without instruction data, providing the research community with more diverse options.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Native Long Context&lt;/strong&gt;: Trained with up-to-512K long context natively.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NeterOster"&gt; /u/NeterOster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mvjj8q/seedoss36binstruct/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-20T16:23:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1mvfdja</id>
