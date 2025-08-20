@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-20T05:24:18+00:00</updated>
+  <updated>2025-08-20T05:37:21+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1mutroq</id>
-    <title>brute-llama - A llama.cpp llama-server testbench</title>
-    <updated>2025-08-19T20:18:07+00:00</updated>
+    <id>t3_1mv60jv</id>
+    <title>A simple script to make two llms talk to each other. Currently getting gpt-oss to talk to gemma3</title>
+    <updated>2025-08-20T05:20:28+00:00</updated>
     <author>
-      <name>/u/muxxington</name>
-      <uri>https://old.reddit.com/user/muxxington</uri>
+      <name>/u/simplan</name>
+      <uri>https://old.reddit.com/user/simplan</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mutroq/brutellama_a_llamacpp_llamaserver_testbench/"&gt; &lt;img alt="brute-llama - A llama.cpp llama-server testbench" src="https://external-preview.redd.it/0kAodq2vpgwlNs8NkvpJTL0EKKMaEMge_I7TkUpawwA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=69c304bdff4294f7d2c5e01531d320ab09fffbe4" title="brute-llama - A llama.cpp llama-server testbench" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I introduce brute-llama. I needed a tool to sweep through llama-server parameters and options to brute force good configs and find anomalies. Here it is. It does nothing special. It just runs llama-server and checks in nested loops and plots results.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/muxxington"&gt; /u/muxxington &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/crashr/brute-llama"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mutroq/brutellama_a_llamacpp_llamaserver_testbench/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mutroq/brutellama_a_llamacpp_llamaserver_testbench/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;import urllib.request import json import random import time from collections import deque MODEL_1 = &amp;quot;gemma3:27b&amp;quot; MODEL_2 = &amp;quot;gpt-oss:20b&amp;quot; OLLAMA_API_URL = &amp;quot;http://localhost:11434/api/generate&amp;quot; INSTRUCTION = ( &amp;quot;You are in a conversation. &amp;quot; &amp;quot;Reply with ONE short sentence only. &amp;quot; &amp;quot;Do not use markdown, formatting, or explanations. &amp;quot; &amp;quot;Always keep the conversation moving forward. Have Fun.&amp;quot; ) def reframe_history(history, speaker): &amp;quot;&amp;quot;&amp;quot;Reframe conversation from the current model's perspective: - Their lines → 'me: ...' - Other's lines → 'you: ...'&amp;quot;&amp;quot;&amp;quot; reframed = [] for line in history: if line.startswith(speaker + &amp;quot;:&amp;quot;): reframed.append(&amp;quot;me:&amp;quot; + line[len(speaker) + 1 :]) else: reframed.append(&amp;quot;you:&amp;quot; + line[line.find(&amp;quot;:&amp;quot;) :]) return reframed def ollama_generate(model, history, speaker): prompt = &amp;quot;\n&amp;quot;.join(reframe_history(history[-5:], speaker)) data = {&amp;quot;model&amp;quot;: model, &amp;quot;prompt&amp;quot;: prompt, &amp;quot;system&amp;quot;: INSTRUCTION, &amp;quot;stream&amp;quot;: False} req = urllib.request.Request( OLLAMA_API_URL, data=json.dumps(data).encode(&amp;quot;utf-8&amp;quot;), headers={&amp;quot;Content-Type&amp;quot;: &amp;quot;application/json&amp;quot;}, ) with urllib.request.urlopen(req) as response: resp_json = json.loads(response.read().decode(&amp;quot;utf-8&amp;quot;)) return resp_json.get(&amp;quot;response&amp;quot;, &amp;quot;&amp;quot;).strip() def main(): topics = [ &amp;quot;Hi&amp;quot;, &amp;quot;Do you like the sound of waves?&amp;quot;, &amp;quot;What is your favorite color?&amp;quot;, &amp;quot;What is your favorite animal?&amp;quot;, &amp;quot;Why are we here?&amp;quot;, ] message = random.choice(topics) history = deque([f&amp;quot;{MODEL_1}: {message}&amp;quot;], maxlen=20) print(f&amp;quot;{MODEL_1}: {message}&amp;quot;) turn = 0 while True: if turn % 2 == 0: model = MODEL_2 speaker = MODEL_2 reply = ollama_generate(model, list(history), MODEL_2) else: model = MODEL_1 speaker = MODEL_1 reply = ollama_generate(model, list(history), MODEL_1) line = f&amp;quot;{speaker}: {reply}&amp;quot; print(line) history.append(line) turn += 1 time.sleep(1) if __name__ == &amp;quot;__main__&amp;quot;: main() &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/simplan"&gt; /u/simplan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mv60jv/a_simple_script_to_make_two_llms_talk_to_each/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mv60jv/a_simple_script_to_make_two_llms_talk_to_each/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mv60jv/a_simple_script_to_make_two_llms_talk_to_each/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-19T20:18:07+00:00</published>
+    <published>2025-08-20T05:20:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1muq5bv</id>
