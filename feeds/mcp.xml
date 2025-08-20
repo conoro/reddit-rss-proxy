@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2025-08-20T14:06:45+00:00</updated>
+  <updated>2025-08-20T14:24:33+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1mttx58</id>
-    <title>If your MCP is an API wrapper you are doing it wrong</title>
-    <updated>2025-08-18T18:16:25+00:00</updated>
-    <author>
-      <name>/u/WallabyInDisguise</name>
-      <uri>https://old.reddit.com/user/WallabyInDisguise</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building with MCP since it launched, and I keep seeing the same mistakes everywhere. Most companies are taking the easy path: wrap existing APIs, add an MCP server, ship it. The result? MCPs that barely work and miss the entire point.&lt;/p&gt; &lt;p&gt;Three critical mistakes I see repeatedly:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Wrong user assumptions - Traditional APIs serve deterministic software. MCPs serve LLMs that think in conversations and work with ambiguous input. When you ask an AI agent to &amp;quot;assign this ticket to John,&amp;quot; it shouldn't need to make 4 separate API calls to find John's UUID, look up project IDs, then create the ticket.&lt;/li&gt; &lt;li&gt;Useless error messages - &amp;quot;Error 404: User not found&amp;quot; tells an AI agent nothing. A proper MCP error: &amp;quot;User 'John' not found. Call the users endpoint to get the correct UUID, then retry.&amp;quot; Better yet, handle the name resolution internally.&lt;/li&gt; &lt;li&gt;Multi-step hell - Forcing LLMs to play systems integrator instead of focusing on the actual task. &amp;quot;Create a ticket and assign it to John&amp;quot; should be ONE MCP call, not four.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The solution: Design for intent, not API mapping. Build intelligence into your MCP server. Handle ambiguity. Return what LLMs actually need, not what your existing API dumps out.&lt;/p&gt; &lt;p&gt;The companies getting this right are building MCPs that feel magical. One request accomplishes what used to take multiple API calls.&lt;/p&gt; &lt;p&gt;I wrote down some of my thoughts here if anyone is interested: &lt;a href="https://liquidmetal.ai/casesAndBlogs/mcp-api-wrapper-antipattern/"&gt;https://liquidmetal.ai/casesAndBlogs/mcp-api-wrapper-antipattern/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WallabyInDisguise"&gt; /u/WallabyInDisguise &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mttx58/if_your_mcp_is_an_api_wrapper_you_are_doing_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mttx58/if_your_mcp_is_an_api_wrapper_you_are_doing_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1mttx58/if_your_mcp_is_an_api_wrapper_you_are_doing_it/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2025-08-18T18:16:25+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1muvsll</id>
-    <title>Logging Levels and the Inspector</title>
-    <updated>2025-08-19T21:32:44+00:00</updated>
-    <author>
-      <name>/u/trickyelf</name>
-      <uri>https://old.reddit.com/user/trickyelf</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In the most recent version of the Inspector, we &lt;a href="https://github.com/modelcontextprotocol/inspector/pull/706"&gt;added a popup&lt;/a&gt; that clarifies why some of you may be encountering odd connection failures. &lt;/p&gt; &lt;p&gt;Previously, we added a feature where the Inspector sends a &lt;code&gt;setLevel&lt;/code&gt; request to the server if it advertises logging capability during initialization. If the server does not have a listener for the &lt;code&gt;setLevel&lt;/code&gt; request, this can cause the initialization to fail, and it was not immediately obvious why. &lt;/p&gt; &lt;p&gt;Now, if this happens, you will see a red toast popup indicating that your server advertised logging capability, but did not implement the &lt;code&gt;setLevel&lt;/code&gt; listener.&lt;/p&gt; &lt;p&gt;I know that some of you will rightfully complain that there are multiple examples in the protocol docs that show servers minimally advertising the logging capability but not actually handling the setLevel request. This is true, but wrong.&lt;/p&gt; &lt;p&gt;The specification says three relevant things about this:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Servers that emit log message notifications MUST declare the logging capability&lt;/li&gt; &lt;li&gt;The protocol follows the standard syslog severity levels specified in RFC 5424&lt;/li&gt; &lt;li&gt;To configure the minimum log level, clients MAY send a logging/setLevel request.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Now that it's clear why some of your servers have had connection errors with the Inspector, you may say that rather than popping up this message, the Inspector should NOT send the &lt;code&gt;setLevel&lt;/code&gt; request.&lt;/p&gt; &lt;p&gt;For a properly built server with logging, this is how the client ensures that the log level is set to what the user wants to see. Since the Inspector is a development tool that you use to determine if your server is built properly, I feel strongly that this is the right behavior. I also think there's a lot of cleanup to do with regard to examples that show logging capability but do not have a listener.&lt;/p&gt; &lt;p&gt;To that end, I've taken steps to try and make this whole log level handling automatic, at least for Typescript developers, with &lt;a href="https://github.com/modelcontextprotocol/typescript-sdk/pull/882"&gt;this PR to the Typescript SDK&lt;/a&gt;. If the server advertises support for logging capability, it will automatically set a listener for &lt;code&gt;setLevel&lt;/code&gt; and moreover, it will track and respect that level if you use the server's &lt;code&gt;sendLoggingMessage&lt;/code&gt; method to send your message.&lt;/p&gt; &lt;p&gt;In the PR, I've updated all of the server examples that use logging to show how easy it is to advertise and support leveled logging messages when the SDK does the heavy lifting. And best of all, the logging level is tied to session, so multiple clients can request different logging levels and each will be respected by the server!&lt;/p&gt; &lt;p&gt;If you're in favor of not having to write ANY additional code to have your server that advertises logging capability support, then by all means please go review and/or give this PR a thumbs up and leave your thoughts in the comments.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/trickyelf"&gt; /u/trickyelf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1muvsll/logging_levels_and_the_inspector/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1muvsll/logging_levels_and_the_inspector/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1muvsll/logging_levels_and_the_inspector/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2025-08-19T21:32:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mufiwn</id>
     <title>Fastmcp cloud</title>
@@ -294,6 +268,19 @@
     <published>2025-08-20T14:06:19+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mvfxwc</id>
+    <title>Deploying an MCP Server on Raspberry Pi or Microcontrollers</title>
+    <updated>2025-08-20T14:12:34+00:00</updated>
+    <author>
+      <name>/u/No-Abies7108</name>
+      <uri>https://old.reddit.com/user/No-Abies7108</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1mvfxwc/deploying_an_mcp_server_on_raspberry_pi_or/"&gt; &lt;img alt="Deploying an MCP Server on Raspberry Pi or Microcontrollers" src="https://external-preview.redd.it/wLMoBXkewgMVtz-iyMcd33w80HDP2D-gCj6bgZOcULY.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=17d8e580393e6143132bf1484ede1465e88c0380" title="Deploying an MCP Server on Raspberry Pi or Microcontrollers" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Edge AI is moving beyond buzzwords, here’s a step-by-step guide on deploying &lt;strong&gt;MCP (Model Context Protocol) servers directly on Raspberry Pi&lt;/strong&gt;. I walk through using FastMCP + uv to expose sensors/actuators as structured tools for LLMs, so models can read local data, toggle relays, or fetch weather without cloud dependence. The piece also covers security risks like tool poisoning &amp;amp; mitigation with frameworks like MCP Guardian. Curious how LLMs can transition from inference-only to &lt;strong&gt;real-world interactive agents&lt;/strong&gt;? Full architecture, code, and deployment steps included. Feedback from practitioners &amp;amp; researchers would be invaluable.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Abies7108"&gt; /u/No-Abies7108 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/blog/2025-08-20-implementing-mcp-on-edge-devices"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mvfxwc/deploying_an_mcp_server_on_raspberry_pi_or/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1mvfxwc/deploying_an_mcp_server_on_raspberry_pi_or/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2025-08-20T14:12:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mv9wqm</id>
     <title>Generate and deploy an MCP server with OAuth2 in &lt;10 minutes</title>
     <updated>2025-08-20T09:21:22+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1mv9wqm/generate_and_deploy_an_mcp_server_with_oauth2_in/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2025-08-20T09:21:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mv6w5g</id>
+    <title>Do people really use MCP server/service?</title>
+    <updated>2025-08-20T06:12:51+00:00</updated>
+    <author>
+      <name>/u/andrew19953</name>
+      <uri>https://old.reddit.com/user/andrew19953</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;MCP concepts have been out for like half a year? Do you guys really use it in any production system? I feel like MCP server is much less popular than AI agents concept.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/andrew19953"&gt; /u/andrew19953 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2025-08-20T06:12:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1mvb61w</id>
@@ -320,17 +320,17 @@
     <published>2025-08-20T10:36:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mv6w5g</id>
-    <title>Do people really use MCP server/service?</title>
-    <updated>2025-08-20T06:12:51+00:00</updated>
+    <id>t3_1mvg4hy</id>
+    <title>Web MCP Free Tier – Internet Access for Agents Without Getting Blocked</title>
+    <updated>2025-08-20T14:19:29+00:00</updated>
     <author>
-      <name>/u/andrew19953</name>
-      <uri>https://old.reddit.com/user/andrew19953</uri>
+      <name>/u/Foreign_Common_4564</name>
+      <uri>https://old.reddit.com/user/Foreign_Common_4564</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;MCP concepts have been out for like half a year? Do you guys really use it in any production system? I feel like MCP server is much less popular than AI agents concept.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/andrew19953"&gt; /u/andrew19953 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1mv6w5g/do_people_really_use_mcp_serverservice/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m the developer behind the Web MCP at Bright Data. &lt;/p&gt; &lt;p&gt;We just launched a free tier so any AI Engineer/ Vibe coder can give their LLM real web access — 5,000 requests/month at no cost.&lt;/p&gt; &lt;p&gt;Unlike most MCP servers that wrap a single SaaS API (e.g. Gmail, GitHub), the Web MCP wraps the entire internet. &lt;/p&gt; &lt;p&gt;It handles JS-heavy sites, auto-solves CAPTCHAs, and returns clean Markdown your model can use. &lt;/p&gt; &lt;p&gt;Free tier includes: &lt;/p&gt; &lt;p&gt;search_engine → search results from Google/Bing/Yandex &lt;/p&gt; &lt;p&gt;scrape_as_markdown → fetch any URL as clean, LLM-friendly Markdown (with CAPTCHA handling) &lt;/p&gt; &lt;p&gt;Quick start: &lt;a href="https://docs.brightdata.com/mcp-server/quickstart/remote"&gt;https://docs.brightdata.com/mcp-server/quickstart/remote&lt;/a&gt; &lt;/p&gt; &lt;p&gt;I also wrote a blog post with the full background, challenges, and architecture:&lt;a href="https://brightdata.com/blog/ai/web-mcp-free-tier"&gt;https://brightdata.com/blog/ai/web-mcp-free-tier&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Would love feedback - what would you want to use live web access for in your agents?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Foreign_Common_4564"&gt; /u/Foreign_Common_4564 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mvg4hy/web_mcp_free_tier_internet_access_for_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1mvg4hy/web_mcp_free_tier_internet_access_for_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1mvg4hy/web_mcp_free_tier_internet_access_for_agents/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2025-08-20T06:12:51+00:00</published>
+    <published>2025-08-20T14:19:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1h7pl2v</id>
