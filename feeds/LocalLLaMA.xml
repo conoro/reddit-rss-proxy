@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-25T09:49:40+00:00</updated>
+  <updated>2025-08-25T10:07:44+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mziy6p</id>
-    <title>Making some silly mistake while saving to GGUF in Unsloth?</title>
-    <updated>2025-08-25T06:21:40+00:00</updated>
-    <author>
-      <name>/u/regstuff</name>
-      <uri>https://old.reddit.com/user/regstuff</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi&lt;/p&gt; &lt;p&gt;I ran a training run earlier on gemma3-270m and created a lora, which I saved in my google drive. I did not at that point save a gguf.&lt;/p&gt; &lt;p&gt;So now when I use colab and download the Lora and attempt to create a gguf, I'm getting an error. I haven't done a save to gguf ever earlier, so I am not sure if I am making some silly mistake. Basically just copied the code from the official notebook and ran it, but not working. Can someone take a look.&lt;/p&gt; &lt;p&gt;My code: ```&lt;/p&gt; &lt;p&gt;from google.colab import drive&lt;/p&gt; &lt;p&gt;drive.mount('/content/drive')&lt;/p&gt; &lt;p&gt;!cp -r /content/drive/MyDrive/stuff/lora_model .&lt;/p&gt; &lt;p&gt;from transformers import TextStreamer&lt;/p&gt; &lt;p&gt;from unsloth import FastModel&lt;/p&gt; &lt;p&gt;import torch&lt;/p&gt; &lt;p&gt;from unsloth import FastLanguageModel&lt;/p&gt; &lt;p&gt;from peft import PeftModel&lt;/p&gt; &lt;p&gt;max_seq_length = 3072&lt;/p&gt; &lt;p&gt;model, tokenizer = FastLanguageModel.from_pretrained(&lt;/p&gt; &lt;pre&gt;&lt;code&gt;model_name = &amp;quot;unsloth/gemma-3-270m-it&amp;quot;, # YOUR MODEL max_seq_length = max_seq_length, load_in_4bit = False, # 4 bit quantization to reduce memory load_in_8bit = False, # [NEW!] A bit more accurate, uses 2x memory full_finetuning = False, # [NEW!] We have full finetuning now! &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;)&lt;/p&gt; &lt;p&gt;model = PeftModel.from_pretrained(model, &amp;quot;lora_model&amp;quot;)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;text = \[MY TESTING SAMPLE HERE\] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;_ = model.generate(&lt;/p&gt; &lt;pre&gt;&lt;code&gt;**tokenizer(text, return_tensors = &amp;quot;pt&amp;quot;).to(&amp;quot;cuda&amp;quot;), max_new_tokens = 125, temperature = 1, top_p = 0.95, top_k = 64, streamer = TextStreamer(tokenizer, skip_prompt = True), &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;)&lt;/p&gt; &lt;p&gt;print('\n+++++++++++++++++++++++++++++\n')&lt;/p&gt; &lt;p&gt;model.save_pretrained_merged(&amp;quot;model&amp;quot;, tokenizer, save_method = &amp;quot;merged_16bit&amp;quot;)&lt;/p&gt; &lt;p&gt;model.save_pretrained_gguf(&amp;quot;model&amp;quot;, tokenizer, quantization_method = &amp;quot;q8_0&amp;quot;)&lt;/p&gt; &lt;p&gt;``` The load and inference run fine. Inference is in the finetuned format as expected. But when the GGUF part starts up, get this error.&lt;/p&gt; &lt;p&gt;If I run just the GGUF saving, then it says input folder not found, I guess because there is no model folder?&lt;/p&gt; &lt;pre&gt;&lt;code&gt;/usr/local/lib/python3.12/dist-packages/unsloth\_zoo/saving\_utils.py:632: UserWarning: Model is not a PeftModel (no Lora adapters detected). Skipping Merge. Please use save\_pretrained() or push\_to\_hub() instead! warnings.warn(&amp;quot;Model is not a PeftModel (no Lora adapters detected). Skipping Merge. Please use save\_pretrained() or push\_to\_hub() instead!&amp;quot;) \--------------------------------------------------------------------------- RuntimeError Traceback (most recent call last) /tmp/ipython-input-1119511992.py in &amp;lt;cell line: 0&amp;gt;() 1 model.save\_pretrained\_merged(&amp;quot;model&amp;quot;, tokenizer, save\_method = &amp;quot;merged\_16bit&amp;quot;) \----&amp;gt; 2 model.save\_pretrained\_gguf(&amp;quot;model&amp;quot;, tokenizer, quantization\_method = &amp;quot;q8\_0&amp;quot;) 2 frames /usr/local/lib/python3.12/dist-packages/unsloth\_zoo/llama\_cpp.py in convert\_to\_gguf(input\_folder, output\_filename, quantization\_type, max\_shard\_size, print\_output, print\_outputs) 654 655 if not os.path.exists(input\_folder): \--&amp;gt; 656 raise RuntimeError(f&amp;quot;Unsloth: \`{input\_folder}\` does not exist?&amp;quot;) 657 658 config\_file = os.path.join(input\_folder, &amp;quot;config.json&amp;quot;) RuntimeError: Unsloth: \`model\` does not exist? &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I also tried loading just the lora and then running inference. ``` model, tokenizer = FastLanguageModel.from_pretrained(&lt;/p&gt; &lt;pre&gt;&lt;code&gt;model_name = &amp;quot;lora_model&amp;quot;, # YOUR MODEL max_seq_length = max_seq_length, load_in_4bit = False, # 4 bit quantization to reduce memory load_in_8bit = False, # [NEW!] A bit more accurate, uses 2x memory full_finetuning = False, # [NEW!] We have full finetuning now! ) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;In such cases, the inference is the same as the vanilla untuned model and my finetuning does not take effect.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/regstuff"&gt; /u/regstuff &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mziy6p/making_some_silly_mistake_while_saving_to_gguf_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mziy6p/making_some_silly_mistake_while_saving_to_gguf_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mziy6p/making_some_silly_mistake_while_saving_to_gguf_in/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T06:21:40+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mypokb</id>
-    <title>GPT OSS 20b is Impressive at Instruction Following</title>
-    <updated>2025-08-24T07:56:56+00:00</updated>
-    <author>
-      <name>/u/crodjer</name>
-      <uri>https://old.reddit.com/user/crodjer</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have found GPT OSS 20b to be consistently great at following complex instructions. For instance, it did performed perfectly with a test prompt I used: &lt;a href="https://github.com/crodjer/glaince/tree/main/cipher#results"&gt;https://github.com/crodjer/glaince/tree/main/cipher#results&lt;/a&gt;&lt;/p&gt; &lt;p&gt;All other models in the same size (Gemma 3, Qwen 3, Mistral Small) make the same mistake, resulting them to deviate from expectation.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/crodjer"&gt; /u/crodjer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mypokb/gpt_oss_20b_is_impressive_at_instruction_following/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mypokb/gpt_oss_20b_is_impressive_at_instruction_following/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mypokb/gpt_oss_20b_is_impressive_at_instruction_following/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-24T07:56:56+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mz0640</id>
     <title>Best small local llm for coding</title>
@@ -125,6 +99,19 @@
     <published>2025-08-24T17:50:40+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mzllf3</id>
+    <title>Hardware to run Qwen3-235B-A22B-Instruct</title>
+    <updated>2025-08-25T09:13:48+00:00</updated>
+    <author>
+      <name>/u/Sea-Replacement7541</name>
+      <uri>https://old.reddit.com/user/Sea-Replacement7541</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone experimented with above model and can shed some light on what the minimum hardware reqs are?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Replacement7541"&gt; /u/Sea-Replacement7541 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T09:13:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mz4vwu</id>
     <title>What is the smallest model that rivals GPT-3.5?</title>
     <updated>2025-08-24T19:25:09+00:00</updated>
@@ -164,19 +151,6 @@
     <published>2025-08-24T14:32:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mzk0jr</id>
-    <title>Efficiently detecting spam e-mails: can super small LLMs like Gemma 3 270M do it?</title>
-    <updated>2025-08-25T07:29:32+00:00</updated>
-    <author>
-      <name>/u/s101c</name>
-      <uri>https://old.reddit.com/user/s101c</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It's been reiterated many times that the 270M Gemma has been created to be finetuned for specific narrow tasks and that it works wells as a classifier.&lt;/p&gt; &lt;p&gt;So here's a use-case: a website with a contact form receives human-written messages, all the conventional spam filters work, but plenty of the irrelevant messages still get through because they are copy-pasted and written by actual people.&lt;/p&gt; &lt;p&gt;Does Gemma 270M and other similar sized models effectively classify those messages as spam? Is there a reason to use bigger models for this kind of tasks?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/s101c"&gt; /u/s101c &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T07:29:32+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzaeee</id>
     <title>InfiniteTalk: Audio-driven Video Generation for Sparse-Frame Video Dubbing</title>
     <updated>2025-08-24T23:05:11+00:00</updated>
@@ -201,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1myz59l/seedoss_is_insanely_good/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-24T15:50:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzk0jr</id>
+    <title>Efficiently detecting spam e-mails: can super small LLMs like Gemma 3 270M do it?</title>
+    <updated>2025-08-25T07:29:32+00:00</updated>
+    <author>
+      <name>/u/s101c</name>
+      <uri>https://old.reddit.com/user/s101c</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It's been reiterated many times that the 270M Gemma has been created to be finetuned for specific narrow tasks and that it works wells as a classifier.&lt;/p&gt; &lt;p&gt;So here's a use-case: a website with a contact form receives human-written messages, all the conventional spam filters work, but plenty of the irrelevant messages still get through because they are copy-pasted and written by actual people.&lt;/p&gt; &lt;p&gt;Does Gemma 270M and other similar sized models effectively classify those messages as spam? Is there a reason to use bigger models for this kind of tasks?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/s101c"&gt; /u/s101c &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk0jr/efficiently_detecting_spam_emails_can_super_small/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T07:29:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzk2dg</id>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-24T15:51:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzm677</id>
+    <title>u/RSXLV appreciation post for releasing his updated faster Chatterbox-TTS fork yesterday. Major speed increase indeed, response is near real-time now. Let's all give him a big ol' thank you! Fork in the comments.</title>
+    <updated>2025-08-25T09:51:02+00:00</updated>
+    <author>
+      <name>/u/swagonflyyyy</name>
+      <uri>https://old.reddit.com/user/swagonflyyyy</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzm677/ursxlv_appreciation_post_for_releasing_his/"&gt; &lt;img alt="u/RSXLV appreciation post for releasing his updated faster Chatterbox-TTS fork yesterday. Major speed increase indeed, response is near real-time now. Let's all give him a big ol' thank you! Fork in the comments." src="https://external-preview.redd.it/Nm9qN2ppZGIwNWxmMYB8gfxVUG7ntLAy6UFGKU3bfv7xh4HVFM-UizvnZAOP.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e82b54df6d326f2b562855d3069b5bdeddfccffd" title="u/RSXLV appreciation post for releasing his updated faster Chatterbox-TTS fork yesterday. Major speed increase indeed, response is near real-time now. Let's all give him a big ol' thank you! Fork in the comments." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Fork: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1mza0wy/comment/nak1lea/?context=3"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1mza0wy/comment/nak1lea/?context=3&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="/u/RSXLV"&gt;u/RSXLV&lt;/a&gt; again, huge shoutout to you, my guy. This fork is so fast now &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/swagonflyyyy"&gt; /u/swagonflyyyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/9txv4idb05lf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzm677/ursxlv_appreciation_post_for_releasing_his/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzm677/ursxlv_appreciation_post_for_releasing_his/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T09:51:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1mza0wy</id>
