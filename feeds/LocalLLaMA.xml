@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-25T15:49:34+00:00</updated>
+  <updated>2025-08-25T16:07:33+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mzkfwo</id>
-    <title>Do you work in this field or it's your hobby?</title>
-    <updated>2025-08-25T07:57:54+00:00</updated>
-    <author>
-      <name>/u/Lxxtsch</name>
-      <uri>https://old.reddit.com/user/Lxxtsch</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, I wonder how many people are interested in LLMs and similar AI stuff purely as a hobby.&lt;/p&gt; &lt;p&gt;I find myself messing with llms only because I think it's cool and don't want to be behind other people who know how and why use these tools.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/poll/1mzkfwo"&gt;View Poll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Lxxtsch"&gt; /u/Lxxtsch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzkfwo/do_you_work_in_this_field_or_its_your_hobby/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzkfwo/do_you_work_in_this_field_or_its_your_hobby/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzkfwo/do_you_work_in_this_field_or_its_your_hobby/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T07:57:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1myz6f1</id>
-    <title>Fast CUDA DFloat11 decoding kernel</title>
-    <updated>2025-08-24T15:51:15+00:00</updated>
-    <author>
-      <name>/u/No_Dimension41</name>
-      <uri>https://old.reddit.com/user/No_Dimension41</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago, I came across the amazing work on &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1k7o89n/we_compress_any_bf16_model_to_70_size_during/"&gt;DFloat11&lt;/a&gt;, which achieves lossless output while shrinking models to 70% of their original size by compressing the exponent bits of BF16. It is a great work. However, I found a problem: it decompresses an entire tensor into VRAM, and then perform computations separately, which severely impacts the model's decoding speed. According to some &lt;a href="https://github.com/LeanModels/DFloat11/issues/7"&gt;issues&lt;/a&gt; on GitHub, it only reaches about 1/3 of the native BF16 speed. Furthermore, the author hasn't released the code for encoding the models, and the decoding kernel is provided in a nearly unreadable PTX format.&lt;/p&gt; &lt;p&gt;So, I decided to write my own implementation. I used the Huffman coding and LUT-based decoding algorithms described in their &lt;a href="https://arxiv.org/abs/2504.11651"&gt;paper&lt;/a&gt;, but I &lt;strong&gt;fused the Huffman decoding process and the GEMV operation into a single kernel&lt;/strong&gt;. This avoids unnecessary memory bandwidth overhead and dramatically speeds up decoding.&lt;/p&gt; &lt;p&gt;With a batch size of 1, my implementation can now reach about &lt;strong&gt;90% of native BF16 speed&lt;/strong&gt; on regular GPUs. On some VRAM bandwidth-constrained GPUs, like the RTX 4060 Ti, it can even &lt;strong&gt;surpass native BF16 speed&lt;/strong&gt; because the compressed weights reduce the demand on VRAM bandwidth.&lt;/p&gt; &lt;p&gt;Here's a simple benchmark for generating 256 tokens:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Device&lt;/th&gt; &lt;th align="left"&gt;Raw BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Compressed BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Raw / Compressed Size&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen2.5 7B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;14.98s&lt;/td&gt; &lt;td align="left"&gt;13.02s&lt;/td&gt; &lt;td align="left"&gt;14.19 / 10.99 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;6.66s&lt;/td&gt; &lt;td align="left"&gt;7.23s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen3 8B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;OOM&lt;/td&gt; &lt;td align="left"&gt;14.11s&lt;/td&gt; &lt;td align="left"&gt;15.26 / 11.52 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;7.75s&lt;/td&gt; &lt;td align="left"&gt;8.24s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Of course, there are still areas for improvement. Due to the extra padding required by the CUDA kernel's layout, the current compression rate is slightly lower than the original DFloat11, achieving around 75%-80%. Additionally, support for uncommon tensor shapes and batch sizes greater than 1 is currently limited.&lt;/p&gt; &lt;p&gt;For more information, please visit my GitHub repository: &lt;a href="https://github.com/lszxb/bf16_huffman_infer"&gt;https://github.com/lszxb/bf16_huffman_infer&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Dimension41"&gt; /u/No_Dimension41 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-24T15:51:15+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mzl9tp</id>
     <title>I built Husk, a native, private, and open-source iOS client for your local models</title>
@@ -60,6 +34,45 @@
     <published>2025-08-25T13:38:35+00:00</published>
   </entry>
   <entry>
+    <id>t3_1mzu9yo</id>
+    <title>LM Studio + seed-oss-36b = "Model type seed_oss not supported."</title>
+    <updated>2025-08-25T15:53:10+00:00</updated>
+    <author>
+      <name>/u/firesalamander</name>
+      <uri>https://old.reddit.com/user/firesalamander</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While waiting for LM Studio to support seed-oss-36b, what is the easiest way to test out the model? I'm on a mac, so MLX is nice.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/firesalamander"&gt; /u/firesalamander &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu9yo/lm_studio_seedoss36b_model_type_seed_oss_not/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu9yo/lm_studio_seedoss36b_model_type_seed_oss_not/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu9yo/lm_studio_seedoss36b_model_type_seed_oss_not/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T15:53:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzllf3</id>
+    <title>Hardware to run Qwen3-235B-A22B-Instruct</title>
+    <updated>2025-08-25T09:13:48+00:00</updated>
+    <author>
+      <name>/u/Sea-Replacement7541</name>
+      <uri>https://old.reddit.com/user/Sea-Replacement7541</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone experimented with above model and can shed some light on what the minimum hardware reqs are?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Replacement7541"&gt; /u/Sea-Replacement7541 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T09:13:48+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzujsf</id>
+    <title>Cua announces Computer-Use Hackathon</title>
+    <updated>2025-08-25T16:02:55+00:00</updated>
+    <author>
+      <name>/u/a6oo</name>
+      <uri>https://old.reddit.com/user/a6oo</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzujsf/cua_announces_computeruse_hackathon/"&gt; &lt;img alt="Cua announces Computer-Use Hackathon" src="https://b.thumbs.redditmedia.com/taHJPbIy7n-t8wP2ps-H-Y8qikiK9cgG1B_ckRod2Gk.jpg" title="Cua announces Computer-Use Hackathon" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Cua just announced a hackathon focused on computer-use agents! 🚀&lt;/p&gt; &lt;p&gt;Awesome opportunity to build a computer-using agent using Cua Agent SDK, Ollama, LiteLLM, and HUD, and win cool prizes (MacBook Air M4, $500 gift card, guaranteed YC interview, to name a few)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;On-site:&lt;/strong&gt; SOTA challenge at Hack the North (Sept 12-14) - any model setup allowed, scored on OSWorld-Verified, top team gets guaranteed YC partner interview&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Off-site:&lt;/strong&gt; Global online Cua × Ollama track - focus on local/hybrid setups, scored by creativity, top prize MacBook Air M4&lt;/p&gt; &lt;p&gt;More info on the hackathon &lt;a href="https://xcancel.com/trycua/status/1959994824498520436"&gt;here&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ngmssklyu6lf1.png?width=680&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=dcabe12d5d370deaf182568e84b44ef5792112cd"&gt;Cua Computer-Use Hackathon&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/a6oo"&gt; /u/a6oo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzujsf/cua_announces_computeruse_hackathon/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzujsf/cua_announces_computeruse_hackathon/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzujsf/cua_announces_computeruse_hackathon/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T16:02:55+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mzk2dg</id>
     <title>What in your experience is the best model with the smallest size in GB?</title>
     <updated>2025-08-25T07:32:42+00:00</updated>
@@ -84,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzd0ik/psa_filling_those_empty_dimm_slots_will_slow_down/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T01:04:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mzllf3</id>
-    <title>Hardware to run Qwen3-235B-A22B-Instruct</title>
-    <updated>2025-08-25T09:13:48+00:00</updated>
-    <author>
-      <name>/u/Sea-Replacement7541</name>
-      <uri>https://old.reddit.com/user/Sea-Replacement7541</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone experimented with above model and can shed some light on what the minimum hardware reqs are?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Replacement7541"&gt; /u/Sea-Replacement7541 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzllf3/hardware_to_run_qwen3235ba22binstruct/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T09:13:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1mza0wy</id>
@@ -203,32 +203,6 @@
     <published>2025-08-25T03:04:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mzu2e6</id>
-    <title>GLM-4.5 appreciation post</title>
-    <updated>2025-08-25T15:45:21+00:00</updated>
-    <author>
-      <name>/u/wolttam</name>
-      <uri>https://old.reddit.com/user/wolttam</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;GLM-4.5 is my favorite model at the moment, full stop.&lt;/p&gt; &lt;p&gt;I don't work on insanely complex problems; I develop pretty basic web applications and back-end services. I don't vibe code. LLMs come in when I have a well-defined task, and I have generally always been able to get frontier models to one or two-shot the code I'm looking for with the context I manually craft for it.&lt;/p&gt; &lt;p&gt;I've kept (near religious) watch on open models, and it's only been since the recent Qwen updates, Kimi, and GLM-4.5 that I've really started to take them seriously. All of these models are fantastic, but GLM-4.5 especially has completely removed any desire I've had to reach for a proprietary frontier model for the tasks I work on.&lt;/p&gt; &lt;p&gt;Chinese models have effectively captured me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wolttam"&gt; /u/wolttam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T15:45:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1mzsg6v</id>
-    <title>DeepSeek V3.1 - Getting token " extreme" / "极" / "極" out of nowhere</title>
-    <updated>2025-08-25T14:46:02+00:00</updated>
-    <author>
-      <name>/u/notdba</name>
-      <uri>https://old.reddit.com/user/notdba</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T14:46:02+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzm5dk</id>
     <title>support interns1-mini has been merged into llama.cpp</title>
     <updated>2025-08-25T09:49:37+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzm5dk/support_interns1mini_has_been_merged_into_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T09:49:37+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzsg6v</id>
+    <title>DeepSeek V3.1 - Getting token " extreme" / "极" / "極" out of nowhere</title>
+    <updated>2025-08-25T14:46:02+00:00</updated>
+    <author>
+      <name>/u/notdba</name>
+      <uri>https://old.reddit.com/user/notdba</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: &lt;a href="http://time.Se"&gt;time.Se&lt;/a&gt; extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;p&gt;EDIT: Seeing the same issue with Novita as well, so it is quite unlikely to be an issue with the inference stack.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T14:46:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1mz4hrg</id>
@@ -281,17 +268,17 @@
     <published>2025-08-25T07:34:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mzrb4l</id>
-    <title>llama.ui - minimal privacy focused chat interface</title>
-    <updated>2025-08-25T14:01:17+00:00</updated>
+    <id>t3_1mzu2e6</id>
+    <title>GLM-4.5 appreciation post</title>
+    <updated>2025-08-25T15:45:21+00:00</updated>
     <author>
-      <name>/u/COBECT</name>
-      <uri>https://old.reddit.com/user/COBECT</uri>
+      <name>/u/wolttam</name>
+      <uri>https://old.reddit.com/user/wolttam</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"&gt; &lt;img alt="llama.ui - minimal privacy focused chat interface" src="https://preview.redd.it/6g2icqwi96lf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=93145b5e6ac2c5f127d14e540cb4261819454a6b" title="llama.ui - minimal privacy focused chat interface" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/COBECT"&gt; /u/COBECT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/6g2icqwi96lf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;GLM-4.5 is my favorite model at the moment, full stop.&lt;/p&gt; &lt;p&gt;I don't work on insanely complex problems; I develop pretty basic web applications and back-end services. I don't vibe code. LLMs come in when I have a well-defined task, and I have generally always been able to get frontier models to one or two-shot the code I'm looking for with the context I manually craft for it.&lt;/p&gt; &lt;p&gt;I've kept (near religious) watch on open models, and it's only been since the recent Qwen updates, Kimi, and GLM-4.5 that I've really started to take them seriously. All of these models are fantastic, but GLM-4.5 especially has completely removed any desire I've had to reach for a proprietary frontier model for the tasks I work on.&lt;/p&gt; &lt;p&gt;Chinese models have effectively captured me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wolttam"&gt; /u/wolttam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzu2e6/glm45_appreciation_post/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T14:01:17+00:00</published>
+    <published>2025-08-25T15:45:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzquqi</id>
@@ -307,17 +294,17 @@
     <published>2025-08-25T13:42:56+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mzqy3z</id>
-    <title>InternVL3.5 - Best OpenSource VLM</title>
-    <updated>2025-08-25T13:46:45+00:00</updated>
+    <id>t3_1mzrb4l</id>
+    <title>llama.ui - minimal privacy focused chat interface</title>
+    <updated>2025-08-25T14:01:17+00:00</updated>
     <author>
-      <name>/u/touhidul002</name>
-      <uri>https://old.reddit.com/user/touhidul002</uri>
+      <name>/u/COBECT</name>
+      <uri>https://old.reddit.com/user/COBECT</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"&gt; &lt;img alt="InternVL3.5 - Best OpenSource VLM" src="https://b.thumbs.redditmedia.com/nVzY4GlZP996KhrAM5_W8vRFK-rnOrWqnRnOhiYSBYI.jpg" title="InternVL3.5 - Best OpenSource VLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/internlm/InternVL3_5-241B-A28B"&gt;https://huggingface.co/internlm/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;InternVL3.5 with a variety of new capabilities including GUI agent, embodied agent, etc. Specifically, InternVL3.5-241B-A28B achieves the highest overall score on multimodal general, reasoning, text, and agency tasks among leading open source MLLMs, and narrows the gap with top commercial models such as GPT-5.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/touhidul002"&gt; /u/touhidul002 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1mzqy3z"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"&gt; &lt;img alt="llama.ui - minimal privacy focused chat interface" src="https://preview.redd.it/6g2icqwi96lf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=93145b5e6ac2c5f127d14e540cb4261819454a6b" title="llama.ui - minimal privacy focused chat interface" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/COBECT"&gt; /u/COBECT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/6g2icqwi96lf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T13:46:45+00:00</published>
+    <published>2025-08-25T14:01:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzn0zm</id>
@@ -331,6 +318,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T10:40:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzqy3z</id>
+    <title>InternVL3.5 - Best OpenSource VLM</title>
+    <updated>2025-08-25T13:46:45+00:00</updated>
+    <author>
+      <name>/u/touhidul002</name>
+      <uri>https://old.reddit.com/user/touhidul002</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"&gt; &lt;img alt="InternVL3.5 - Best OpenSource VLM" src="https://b.thumbs.redditmedia.com/nVzY4GlZP996KhrAM5_W8vRFK-rnOrWqnRnOhiYSBYI.jpg" title="InternVL3.5 - Best OpenSource VLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/internlm/InternVL3_5-241B-A28B"&gt;https://huggingface.co/internlm/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;InternVL3.5 with a variety of new capabilities including GUI agent, embodied agent, etc. Specifically, InternVL3.5-241B-A28B achieves the highest overall score on multimodal general, reasoning, text, and agency tasks among leading open source MLLMs, and narrows the gap with top commercial models such as GPT-5.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/touhidul002"&gt; /u/touhidul002 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1mzqy3z"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T13:46:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1mjf5ol</id>
