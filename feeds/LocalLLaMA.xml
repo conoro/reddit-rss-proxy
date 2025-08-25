@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-25T10:39:19+00:00</updated>
+  <updated>2025-08-25T10:50:01+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mz0640</id>
-    <title>Best small local llm for coding</title>
-    <updated>2025-08-24T16:28:21+00:00</updated>
-    <author>
-      <name>/u/Low-Palpitation-4724</name>
-      <uri>https://old.reddit.com/user/Low-Palpitation-4724</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey!&lt;br /&gt; I am looking for good small llm for coding. By small i mean somewhere around 10b parameters like gemma3:12b or codegemma. I like them both but first one is not specifically coding model and second one is a year old. Does anyone have some suggestions about other good models or a place that benchmarks those? I am talking about those small models because i use them on gpu with 12gb vram or even laptop with 8.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Low-Palpitation-4724"&gt; /u/Low-Palpitation-4724 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mz0640/best_small_local_llm_for_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mz0640/best_small_local_llm_for_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mz0640/best_small_local_llm_for_coding/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-24T16:28:21+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mzejbm</id>
     <title>Where do I go to see benchmark comparisons of local models?</title>
@@ -203,6 +190,19 @@
     <published>2025-08-25T01:04:16+00:00</published>
   </entry>
   <entry>
+    <id>t3_1myz6f1</id>
+    <title>Fast CUDA DFloat11 decoding kernel</title>
+    <updated>2025-08-24T15:51:15+00:00</updated>
+    <author>
+      <name>/u/No_Dimension41</name>
+      <uri>https://old.reddit.com/user/No_Dimension41</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago, I came across the amazing work on &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1k7o89n/we_compress_any_bf16_model_to_70_size_during/"&gt;DFloat11&lt;/a&gt;, which achieves lossless output while shrinking models to 70% of their original size by compressing the exponent bits of BF16. It is a great work. However, I found a problem: it decompresses an entire tensor into VRAM, and then perform computations separately, which severely impacts the model's decoding speed. According to some &lt;a href="https://github.com/LeanModels/DFloat11/issues/7"&gt;issues&lt;/a&gt; on GitHub, it only reaches about 1/3 of the native BF16 speed. Furthermore, the author hasn't released the code for encoding the models, and the decoding kernel is provided in a nearly unreadable PTX format.&lt;/p&gt; &lt;p&gt;So, I decided to write my own implementation. I used the Huffman coding and LUT-based decoding algorithms described in their &lt;a href="https://arxiv.org/abs/2504.11651"&gt;paper&lt;/a&gt;, but I &lt;strong&gt;fused the Huffman decoding process and the GEMV operation into a single kernel&lt;/strong&gt;. This avoids unnecessary memory bandwidth overhead and dramatically speeds up decoding.&lt;/p&gt; &lt;p&gt;With a batch size of 1, my implementation can now reach about &lt;strong&gt;90% of native BF16 speed&lt;/strong&gt; on regular GPUs. On some VRAM bandwidth-constrained GPUs, like the RTX 4060 Ti, it can even &lt;strong&gt;surpass native BF16 speed&lt;/strong&gt; because the compressed weights reduce the demand on VRAM bandwidth.&lt;/p&gt; &lt;p&gt;Here's a simple benchmark for generating 256 tokens:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Device&lt;/th&gt; &lt;th align="left"&gt;Raw BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Compressed BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Raw / Compressed Size&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen2.5 7B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;14.98s&lt;/td&gt; &lt;td align="left"&gt;13.02s&lt;/td&gt; &lt;td align="left"&gt;14.19 / 10.99 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;6.66s&lt;/td&gt; &lt;td align="left"&gt;7.23s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen3 8B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;OOM&lt;/td&gt; &lt;td align="left"&gt;14.11s&lt;/td&gt; &lt;td align="left"&gt;15.26 / 11.52 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;7.75s&lt;/td&gt; &lt;td align="left"&gt;8.24s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Of course, there are still areas for improvement. Due to the extra padding required by the CUDA kernel's layout, the current compression rate is slightly lower than the original DFloat11, achieving around 75%-80%. Additionally, support for uncommon tensor shapes and batch sizes greater than 1 is currently limited.&lt;/p&gt; &lt;p&gt;For more information, please visit my GitHub repository: &lt;a href="https://github.com/lszxb/bf16_huffman_infer"&gt;https://github.com/lszxb/bf16_huffman_infer&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Dimension41"&gt; /u/No_Dimension41 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-24T15:51:15+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1mzk2dg</id>
     <title>What in your experience is the best model with the smallest size in GB?</title>
     <updated>2025-08-25T07:32:42+00:00</updated>
@@ -216,17 +216,17 @@
     <published>2025-08-25T07:32:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1myz6f1</id>
-    <title>Fast CUDA DFloat11 decoding kernel</title>
-    <updated>2025-08-24T15:51:15+00:00</updated>
+    <id>t3_1mzn0zm</id>
+    <title>InternVL3_5 series is out!!</title>
+    <updated>2025-08-25T10:40:58+00:00</updated>
     <author>
-      <name>/u/No_Dimension41</name>
-      <uri>https://old.reddit.com/user/No_Dimension41</uri>
+      <name>/u/kironlau</name>
+      <uri>https://old.reddit.com/user/kironlau</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago, I came across the amazing work on &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1k7o89n/we_compress_any_bf16_model_to_70_size_during/"&gt;DFloat11&lt;/a&gt;, which achieves lossless output while shrinking models to 70% of their original size by compressing the exponent bits of BF16. It is a great work. However, I found a problem: it decompresses an entire tensor into VRAM, and then perform computations separately, which severely impacts the model's decoding speed. According to some &lt;a href="https://github.com/LeanModels/DFloat11/issues/7"&gt;issues&lt;/a&gt; on GitHub, it only reaches about 1/3 of the native BF16 speed. Furthermore, the author hasn't released the code for encoding the models, and the decoding kernel is provided in a nearly unreadable PTX format.&lt;/p&gt; &lt;p&gt;So, I decided to write my own implementation. I used the Huffman coding and LUT-based decoding algorithms described in their &lt;a href="https://arxiv.org/abs/2504.11651"&gt;paper&lt;/a&gt;, but I &lt;strong&gt;fused the Huffman decoding process and the GEMV operation into a single kernel&lt;/strong&gt;. This avoids unnecessary memory bandwidth overhead and dramatically speeds up decoding.&lt;/p&gt; &lt;p&gt;With a batch size of 1, my implementation can now reach about &lt;strong&gt;90% of native BF16 speed&lt;/strong&gt; on regular GPUs. On some VRAM bandwidth-constrained GPUs, like the RTX 4060 Ti, it can even &lt;strong&gt;surpass native BF16 speed&lt;/strong&gt; because the compressed weights reduce the demand on VRAM bandwidth.&lt;/p&gt; &lt;p&gt;Here's a simple benchmark for generating 256 tokens:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Device&lt;/th&gt; &lt;th align="left"&gt;Raw BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Compressed BF16 Time&lt;/th&gt; &lt;th align="left"&gt;Raw / Compressed Size&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen2.5 7B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;14.98s&lt;/td&gt; &lt;td align="left"&gt;13.02s&lt;/td&gt; &lt;td align="left"&gt;14.19 / 10.99 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;6.66s&lt;/td&gt; &lt;td align="left"&gt;7.23s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen3 8B&lt;/td&gt; &lt;td align="left"&gt;RTX 4060Ti&lt;/td&gt; &lt;td align="left"&gt;OOM&lt;/td&gt; &lt;td align="left"&gt;14.11s&lt;/td&gt; &lt;td align="left"&gt;15.26 / 11.52 GiB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;RTX A6000&lt;/td&gt; &lt;td align="left"&gt;7.75s&lt;/td&gt; &lt;td align="left"&gt;8.24s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Of course, there are still areas for improvement. Due to the extra padding required by the CUDA kernel's layout, the current compression rate is slightly lower than the original DFloat11, achieving around 75%-80%. Additionally, support for uncommon tensor shapes and batch sizes greater than 1 is currently limited.&lt;/p&gt; &lt;p&gt;For more information, please visit my GitHub repository: &lt;a href="https://github.com/lszxb/bf16_huffman_infer"&gt;https://github.com/lszxb/bf16_huffman_infer&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Dimension41"&gt; /u/No_Dimension41 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1myz6f1/fast_cuda_dfloat11_decoding_kernel/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"&gt; &lt;img alt="InternVL3_5 series is out!!" src="https://external-preview.redd.it/oVE1-EnaLKFKvov2KcAAd41NTqlkCry1b2bYAP90Upw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e47ab110109abf15025f25857e6f9890fe89966c" title="InternVL3_5 series is out!!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/organizations/internlm/activity/all"&gt;internlm (InternLM)&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/resy0a6n95lf1.png?width=1294&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=9db47fa8a145b99f6bd74750e0d3a0791d85137f"&gt;https://preview.redd.it/resy0a6n95lf1.png?width=1294&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=9db47fa8a145b99f6bd74750e0d3a0791d85137f&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kironlau"&gt; /u/kironlau &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-24T15:51:15+00:00</published>
+    <published>2025-08-25T10:40:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzk0jr</id>
