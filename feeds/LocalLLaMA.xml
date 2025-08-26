@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-26T05:24:26+00:00</updated>
+  <updated>2025-08-26T05:37:31+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1mzsg6v</id>
-    <title>DeepSeek V3.1 - Getting token " extreme" / "极" / "極" out of nowhere</title>
-    <updated>2025-08-25T14:46:02+00:00</updated>
-    <author>
-      <name>/u/notdba</name>
-      <uri>https://old.reddit.com/user/notdba</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: &lt;a href="http://time.Se"&gt;time.Se&lt;/a&gt; extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;p&gt;EDIT: Seeing the same issue with Novita as well, so it is quite unlikely to be an issue with the inference stack.&lt;/p&gt; &lt;p&gt;EDIT 2: Current suspect is that the issue might be masked by MTP, and becomes a lot more apparent when the inference stack doesn't support MTP.&lt;/p&gt; &lt;p&gt;EDIT 3: Okay this is worse than I thought. I checked the old eval responses for &amp;quot;极&amp;quot;, and can see that DeepSeek V3 0324 already got the token as the 2nd or 3rd choice in many unexpected places. Sadly, the recent Qwen3 235B A22B Instruct 2507 and Qwen3 Coder 30B A3B Instruct also show the same symptom, probably at around the same stage as DeepSeek V3 0324. Meanwhile, Qwen3 Coder 480B A35B Instruct only shows the same symptom after heavily quantized. Looks like the 2 labs may use the same contaminated data. GLM 4.5 is not affected 👌&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T14:46:02+00:00</published>
-  </entry>
   <entry>
     <id>t3_1mzk3ft</id>
     <title>So, even the Sheikh of Dubai is waiting for the DGX SPARK</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzk3ft/so_even_the_sheikh_of_dubai_is_waiting_for_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T07:34:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n0dl84</id>
+    <title>Been working on something... A teaser</title>
+    <updated>2025-08-26T05:35:04+00:00</updated>
+    <author>
+      <name>/u/orblabs</name>
+      <uri>https://old.reddit.com/user/orblabs</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0dl84/been_working_on_something_a_teaser/"&gt; &lt;img alt="Been working on something... A teaser" src="https://b.thumbs.redditmedia.com/gJsXHozTMr8Q_MnsobeoZsA017tBJOzE3DqbO7Z1inw.jpg" title="Been working on something... A teaser" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Pretty excited about this project i have been working on lately, be back soon with more info, but in the meantime thought a teaser wouldn't hurt&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/orblabs"&gt; /u/orblabs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1n0dl84"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0dl84/been_working_on_something_a_teaser/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0dl84/been_working_on_something_a_teaser/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-26T05:35:04+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzxmdg</id>
@@ -112,19 +112,6 @@
     <published>2025-08-25T23:43:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n0c58h</id>
-    <title>Update llama.cpp for a big speed boost with gpt-oss and cuda.</title>
-    <updated>2025-08-26T04:11:45+00:00</updated>
-    <author>
-      <name>/u/No-Statement-0001</name>
-      <uri>https://old.reddit.com/user/No-Statement-0001</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few cuda commits landed today that have made a big difference in performance. Testing with gpt-oss-120B, I saw a 14.5% increase in tokens per second with 2x3090 and 1xP40. It went from 51.6 tok/sec to 59.1 tok/sec. &lt;/p&gt; &lt;p&gt;With gptoss-20B I stayed at 130 tok/sec on a single 3090 power limited to 300W. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Statement-0001"&gt; /u/No-Statement-0001 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T04:11:45+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzn0zm</id>
     <title>InternVL3_5 series is out!!</title>
     <updated>2025-08-25T10:40:58+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzn0zm/internvl3_5_series_is_out/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T10:40:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n0c58h</id>
+    <title>Update llama.cpp for a big speed boost with gpt-oss and cuda.</title>
+    <updated>2025-08-26T04:11:45+00:00</updated>
+    <author>
+      <name>/u/No-Statement-0001</name>
+      <uri>https://old.reddit.com/user/No-Statement-0001</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few cuda commits landed today that have made a big difference in performance. Testing with gpt-oss-120B, I saw a 14.5% increase in tokens per second with 2x3090 and 1xP40. It went from 51.6 tok/sec to 59.1 tok/sec. &lt;/p&gt; &lt;p&gt;With gptoss-20B I stayed at 130 tok/sec on a single 3090 power limited to 300W. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Statement-0001"&gt; /u/No-Statement-0001 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-26T04:11:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1n06ahz</id>
