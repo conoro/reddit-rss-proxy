@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-26T05:07:17+00:00</updated>
+  <updated>2025-08-26T05:24:26+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1mzsg6v</id>
+    <title>DeepSeek V3.1 - Getting token " extreme" / "极" / "極" out of nowhere</title>
+    <updated>2025-08-25T14:46:02+00:00</updated>
+    <author>
+      <name>/u/notdba</name>
+      <uri>https://old.reddit.com/user/notdba</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: &lt;a href="http://time.Se"&gt;time.Se&lt;/a&gt; extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;p&gt;EDIT: Seeing the same issue with Novita as well, so it is quite unlikely to be an issue with the inference stack.&lt;/p&gt; &lt;p&gt;EDIT 2: Current suspect is that the issue might be masked by MTP, and becomes a lot more apparent when the inference stack doesn't support MTP.&lt;/p&gt; &lt;p&gt;EDIT 3: Okay this is worse than I thought. I checked the old eval responses for &amp;quot;极&amp;quot;, and can see that DeepSeek V3 0324 already got the token as the 2nd or 3rd choice in many unexpected places. Sadly, the recent Qwen3 235B A22B Instruct 2507 and Qwen3 Coder 30B A3B Instruct also show the same symptom, probably at around the same stage as DeepSeek V3 0324. Meanwhile, Qwen3 Coder 480B A35B Instruct only shows the same symptom after heavily quantized. Looks like the 2 labs may use the same contaminated data. GLM 4.5 is not affected 👌&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T14:46:02+00:00</published>
+  </entry>
   <entry>
     <id>t3_1mzk3ft</id>
     <title>So, even the Sheikh of Dubai is waiting for the DGX SPARK</title>
@@ -32,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzxmdg/local_llmpowered_retro_game_builder_lemonade/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T17:55:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n0c64s</id>
-    <title>Legion 9i 5090 w/ 192gb RAM vs M4 MacBook for running local LLM?</title>
-    <updated>2025-08-26T04:13:08+00:00</updated>
-    <author>
-      <name>/u/EyeSurgeon8o</name>
-      <uri>https://old.reddit.com/user/EyeSurgeon8o</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Which is more capable for running a local LLM? I understand that the &amp;quot;unified memory&amp;quot; with the Mac seems to be important here, but I don't really understand how all this works and what the considerations are. Appreciate any insights.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EyeSurgeon8o"&gt; /u/EyeSurgeon8o &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c64s/legion_9i_5090_w_192gb_ram_vs_m4_macbook_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c64s/legion_9i_5090_w_192gb_ram_vs_m4_macbook_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c64s/legion_9i_5090_w_192gb_ram_vs_m4_macbook_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T04:13:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1n0cw80</id>
@@ -86,19 +86,6 @@
     <published>2025-08-26T00:03:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n06iyh</id>
-    <title>llama.cpp Lazy Swap</title>
-    <updated>2025-08-25T23:43:53+00:00</updated>
-    <author>
-      <name>/u/unrulywind</name>
-      <uri>https://old.reddit.com/user/unrulywind</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Because I'm totally lazy and I hate typing. I usually us a wrapper to run local models. But, recently I had to set up llama.cpp directly and, of course, being the lazy person I am, I created a bunch of command strings that I saved in a text file that I could copy into the terminal for each model.&lt;/p&gt; &lt;p&gt;Then I thought.... why am I doing this when I could make an old fashioned script menu. At that moment I realized, I never saw anyone post one. Maybe it's just too simple so everyone just made one eventually. Well, I thought, if I'm gonna write it, I might as well post it. So, here it is. All written up a a script creation script. part mine, but prettied up compliments of some help from gpt-oss-120b. The models used as examples are my setups for a 5090.&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;h2&gt;📦 Full checklist – copy‑paste this to get a working launcher&lt;/h2&gt; &lt;p&gt;This is a one time set up and creates a command: l-server 1. Copy entire script to clipboard 2. Open terminal inside WSL2 3. Right click to paste, or ctrl-v 4. Hit enter 5. Choose server 6. done 7. ctrl-c to stop server 8. It recycles to the menu, hit return to pull up the list again 9. To edit models edit the file in a Linux file editor or vscode ```&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;1️⃣ Make sure a place for personal scripts exists and is in $PATH&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;mkdir -p ~/bin&lt;/p&gt; &lt;h1&gt;If ~/bin is not yet in PATH, add it:&lt;/h1&gt; &lt;p&gt;if [[ &amp;quot;:$PATH:&amp;quot; != &lt;em&gt;&amp;quot;:$HOME/bin:&amp;quot;&lt;/em&gt; ]]; then echo 'export PATH=&amp;quot;$HOME/bin:$PATH&amp;quot;' &amp;gt;&amp;gt; ~/.bashrc source ~/.bashrc fi&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;2️⃣ Write the script (the &amp;lt;&amp;lt;'EOF' … EOF trick writes the exact text)&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;cat &amp;gt; ~/bin/l-server &amp;lt;&amp;lt;'EOF'&lt;/p&gt; &lt;h1&gt;!/usr/bin/env bash&lt;/h1&gt; &lt;h1&gt;------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;l-server – launcher for llama-server configurations&lt;/h1&gt; &lt;h1&gt;------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;cd ~/llama.cpp || { echo &amp;quot;❌ Could not cd to ~/llama.cpp&amp;quot;; exit 1; }&lt;/p&gt; &lt;p&gt;options=( &amp;quot;GPT‑OSS‑MXFP4‑20b server&amp;quot; &amp;quot;GPT‑OSS‑MXFPp4‑120b with moe offload&amp;quot; &amp;quot;GLM‑4.5‑Air_IQ4_XS&amp;quot; &amp;quot;Gemma‑3‑27b&amp;quot; &amp;quot;Quit&amp;quot; )&lt;/p&gt; &lt;p&gt;commands=( &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gpt-oss-20b-MXFP4.gguf \ -c 131072 \ -ub 2048 -b 4096 \ -ngl 99 -fa \ --jinja&amp;quot;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gpt-oss-120b-MXFP4-00001-of-00002.gguf \ -c 65536 \ -ub 2048 -b 2048 \ -ngl 99 -fa \ --jinja \ --n-cpu-moe 24&amp;quot; &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/GLM-4.5-Air-IQ4_XS-00001-of-00002.gguf \ -c 65536 \ -ub 2048 -b 2048 \ -ctk q8_0 -ctv q8_0 \ -ngl 99 -fa \ --jinja \ --n-cpu-moe 33&amp;quot; &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gemma-3-27B-it-QAT-Q4_0.gguf \ -c 65536 \ -ub 2048 -b 4096 \ -ctk q8_0 -ctv q8_0 \ -ngl 99 -fa \ --mmproj ~/models/mmproj-model-f16.gguf \ --no-mmproj-offload&amp;quot; &amp;quot;&amp;quot; # placeholder for Quit &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;)&lt;/p&gt; &lt;p&gt;PS3=$'\nSelect a server (1‑'${#options[@]}'): ' select choice in &amp;quot;${options[@]}&amp;quot;; do [[ -z $choice ]] &amp;amp;&amp;amp; { echo &amp;quot;❌ Invalid selection – try again.&amp;quot;; continue; } idx=$(( REPLY - 1 )) [[ &amp;quot;$choice&amp;quot; == &amp;quot;Quit&amp;quot; || $REPLY -eq 0 ]] &amp;amp;&amp;amp; { echo &amp;quot;👋 Bye.&amp;quot;; break; }&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cmd=&amp;quot;${commands[$idx]}&amp;quot; echo -e &amp;quot;\n🚀 Starting \&amp;quot;$choice\&amp;quot; …&amp;quot; echo &amp;quot; $cmd&amp;quot; echo &amp;quot;-----------------------------------------------------&amp;quot; eval &amp;quot;$cmd&amp;quot; echo -e &amp;quot;\n--- finished ---\n&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;done EOF&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;3️⃣ Make it executable&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;chmod +x ~/bin/l-server&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;4️⃣ Test it&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;l-server # should bring up the menu ```&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/unrulywind"&gt; /u/unrulywind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T23:43:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzvk44</id>
     <title>Codebase to Knowledge Graph generator</title>
     <updated>2025-08-25T16:39:59+00:00</updated>
@@ -112,6 +99,19 @@
     <published>2025-08-25T16:39:59+00:00</published>
   </entry>
   <entry>
+    <id>t3_1n06iyh</id>
+    <title>llama.cpp Lazy Swap</title>
+    <updated>2025-08-25T23:43:53+00:00</updated>
+    <author>
+      <name>/u/unrulywind</name>
+      <uri>https://old.reddit.com/user/unrulywind</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Because I'm totally lazy and I hate typing. I usually us a wrapper to run local models. But, recently I had to set up llama.cpp directly and, of course, being the lazy person I am, I created a bunch of command strings that I saved in a text file that I could copy into the terminal for each model.&lt;/p&gt; &lt;p&gt;Then I thought.... why am I doing this when I could make an old fashioned script menu. At that moment I realized, I never saw anyone post one. Maybe it's just too simple so everyone just made one eventually. Well, I thought, if I'm gonna write it, I might as well post it. So, here it is. All written up a a script creation script. part mine, but prettied up compliments of some help from gpt-oss-120b. The models used as examples are my setups for a 5090.&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;h2&gt;📦 Full checklist – copy‑paste this to get a working launcher&lt;/h2&gt; &lt;p&gt;This is a one time set up and creates a command: l-server 1. Copy entire script to clipboard 2. Open terminal inside WSL2 3. Right click to paste, or ctrl-v 4. Hit enter 5. Choose server 6. done 7. ctrl-c to stop server 8. It recycles to the menu, hit return to pull up the list again 9. To edit models edit the file in a Linux file editor or vscode ```&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;1️⃣ Make sure a place for personal scripts exists and is in $PATH&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;mkdir -p ~/bin&lt;/p&gt; &lt;h1&gt;If ~/bin is not yet in PATH, add it:&lt;/h1&gt; &lt;p&gt;if [[ &amp;quot;:$PATH:&amp;quot; != &lt;em&gt;&amp;quot;:$HOME/bin:&amp;quot;&lt;/em&gt; ]]; then echo 'export PATH=&amp;quot;$HOME/bin:$PATH&amp;quot;' &amp;gt;&amp;gt; ~/.bashrc source ~/.bashrc fi&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;2️⃣ Write the script (the &amp;lt;&amp;lt;'EOF' … EOF trick writes the exact text)&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;cat &amp;gt; ~/bin/l-server &amp;lt;&amp;lt;'EOF'&lt;/p&gt; &lt;h1&gt;!/usr/bin/env bash&lt;/h1&gt; &lt;h1&gt;------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;l-server – launcher for llama-server configurations&lt;/h1&gt; &lt;h1&gt;------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;cd ~/llama.cpp || { echo &amp;quot;❌ Could not cd to ~/llama.cpp&amp;quot;; exit 1; }&lt;/p&gt; &lt;p&gt;options=( &amp;quot;GPT‑OSS‑MXFP4‑20b server&amp;quot; &amp;quot;GPT‑OSS‑MXFPp4‑120b with moe offload&amp;quot; &amp;quot;GLM‑4.5‑Air_IQ4_XS&amp;quot; &amp;quot;Gemma‑3‑27b&amp;quot; &amp;quot;Quit&amp;quot; )&lt;/p&gt; &lt;p&gt;commands=( &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gpt-oss-20b-MXFP4.gguf \ -c 131072 \ -ub 2048 -b 4096 \ -ngl 99 -fa \ --jinja&amp;quot;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gpt-oss-120b-MXFP4-00001-of-00002.gguf \ -c 65536 \ -ub 2048 -b 2048 \ -ngl 99 -fa \ --jinja \ --n-cpu-moe 24&amp;quot; &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/GLM-4.5-Air-IQ4_XS-00001-of-00002.gguf \ -c 65536 \ -ub 2048 -b 2048 \ -ctk q8_0 -ctv q8_0 \ -ngl 99 -fa \ --jinja \ --n-cpu-moe 33&amp;quot; &amp;quot;./build-cuda/bin/llama-server \ -m ~/models/gemma-3-27B-it-QAT-Q4_0.gguf \ -c 65536 \ -ub 2048 -b 4096 \ -ctk q8_0 -ctv q8_0 \ -ngl 99 -fa \ --mmproj ~/models/mmproj-model-f16.gguf \ --no-mmproj-offload&amp;quot; &amp;quot;&amp;quot; # placeholder for Quit &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;)&lt;/p&gt; &lt;p&gt;PS3=$'\nSelect a server (1‑'${#options[@]}'): ' select choice in &amp;quot;${options[@]}&amp;quot;; do [[ -z $choice ]] &amp;amp;&amp;amp; { echo &amp;quot;❌ Invalid selection – try again.&amp;quot;; continue; } idx=$(( REPLY - 1 )) [[ &amp;quot;$choice&amp;quot; == &amp;quot;Quit&amp;quot; || $REPLY -eq 0 ]] &amp;amp;&amp;amp; { echo &amp;quot;👋 Bye.&amp;quot;; break; }&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cmd=&amp;quot;${commands[$idx]}&amp;quot; echo -e &amp;quot;\n🚀 Starting \&amp;quot;$choice\&amp;quot; …&amp;quot; echo &amp;quot; $cmd&amp;quot; echo &amp;quot;-----------------------------------------------------&amp;quot; eval &amp;quot;$cmd&amp;quot; echo -e &amp;quot;\n--- finished ---\n&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;done EOF&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;3️⃣ Make it executable&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;chmod +x ~/bin/l-server&lt;/p&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;h1&gt;4️⃣ Test it&lt;/h1&gt; &lt;h1&gt;-----------------------------------------------------------------&lt;/h1&gt; &lt;p&gt;l-server # should bring up the menu ```&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/unrulywind"&gt; /u/unrulywind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n06iyh/llamacpp_lazy_swap/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T23:43:53+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1n0c58h</id>
     <title>Update llama.cpp for a big speed boost with gpt-oss and cuda.</title>
     <updated>2025-08-26T04:11:45+00:00</updated>
@@ -123,19 +123,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0c58h/update_llamacpp_for_a_big_speed_boost_with_gptoss/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-26T04:11:45+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n0bbnx</id>
-    <title>Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it.</title>
-    <updated>2025-08-26T03:28:31+00:00</updated>
-    <author>
-      <name>/u/silenceimpaired</name>
-      <uri>https://old.reddit.com/user/silenceimpaired</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"&gt; &lt;img alt="Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it." src="https://external-preview.redd.it/IQUYk0UKH8LL_chH4rY6LMG-79G-lG-wrUjPogrDpXU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ec62af39d7821e4b67b4c3bcde089ba116620d78" title="Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I would love to create a creative writing fine tune, but I've never done it and I don't know if to 3090's are up for the task for this model. So, I thought I'd start with inspiring those who have to take a look at this model if they missed it. While Seed-OSS was developed by ByteDance's Seed Team for reasoning and agent type stuff, it also has general capabilities and powerful long-context features. Also, this base doesn't have synthetic data in it. All sounds promising. What do you think? Does it have a shot at being a good base for creative models? Anyone attempting anything? Anyone up for helping me head down the fine tuning road? Is it even possible?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/silenceimpaired"&gt; /u/silenceimpaired &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Base-woSyn"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T03:28:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzn0zm</id>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzykeu/deepseek_31_update_is_awesome/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T18:29:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n0bbnx</id>
+    <title>Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it.</title>
+    <updated>2025-08-26T03:28:31+00:00</updated>
+    <author>
+      <name>/u/silenceimpaired</name>
+      <uri>https://old.reddit.com/user/silenceimpaired</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"&gt; &lt;img alt="Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it." src="https://external-preview.redd.it/IQUYk0UKH8LL_chH4rY6LMG-79G-lG-wrUjPogrDpXU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ec62af39d7821e4b67b4c3bcde089ba116620d78" title="Anyone starting creative writing fine-tuning on Seed-OSS-36B-Base-woSyn? I've thought about it." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I would love to create a creative writing fine tune, but I've never done it and I don't know if to 3090's are up for the task for this model. So, I thought I'd start with inspiring those who have to take a look at this model if they missed it. While Seed-OSS was developed by ByteDance's Seed Team for reasoning and agent type stuff, it also has general capabilities and powerful long-context features. Also, this base doesn't have synthetic data in it. All sounds promising. What do you think? Does it have a shot at being a good base for creative models? Anyone attempting anything? Anyone up for helping me head down the fine tuning road? Is it even possible?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/silenceimpaired"&gt; /u/silenceimpaired &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Base-woSyn"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bbnx/anyone_starting_creative_writing_finetuning_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-26T03:28:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzquqi</id>
@@ -229,19 +229,6 @@
     <published>2025-08-25T15:45:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n0am1b</id>
-    <title>InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency</title>
-    <updated>2025-08-26T02:52:09+00:00</updated>
-    <author>
-      <name>/u/ninjasaid13</name>
-      <uri>https://old.reddit.com/user/ninjasaid13</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Paper: &lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;https://arxiv.org/abs/2508.18265v1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Abstract&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;We introduce InternVL 3.5, a new family of open-source multimodal models that significantly advances versatility, reasoning capability, and inference efficiency along the InternVL series. A key innovation is the Cascade Reinforcement Learning (Cascade RL) framework, which enhances reasoning through a two-stage process: offline RL for stable convergence and online RL for refined alignment. This coarse-to-fine training strategy leads to substantial improvements on downstream reasoning tasks, e.g., MMMU and MathVista. To optimize efficiency, we propose a Visual Resolution Router (ViR) that dynamically adjusts the resolution of visual tokens without compromising performance. Coupled with ViR, our Decoupled Vision-Language Deployment (DvD) strategy separates the vision encoder and language model across different GPUs, effectively balancing computational load. These contributions collectively enable InternVL3.5 to achieve up to a +16.0% gain in overall reasoning performance and a 4.05× inference speedup compared to its predecessor, i.e., InternVL3. In addition, InternVL3.5 supports novel capabilities such as GUI interaction and embodied agency. Notably, our largest model, i.e., InternVL3.5-241B-A28B, attains state-of-the-art results among open-source MLLMs across general multimodal, reasoning, text, and agentic tasks—narrowing the performance gap with leading commercial models like GPT-5. All models and code are publicly released.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Models:&lt;/p&gt; &lt;p&gt;1B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-1B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-1B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;2B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-2B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-2B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-4B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-4B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;8B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-8B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;14B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-14B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;38B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-38B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-38B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;20BA4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;30BA3B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;241BA28B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ninjasaid13"&gt; /u/ninjasaid13 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T02:52:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzvns5</id>
     <title>You can run GGUFs with Lemonade straight from Hugging Face now</title>
     <updated>2025-08-25T16:43:50+00:00</updated>
@@ -268,17 +255,17 @@
     <published>2025-08-26T02:47:05+00:00</published>
   </entry>
   <entry>
-    <id>t3_1mzwqj9</id>
-    <title>VibeVoice (1.5B) - TTS model by Microsoft</title>
-    <updated>2025-08-25T17:22:43+00:00</updated>
+    <id>t3_1n0am1b</id>
+    <title>InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency</title>
+    <updated>2025-08-26T02:52:09+00:00</updated>
     <author>
-      <name>/u/curiousily_</name>
-      <uri>https://old.reddit.com/user/curiousily_</uri>
+      <name>/u/ninjasaid13</name>
+      <uri>https://old.reddit.com/user/ninjasaid13</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/microsoft/VibeVoice-1.5B"&gt;Weights on HuggingFace&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/curiousily_"&gt; /u/curiousily_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Paper: &lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;https://arxiv.org/abs/2508.18265v1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Abstract&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;We introduce InternVL 3.5, a new family of open-source multimodal models that significantly advances versatility, reasoning capability, and inference efficiency along the InternVL series. A key innovation is the Cascade Reinforcement Learning (Cascade RL) framework, which enhances reasoning through a two-stage process: offline RL for stable convergence and online RL for refined alignment. This coarse-to-fine training strategy leads to substantial improvements on downstream reasoning tasks, e.g., MMMU and MathVista. To optimize efficiency, we propose a Visual Resolution Router (ViR) that dynamically adjusts the resolution of visual tokens without compromising performance. Coupled with ViR, our Decoupled Vision-Language Deployment (DvD) strategy separates the vision encoder and language model across different GPUs, effectively balancing computational load. These contributions collectively enable InternVL3.5 to achieve up to a +16.0% gain in overall reasoning performance and a 4.05× inference speedup compared to its predecessor, i.e., InternVL3. In addition, InternVL3.5 supports novel capabilities such as GUI interaction and embodied agency. Notably, our largest model, i.e., InternVL3.5-241B-A28B, attains state-of-the-art results among open-source MLLMs across general multimodal, reasoning, text, and agentic tasks—narrowing the performance gap with leading commercial models like GPT-5. All models and code are publicly released.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Models:&lt;/p&gt; &lt;p&gt;1B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-1B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-1B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;2B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-2B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-2B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-4B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-4B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;8B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-8B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;14B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-14B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;38B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-38B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-38B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;20BA4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;30BA3B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;241BA28B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ninjasaid13"&gt; /u/ninjasaid13 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T17:22:43+00:00</published>
+    <published>2025-08-26T02:52:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzqy3z</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzqy3z/internvl35_best_opensource_vlm/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T13:46:45+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1mzwqj9</id>
+    <title>VibeVoice (1.5B) - TTS model by Microsoft</title>
+    <updated>2025-08-25T17:22:43+00:00</updated>
+    <author>
+      <name>/u/curiousily_</name>
+      <uri>https://old.reddit.com/user/curiousily_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/microsoft/VibeVoice-1.5B"&gt;Weights on HuggingFace&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot;The model can synthesize speech up to 90 minutes long with up to 4 distinct speakers&amp;quot;&lt;/li&gt; &lt;li&gt;Based on Qwen2.5-1.5B&lt;/li&gt; &lt;li&gt;7B variant &amp;quot;coming soon&amp;quot;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/curiousily_"&gt; /u/curiousily_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzwqj9/vibevoice_15b_tts_model_by_microsoft/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-25T17:22:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1n0bhd7</id>
