@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-26T04:08:01+00:00</updated>
+  <updated>2025-08-26T04:25:05+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -15,7 +15,7 @@
       <name>/u/notdba</name>
       <uri>https://old.reddit.com/user/notdba</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: &lt;a href="http://time.Se"&gt;time.Se&lt;/a&gt; extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;p&gt;EDIT: Seeing the same issue with Novita as well, so it is quite unlikely to be an issue with the inference stack.&lt;/p&gt; &lt;p&gt;EDIT 2: Current suspect is that the issue might be masked by MTP, and becomes a lot more apparent when the inference stack doesn't support MTP.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did some testing with DeepSeek V3.1, and found that somehow the model likes to generate the token:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot; extreme&amp;quot; (id:15075)&lt;/li&gt; &lt;li&gt;&amp;quot;极&amp;quot; (id:2577, extreme in Simplified Chinese)&lt;/li&gt; &lt;li&gt;&amp;quot;極&amp;quot; (id:16411, extreme in Traditional Chinese)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;in totally unexpected places.&lt;/p&gt; &lt;p&gt;At first I thought it was due to the extreme IQ1_S quantization that I did or some edge case with imatrix calibration dataset, but then the same issue also happened with the FP8 full precision model from Fireworks.&lt;/p&gt; &lt;p&gt;Case 1 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: time.Se极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.3718461990356445 }, { &amp;quot;id&amp;quot;: 1511, &amp;quot;token&amp;quot;: &amp;quot;cond&amp;quot;, &amp;quot;bytes&amp;quot;: [99,111,110,100], &amp;quot;logprob&amp;quot;: -1.5412302017211914 }, { &amp;quot;id&amp;quot;: 1957, &amp;quot;token&amp;quot;: &amp;quot; second&amp;quot;, &amp;quot;bytes&amp;quot;: [32,115,101,99,111,110,100], &amp;quot;logprob&amp;quot;: -1.9008493423461914 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 2 (local ik_llama.cpp, top_k=1, temperature=1):&lt;br /&gt; Expected: time.Second&lt;br /&gt; Generated: &lt;a href="http://time.Se"&gt;time.Se&lt;/a&gt; extreme&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;id&amp;quot;: 15075, &amp;quot;token&amp;quot;: &amp;quot; extreme&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109,101], &amp;quot;logprob&amp;quot;: -1.0279325246810913 }, { &amp;quot;id&amp;quot;: 2577, &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;bytes&amp;quot;: [230,158,129], &amp;quot;logprob&amp;quot;: -1.077283263206482 }, { &amp;quot;id&amp;quot;: 9189, &amp;quot;token&amp;quot;: &amp;quot; extrem&amp;quot;, &amp;quot;bytes&amp;quot;: [32,101,120,116,114,101,109], &amp;quot;logprob&amp;quot;: -1.8691496849060059 } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Case 3 (fireworks, top_k=1, temperature=1):&lt;br /&gt; Expected: V1&lt;br /&gt; Generated: V极&lt;br /&gt; Logprobs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;top_logprobs&amp;quot;: [ { &amp;quot;token&amp;quot;: &amp;quot;极&amp;quot;, &amp;quot;logprob&amp;quot;: -0.27936283, &amp;quot;token_id&amp;quot;: 2577, &amp;quot;bytes&amp;quot;: [230,158,129] }, { &amp;quot;token&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;logprob&amp;quot;: -1.90436232, &amp;quot;token_id&amp;quot;: 19, &amp;quot;bytes&amp;quot;: [49] }, { &amp;quot;token&amp;quot;: &amp;quot;極&amp;quot;, &amp;quot;logprob&amp;quot;: -2.40436196, &amp;quot;token_id&amp;quot;: 16411, &amp;quot;bytes&amp;quot;: [230,165,181] } ], &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Worse still, other than these 3 cases where an extreme token was the top choice in greedy decoding, these extreme tokens are also constantly lurking as the 2nd or 3rd choice in other unexpected places as well.&lt;/p&gt; &lt;p&gt;I have done this exact eval for all the popular coding models, and this is the first time I am seeing this kind of issue. Has anyone experienced this?&lt;/p&gt; &lt;p&gt;EDIT: Seeing the same issue with Novita as well, so it is quite unlikely to be an issue with the inference stack.&lt;/p&gt; &lt;p&gt;EDIT 2: Current suspect is that the issue might be masked by MTP, and becomes a lot more apparent when the inference stack doesn't support MTP.&lt;/p&gt; &lt;p&gt;EDIT 3: Okay this is worse than I thought. I checked the old eval responses for &amp;quot;极&amp;quot;, and can see that DeepSeek V3 0324 already got the token as the 2nd or 3rd choice in many unexpected places. Sadly, the recent Qwen3 235B A22B Instruct 2507 and Qwen3 Coder 30B A3B Instruct also show the same symptom, probably at around the same stage as DeepSeek V3 0324. Meanwhile, Qwen3 Coder 480B A35B Instruct only shows the same symptom after heavily quantized. Looks like the 2 labs may use the same contaminated data. GLM 4.5 is not affected 👌&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/notdba"&gt; /u/notdba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzsg6v/deepseek_v31_getting_token_extreme_极_極_out_of/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T14:46:02+00:00</published>
@@ -138,19 +138,6 @@
     <published>2025-08-26T03:28:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n06ahz</id>
-    <title>InternVL3_5 GGUF here</title>
-    <updated>2025-08-25T23:33:37+00:00</updated>
-    <author>
-      <name>/u/kironlau</name>
-      <uri>https://old.reddit.com/user/kironlau</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"&gt; &lt;img alt="InternVL3_5 GGUF here" src="https://b.thumbs.redditmedia.com/EdxxIyVz6m8Y6DmR8UexDPcp-CYBhmw8ygu2dfJ8LCY.jpg" title="InternVL3_5 GGUF here" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i tested the &lt;a href="https://huggingface.co/collections/QuantStack/internvl3-5-ggufs-68acef206837c4f661a9b0a5"&gt;InternVL3_5&lt;/a&gt; 1b fp16 GGUF, it works&lt;br /&gt; (that's means the model architect is supported now in llama.cpp, I tested on LM studio) &lt;/p&gt; &lt;p&gt;every models now, just fp16,&lt;br /&gt; I think the QuantStack team is quantizing to different quants,&lt;br /&gt; if you want a quick try, just like and watch this repo, you may get surprised in few hours&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kironlau"&gt; /u/kironlau &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1n06ahz"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-25T23:33:37+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzn0zm</id>
     <title>InternVL3_5 series is out!!</title>
     <updated>2025-08-25T10:40:58+00:00</updated>
@@ -164,17 +151,17 @@
     <published>2025-08-25T10:40:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n0bhd7</id>
-    <title>Microsoft VibeVoice TTS : Open-Sourced, Supports 90 minutes speech, 4 distinct speakers at a time</title>
-    <updated>2025-08-26T03:36:48+00:00</updated>
+    <id>t3_1n06ahz</id>
+    <title>InternVL3_5 GGUF here</title>
+    <updated>2025-08-25T23:33:37+00:00</updated>
     <author>
-      <name>/u/Technical-Love-8479</name>
-      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
+      <name>/u/kironlau</name>
+      <uri>https://old.reddit.com/user/kironlau</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Microsoft just dropped VibeVoice, an Open-sourced TTS model in 2 variants (1.5B and 7B) which can support audio generation upto 90 mins and also supports multiple speaker audio for podcast generation. &lt;/p&gt; &lt;p&gt;Demo Video : &lt;a href="https://youtu.be/uIvx_nhPjl0?si=_pzMrAG2VcE5F7qJ"&gt;https://youtu.be/uIvx_nhPjl0?si=_pzMrAG2VcE5F7qJ&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GitHub : &lt;a href="https://github.com/microsoft/VibeVoice"&gt;https://github.com/microsoft/VibeVoice&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"&gt; &lt;img alt="InternVL3_5 GGUF here" src="https://b.thumbs.redditmedia.com/EdxxIyVz6m8Y6DmR8UexDPcp-CYBhmw8ygu2dfJ8LCY.jpg" title="InternVL3_5 GGUF here" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i tested the &lt;a href="https://huggingface.co/collections/QuantStack/internvl3-5-ggufs-68acef206837c4f661a9b0a5"&gt;InternVL3_5&lt;/a&gt; 1b fp16 GGUF, it works&lt;br /&gt; (that's means the model architect is supported now in llama.cpp, I tested on LM studio) &lt;/p&gt; &lt;p&gt;every models now, just fp16,&lt;br /&gt; I think the QuantStack team is quantizing to different quants,&lt;br /&gt; if you want a quick try, just like and watch this repo, you may get surprised in few hours&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kironlau"&gt; /u/kironlau &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1n06ahz"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n06ahz/internvl3_5_gguf_here/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T03:36:48+00:00</published>
+    <published>2025-08-25T23:33:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzykeu</id>
@@ -190,19 +177,6 @@
     <published>2025-08-25T18:29:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n0am1b</id>
-    <title>InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency</title>
-    <updated>2025-08-26T02:52:09+00:00</updated>
-    <author>
-      <name>/u/ninjasaid13</name>
-      <uri>https://old.reddit.com/user/ninjasaid13</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Paper: &lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;https://arxiv.org/abs/2508.18265v1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Abstract&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;We introduce InternVL 3.5, a new family of open-source multimodal models that significantly advances versatility, reasoning capability, and inference efficiency along the InternVL series. A key innovation is the Cascade Reinforcement Learning (Cascade RL) framework, which enhances reasoning through a two-stage process: offline RL for stable convergence and online RL for refined alignment. This coarse-to-fine training strategy leads to substantial improvements on downstream reasoning tasks, e.g., MMMU and MathVista. To optimize efficiency, we propose a Visual Resolution Router (ViR) that dynamically adjusts the resolution of visual tokens without compromising performance. Coupled with ViR, our Decoupled Vision-Language Deployment (DvD) strategy separates the vision encoder and language model across different GPUs, effectively balancing computational load. These contributions collectively enable InternVL3.5 to achieve up to a +16.0% gain in overall reasoning performance and a 4.05× inference speedup compared to its predecessor, i.e., InternVL3. In addition, InternVL3.5 supports novel capabilities such as GUI interaction and embodied agency. Notably, our largest model, i.e., InternVL3.5-241B-A28B, attains state-of-the-art results among open-source MLLMs across general multimodal, reasoning, text, and agentic tasks—narrowing the performance gap with leading commercial models like GPT-5. All models and code are publicly released.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Models:&lt;/p&gt; &lt;p&gt;1B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-1B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-1B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;2B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-2B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-2B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-4B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-4B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;8B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-8B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;14B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-14B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;38B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-38B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-38B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;20BA4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;30BA3B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;241BA28B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ninjasaid13"&gt; /u/ninjasaid13 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T02:52:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mzquqi</id>
     <title>GRPO please stop punishing your correct token</title>
     <updated>2025-08-25T13:42:56+00:00</updated>
@@ -214,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzquqi/grpo_please_stop_punishing_your_correct_token/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T13:42:56+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n0am1b</id>
+    <title>InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency</title>
+    <updated>2025-08-26T02:52:09+00:00</updated>
+    <author>
+      <name>/u/ninjasaid13</name>
+      <uri>https://old.reddit.com/user/ninjasaid13</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Paper: &lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;https://arxiv.org/abs/2508.18265v1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Abstract&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;We introduce InternVL 3.5, a new family of open-source multimodal models that significantly advances versatility, reasoning capability, and inference efficiency along the InternVL series. A key innovation is the Cascade Reinforcement Learning (Cascade RL) framework, which enhances reasoning through a two-stage process: offline RL for stable convergence and online RL for refined alignment. This coarse-to-fine training strategy leads to substantial improvements on downstream reasoning tasks, e.g., MMMU and MathVista. To optimize efficiency, we propose a Visual Resolution Router (ViR) that dynamically adjusts the resolution of visual tokens without compromising performance. Coupled with ViR, our Decoupled Vision-Language Deployment (DvD) strategy separates the vision encoder and language model across different GPUs, effectively balancing computational load. These contributions collectively enable InternVL3.5 to achieve up to a +16.0% gain in overall reasoning performance and a 4.05× inference speedup compared to its predecessor, i.e., InternVL3. In addition, InternVL3.5 supports novel capabilities such as GUI interaction and embodied agency. Notably, our largest model, i.e., InternVL3.5-241B-A28B, attains state-of-the-art results among open-source MLLMs across general multimodal, reasoning, text, and agentic tasks—narrowing the performance gap with leading commercial models like GPT-5. All models and code are publicly released.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Models:&lt;/p&gt; &lt;p&gt;1B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-1B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-1B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;2B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-2B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-2B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-4B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-4B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;8B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-8B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;14B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-14B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;38B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-38B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-38B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;20BA4B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-GPT-OSS-20B-A4B-Preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;30BA3B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-30B-A3B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;241BA28B: &lt;a href="https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B"&gt;https://huggingface.co/OpenGVLab/InternVL3_5-241B-A28B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ninjasaid13"&gt; /u/ninjasaid13 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://arxiv.org/abs/2508.18265v1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0am1b/internvl35_advancing_opensource_multimodal_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-26T02:52:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1n02e7s</id>
@@ -229,17 +216,17 @@
     <published>2025-08-25T20:55:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n0aijh</id>
-    <title>GPT OSS 120B</title>
-    <updated>2025-08-26T02:47:05+00:00</updated>
+    <id>t3_1n0bhd7</id>
+    <title>Microsoft VibeVoice TTS : Open-Sourced, Supports 90 minutes speech, 4 distinct speakers at a time</title>
+    <updated>2025-08-26T03:36:48+00:00</updated>
     <author>
-      <name>/u/vinigrae</name>
-      <uri>https://old.reddit.com/user/vinigrae</uri>
+      <name>/u/Technical-Love-8479</name>
+      <uri>https://old.reddit.com/user/Technical-Love-8479</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is the best function calling model I’ve used, don’t think twice, just use it. &lt;/p&gt; &lt;p&gt;We gave it a multi scenario difficulty 300 tool call test, where even 4o and GPT 5 mini performed poorly. &lt;/p&gt; &lt;p&gt;Ensure you format the system properly for it, you will find the model won’t even execute things that are actually done in a faulty manner and are detrimental to the pipeline.&lt;/p&gt; &lt;p&gt;I’m &lt;strong&gt;extremely&lt;/strong&gt; impressed. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinigrae"&gt; /u/vinigrae &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Microsoft just dropped VibeVoice, an Open-sourced TTS model in 2 variants (1.5B and 7B) which can support audio generation upto 90 mins and also supports multiple speaker audio for podcast generation. &lt;/p&gt; &lt;p&gt;Demo Video : &lt;a href="https://youtu.be/uIvx_nhPjl0?si=_pzMrAG2VcE5F7qJ"&gt;https://youtu.be/uIvx_nhPjl0?si=_pzMrAG2VcE5F7qJ&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GitHub : &lt;a href="https://github.com/microsoft/VibeVoice"&gt;https://github.com/microsoft/VibeVoice&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical-Love-8479"&gt; /u/Technical-Love-8479 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0bhd7/microsoft_vibevoice_tts_opensourced_supports_90/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-26T02:47:05+00:00</published>
+    <published>2025-08-26T03:36:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzrb4l</id>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mzrb4l/llamaui_minimal_privacy_focused_chat_interface/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-25T14:01:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n0aijh</id>
+    <title>GPT OSS 120B</title>
+    <updated>2025-08-26T02:47:05+00:00</updated>
+    <author>
+      <name>/u/vinigrae</name>
+      <uri>https://old.reddit.com/user/vinigrae</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is the best function calling model I’ve used, don’t think twice, just use it. &lt;/p&gt; &lt;p&gt;We gave it a multi scenario difficulty 300 tool call test, where even 4o and GPT 5 mini performed poorly. &lt;/p&gt; &lt;p&gt;Ensure you format the system properly for it, you will find the model won’t even execute things that are actually done in a faulty manner and are detrimental to the pipeline.&lt;/p&gt; &lt;p&gt;I’m &lt;strong&gt;extremely&lt;/strong&gt; impressed. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinigrae"&gt; /u/vinigrae &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n0aijh/gpt_oss_120b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-26T02:47:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1mzvns5</id>
