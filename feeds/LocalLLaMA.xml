@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-27T17:05:58+00:00</updated>
+  <updated>2025-08-27T17:23:25+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1n1igz7</id>
-    <title>StackBench is now Open Source</title>
-    <updated>2025-08-27T14:24:20+00:00</updated>
+    <id>t3_1n1bqlb</id>
+    <title>JSON Parsing Guide for GPT-OSS Models</title>
+    <updated>2025-08-27T08:49:15+00:00</updated>
     <author>
-      <name>/u/blythmar</name>
-      <uri>https://old.reddit.com/user/blythmar</uri>
+      <name>/u/vinigrae</name>
+      <uri>https://old.reddit.com/user/vinigrae</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Last week we made it to the front page of HN with our post about benchmarking how well coding agents interact with libraries and APIs. The response was positive overall, but many wanted to see the code. We also wanted to see if we could grow a community around it, as we believe it’s an area that’s important and underexplored.&lt;/p&gt; &lt;p&gt;We just open sourced StackBench &lt;a href="https://github.com/NapthaAI/openstackbench"&gt;https://github.com/NapthaAI/openstackbench&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The problem is that existing benchmarks focus on self-contained snippets, not real library usage. StackBench tests how well AI coding agents (like Claude Code, and now Cursor) actually use your library by: • Parsing your documentation automatically • Extracting real usage examples • Having agents generate those examples from a spec from scratch • Logging every mistake and analyzing patterns&lt;/p&gt; &lt;p&gt;You can find out more information about how it works and how to run it in the docs &lt;a href="https://docs.stackbench.ai"&gt;https://docs.stackbench.ai&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Next up, we’re planning to add more: • Coding agents • Ways of providing docs as context (e.g. Mintlify vs Cursor doc search) • Benchmark tasks (e.g. use of APIs via API docs) • Metrics&lt;/p&gt; &lt;p&gt;We're also working on automating in-editor testing and maybe even using an MCP server.&lt;/p&gt; &lt;p&gt;Contributions and suggestions very welcome. What should we prioritize next?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/blythmar"&gt; /u/blythmar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We are releasing our guide for parsing with GPT OSS models, this may differ a bit for your use case but this guide will ensure you are equipped with what you need if you encounter output issues.&lt;/p&gt; &lt;p&gt;If you are using an agent you can feed this guide to it as a base to work with.&lt;/p&gt; &lt;p&gt;This guide is for &lt;strong&gt;open source GPT-OSS models&lt;/strong&gt; when running on &lt;strong&gt;OpenRouter, ollama, llama.cpp, HF TGI, vLLM&lt;/strong&gt; or similar local runtimes. It’s designed so you don’t lose your mind when outputs come back as broken JSON.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;TL;DR&lt;/h2&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Prevent at decode time&lt;/strong&gt; → use structured outputs or grammars.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Repair only if needed&lt;/strong&gt; → run a six-stage cleanup pipeline.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Validate everything&lt;/strong&gt; → enforce JSON Schema so junk doesn’t slip through.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Log and learn&lt;/strong&gt; → track what broke so you can tighten prompts and grammars.&lt;/li&gt; &lt;/ol&gt; &lt;hr /&gt; &lt;h2&gt;Step 1: Force JSON at generation&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;OpenRouter&lt;/strong&gt; → use structured outputs (JSON Schema). Don’t rely on &lt;code&gt;max_tokens&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;ollama&lt;/strong&gt; → use schema-enforced outputs, avoid “legacy JSON mode”.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;llama.cpp&lt;/strong&gt; → use GBNF grammars. If you can convert your schema → grammar, do it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;HF TGI&lt;/strong&gt; → guidance mode lets you attach regex/JSON grammar.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;vLLM&lt;/strong&gt; → use grammar backends (outlines, xgrammar, etc.).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Prompt tips that help:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Ask for &lt;em&gt;exactly one JSON object&lt;/em&gt;. No prose.&lt;/li&gt; &lt;li&gt;List allowed keys + types.&lt;/li&gt; &lt;li&gt;Forbid trailing commas.&lt;/li&gt; &lt;li&gt;Prefer &lt;code&gt;null&lt;/code&gt; for unknowns.&lt;/li&gt; &lt;li&gt;Add stop condition at closing brace.&lt;/li&gt; &lt;li&gt;Use low temp for structured tasks.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Step 2: Repair pipeline (when prevention fails)&lt;/h2&gt; &lt;p&gt;Run these gates in order. Stop at the first success. Log which stage worked.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;0. Extract&lt;/strong&gt; → slice out the JSON block if wrapped in markdown. &lt;strong&gt;1. Direct parse&lt;/strong&gt; → try a strict parse. &lt;strong&gt;2. Cleanup&lt;/strong&gt; → strip fences, whitespace, stray chars, trailing commas. &lt;strong&gt;3. Structural repair&lt;/strong&gt; → balance braces/brackets, close strings. &lt;strong&gt;4. Sanitization&lt;/strong&gt; → remove control chars, normalize weird spaces and numbers. &lt;strong&gt;5. Reconstruction&lt;/strong&gt; → rebuild from fragments, whitelist expected keys. &lt;strong&gt;6. Fallback&lt;/strong&gt; → regex-extract known keys, mark as “diagnostic repair”.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Step 3: Validate like a hawk&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Always check against your JSON Schema.&lt;/li&gt; &lt;li&gt;Reject placeholder echoes (&lt;code&gt;&amp;quot;amount&amp;quot;: &amp;quot;amount&amp;quot;&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Fail on unknown keys.&lt;/li&gt; &lt;li&gt;Enforce required keys and enums.&lt;/li&gt; &lt;li&gt;Record which stage fixed the payload.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Common OSS quirks (and fixes)&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;JSON wrapped in ``` fences → Stage 0.&lt;/li&gt; &lt;li&gt;Trailing commas → Stage 2.&lt;/li&gt; &lt;li&gt;Missing brace → Stage 3.&lt;/li&gt; &lt;li&gt;Odd quotes → Stage 3.&lt;/li&gt; &lt;li&gt;Weird Unicode gaps (NBSP, line sep) → Stage 4.&lt;/li&gt; &lt;li&gt;Placeholder echoes → Validation.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Schema Starter Pack&lt;/h2&gt; &lt;p&gt;&lt;strong&gt;Single object example:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;type&amp;quot;: &amp;quot;object&amp;quot;, &amp;quot;required&amp;quot;: [&amp;quot;title&amp;quot;, &amp;quot;status&amp;quot;, &amp;quot;score&amp;quot;], &amp;quot;additionalProperties&amp;quot;: false, &amp;quot;properties&amp;quot;: { &amp;quot;title&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;string&amp;quot; }, &amp;quot;status&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;string&amp;quot;, &amp;quot;enum&amp;quot;: [&amp;quot;ok&amp;quot;,&amp;quot;error&amp;quot;,&amp;quot;unknown&amp;quot;] }, &amp;quot;score&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;number&amp;quot;, &amp;quot;minimum&amp;quot;: 0, &amp;quot;maximum&amp;quot;: 1 }, &amp;quot;notes&amp;quot;: { &amp;quot;type&amp;quot;: [&amp;quot;string&amp;quot;,&amp;quot;null&amp;quot;] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Other patterns: arrays with strict elements, function-call style with args, controlled maps with regex keys. Tip: set &lt;code&gt;additionalProperties: false&lt;/code&gt;, use enums for states, ranges for numbers, &lt;code&gt;null&lt;/code&gt; for unknowns.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Troubleshooting Quick Table&lt;/h2&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Symptom&lt;/th&gt; &lt;th&gt;Fix stage&lt;/th&gt; &lt;th&gt;Prevention tip&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;JSON inside markdown&lt;/td&gt; &lt;td&gt;Stage 0&lt;/td&gt; &lt;td&gt;Prompt forbids prose&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Trailing comma&lt;/td&gt; &lt;td&gt;Stage 2&lt;/td&gt; &lt;td&gt;Schema forbids commas&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Last brace missing&lt;/td&gt; &lt;td&gt;Stage 3&lt;/td&gt; &lt;td&gt;Add stop condition&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Odd quotes&lt;/td&gt; &lt;td&gt;Stage 3&lt;/td&gt; &lt;td&gt;Grammar for strings&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Unicode gaps&lt;/td&gt; &lt;td&gt;Stage 4&lt;/td&gt; &lt;td&gt;Stricter grammar&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Placeholder echoes&lt;/td&gt; &lt;td&gt;Validation&lt;/td&gt; &lt;td&gt;Schema + explicit test&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;hr /&gt; &lt;h2&gt;Minimal Playbook&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Turn on structured outputs/grammar.&lt;/li&gt; &lt;li&gt;Use repair service as backup.&lt;/li&gt; &lt;li&gt;Validate against schema.&lt;/li&gt; &lt;li&gt;Track repair stages.&lt;/li&gt; &lt;li&gt;Keep a short token-scrub list per model.&lt;/li&gt; &lt;li&gt;Use low temp + single-turn calls.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;p&gt;Always run a test to see the models output when tasks fail so your system can be proactive, output will always come through the endpoint even if not visible, unless a critical failure at the client... Goodluck!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinigrae"&gt; /u/vinigrae &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T14:24:20+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n1m3tb</id>
-    <title>Experiences with running Claude Code with a local model</title>
-    <updated>2025-08-27T16:40:32+00:00</updated>
-    <author>
-      <name>/u/etherrich</name>
-      <uri>https://old.reddit.com/user/etherrich</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all,&lt;/p&gt; &lt;p&gt;i have been having hard time to try and run Claude Code with a local model. It would be great to hear what worked for you where you can state the models you use, the libraries to bridge the model with claude code to the local llm, and your current setup (so that everyone can see if that model is feasible for them)&lt;/p&gt; &lt;p&gt;Looking forward to you answers.&lt;br /&gt; Cheers&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/etherrich"&gt; /u/etherrich &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m3tb/experiences_with_running_claude_code_with_a_local/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m3tb/experiences_with_running_claude_code_with_a_local/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m3tb/experiences_with_running_claude_code_with_a_local/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T16:40:32+00:00</published>
+    <published>2025-08-27T08:49:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1n17xld</id>
@@ -47,17 +34,17 @@
     <published>2025-08-27T04:47:52+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n1bqlb</id>
-    <title>JSON Parsing Guide for GPT-OSS Models</title>
-    <updated>2025-08-27T08:49:15+00:00</updated>
+    <id>t3_1n1igz7</id>
+    <title>StackBench is now Open Source</title>
+    <updated>2025-08-27T14:24:20+00:00</updated>
     <author>
-      <name>/u/vinigrae</name>
-      <uri>https://old.reddit.com/user/vinigrae</uri>
+      <name>/u/blythmar</name>
+      <uri>https://old.reddit.com/user/blythmar</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We are releasing our guide for parsing with GPT OSS models, this may differ a bit for your use case but this guide will ensure you are equipped with what you need if you encounter output issues.&lt;/p&gt; &lt;p&gt;If you are using an agent you can feed this guide to it as a base to work with.&lt;/p&gt; &lt;p&gt;This guide is for &lt;strong&gt;open source GPT-OSS models&lt;/strong&gt; when running on &lt;strong&gt;OpenRouter, ollama, llama.cpp, HF TGI, vLLM&lt;/strong&gt; or similar local runtimes. It’s designed so you don’t lose your mind when outputs come back as broken JSON.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;TL;DR&lt;/h2&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Prevent at decode time&lt;/strong&gt; → use structured outputs or grammars.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Repair only if needed&lt;/strong&gt; → run a six-stage cleanup pipeline.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Validate everything&lt;/strong&gt; → enforce JSON Schema so junk doesn’t slip through.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Log and learn&lt;/strong&gt; → track what broke so you can tighten prompts and grammars.&lt;/li&gt; &lt;/ol&gt; &lt;hr /&gt; &lt;h2&gt;Step 1: Force JSON at generation&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;OpenRouter&lt;/strong&gt; → use structured outputs (JSON Schema). Don’t rely on &lt;code&gt;max_tokens&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;ollama&lt;/strong&gt; → use schema-enforced outputs, avoid “legacy JSON mode”.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;llama.cpp&lt;/strong&gt; → use GBNF grammars. If you can convert your schema → grammar, do it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;HF TGI&lt;/strong&gt; → guidance mode lets you attach regex/JSON grammar.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;vLLM&lt;/strong&gt; → use grammar backends (outlines, xgrammar, etc.).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Prompt tips that help:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Ask for &lt;em&gt;exactly one JSON object&lt;/em&gt;. No prose.&lt;/li&gt; &lt;li&gt;List allowed keys + types.&lt;/li&gt; &lt;li&gt;Forbid trailing commas.&lt;/li&gt; &lt;li&gt;Prefer &lt;code&gt;null&lt;/code&gt; for unknowns.&lt;/li&gt; &lt;li&gt;Add stop condition at closing brace.&lt;/li&gt; &lt;li&gt;Use low temp for structured tasks.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Step 2: Repair pipeline (when prevention fails)&lt;/h2&gt; &lt;p&gt;Run these gates in order. Stop at the first success. Log which stage worked.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;0. Extract&lt;/strong&gt; → slice out the JSON block if wrapped in markdown. &lt;strong&gt;1. Direct parse&lt;/strong&gt; → try a strict parse. &lt;strong&gt;2. Cleanup&lt;/strong&gt; → strip fences, whitespace, stray chars, trailing commas. &lt;strong&gt;3. Structural repair&lt;/strong&gt; → balance braces/brackets, close strings. &lt;strong&gt;4. Sanitization&lt;/strong&gt; → remove control chars, normalize weird spaces and numbers. &lt;strong&gt;5. Reconstruction&lt;/strong&gt; → rebuild from fragments, whitelist expected keys. &lt;strong&gt;6. Fallback&lt;/strong&gt; → regex-extract known keys, mark as “diagnostic repair”.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Step 3: Validate like a hawk&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Always check against your JSON Schema.&lt;/li&gt; &lt;li&gt;Reject placeholder echoes (&lt;code&gt;&amp;quot;amount&amp;quot;: &amp;quot;amount&amp;quot;&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Fail on unknown keys.&lt;/li&gt; &lt;li&gt;Enforce required keys and enums.&lt;/li&gt; &lt;li&gt;Record which stage fixed the payload.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Common OSS quirks (and fixes)&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;JSON wrapped in ``` fences → Stage 0.&lt;/li&gt; &lt;li&gt;Trailing commas → Stage 2.&lt;/li&gt; &lt;li&gt;Missing brace → Stage 3.&lt;/li&gt; &lt;li&gt;Odd quotes → Stage 3.&lt;/li&gt; &lt;li&gt;Weird Unicode gaps (NBSP, line sep) → Stage 4.&lt;/li&gt; &lt;li&gt;Placeholder echoes → Validation.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Schema Starter Pack&lt;/h2&gt; &lt;p&gt;&lt;strong&gt;Single object example:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;json { &amp;quot;type&amp;quot;: &amp;quot;object&amp;quot;, &amp;quot;required&amp;quot;: [&amp;quot;title&amp;quot;, &amp;quot;status&amp;quot;, &amp;quot;score&amp;quot;], &amp;quot;additionalProperties&amp;quot;: false, &amp;quot;properties&amp;quot;: { &amp;quot;title&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;string&amp;quot; }, &amp;quot;status&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;string&amp;quot;, &amp;quot;enum&amp;quot;: [&amp;quot;ok&amp;quot;,&amp;quot;error&amp;quot;,&amp;quot;unknown&amp;quot;] }, &amp;quot;score&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;number&amp;quot;, &amp;quot;minimum&amp;quot;: 0, &amp;quot;maximum&amp;quot;: 1 }, &amp;quot;notes&amp;quot;: { &amp;quot;type&amp;quot;: [&amp;quot;string&amp;quot;,&amp;quot;null&amp;quot;] } } } &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Other patterns: arrays with strict elements, function-call style with args, controlled maps with regex keys. Tip: set &lt;code&gt;additionalProperties: false&lt;/code&gt;, use enums for states, ranges for numbers, &lt;code&gt;null&lt;/code&gt; for unknowns.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Troubleshooting Quick Table&lt;/h2&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Symptom&lt;/th&gt; &lt;th&gt;Fix stage&lt;/th&gt; &lt;th&gt;Prevention tip&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;JSON inside markdown&lt;/td&gt; &lt;td&gt;Stage 0&lt;/td&gt; &lt;td&gt;Prompt forbids prose&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Trailing comma&lt;/td&gt; &lt;td&gt;Stage 2&lt;/td&gt; &lt;td&gt;Schema forbids commas&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Last brace missing&lt;/td&gt; &lt;td&gt;Stage 3&lt;/td&gt; &lt;td&gt;Add stop condition&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Odd quotes&lt;/td&gt; &lt;td&gt;Stage 3&lt;/td&gt; &lt;td&gt;Grammar for strings&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Unicode gaps&lt;/td&gt; &lt;td&gt;Stage 4&lt;/td&gt; &lt;td&gt;Stricter grammar&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Placeholder echoes&lt;/td&gt; &lt;td&gt;Validation&lt;/td&gt; &lt;td&gt;Schema + explicit test&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;hr /&gt; &lt;h2&gt;Minimal Playbook&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Turn on structured outputs/grammar.&lt;/li&gt; &lt;li&gt;Use repair service as backup.&lt;/li&gt; &lt;li&gt;Validate against schema.&lt;/li&gt; &lt;li&gt;Track repair stages.&lt;/li&gt; &lt;li&gt;Keep a short token-scrub list per model.&lt;/li&gt; &lt;li&gt;Use low temp + single-turn calls.&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;p&gt;Always run a test to see the models output when tasks fail so your system can be proactive, output will always come through the endpoint even if not visible, unless a critical failure at the client... Goodluck!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinigrae"&gt; /u/vinigrae &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1bqlb/json_parsing_guide_for_gptoss_models/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Last week we made it to the front page of HN with our post about benchmarking how well coding agents interact with libraries and APIs. The response was positive overall, but many wanted to see the code. We also wanted to see if we could grow a community around it, as we believe it’s an area that’s important and underexplored.&lt;/p&gt; &lt;p&gt;We just open sourced StackBench &lt;a href="https://github.com/NapthaAI/openstackbench"&gt;https://github.com/NapthaAI/openstackbench&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The problem is that existing benchmarks focus on self-contained snippets, not real library usage. StackBench tests how well AI coding agents (like Claude Code, and now Cursor) actually use your library by: • Parsing your documentation automatically • Extracting real usage examples • Having agents generate those examples from a spec from scratch • Logging every mistake and analyzing patterns&lt;/p&gt; &lt;p&gt;You can find out more information about how it works and how to run it in the docs &lt;a href="https://docs.stackbench.ai"&gt;https://docs.stackbench.ai&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Next up, we’re planning to add more: • Coding agents • Ways of providing docs as context (e.g. Mintlify vs Cursor doc search) • Benchmark tasks (e.g. use of APIs via API docs) • Metrics&lt;/p&gt; &lt;p&gt;We're also working on automating in-editor testing and maybe even using an MCP server.&lt;/p&gt; &lt;p&gt;Contributions and suggestions very welcome. What should we prioritize next?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/blythmar"&gt; /u/blythmar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1igz7/stackbench_is_now_open_source/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T08:49:15+00:00</published>
+    <published>2025-08-27T14:24:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1n0yukc</id>
@@ -84,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1f4u2/enterprise_grade_rust_mcp_sdk_mit_licensed/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-27T12:03:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n1m8xh</id>
-    <title>Pair a vision grounding model with a reasoning LLM with Cua</title>
-    <updated>2025-08-27T16:45:35+00:00</updated>
-    <author>
-      <name>/u/Impressive_Half_2819</name>
-      <uri>https://old.reddit.com/user/Impressive_Half_2819</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"&gt; &lt;img alt="Pair a vision grounding model with a reasoning LLM with Cua" src="https://external-preview.redd.it/czhjcTlybG5jbGxmMbzuqtV-zsPSC2s-Lu_18m-UGy8cX2XwaXvrFiOhDTxh.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36155e6a7dff8ec2cbd8990b3651a22c0ff9a6e6" title="Pair a vision grounding model with a reasoning LLM with Cua" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Cua just shipped v0.4 of the Cua Agent framework with Composite Agents - you can now pair a vision/grounding model with a reasoning LLM using a simple modelA+modelB syntax. Best clicks + best plans.&lt;/p&gt; &lt;p&gt;The problem: every GUI model speaks a different dialect. • some want pixel coordinates • others want percentages • a few spit out cursed tokens like &amp;lt;|loc095|&amp;gt;&lt;/p&gt; &lt;p&gt;We built a universal interface that works the same across Anthropic, OpenAI, Hugging Face, etc.:&lt;/p&gt; &lt;p&gt;agent = ComputerAgent( model=&amp;quot;anthropic/claude-3-5-sonnet-20241022&amp;quot;, tools=[computer] )&lt;/p&gt; &lt;p&gt;But here’s the fun part: you can combine models by specialization. Grounding model (sees + clicks) + Planning model (reasons + decides) →&lt;/p&gt; &lt;p&gt;agent = ComputerAgent( model=&amp;quot;huggingface-local/HelloKKMe/GTA1-7B+openai/gpt-4o&amp;quot;, tools=[computer] )&lt;/p&gt; &lt;p&gt;This gives GUI skills to models that were never built for computer use. One handles the eyes/hands, the other the brain. Think driver + navigator working together.&lt;/p&gt; &lt;p&gt;Two specialists beat one generalist. We’ve got a ready-to-run notebook demo - curious what combos you all will try.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Impressive_Half_2819"&gt; /u/Impressive_Half_2819 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/5ayaaquncllf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T16:45:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1n11e9y</id>
@@ -164,6 +138,19 @@
     <published>2025-08-27T15:27:10+00:00</published>
   </entry>
   <entry>
+    <id>t3_1n1m8xh</id>
+    <title>Pair a vision grounding model with a reasoning LLM with Cua</title>
+    <updated>2025-08-27T16:45:35+00:00</updated>
+    <author>
+      <name>/u/Impressive_Half_2819</name>
+      <uri>https://old.reddit.com/user/Impressive_Half_2819</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"&gt; &lt;img alt="Pair a vision grounding model with a reasoning LLM with Cua" src="https://external-preview.redd.it/czhjcTlybG5jbGxmMbzuqtV-zsPSC2s-Lu_18m-UGy8cX2XwaXvrFiOhDTxh.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36155e6a7dff8ec2cbd8990b3651a22c0ff9a6e6" title="Pair a vision grounding model with a reasoning LLM with Cua" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Cua just shipped v0.4 of the Cua Agent framework with Composite Agents - you can now pair a vision/grounding model with a reasoning LLM using a simple modelA+modelB syntax. Best clicks + best plans.&lt;/p&gt; &lt;p&gt;The problem: every GUI model speaks a different dialect. • some want pixel coordinates • others want percentages • a few spit out cursed tokens like &amp;lt;|loc095|&amp;gt;&lt;/p&gt; &lt;p&gt;We built a universal interface that works the same across Anthropic, OpenAI, Hugging Face, etc.:&lt;/p&gt; &lt;p&gt;agent = ComputerAgent( model=&amp;quot;anthropic/claude-3-5-sonnet-20241022&amp;quot;, tools=[computer] )&lt;/p&gt; &lt;p&gt;But here’s the fun part: you can combine models by specialization. Grounding model (sees + clicks) + Planning model (reasons + decides) →&lt;/p&gt; &lt;p&gt;agent = ComputerAgent( model=&amp;quot;huggingface-local/HelloKKMe/GTA1-7B+openai/gpt-4o&amp;quot;, tools=[computer] )&lt;/p&gt; &lt;p&gt;This gives GUI skills to models that were never built for computer use. One handles the eyes/hands, the other the brain. Think driver + navigator working together.&lt;/p&gt; &lt;p&gt;Two specialists beat one generalist. We’ve got a ready-to-run notebook demo - curious what combos you all will try.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Impressive_Half_2819"&gt; /u/Impressive_Half_2819 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/5ayaaquncllf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1m8xh/pair_a_vision_grounding_model_with_a_reasoning/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-27T16:45:35+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1n1e7q1</id>
     <title>The fastest real time TTS you used that doesn't sacrifice quality and is easy to set up?</title>
     <updated>2025-08-27T11:17:11+00:00</updated>
@@ -177,6 +164,19 @@
     <published>2025-08-27T11:17:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1n1myth</id>
+    <title>OpenAI has launched HealthBench on HuggingFace</title>
+    <updated>2025-08-27T17:12:06+00:00</updated>
+    <author>
+      <name>/u/vibedonnie</name>
+      <uri>https://old.reddit.com/user/vibedonnie</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1myth/openai_has_launched_healthbench_on_huggingface/"&gt; &lt;img alt="OpenAI has launched HealthBench on HuggingFace" src="https://b.thumbs.redditmedia.com/Cd1CiYSAFAOcmX901eEWMbsHfHloFXn3PMvvDhm3VkI.jpg" title="OpenAI has launched HealthBench on HuggingFace" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/datasets/openai/healthbench"&gt;https://huggingface.co/datasets/openai/healthbench&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vibedonnie"&gt; /u/vibedonnie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1n1myth"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1myth/openai_has_launched_healthbench_on_huggingface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1myth/openai_has_launched_healthbench_on_huggingface/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-27T17:12:06+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1n12aqj</id>
     <title>Deepseek changes their API price again</title>
     <updated>2025-08-27T00:10:24+00:00</updated>
@@ -188,19 +188,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n12aqj/deepseek_changes_their_api_price_again/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-27T00:10:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n1kils</id>
-    <title>Free 1,000 CPU + 100 GPU hours for testers</title>
-    <updated>2025-08-27T15:41:35+00:00</updated>
-    <author>
-      <name>/u/Ok_Post_149</name>
-      <uri>https://old.reddit.com/user/Ok_Post_149</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve always had a hard time getting data scientists and analyst to scale their code in the cloud. Most of the time they’d hand it off to DevOps, which created a massive backlog and DevOps would get spread super thin.&lt;/p&gt; &lt;p&gt;I built cluster compute software that lets any Python developer deploy to huge clusters (10k vCPUs, 1k GPUs) with a single function. You can bring your own Docker image, set hardware requirements, run jobs as background tasks so you can fire and forget, and responses are fast. You can call a million simple functions in a couple seconds.&lt;/p&gt; &lt;p&gt;It’s &lt;a href="https://github.com/Burla-Cloud/burla"&gt;open source&lt;/a&gt; and I’m still making install easier, but I also have a few managed versions. If you want to test I'll cover 1,000 CPU and 100 GPU hours. Here’s a tweet of me running it on a 4k vCPU cluster to screenshot 30k arXiv PDFs and push them to GCS: &lt;a href="https://x.com/infra_scale_5/status/1938024103744835961"&gt;https://x.com/infra_scale_5/status/1938024103744835961&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love some testers.&lt;/p&gt; &lt;p&gt;*core use cases are really meant for embarrassingly parallel workloads*&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Post_149"&gt; /u/Ok_Post_149 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T15:41:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1n1k2zg</id>
@@ -242,6 +229,19 @@
     <published>2025-08-26T19:06:53+00:00</published>
   </entry>
   <entry>
+    <id>t3_1n1kils</id>
+    <title>Free 1,000 CPU + 100 GPU hours for testers</title>
+    <updated>2025-08-27T15:41:35+00:00</updated>
+    <author>
+      <name>/u/Ok_Post_149</name>
+      <uri>https://old.reddit.com/user/Ok_Post_149</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve always had a hard time getting data scientists and analyst to scale their code in the cloud. Most of the time they’d hand it off to DevOps, which created a massive backlog and DevOps would get spread super thin.&lt;/p&gt; &lt;p&gt;I built cluster compute software that lets any Python developer deploy to huge clusters (10k vCPUs, 1k GPUs) with a single function. You can bring your own Docker image, set hardware requirements, run jobs as background tasks so you can fire and forget, and responses are fast. You can call a million simple functions in a couple seconds.&lt;/p&gt; &lt;p&gt;It’s &lt;a href="https://github.com/Burla-Cloud/burla"&gt;open source&lt;/a&gt; and I’m still making install easier, but I also have a few managed versions. If you want to test I'll cover 1,000 CPU and 100 GPU hours. Here’s a tweet of me running it on a 4k vCPU cluster to screenshot 30k arXiv PDFs and push them to GCS: &lt;a href="https://x.com/infra_scale_5/status/1938024103744835961"&gt;https://x.com/infra_scale_5/status/1938024103744835961&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love some testers.&lt;/p&gt; &lt;p&gt;*core use cases are really meant for embarrassingly parallel workloads*&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Post_149"&gt; /u/Ok_Post_149 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kils/free_1000_cpu_100_gpu_hours_for_testers/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-27T15:41:35+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1n1hro7</id>
     <title>How to train a Language Model to run on RP2040 locally</title>
     <updated>2025-08-27T13:56:52+00:00</updated>
@@ -253,19 +253,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1hro7/how_to_train_a_language_model_to_run_on_rp2040/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-27T13:56:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1n1kwy4</id>
-    <title>Smuggling Nvidia GPUs to China</title>
-    <updated>2025-08-27T15:56:51+00:00</updated>
-    <author>
-      <name>/u/prusswan</name>
-      <uri>https://old.reddit.com/user/prusswan</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"&gt; &lt;img alt="Smuggling Nvidia GPUs to China" src="https://external-preview.redd.it/YjBh51k4f4z8_hT8ywyQGSPmo_QffcXvjGcCE4rlHns.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=af98a8faa60a778d7426ad70272313ccf7bded36" title="Smuggling Nvidia GPUs to China" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;The assembly process works this way — Nvidia designs the silicon (done all over the world, but they’re headquartered in California), and TSMC manufactures and fabricates the silicon in Taiwan. Then, Chinese companies manufacture — and sometimes engineer through contract — the cooling solutions, the PCB (printed circuit board), and source all the capacitors and voltage regulator components. Everything that makes one of these devices — pretty much everything — is sourced in China.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Very insightful interview, especially for those who did not have time to watch the entire video &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/prusswan"&gt; /u/prusswan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.chinatalk.media/p/how-gpus-get-smuggled-to-china"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-27T15:56:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1n1h6xx</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n190vf/nvidia_jetnemotron_53x_faster_hybridarchitecture/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-27T05:53:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n1kwy4</id>
+    <title>Smuggling Nvidia GPUs to China</title>
+    <updated>2025-08-27T15:56:51+00:00</updated>
+    <author>
+      <name>/u/prusswan</name>
+      <uri>https://old.reddit.com/user/prusswan</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"&gt; &lt;img alt="Smuggling Nvidia GPUs to China" src="https://external-preview.redd.it/YjBh51k4f4z8_hT8ywyQGSPmo_QffcXvjGcCE4rlHns.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=af98a8faa60a778d7426ad70272313ccf7bded36" title="Smuggling Nvidia GPUs to China" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;The assembly process works this way — Nvidia designs the silicon (done all over the world, but they’re headquartered in California), and TSMC manufactures and fabricates the silicon in Taiwan. Then, Chinese companies manufacture — and sometimes engineer through contract — the cooling solutions, the PCB (printed circuit board), and source all the capacitors and voltage regulator components. Everything that makes one of these devices — pretty much everything — is sourced in China.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Very insightful interview, especially for those who did not have time to watch the entire video &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/prusswan"&gt; /u/prusswan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.chinatalk.media/p/how-gpus-get-smuggled-to-china"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1kwy4/smuggling_nvidia_gpus_to_china/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-27T15:56:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1n1ece5</id>
