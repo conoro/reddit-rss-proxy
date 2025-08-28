@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-28T23:34:25+00:00</updated>
+  <updated>2025-08-28T23:48:38+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1n1y04u</id>
-    <title>Using a local LLM as a privacy filter for GPT-4/5 &amp; other cloud models</title>
-    <updated>2025-08-28T00:30:33+00:00</updated>
-    <author>
-      <name>/u/cxu25</name>
-      <uri>https://old.reddit.com/user/cxu25</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1y04u/using_a_local_llm_as_a_privacy_filter_for_gpt45/"&gt; &lt;img alt="Using a local LLM as a privacy filter for GPT-4/5 &amp;amp; other cloud models" src="https://external-preview.redd.it/BorDJx5oDYIFbTOFfLwuJI6cZGAtIBXsCgjBUU7XqMY.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a731db6e945b9d6c39c93fae6a145bfa55796d93" title="Using a local LLM as a privacy filter for GPT-4/5 &amp;amp; other cloud models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The trade-off between local and cloud LLM is frustrating. Smarts or privacy, which side do you want to sacrifice? My answer is to use a small, fast local model as an intelligent privacy filter for the big cloud models.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why the obvious regex redaction doesn't work&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Most redaction tools, like &lt;a href="https://langfuse.com/docs/observability/features/masking"&gt;https://langfuse.com/docs/observability/features/masking&lt;/a&gt;, rely on regex. It's fast but brittle. A regex for a US SSN is useless for its UK/Canada counterparts, and there are hundreds of countries with their own ID formats. And how do you write a regex for arbitrary passwords or weirdly formatted API keys? You can't.&lt;/p&gt; &lt;p&gt;Even if you &lt;em&gt;could&lt;/em&gt; perfectly redact everything, you run into a bigger problem. Most tools just swap your data with [REDACTED].&lt;/p&gt; &lt;p&gt;Let's say someone asks AI assistant about a legal document:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&amp;quot;Summarize the dispute between &lt;em&gt;John Doe&lt;/em&gt; and &lt;em&gt;Jane Smith&lt;/em&gt; regarding the property at &lt;em&gt;123 Main St&lt;/em&gt;. &lt;em&gt;John&lt;/em&gt;'s wife, &lt;em&gt;Mary Doe&lt;/em&gt;, is also a witness.&amp;quot;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Redaction creates this mess:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&amp;quot;Summarize the dispute between [REDACTED] and [REDACTED] regarding the property at [REDACTED]. [REDACTED]'s wife, [REDACTED], is also a witness.&amp;quot;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;The context is destroyed, and the LLM is confused, and you get a garbage response.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Fix: Local LLM as a Semantic Gatekeeper&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Instead of regex, we can use a local model to do this intelligently. Here's the workflow I came up with:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Your message sending to cloud LLM is first intercepted locally, like &lt;code&gt;&amp;quot;My patient, Jensen Huang (ID: P12345), needs help...&amp;quot;&lt;/code&gt;&lt;/li&gt; &lt;li&gt;If sensitive data is found, local LLM will create a JSON map, like &lt;code&gt;{&amp;quot;Jensen Huang&amp;quot;: &amp;quot;${PATIENT_NAME}&amp;quot;, &amp;quot;P12345&amp;quot;: &amp;quot;${PATIENT_ID}&amp;quot;}&lt;/code&gt;&lt;/li&gt; &lt;li&gt;The actual message sent to cloud would be &lt;code&gt;&amp;quot;My patient, ${PATIENT_NAME} (ID: ${PATIENT_ID}), needs help...&amp;quot;&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Cloud AI assistant respond &lt;code&gt;&amp;quot;Here is what we need to do for ${PATIENT_NAME} ...&amp;quot;&lt;/code&gt;&lt;/li&gt; &lt;li&gt;The response is intercepted locally, to restore back sensitive data placeholders &lt;code&gt;&amp;quot;Here is what we need to do for Jensen Huang ...&amp;quot;&lt;/code&gt;&lt;/li&gt; &lt;li&gt;So you get the final response as &lt;code&gt;&amp;quot;Here is what we need to do for Jensen Huang ...&amp;quot;&lt;/code&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0hdeej8j7olf1.png?width=3685&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3d154c9bc8e83ba1a67915e12f71dbcd759558b3"&gt;diagram&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In this way, secrets never leave your machine. The cloud AI gets the semantic context it needs to be useful, but never sees the actual data.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My implementation: PromptMask, a local LLM-based privacy filter for LLMs&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It can be installed as a python package &lt;code&gt;pip install promptmask&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Aiming at seamless integration and user experience, I managed to implement two easy ways for use:&lt;/p&gt; &lt;p&gt;For python developer, it provides a drop-in replacement for the OpenAI SDK &lt;/p&gt; &lt;pre&gt;&lt;code&gt;from promptmask import OpenAIMasked as OpenAI &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;For everyone else, if you use apps that connect to an OpenAI-compatible API, you can run a local API gateway.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pip install &amp;quot;promptmask[web]&amp;quot; promptmask-web &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This spins up a server on localhost:8000. Point your app's API endpoint to &lt;a href="http://localhost:8000/gateway/v1/chat/completions"&gt;http://localhost:8000/gateway/v1/chat/completions&lt;/a&gt;, and in the promptmask config file, add your cloud AI provider URL as upstream, it will automatically handle the masking/unmasking for any tool you use.&lt;/p&gt; &lt;p&gt;PromptMask itself does not include any LLM server, you will need to run a local model with Ollama, llama.cpp, vLLM, etc.&lt;/p&gt; &lt;p&gt;GitHub Repo (MIT Licensed): &lt;a href="https://github.com/cxumol/promptmask"&gt;https://github.com/cxumol/promptmask&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Benchmarks&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;You &lt;strong&gt;don't need a 70B model&lt;/strong&gt; to spot passwords and passport numbers. Together with PromptMask, I built an eval framework and benchmarked a bunch of models. The results show that even ~1B models can do the job with good few-shot prompting. See &lt;a href="https://github.com/cxumol/promptmask/blob/master/eval/benchmark.md"&gt;https://github.com/cxumol/promptmask/blob/master/eval/benchmark.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;---------&lt;/p&gt; &lt;p&gt;For a much deeper dive into the &amp;quot;why&amp;quot; and &amp;quot;how,&amp;quot; including the prompt engineering for small models and the benchmark setup, I wrote a full blog post about it here: &lt;a href="https://xirtam.cxumol.com/promptmask-how-not-give-ai-secrets/"&gt;https://xirtam.cxumol.com/promptmask-how-not-give-ai-secrets/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'd love to get your feedback on this approach and the tool itself.&lt;/p&gt; &lt;p&gt;Edit: add diagram, formatting, fix typos&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cxu25"&gt; /u/cxu25 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1y04u/using_a_local_llm_as_a_privacy_filter_for_gpt45/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n1y04u/using_a_local_llm_as_a_privacy_filter_for_gpt45/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n1y04u/using_a_local_llm_as_a_privacy_filter_for_gpt45/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-28T00:30:33+00:00</published>
-  </entry>
   <entry>
     <id>t3_1n2dfb9</id>
     <title>LatteReview: a low-code Python package designed to automate systematic literature review processes through AI-powered agents.</title>
@@ -45,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n2dmku/achieving_80_task_completion_training_llms_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-28T14:23:43+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n2ovhy</id>
+    <title>Which local LLM will work best with Beelink</title>
+    <updated>2025-08-28T21:29:18+00:00</updated>
+    <author>
+      <name>/u/Amirzezo</name>
+      <uri>https://old.reddit.com/user/Amirzezo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have Beelink SER8. 32G (16G*2) DDR5 5600MHz, AMD Ryzen™ 7 8845HS, &lt;/p&gt; &lt;p&gt;&lt;a href="https://www.bee-link.com/products/beelink-ser8-8845hs"&gt;https://www.bee-link.com/products/beelink-ser8-8845hs&lt;/a&gt;&lt;/p&gt; &lt;p&gt;iam using it as Headless via Tailscale and use my Macbook to connect to it &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Amirzezo"&gt; /u/Amirzezo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2ovhy/which_local_llm_will_work_best_with_beelink/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2ovhy/which_local_llm_will_work_best_with_beelink/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n2ovhy/which_local_llm_will_work_best_with_beelink/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-28T21:29:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1n2mm6k</id>
@@ -255,19 +255,6 @@
     <published>2025-08-28T15:09:18+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n2npu9</id>
-    <title>GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4</title>
-    <updated>2025-08-28T20:44:11+00:00</updated>
-    <author>
-      <name>/u/XMasterrrr</name>
-      <uri>https://old.reddit.com/user/XMasterrrr</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"&gt; &lt;img alt="GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4" src="https://preview.redd.it/pa10b6f5otlf1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ad1a522ed166bb920414041f430c97aef7d1fdf9" title="GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://gorilla.cs.berkeley.edu/leaderboard.html?s=09"&gt;https://gorilla.cs.berkeley.edu/leaderboard.html?s=09&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/XMasterrrr"&gt; /u/XMasterrrr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pa10b6f5otlf1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-28T20:44:11+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1n2chrm</id>
     <title>Again where behemoth and reasoning model from meta ??</title>
     <updated>2025-08-28T13:39:03+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n2chrm/again_where_behemoth_and_reasoning_model_from_meta/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-28T13:39:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1n2npu9</id>
+    <title>GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4</title>
+    <updated>2025-08-28T20:44:11+00:00</updated>
+    <author>
+      <name>/u/XMasterrrr</name>
+      <uri>https://old.reddit.com/user/XMasterrrr</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"&gt; &lt;img alt="GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4" src="https://preview.redd.it/pa10b6f5otlf1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ad1a522ed166bb920414041f430c97aef7d1fdf9" title="GLM-4.5 is now leading the Berkeley Function-Calling Leaderboard V4, Beating Opus 4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://gorilla.cs.berkeley.edu/leaderboard.html?s=09"&gt;https://gorilla.cs.berkeley.edu/leaderboard.html?s=09&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/XMasterrrr"&gt; /u/XMasterrrr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pa10b6f5otlf1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n2npu9/glm45_is_now_leading_the_berkeley_functioncalling/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-08-28T20:44:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1n2djpx</id>
