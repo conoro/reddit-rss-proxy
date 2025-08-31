@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-08-31T09:05:57+00:00</updated>
+  <updated>2025-08-31T09:23:23+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -138,17 +138,17 @@
     <published>2025-08-31T04:59:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1n4pt0x</id>
-    <title>Top-k 0 vs 100 on GPT-OSS-120b</title>
-    <updated>2025-08-31T08:52:17+00:00</updated>
+    <id>t3_1n4pspb</id>
+    <title>GPT-OSS VLLM RTX 6000 PRO blackwell sm120</title>
+    <updated>2025-08-31T08:51:43+00:00</updated>
     <author>
-      <name>/u/Baldur-Norddahl</name>
-      <uri>https://old.reddit.com/user/Baldur-Norddahl</uri>
+      <name>/u/festr2</name>
+      <uri>https://old.reddit.com/user/festr2</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pt0x/topk_0_vs_100_on_gptoss120b/"&gt; &lt;img alt="Top-k 0 vs 100 on GPT-OSS-120b" src="https://preview.redd.it/1p4r0n9gibmf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a722fa2967b2e81a9bf33eb4c23859a3dd096ec7" title="Top-k 0 vs 100 on GPT-OSS-120b" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Using a M4 Max Macbook Pro 128 GB I am comparing the speed boost of setting top-k to 100. OpenAI says to set top-k to 0 while Unsloth proposes that one could try 100 instead. &lt;/p&gt; &lt;p&gt;Top-k 0 means use the full vocabulary of the model. Any other value specifies that we should only consider the top k most likely tokens of the vocabulary. If the value is too small, we might get a worse response from the model. Typical values for top-k seems to be 20-40 and 100 would be considered a relatively large value. By using a large value we aim to get the same result as top-k 0 but faster.&lt;/p&gt; &lt;p&gt;My test shows a very substantial gain by using top-k 100.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Baldur-Norddahl"&gt; /u/Baldur-Norddahl &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/1p4r0n9gibmf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pt0x/topk_0_vs_100_on_gptoss120b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pt0x/topk_0_vs_100_on_gptoss120b/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Install the latest dev VLLM (no compilation needed)&lt;/p&gt; &lt;p&gt;I have gathered this post from vllm github PR, can anyone explain if this is using the native fp4 feature on rtx pro or if this transforms it to the FP8 internally? &lt;/p&gt; &lt;p&gt;It is fully working though&lt;/p&gt; &lt;pre&gt;&lt;code&gt;#I'm using ubuntu 24.04 with installed basic develop packages including cuda 12.9 #vllm recently switched to the pytorch 2.8.0 the installation is dead simple now: conda create -n vllm6 python=3.12 -y conda activate vllm6 wget https://vllm-wheels.s3.amazonaws.com/nightly/vllm-1.0.0.dev-cp38-abi3-manylinux1_x86_64.whl pip uninstall torch pip install vllm-1.0.0.dev-cp38-abi3-manylinux1_x86_64.whl pip install flashinfer-python export VLLM_SKIP_P2P_CHECK=1 export VLLM_USE_FLASHINFER_MOE_FP8=1 export VLLM_USE_FLASHINFER_MOE_FP4=1 export VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8=1 export VLLM_FLASHINFER_ALLREDUCE_FUSION_THRESHOLDS_MB='{&amp;quot;2&amp;quot;:32,&amp;quot;4&amp;quot;:32,&amp;quot;8&amp;quot;:8}' # ASYNC_SCHEDULING_FLAG=&amp;quot;--async-scheduling&amp;quot; ASYNC_SCHEDULING_FLAG=&amp;quot;&amp;quot; FUSION_FLAG='{&amp;quot;pass_config&amp;quot;:{&amp;quot;enable_fi_allreduce_fusion&amp;quot;:true,&amp;quot;enable_attn_fusion&amp;quot;:true,&amp;quot;enable_noop&amp;quot;:true},&amp;quot;custom_ops&amp;quot;:[&amp;quot;+quant_fp8&amp;quot;,&amp;quot;+rms_norm&amp;quot;],&amp;quot;cudagraph_mode&amp;quot;:&amp;quot;FULL_DECODE_ONLY&amp;quot;,&amp;quot;splitting_ops&amp;quot;:[]}' vllm serve ${MODEL_NAME} \ --host 0.0.0.0 \ --port 8000 \ --kv-cache-dtype auto \ --trust-remote-code \ --gpu-memory-utilization 0.9 \ --compilation-config ${FUSION_FLAG} \ ${ASYNC_SCHEDULING_FLAG} \ --enable-chunked-prefill \ --no-enable-prefix-caching \ --pipeline-parallel-size 1 \ --tensor-parallel-size 1 --enable-expert-parallel \ --max-num-seqs 128 \ --max-num-batched-tokens 8192 \ --max-model-len 2048 &amp;amp; &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/festr2"&gt; /u/festr2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pspb/gptoss_vllm_rtx_6000_pro_blackwell_sm120/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pspb/gptoss_vllm_rtx_6000_pro_blackwell_sm120/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1n4pspb/gptoss_vllm_rtx_6000_pro_blackwell_sm120/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-08-31T08:52:17+00:00</published>
+    <published>2025-08-31T08:51:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1n40ngf</id>
