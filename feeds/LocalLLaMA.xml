@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-09-09T19:49:00+00:00</updated>
+  <updated>2025-09-09T20:07:10+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1ncb2v4</id>
-    <title>Do you trust benchmarks?</title>
-    <updated>2025-09-09T05:58:20+00:00</updated>
-    <author>
-      <name>/u/djdeniro</name>
-      <uri>https://old.reddit.com/user/djdeniro</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncb2v4/do_you_trust_benchmarks/"&gt; &lt;img alt="Do you trust benchmarks?" src="https://preview.redd.it/pq4v9byxw2of1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=2be542a16aa033aed9446204272af7e657e75006" title="Do you trust benchmarks?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/djdeniro"&gt; /u/djdeniro &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pq4v9byxw2of1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncb2v4/do_you_trust_benchmarks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncb2v4/do_you_trust_benchmarks/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T05:58:20+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ncovjy</id>
-    <title>Using vLLM for local use with Pipeline Parallelism and VLLM_PP_LAYER_PARTITION</title>
-    <updated>2025-09-09T17:15:38+00:00</updated>
-    <author>
-      <name>/u/bullerwins</name>
-      <uri>https://old.reddit.com/user/bullerwins</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most of us default to llama.cpp or exllamav2/v3+tabbyapi because you can mix and match GPUs with different VRAM. You can do something similar with vLLM and keep its nice perks (new model support, tool use) by switching from tensor parallelism to pipeline parallelism and manually partitioning layers. It also has much better support for parallel request, even using PP instead of TP in my testing, which llama.cpp and exllamav3 really lack proper support as they are more focuses on single requests for local use.&lt;/p&gt; &lt;p&gt;This is a guide on how I do it.&lt;/p&gt; &lt;p&gt;vLLM will evenly split layers across PP stages by default. That’s not ideal because stage 0 also holds the embedding and the last stage holds the LM head, so those two stages need &lt;em&gt;fewer&lt;/em&gt; transformer blocks. You can override the split with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;VLLM_PP_LAYER_PARTITION=&amp;quot;L0,L1,...,L{pp-1}&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;A comma-separated list of per-stage layer counts that must sum to the model’s total hidden layers. This variable is not really documented: &lt;a href="https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361"&gt;https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Steps:&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Find your model’s total layers. Open the model folder and inspect &lt;code&gt;config.json&lt;/code&gt;. You’re looking for &lt;code&gt;num_hidden_layers&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Decide PP size. Use the number of GPUs you want to shard across. In vLLM serve, that’s &lt;code&gt;--pipeline-parallel-size N&lt;/code&gt; (alias &lt;code&gt;-pp N&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Compute a partition. Pick a list whose sum equals &lt;code&gt;num_hidden_layers&lt;/code&gt;. Give fewer layers to stage 0 and the last stage to offset embeddings/LM head (e.g., on 4 GPUs for a 46-layer model: &lt;code&gt;12,12,11,11&lt;/code&gt; or even &lt;code&gt;13,13,10,10&lt;/code&gt; if stages 0/3 are on bigger cards).&lt;/li&gt; &lt;li&gt;Order your devices. Export &lt;code&gt;CUDA_VISIBLE_DEVICES&lt;/code&gt; so stages map to the GPUs you intend (stage 0 is the first ID, stage 1 the next, etc.). Use &lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID&lt;/code&gt; for stable numbering.&lt;/li&gt; &lt;li&gt;Launch vLLM. Example (GLM-4.5-Air AWQ, 4 stages, uneven split; GPUs ordered big→big→small→small): In my case CUDA0 and CUDA4=5090's and CUDA1 and CUDA3=3090's&lt;br /&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0,4,1,3 VLLM_PP_LAYER_PARTITION=&amp;quot;13,13,10,10&amp;quot; vllm serve /mnt/llms/models/cpatonn/GLM-4.5-Air-AWQ-4bit/ --served-model-name GLM-4.5-Air --pipeline-parallel-size 4 --tensor-parallel-size 1 --max-model-len 32768 --host 0.0.0.0 --port 8000 --tool-call-parser glm45 --reasoning-parser glm45 --enable-auto-tool-choice --dtype float16 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Note for FP8 on Ampere.&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;vLLM supports FP8 in two modes: &lt;ul&gt; &lt;li&gt;W8A8 with native FP8 GPUs like hopper or blackwell.&lt;/li&gt; &lt;li&gt;W8A16 (weight-only FP8) on Ampere via the Marlin kernel. That means you &lt;em&gt;can&lt;/em&gt; load FP8 checkpoints on A100/3090-class hardware as weight-only FP8.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;I tested using the &lt;code&gt;VLLM_TEST_FORCE_FP8_MARLIN&lt;/code&gt; but it doesn't work when mixing ampere and blackwell in my testing. So currently using fp8 models with ampere+blackwell doesn't work as far as I know.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If you don’t specifically need FP8, stick to FP16 or AWQ for simplicity, AWQ also has support for 8 bit quantization apart from the more common 4 bit.&lt;/p&gt; &lt;p&gt;For reasons now I have 4x3090, 2x5090 and 1xRTX pro 6000, so I've been experimenting a lot with a mixture of vram sizes and architectures and the -pp and VLLM_PP_LAYER_PARTITION is not really well documented so I wanted to share how to use it.&lt;/p&gt; &lt;p&gt;So if you don't need 2/3 or 5/6 bit quants, and want to experiment with vllm with a mixture of gpus I think this is a good alternative.&lt;/p&gt; &lt;p&gt;PS: i still need to test sglang, as it also has SGLANG_PP_LAYER_PARTITION but I think it has worse support for quant types like awq and gptq, so I haven't really dig into sglang too much yes outside the &amp;quot;proper&amp;quot; use of 1,2,4 gpus with TP.&lt;br /&gt; Note: I did use an LLM to structure the post.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullerwins"&gt; /u/bullerwins &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T17:15:38+00:00</published>
-  </entry>
   <entry>
     <id>t3_1nc1p0a</id>
     <title>Where are people finding RTX PRO 6000 96gb cards for under 7k</title>
@@ -45,32 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nc1p0a/where_are_people_finding_rtx_pro_6000_96gb_cards/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-08T22:18:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ncju3y</id>
-    <title>Stop-Think-AutoRegress: Language Modeling with Latent Diffusion Planning (STAR-LDM)</title>
-    <updated>2025-09-09T14:04:49+00:00</updated>
-    <author>
-      <name>/u/macawfish</name>
-      <uri>https://old.reddit.com/user/macawfish</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Benchmarks in the paper have this outperforming models 5x-10x its size!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/macawfish"&gt; /u/macawfish &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://openreview.net/forum?id=c05qIG1Z2B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncju3y/stopthinkautoregress_language_modeling_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncju3y/stopthinkautoregress_language_modeling_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T14:04:49+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1nc8e2o</id>
-    <title>My rankings of Huge Local SOTA Models for technical work</title>
-    <updated>2025-09-09T03:27:03+00:00</updated>
-    <author>
-      <name>/u/segmond</name>
-      <uri>https://old.reddit.com/user/segmond</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek v3.1 Q4&lt;/p&gt; &lt;p&gt;Qwen3-235B-A22B Q8&lt;/p&gt; &lt;p&gt;GLM-4.5 Q8&lt;/p&gt; &lt;p&gt;Kimi-K2-0905 Q3&lt;/p&gt; &lt;p&gt;GPT-OSS-120b Q8&lt;/p&gt; &lt;p&gt;I have been experimenting with these the last few days, inference engine is llama.cpp.&lt;/p&gt; &lt;p&gt;DeepSeek is great, only model that could answer question that other models failed from my private eval.&lt;/p&gt; &lt;p&gt;Qwen3-235B is great, for the size, but believe it or not, it's slower than DeepSeek, DeepSeek despite it's size is super fast!&lt;/p&gt; &lt;p&gt;GLM-4.5 is great when it has been exposed to that knowledge, but sometimes it gives very stupid answer to unseen knowledge especially when it think it's a trick question. Amazing for UI work.&lt;/p&gt; &lt;p&gt;Kimi-K2 is great, I just might put it on the same performance level as GLM. It's huge at Q3, I really think it would be a heck of a model at Q4 or Q6, but I don't have the system to run it yet.&lt;/p&gt; &lt;p&gt;GPT-OSS-120B is not bad at all for it's size, by bar it's very tiny compared to the others and the main benefit is that it flies. I get 100tk/sec with it. For non difficult task, I would use this first and only go to the big ones if stuck.&lt;/p&gt; &lt;p&gt;I never liked the large Qwen3-Coder model and deleted it after I drove it. This is just about the latest big relevant models, don't ask me to compare any other model. Just my personal ranking based on my private questions/evals. I didn't try GLM-Air with my evals yet, but I reckon it will sit or tie with GPT-OSS-120B based on my mucking around with it.&lt;/p&gt; &lt;p&gt;BTW, I noticed that my eval that was about 15% pass rate at the beginning of the year is now nearing 85%. I need to rebuild with more complex problems. My evals are also pretty much 1 pass! The models are so damn good, for example, I kept expecting to see syntax errors when I had it generate C program with threads, locks, pointers, etc and I will get 500 lines of code that will compile with no errors and run!&lt;/p&gt; &lt;p&gt;I did a little bit of multi turn agent with DeepSeekv3.1 and GLM-4.5 and results were great.&lt;/p&gt; &lt;p&gt;Smaller models are great BTW from my playing around last month, gemma-3-27b, mistral-small-3.2, qwen3-32b/30b. But the QUALITY of code is not even comparable to the huge models. It's the difference between a mid level engineer and a staff/principal.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T03:27:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1nckkx8</id>
@@ -86,6 +34,19 @@
     <published>2025-09-09T14:33:57+00:00</published>
   </entry>
   <entry>
+    <id>t3_1nc8e2o</id>
+    <title>My rankings of Huge Local SOTA Models for technical work</title>
+    <updated>2025-09-09T03:27:03+00:00</updated>
+    <author>
+      <name>/u/segmond</name>
+      <uri>https://old.reddit.com/user/segmond</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek v3.1 Q4&lt;/p&gt; &lt;p&gt;Qwen3-235B-A22B Q8&lt;/p&gt; &lt;p&gt;GLM-4.5 Q8&lt;/p&gt; &lt;p&gt;Kimi-K2-0905 Q3&lt;/p&gt; &lt;p&gt;GPT-OSS-120b Q8&lt;/p&gt; &lt;p&gt;I have been experimenting with these the last few days, inference engine is llama.cpp.&lt;/p&gt; &lt;p&gt;DeepSeek is great, only model that could answer question that other models failed from my private eval.&lt;/p&gt; &lt;p&gt;Qwen3-235B is great, for the size, but believe it or not, it's slower than DeepSeek, DeepSeek despite it's size is super fast!&lt;/p&gt; &lt;p&gt;GLM-4.5 is great when it has been exposed to that knowledge, but sometimes it gives very stupid answer to unseen knowledge especially when it think it's a trick question. Amazing for UI work.&lt;/p&gt; &lt;p&gt;Kimi-K2 is great, I just might put it on the same performance level as GLM. It's huge at Q3, I really think it would be a heck of a model at Q4 or Q6, but I don't have the system to run it yet.&lt;/p&gt; &lt;p&gt;GPT-OSS-120B is not bad at all for it's size, by bar it's very tiny compared to the others and the main benefit is that it flies. I get 100tk/sec with it. For non difficult task, I would use this first and only go to the big ones if stuck.&lt;/p&gt; &lt;p&gt;I never liked the large Qwen3-Coder model and deleted it after I drove it. This is just about the latest big relevant models, don't ask me to compare any other model. Just my personal ranking based on my private questions/evals. I didn't try GLM-Air with my evals yet, but I reckon it will sit or tie with GPT-OSS-120B based on my mucking around with it.&lt;/p&gt; &lt;p&gt;BTW, I noticed that my eval that was about 15% pass rate at the beginning of the year is now nearing 85%. I need to rebuild with more complex problems. My evals are also pretty much 1 pass! The models are so damn good, for example, I kept expecting to see syntax errors when I had it generate C program with threads, locks, pointers, etc and I will get 500 lines of code that will compile with no errors and run!&lt;/p&gt; &lt;p&gt;I did a little bit of multi turn agent with DeepSeekv3.1 and GLM-4.5 and results were great.&lt;/p&gt; &lt;p&gt;Smaller models are great BTW from my playing around last month, gemma-3-27b, mistral-small-3.2, qwen3-32b/30b. But the QUALITY of code is not even comparable to the huge models. It's the difference between a mid level engineer and a staff/principal.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nc8e2o/my_rankings_of_huge_local_sota_models_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T03:27:03+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ncou07</id>
     <title>Gigabyte’s New CXL Expansion Card Turns PCIe Slot into 512 GB of DDR5 RAM</title>
     <updated>2025-09-09T17:14:00+00:00</updated>
@@ -97,6 +58,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncou07/gigabytes_new_cxl_expansion_card_turns_pcie_slot/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-09T17:14:00+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ncovjy</id>
+    <title>Using vLLM for local use with Pipeline Parallelism and VLLM_PP_LAYER_PARTITION</title>
+    <updated>2025-09-09T17:15:38+00:00</updated>
+    <author>
+      <name>/u/bullerwins</name>
+      <uri>https://old.reddit.com/user/bullerwins</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most of us default to llama.cpp or exllamav2/v3+tabbyapi because you can mix and match GPUs with different VRAM. You can do something similar with vLLM and keep its nice perks (new model support, tool use) by switching from tensor parallelism to pipeline parallelism and manually partitioning layers. It also has much better support for parallel request, even using PP instead of TP in my testing, which llama.cpp and exllamav3 really lack proper support as they are more focuses on single requests for local use.&lt;/p&gt; &lt;p&gt;This is a guide on how I do it.&lt;/p&gt; &lt;p&gt;vLLM will evenly split layers across PP stages by default. That’s not ideal because stage 0 also holds the embedding and the last stage holds the LM head, so those two stages need &lt;em&gt;fewer&lt;/em&gt; transformer blocks. You can override the split with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;VLLM_PP_LAYER_PARTITION=&amp;quot;L0,L1,...,L{pp-1}&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;A comma-separated list of per-stage layer counts that must sum to the model’s total hidden layers. This variable is not really documented: &lt;a href="https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361"&gt;https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Steps:&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Find your model’s total layers. Open the model folder and inspect &lt;code&gt;config.json&lt;/code&gt;. You’re looking for &lt;code&gt;num_hidden_layers&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Decide PP size. Use the number of GPUs you want to shard across. In vLLM serve, that’s &lt;code&gt;--pipeline-parallel-size N&lt;/code&gt; (alias &lt;code&gt;-pp N&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Compute a partition. Pick a list whose sum equals &lt;code&gt;num_hidden_layers&lt;/code&gt;. Give fewer layers to stage 0 and the last stage to offset embeddings/LM head (e.g., on 4 GPUs for a 46-layer model: &lt;code&gt;12,12,11,11&lt;/code&gt; or even &lt;code&gt;13,13,10,10&lt;/code&gt; if stages 0/3 are on bigger cards).&lt;/li&gt; &lt;li&gt;Order your devices. Export &lt;code&gt;CUDA_VISIBLE_DEVICES&lt;/code&gt; so stages map to the GPUs you intend (stage 0 is the first ID, stage 1 the next, etc.). Use &lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID&lt;/code&gt; for stable numbering.&lt;/li&gt; &lt;li&gt;Launch vLLM. Example (GLM-4.5-Air AWQ, 4 stages, uneven split; GPUs ordered big→big→small→small): In my case CUDA0 and CUDA4=5090's and CUDA1 and CUDA3=3090's&lt;br /&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0,4,1,3 VLLM_PP_LAYER_PARTITION=&amp;quot;13,13,10,10&amp;quot; vllm serve /mnt/llms/models/cpatonn/GLM-4.5-Air-AWQ-4bit/ --served-model-name GLM-4.5-Air --pipeline-parallel-size 4 --tensor-parallel-size 1 --max-model-len 32768 --host 0.0.0.0 --port 8000 --tool-call-parser glm45 --reasoning-parser glm45 --enable-auto-tool-choice --dtype float16 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Note for FP8 on Ampere.&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;vLLM supports FP8 in two modes: &lt;ul&gt; &lt;li&gt;W8A8 with native FP8 GPUs like hopper or blackwell.&lt;/li&gt; &lt;li&gt;W8A16 (weight-only FP8) on Ampere via the Marlin kernel. That means you &lt;em&gt;can&lt;/em&gt; load FP8 checkpoints on A100/3090-class hardware as weight-only FP8.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;I tested using the &lt;code&gt;VLLM_TEST_FORCE_FP8_MARLIN&lt;/code&gt; but it doesn't work when mixing ampere and blackwell in my testing. So currently using fp8 models with ampere+blackwell doesn't work as far as I know.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If you don’t specifically need FP8, stick to FP16 or AWQ for simplicity, AWQ also has support for 8 bit quantization apart from the more common 4 bit.&lt;/p&gt; &lt;p&gt;For reasons now I have 4x3090, 2x5090 and 1xRTX pro 6000, so I've been experimenting a lot with a mixture of vram sizes and architectures and the -pp and VLLM_PP_LAYER_PARTITION is not really well documented so I wanted to share how to use it.&lt;/p&gt; &lt;p&gt;So if you don't need 2/3 or 5/6 bit quants, and want to experiment with vllm with a mixture of gpus I think this is a good alternative.&lt;/p&gt; &lt;p&gt;PS: i still need to test sglang, as it also has SGLANG_PP_LAYER_PARTITION but I think it has worse support for quant types like awq and gptq, so I haven't really dig into sglang too much yes outside the &amp;quot;proper&amp;quot; use of 1,2,4 gpus with TP.&lt;br /&gt; Note: I did use an LLM to structure the post.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullerwins"&gt; /u/bullerwins &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T17:15:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ncju3y</id>
+    <title>Stop-Think-AutoRegress: Language Modeling with Latent Diffusion Planning (STAR-LDM)</title>
+    <updated>2025-09-09T14:04:49+00:00</updated>
+    <author>
+      <name>/u/macawfish</name>
+      <uri>https://old.reddit.com/user/macawfish</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Benchmarks in the paper have this outperforming models 5x-10x its size!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/macawfish"&gt; /u/macawfish &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://openreview.net/forum?id=c05qIG1Z2B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncju3y/stopthinkautoregress_language_modeling_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncju3y/stopthinkautoregress_language_modeling_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T14:04:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncm7xp</id>
@@ -112,17 +99,17 @@
     <published>2025-09-09T15:36:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ncpn3v</id>
-    <title>Qwen 8B on locally on iPhone - 10 tokens/s</title>
-    <updated>2025-09-09T17:43:57+00:00</updated>
+    <id>t3_1nctfdv</id>
+    <title>Open-source Deep Research repo called ROMA beats every existing closed-source platform (ChatGPT, Perplexity, Kimi Researcher, Gemini, etc.) on Seal-0 and FRAMES</title>
+    <updated>2025-09-09T20:01:35+00:00</updated>
     <author>
-      <name>/u/Glad-Speaker3006</name>
-      <uri>https://old.reddit.com/user/Glad-Speaker3006</uri>
+      <name>/u/Embarrassed_Sir_853</name>
+      <uri>https://old.reddit.com/user/Embarrassed_Sir_853</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"&gt; &lt;img alt="Qwen 8B on locally on iPhone - 10 tokens/s" src="https://external-preview.redd.it/eXJjdTFsY3hlNm9mMTOl0IOQAgqwlCRxZAKRf2LxKM72dLj3tO8fplxlobs7.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e01ea5518b0eb78fb9b35172121361951ee49972" title="Qwen 8B on locally on iPhone - 10 tokens/s" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We have pushed what is possible on mobile devices!&lt;/p&gt; &lt;p&gt;Vector Space a project and app that explores what is possible for AI on iOS devices. We believe are very capable devices for AI and we wish to help fill the gap that some company is leaving out. &lt;/p&gt; &lt;p&gt;I am pleased to announce that we have fit Qwen 8B to run on iPhone. It runs 10 token/s on iPhone 16, on ANE too - so it doesn’t drain your battery. Fitting a model this big to the memory limited environment of an iPhone required serious optimization and compression for the hardware.&lt;/p&gt; &lt;p&gt;Also, thanks to your feedback, you can now not only run, but SERVE all models ranging from Qwen 0.6B to 8B in a OpenAI compatible endpoint. You can point your app directly to this localhost endpoint to start saving from API cost now. Simply turn on the Web Server in settings after compiling a model. &lt;/p&gt; &lt;p&gt;You can try these features out today on our TestFlight beta app. You can download and run local models - including the 8B - without a line of code. If you encounter an issue, please report them - it will be much appreciated.&lt;/p&gt; &lt;p&gt;&lt;a href="https://testflight.apple.com/join/HXyt2bjU"&gt;https://testflight.apple.com/join/HXyt2bjU&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Please consider complete this survey to help determine what would be the next step for Vector Space&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/r/VectorSpaceApp/s/9ZZGS8YeeI"&gt;https://www.reddit.com/r/VectorSpaceApp/s/9ZZGS8YeeI&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Fine prints: -8B is tested on iPhone 16 only. iPhone 14 supports up to 4B. -Please delete and redownload if you are an existing tester. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Glad-Speaker3006"&gt; /u/Glad-Speaker3006 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/32o55chxe6of1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nctfdv/opensource_deep_research_repo_called_roma_beats/"&gt; &lt;img alt="Open-source Deep Research repo called ROMA beats every existing closed-source platform (ChatGPT, Perplexity, Kimi Researcher, Gemini, etc.) on Seal-0 and FRAMES" src="https://preview.redd.it/sxii7uog37of1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=61301382a59bd7671163d02b77eb25115e5d46e8" title="Open-source Deep Research repo called ROMA beats every existing closed-source platform (ChatGPT, Perplexity, Kimi Researcher, Gemini, etc.) on Seal-0 and FRAMES" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Saw this announcement about ROMA, seems like a plug-and-play and the benchmarks are up there. Simple combo of recursion and multi-agent structure with search tool. Crazy this is all it takes to beat SOTA billion dollar AI companies :)&lt;/p&gt; &lt;p&gt;I've been trying it out for a few things, currently porting it to my finance and real estate research workflows, might be cool to see it combined with other tools and image/video:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sentient-agi/ROMA"&gt;https://x.com/sewoong79/status/1963711812035342382&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sentient-agi/ROMA"&gt;https://github.com/sentient-agi/ROMA&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Honestly shocked that this is open-source&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Embarrassed_Sir_853"&gt; /u/Embarrassed_Sir_853 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/sxii7uog37of1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nctfdv/opensource_deep_research_repo_called_roma_beats/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nctfdv/opensource_deep_research_repo_called_roma_beats/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T17:43:57+00:00</published>
+    <published>2025-09-09T20:01:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncccri</id>
@@ -138,17 +125,17 @@
     <published>2025-09-09T07:20:23+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ncme6t</id>
-    <title>ModernBERT just got multilingual - mmBERT by CLSP at The Johns Hopkins University</title>
-    <updated>2025-09-09T15:43:00+00:00</updated>
+    <id>t3_1ncpn3v</id>
+    <title>Qwen 8B on locally on iPhone - 10 tokens/s</title>
+    <updated>2025-09-09T17:43:57+00:00</updated>
     <author>
-      <name>/u/curiousily_</name>
-      <uri>https://old.reddit.com/user/curiousily_</uri>
+      <name>/u/Glad-Speaker3006</name>
+      <uri>https://old.reddit.com/user/Glad-Speaker3006</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;ModernBERT just got multilingual (mmBERT)&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Small (140M) and Base (307M) versions&lt;/li&gt; &lt;li&gt;Trained on 3T+ tokens from 1800 languages (DCLM, FineWeb, Code ...)&lt;/li&gt; &lt;li&gt;ModernBERT architecture, Gemma 2 tokenizer&lt;/li&gt; &lt;li&gt;8192 context window&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/jhu-clsp/mmbert-a-modern-multilingual-encoder-68b725831d7c6e3acc435ed4"&gt;Model weights collection&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/curiousily_"&gt; /u/curiousily_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"&gt; &lt;img alt="Qwen 8B on locally on iPhone - 10 tokens/s" src="https://external-preview.redd.it/eXJjdTFsY3hlNm9mMTOl0IOQAgqwlCRxZAKRf2LxKM72dLj3tO8fplxlobs7.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e01ea5518b0eb78fb9b35172121361951ee49972" title="Qwen 8B on locally on iPhone - 10 tokens/s" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We have pushed what is possible on mobile devices!&lt;/p&gt; &lt;p&gt;Vector Space a project and app that explores what is possible for AI on iOS devices. We believe are very capable devices for AI and we wish to help fill the gap that some company is leaving out. &lt;/p&gt; &lt;p&gt;I am pleased to announce that we have fit Qwen 8B to run on iPhone. It runs 10 token/s on iPhone 16, on ANE too - so it doesn’t drain your battery. Fitting a model this big to the memory limited environment of an iPhone required serious optimization and compression for the hardware.&lt;/p&gt; &lt;p&gt;Also, thanks to your feedback, you can now not only run, but SERVE all models ranging from Qwen 0.6B to 8B in a OpenAI compatible endpoint. You can point your app directly to this localhost endpoint to start saving from API cost now. Simply turn on the Web Server in settings after compiling a model. &lt;/p&gt; &lt;p&gt;You can try these features out today on our TestFlight beta app. You can download and run local models - including the 8B - without a line of code. If you encounter an issue, please report them - it will be much appreciated.&lt;/p&gt; &lt;p&gt;&lt;a href="https://testflight.apple.com/join/HXyt2bjU"&gt;https://testflight.apple.com/join/HXyt2bjU&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Please consider complete this survey to help determine what would be the next step for Vector Space&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/r/VectorSpaceApp/s/9ZZGS8YeeI"&gt;https://www.reddit.com/r/VectorSpaceApp/s/9ZZGS8YeeI&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Fine prints: -8B is tested on iPhone 16 only. iPhone 14 supports up to 4B. -Please delete and redownload if you are an existing tester. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Glad-Speaker3006"&gt; /u/Glad-Speaker3006 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/32o55chxe6of1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncpn3v/qwen_8b_on_locally_on_iphone_10_tokenss/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T15:43:00+00:00</published>
+    <published>2025-09-09T17:43:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1nckh4n</id>
@@ -164,30 +151,17 @@
     <published>2025-09-09T14:29:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ncsbro</id>
-    <title>MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science.</title>
-    <updated>2025-09-09T19:21:49+00:00</updated>
+    <id>t3_1ncme6t</id>
+    <title>ModernBERT just got multilingual - mmBERT by CLSP at The Johns Hopkins University</title>
+    <updated>2025-09-09T15:43:00+00:00</updated>
     <author>
-      <name>/u/FullOf_Bad_Ideas</name>
-      <uri>https://old.reddit.com/user/FullOf_Bad_Ideas</uri>
+      <name>/u/curiousily_</name>
+      <uri>https://old.reddit.com/user/curiousily_</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"&gt; &lt;img alt="MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science." src="https://external-preview.redd.it/NguS7X1dxgvLZ8EclNqhJxD0a-4fPSDfz1-q527PukQ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5f822a6c75b113bb5f07dc8583dea6f31081a289" title="MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullOf_Bad_Ideas"&gt; /u/FullOf_Bad_Ideas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/LLM360/K2-Think"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;ModernBERT just got multilingual (mmBERT)&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Small (140M) and Base (307M) versions&lt;/li&gt; &lt;li&gt;Trained on 3T+ tokens from 1800 languages (DCLM, FineWeb, Code ...)&lt;/li&gt; &lt;li&gt;ModernBERT architecture, Gemma 2 tokenizer&lt;/li&gt; &lt;li&gt;8192 context window&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/jhu-clsp/mmbert-a-modern-multilingual-encoder-68b725831d7c6e3acc435ed4"&gt;Model weights collection&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/curiousily_"&gt; /u/curiousily_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncme6t/modernbert_just_got_multilingual_mmbert_by_clsp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T19:21:49+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ncptut</id>
-    <title>Tensor Core Equivalent in the iPhone 17's A19 Pro</title>
-    <updated>2025-09-09T17:50:50+00:00</updated>
-    <author>
-      <name>/u/Mysterious_Finish543</name>
-      <uri>https://old.reddit.com/user/Mysterious_Finish543</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"&gt; &lt;img alt="Tensor Core Equivalent in the iPhone 17's A19 Pro" src="https://preview.redd.it/erdhiit5g6of1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5c7e880fb8ec110856ce09bcf45ddec4c93a8ec2" title="Tensor Core Equivalent in the iPhone 17's A19 Pro" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When this comes to Macs likely later this year or beginning of next year, this might patch up problem of the lack of compute on Macs for running LLMs, especially apparently with low prompt preprocessing speeds.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mysterious_Finish543"&gt; /u/Mysterious_Finish543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/erdhiit5g6of1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T17:50:50+00:00</published>
+    <published>2025-09-09T15:43:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncnqwl</id>
@@ -197,7 +171,7 @@
       <name>/u/spacespacespapce</name>
       <uri>https://old.reddit.com/user/spacespacespapce</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncnqwl/switching_to_qwen3480b_from_claude_as_resulted_in/"&gt; &lt;img alt="Switching to Qwen3-480B from Claude as resulted in lower errors when generating 3D model code" src="https://b.thumbs.redditmedia.com/UYWu7cPWzCS8pUM2Gjicdqj3jhCc5o0tP0VUmpXmHNg.jpg" title="Switching to Qwen3-480B from Claude as resulted in lower errors when generating 3D model code" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In my &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1n21tb6/comment/nb4h42v/"&gt;previous&lt;/a&gt; post I highlighted a Blender python agent I'm working on. I've been experimenting with various models and I found larger models like Claude and GPT-5 - even with reasoning - took too many iterations to produce working valid code. &lt;/p&gt; &lt;p&gt;So far Qwen's &lt;a href="https://huggingface.co/Qwen/Qwen3-Coder-480B-A35B-Instruct"&gt;largest coder model &lt;/a&gt;is my favourite.&lt;/p&gt; &lt;p&gt;I threw up the agent with a simple UI if you want to play with it yourself: &lt;a href="https://blender-ai.fly.dev/"&gt;https://blender-ai.fly.dev/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;You can also download the models it produces. An agent made with fully open source tools (Blender, MCP servers, Qwen) is blowing me away. &lt;/p&gt; &lt;p&gt;Let me know what you think! Happy to get feedback on this and make it even better.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/spacespacespapce"&gt; /u/spacespacespapce &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1ncnqwl"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncnqwl/switching_to_qwen3480b_from_claude_as_resulted_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncnqwl/switching_to_qwen3480b_from_claude_as_resulted_in/"&gt; &lt;img alt="Switching to Qwen3-480B from Claude as resulted in lower errors when generating 3D model code" src="https://b.thumbs.redditmedia.com/UYWu7cPWzCS8pUM2Gjicdqj3jhCc5o0tP0VUmpXmHNg.jpg" title="Switching to Qwen3-480B from Claude as resulted in lower errors when generating 3D model code" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In my &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1n21tb6/comment/nb4h42v/"&gt;previous&lt;/a&gt; post I highlighted a Blender python agent I'm working on. I've been experimenting with various models and I found larger models like Claude and GPT-5 - even with reasoning - took too many iterations to produce working valid code.&lt;/p&gt; &lt;p&gt;So far Qwen's &lt;a href="https://huggingface.co/Qwen/Qwen3-Coder-480B-A35B-Instruct"&gt;largest coder model &lt;/a&gt;is my favourite.&lt;/p&gt; &lt;p&gt;I threw up the agent with a simple UI if you want to play with it yourself: &lt;a href="https://blender-ai.fly.dev/"&gt;https://blender-ai.fly.dev/&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Post your generations below! You can also download the models it produces. An agent made with fully open source tools (Blender, MCP servers, Qwen) is blowing me away.&lt;/p&gt; &lt;p&gt;Let me know what you think! Happy to get feedback on this and make it even better.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/spacespacespapce"&gt; /u/spacespacespapce &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1ncnqwl"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncnqwl/switching_to_qwen3480b_from_claude_as_resulted_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncnqwl/switching_to_qwen3480b_from_claude_as_resulted_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-09T16:33:35+00:00</published>
@@ -216,6 +190,19 @@
     <published>2025-09-09T02:31:04+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ncptut</id>
+    <title>Tensor Core Equivalent in the iPhone 17's A19 Pro</title>
+    <updated>2025-09-09T17:50:50+00:00</updated>
+    <author>
+      <name>/u/Mysterious_Finish543</name>
+      <uri>https://old.reddit.com/user/Mysterious_Finish543</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"&gt; &lt;img alt="Tensor Core Equivalent in the iPhone 17's A19 Pro" src="https://preview.redd.it/erdhiit5g6of1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5c7e880fb8ec110856ce09bcf45ddec4c93a8ec2" title="Tensor Core Equivalent in the iPhone 17's A19 Pro" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When this comes to Macs likely later this year or beginning of next year, this might patch up problem of the lack of compute on Macs for running LLMs, especially apparently with low prompt preprocessing speeds.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mysterious_Finish543"&gt; /u/Mysterious_Finish543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/erdhiit5g6of1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncptut/tensor_core_equivalent_in_the_iphone_17s_a19_pro/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T17:50:50+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ncdobh</id>
     <title>Jan-v1-2509 update has been released</title>
     <updated>2025-09-09T08:50:39+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncdobh/janv12509_update_has_been_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-09T08:50:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ncsbro</id>
+    <title>MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science.</title>
+    <updated>2025-09-09T19:21:49+00:00</updated>
+    <author>
+      <name>/u/FullOf_Bad_Ideas</name>
+      <uri>https://old.reddit.com/user/FullOf_Bad_Ideas</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"&gt; &lt;img alt="MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science." src="https://external-preview.redd.it/NguS7X1dxgvLZ8EclNqhJxD0a-4fPSDfz1-q527PukQ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5f822a6c75b113bb5f07dc8583dea6f31081a289" title="MBZUAI releases K2 Think. 32B reasoning model based on Qwen 2.5 32B backbone, focusing on high performance in math, coding and science." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullOf_Bad_Ideas"&gt; /u/FullOf_Bad_Ideas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/LLM360/K2-Think"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncsbro/mbzuai_releases_k2_think_32b_reasoning_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T19:21:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncl7mx</id>
@@ -333,19 +333,6 @@
     <published>2025-09-09T14:29:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1nct0z8</id>
-    <title>Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)</title>
-    <updated>2025-09-09T19:47:12+00:00</updated>
-    <author>
-      <name>/u/XMasterrrr</name>
-      <uri>https://old.reddit.com/user/XMasterrrr</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"&gt; &lt;img alt="Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)" src="https://preview.redd.it/7vh8enuu07of1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e0f499252613d5bcf478fb1b75c594bb50f43436" title="Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/XMasterrrr"&gt; /u/XMasterrrr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/7vh8enuu07of1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T19:47:12+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1mpk2va</id>
     <title>Announcing LocalLlama discord server &amp; bot!</title>
     <updated>2025-08-13T23:21:05+00:00</updated>
@@ -357,5 +344,18 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1mpk2va/announcing_localllama_discord_server_bot/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-08-13T23:21:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1nct0z8</id>
+    <title>Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)</title>
+    <updated>2025-09-09T19:47:12+00:00</updated>
+    <author>
+      <name>/u/XMasterrrr</name>
+      <uri>https://old.reddit.com/user/XMasterrrr</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"&gt; &lt;img alt="Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)" src="https://preview.redd.it/7vh8enuu07of1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e0f499252613d5bcf478fb1b75c594bb50f43436" title="Our 3rd AMA: Unsloth Team, Creators of the lightning-fast Unsloth fine-tuning library! (Wednesday, 10 AM-1 PM PST)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/XMasterrrr"&gt; /u/XMasterrrr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/7vh8enuu07of1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nct0z8/our_3rd_ama_unsloth_team_creators_of_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T19:47:12+00:00</published>
   </entry>
 </feed>
