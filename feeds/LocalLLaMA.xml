@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-09-10T04:24:49+00:00</updated>
+  <updated>2025-09-10T04:36:24+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1ncovjy</id>
-    <title>Using vLLM for local use with Pipeline Parallelism and VLLM_PP_LAYER_PARTITION</title>
-    <updated>2025-09-09T17:15:38+00:00</updated>
-    <author>
-      <name>/u/bullerwins</name>
-      <uri>https://old.reddit.com/user/bullerwins</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most of us default to llama.cpp or exllamav2/v3+tabbyapi because you can mix and match GPUs with different VRAM. You can do something similar with vLLM and keep its nice perks (new model support, tool use) by switching from tensor parallelism to pipeline parallelism and manually partitioning layers. It also has much better support for parallel request, even using PP instead of TP in my testing, which llama.cpp and exllamav3 really lack proper support as they are more focuses on single requests for local use.&lt;/p&gt; &lt;p&gt;This is a guide on how I do it.&lt;/p&gt; &lt;p&gt;vLLM will evenly split layers across PP stages by default. That’s not ideal because stage 0 also holds the embedding and the last stage holds the LM head, so those two stages need &lt;em&gt;fewer&lt;/em&gt; transformer blocks. You can override the split with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;VLLM_PP_LAYER_PARTITION=&amp;quot;L0,L1,...,L{pp-1}&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;A comma-separated list of per-stage layer counts that must sum to the model’s total hidden layers. This variable is not really documented: &lt;a href="https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361"&gt;https://github.com/vllm-project/vllm/issues/6824#issuecomment-2276311361&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Steps:&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Find your model’s total layers. Open the model folder and inspect &lt;code&gt;config.json&lt;/code&gt;. You’re looking for &lt;code&gt;num_hidden_layers&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Decide PP size. Use the number of GPUs you want to shard across. In vLLM serve, that’s &lt;code&gt;--pipeline-parallel-size N&lt;/code&gt; (alias &lt;code&gt;-pp N&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Compute a partition. Pick a list whose sum equals &lt;code&gt;num_hidden_layers&lt;/code&gt;. Give fewer layers to stage 0 and the last stage to offset embeddings/LM head (e.g., on 4 GPUs for a 46-layer model: &lt;code&gt;12,12,11,11&lt;/code&gt; or even &lt;code&gt;13,13,10,10&lt;/code&gt; if stages 0/3 are on bigger cards).&lt;/li&gt; &lt;li&gt;Order your devices. Export &lt;code&gt;CUDA_VISIBLE_DEVICES&lt;/code&gt; so stages map to the GPUs you intend (stage 0 is the first ID, stage 1 the next, etc.). Use &lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID&lt;/code&gt; for stable numbering.&lt;/li&gt; &lt;li&gt;Launch vLLM. Example (GLM-4.5-Air AWQ, 4 stages, uneven split; GPUs ordered big→big→small→small): In my case CUDA0 and CUDA4=5090's and CUDA1 and CUDA3=3090's&lt;br /&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0,4,1,3 VLLM_PP_LAYER_PARTITION=&amp;quot;13,13,10,10&amp;quot; vllm serve /mnt/llms/models/cpatonn/GLM-4.5-Air-AWQ-4bit/ --served-model-name GLM-4.5-Air --pipeline-parallel-size 4 --tensor-parallel-size 1 --max-model-len 32768 --host 0.0.0.0 --port 8000 --tool-call-parser glm45 --reasoning-parser glm45 --enable-auto-tool-choice --dtype float16 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Note for FP8 on Ampere.&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;vLLM supports FP8 in two modes: &lt;ul&gt; &lt;li&gt;W8A8 with native FP8 GPUs like hopper or blackwell.&lt;/li&gt; &lt;li&gt;W8A16 (weight-only FP8) on Ampere via the Marlin kernel. That means you &lt;em&gt;can&lt;/em&gt; load FP8 checkpoints on A100/3090-class hardware as weight-only FP8.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;I tested using the &lt;code&gt;VLLM_TEST_FORCE_FP8_MARLIN&lt;/code&gt; but it doesn't work when mixing ampere and blackwell in my testing. So currently using fp8 models with ampere+blackwell doesn't work as far as I know.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If you don’t specifically need FP8, stick to FP16 or AWQ for simplicity, AWQ also has support for 8 bit quantization apart from the more common 4 bit.&lt;/p&gt; &lt;p&gt;For reasons now I have 4x3090, 2x5090 and 1xRTX pro 6000, so I've been experimenting a lot with a mixture of vram sizes and architectures and the -pp and VLLM_PP_LAYER_PARTITION is not really well documented so I wanted to share how to use it.&lt;/p&gt; &lt;p&gt;So if you don't need 2/3 or 5/6 bit quants, and want to experiment with vllm with a mixture of gpus I think this is a good alternative.&lt;/p&gt; &lt;p&gt;PS: i still need to test sglang, as it also has SGLANG_PP_LAYER_PARTITION but I think it has worse support for quant types like awq and gptq, so I haven't really dig into sglang too much yes outside the &amp;quot;proper&amp;quot; use of 1,2,4 gpus with TP.&lt;br /&gt; Note: I did use an LLM to structure the post.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullerwins"&gt; /u/bullerwins &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncovjy/using_vllm_for_local_use_with_pipeline/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T17:15:38+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1nd2ny0</id>
-    <title>Local LLM suite on iOS powered by llama cpp - with web search and RAG</title>
-    <updated>2025-09-10T02:39:31+00:00</updated>
-    <author>
-      <name>/u/Independent_Air8026</name>
-      <uri>https://old.reddit.com/user/Independent_Air8026</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"&gt; &lt;img alt="Local LLM suite on iOS powered by llama cpp - with web search and RAG" src="https://external-preview.redd.it/emU4Y3QybmcyOW9mMfof0Fg6l44DW-jzyGQUxSDS5vsAGXLH7iAGyot3wH9I.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=559e6be3e77af0bebef790ddcb0b4e8a93178c46" title="Local LLM suite on iOS powered by llama cpp - with web search and RAG" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been working on this for a bit and nearly ready to officially release but I’m building an LLM suite on top of llama with react native and built in some web search and embedding / RAG features and settings.&lt;/p&gt; &lt;p&gt;will be 100% free on App Store soon &lt;/p&gt; &lt;p&gt;just recorded this little demo where llama 3.2 1B Q4 tells me about today’s news and then the new iPhone 17 &lt;/p&gt; &lt;p&gt;runs significantly faster on real phone and not simulator &lt;/p&gt; &lt;p&gt;I have file upload- has web search- I don’t have image gen yet&lt;/p&gt; &lt;p&gt;What else am I missing?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Independent_Air8026"&gt; /u/Independent_Air8026 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/5dferowg29of1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-10T02:39:31+00:00</published>
-  </entry>
   <entry>
     <id>t3_1nd1t0f</id>
     <title>Exploring Small Models</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd1t0f/exploring_small_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-10T01:57:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1nd4m2h</id>
+    <title>Progress.</title>
+    <updated>2025-09-10T04:18:52+00:00</updated>
+    <author>
+      <name>/u/tarheelbandb</name>
+      <uri>https://old.reddit.com/user/tarheelbandb</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I attended GTC last year and I've legit been all in on AI. Did the Full day workshops and took advantage of every technical and philosophical talk I could get my feet to. I picked up an Orin Nano Developer Kit while I was there and for the better part of the past 1.5 years I've been getting a solid understanding of CV, SLMs (only 8gb😂) brainstorming with AI tools. I even introduced some productive workflows at work that save a few hours of work per week for my team. I recently started exploring agentic uses and subscribed to claude.ai. In 2 months went through ideation, planning to MVP on my first app. And because I'm old, the idea of renting something, especially @ hitting caps, runs me not well. I started playing around with aider and quickly found that the Orin Nano would not suffice. So I found an RTX 4080 Founders edition at a pretty good price on NewEgg I'm hopes I could replicate my experience with Claude. I've found that the 4080 is great with 14b models but for agentic stuff I quickly understood that I should probably get a MacBook Pro because of their unified memory is a better value than I'm not really keen on relearning MacOS but was willing to do it up until today. Today I came across this &lt;a href="https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395"&gt;https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395&lt;/a&gt; and now I am excited to run Qwen3-coder-30b-a3b-instruct when it arrives. I might even be able to resell my 4080. The last time I was this excited about tech was building RepRap Printers. &lt;/p&gt; &lt;p&gt;That's all. Thanks for reading. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tarheelbandb"&gt; /u/tarheelbandb &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd4m2h/progress/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd4m2h/progress/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd4m2h/progress/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-10T04:18:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1nckh4n</id>
@@ -60,6 +47,19 @@
     <published>2025-09-09T14:29:53+00:00</published>
   </entry>
   <entry>
+    <id>t3_1nc79yg</id>
+    <title>baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face</title>
+    <updated>2025-09-09T02:31:04+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"&gt; &lt;img alt="baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face" src="https://external-preview.redd.it/PVc8HBAyReu1sVKS98fa6WZXbf4lkkgSEZVgozf_73w.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a6d7b67af3eb2cf9bcf96edfb103c94299b667a8" title="baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Model Highlights&lt;/h1&gt; &lt;p&gt;Over the past three months, we have continued to scale the &lt;strong&gt;thinking capability&lt;/strong&gt; of ERNIE-4.5-21B-A3B, improving both the &lt;strong&gt;quality and depth&lt;/strong&gt; of reasoning, thereby advancing the competitiveness of ERNIE &lt;strong&gt;lightweight models&lt;/strong&gt; in complex reasoning tasks. We are pleased to introduce &lt;strong&gt;ERNIE-4.5-21B-A3B-Thinking&lt;/strong&gt;, featuring the following key enhancements:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Significantly improved performance&lt;/strong&gt; on reasoning tasks, including logical reasoning, mathematics, science, coding, text generation, and academic benchmarks that typically require human expertise.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Efficient tool usage&lt;/strong&gt; capabilities.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Enhanced 128K long-context understanding&lt;/strong&gt; capabilities.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;GGUF&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/gabriellarson/ERNIE-4.5-21B-A3B-Thinking-GGUF"&gt;https://huggingface.co/gabriellarson/ERNIE-4.5-21B-A3B-Thinking-GGUF&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/baidu/ERNIE-4.5-21B-A3B-Thinking"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-09T02:31:04+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ncme6t</id>
     <title>ModernBERT just got multilingual - mmBERT by CLSP at The Johns Hopkins University</title>
     <updated>2025-09-09T15:43:00+00:00</updated>
@@ -73,17 +73,17 @@
     <published>2025-09-09T15:43:00+00:00</published>
   </entry>
   <entry>
-    <id>t3_1nc79yg</id>
-    <title>baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face</title>
-    <updated>2025-09-09T02:31:04+00:00</updated>
+    <id>t3_1nd2ny0</id>
+    <title>Local LLM suite on iOS powered by llama cpp - with web search and RAG</title>
+    <updated>2025-09-10T02:39:31+00:00</updated>
     <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
+      <name>/u/Independent_Air8026</name>
+      <uri>https://old.reddit.com/user/Independent_Air8026</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"&gt; &lt;img alt="baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face" src="https://external-preview.redd.it/PVc8HBAyReu1sVKS98fa6WZXbf4lkkgSEZVgozf_73w.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a6d7b67af3eb2cf9bcf96edfb103c94299b667a8" title="baidu/ERNIE-4.5-21B-A3B-Thinking · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Model Highlights&lt;/h1&gt; &lt;p&gt;Over the past three months, we have continued to scale the &lt;strong&gt;thinking capability&lt;/strong&gt; of ERNIE-4.5-21B-A3B, improving both the &lt;strong&gt;quality and depth&lt;/strong&gt; of reasoning, thereby advancing the competitiveness of ERNIE &lt;strong&gt;lightweight models&lt;/strong&gt; in complex reasoning tasks. We are pleased to introduce &lt;strong&gt;ERNIE-4.5-21B-A3B-Thinking&lt;/strong&gt;, featuring the following key enhancements:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Significantly improved performance&lt;/strong&gt; on reasoning tasks, including logical reasoning, mathematics, science, coding, text generation, and academic benchmarks that typically require human expertise.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Efficient tool usage&lt;/strong&gt; capabilities.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Enhanced 128K long-context understanding&lt;/strong&gt; capabilities.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;GGUF&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/gabriellarson/ERNIE-4.5-21B-A3B-Thinking-GGUF"&gt;https://huggingface.co/gabriellarson/ERNIE-4.5-21B-A3B-Thinking-GGUF&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/baidu/ERNIE-4.5-21B-A3B-Thinking"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nc79yg/baiduernie4521ba3bthinking_hugging_face/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"&gt; &lt;img alt="Local LLM suite on iOS powered by llama cpp - with web search and RAG" src="https://external-preview.redd.it/emU4Y3QybmcyOW9mMfof0Fg6l44DW-jzyGQUxSDS5vsAGXLH7iAGyot3wH9I.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=559e6be3e77af0bebef790ddcb0b4e8a93178c46" title="Local LLM suite on iOS powered by llama cpp - with web search and RAG" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been working on this for a bit and nearly ready to officially release but I’m building an LLM suite on top of llama with react native and built in some web search and embedding / RAG features and settings.&lt;/p&gt; &lt;p&gt;will be 100% free on App Store soon &lt;/p&gt; &lt;p&gt;just recorded this little demo where llama 3.2 1B Q4 tells me about today’s news and then the new iPhone 17 &lt;/p&gt; &lt;p&gt;runs significantly faster on real phone and not simulator &lt;/p&gt; &lt;p&gt;I have file upload- has web search- I don’t have image gen yet&lt;/p&gt; &lt;p&gt;What else am I missing?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Independent_Air8026"&gt; /u/Independent_Air8026 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/5dferowg29of1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2ny0/local_llm_suite_on_ios_powered_by_llama_cpp_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-09T02:31:04+00:00</published>
+    <published>2025-09-10T02:39:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncdobh</id>
@@ -138,6 +138,19 @@
     <published>2025-09-09T23:57:31+00:00</published>
   </entry>
   <entry>
+    <id>t3_1nd2iq0</id>
+    <title>Are RTX 5090s good for running local LLMs?</title>
+    <updated>2025-09-10T02:32:19+00:00</updated>
+    <author>
+      <name>/u/Different_Ladder7580</name>
+      <uri>https://old.reddit.com/user/Different_Ladder7580</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been thinking about setting up a local AI workstation instead of renting cloud GPUs, and I’m curious if anyone here has firsthand experience with the RTX 5090 for training or inference.&lt;/p&gt; &lt;p&gt;From what I’ve seen, the 32GB VRAM and memory bandwidth should make it pretty solid for medium-sized models, but I’m wondering if anyone has benchmarks compared to 4090s or workstation cards (H100, A6000, etc.).&lt;/p&gt; &lt;p&gt;Is this a good deal?: [&lt;a href="https://ebay.us/m/zVTrIw"&gt;link&lt;/a&gt;].&lt;/p&gt; &lt;p&gt;Would love to hear thoughts: is the 5090 actually worth it for local LLMs, or should I be looking at a different setup (multi-GPU, Threadripper/EPYC, etc.)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Different_Ladder7580"&gt; /u/Different_Ladder7580 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-10T02:32:19+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ncptut</id>
     <title>Tensor Core Equivalent in the iPhone 17's A19 Pro</title>
     <updated>2025-09-09T17:50:50+00:00</updated>
@@ -162,19 +175,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ncl7mx/mmbert_modernbert_goes_multilingual/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-09T14:58:03+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1nd2iq0</id>
-    <title>Are RTX 5090s good for running local LLMs?</title>
-    <updated>2025-09-10T02:32:19+00:00</updated>
-    <author>
-      <name>/u/Different_Ladder7580</name>
-      <uri>https://old.reddit.com/user/Different_Ladder7580</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been thinking about setting up a local AI workstation instead of renting cloud GPUs, and I’m curious if anyone here has firsthand experience with the RTX 5090 for training or inference.&lt;/p&gt; &lt;p&gt;From what I’ve seen, the 32GB VRAM and memory bandwidth should make it pretty solid for medium-sized models, but I’m wondering if anyone has benchmarks compared to 4090s or workstation cards (H100, A6000, etc.).&lt;/p&gt; &lt;p&gt;Is this a good deal?: [&lt;a href="https://ebay.us/m/zVTrIw"&gt;link&lt;/a&gt;].&lt;/p&gt; &lt;p&gt;Would love to hear thoughts: is the 5090 actually worth it for local LLMs, or should I be looking at a different setup (multi-GPU, Threadripper/EPYC, etc.)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Different_Ladder7580"&gt; /u/Different_Ladder7580 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nd2iq0/are_rtx_5090s_good_for_running_local_llms/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-10T02:32:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1ncam9h</id>
