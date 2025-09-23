@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-09-23T13:51:24+00:00</updated>
+  <updated>2025-09-23T14:06:47+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1no4ho1</id>
+    <title>Some things I learned about installing flash-attn</title>
+    <updated>2025-09-23T01:28:07+00:00</updated>
+    <author>
+      <name>/u/ReinforcedKnowledge</name>
+      <uri>https://old.reddit.com/user/ReinforcedKnowledge</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone!&lt;/p&gt; &lt;p&gt;I don't know if this is the best place to post this but a colleague of mine told me I should post it here. These last days I worked a lot on setting up `flash-attn` for various stuff (tests, CI, benchmarks etc.) and on various targets (large-scale clusters, small local GPUs etc.) and I just thought I could crystallize some of the things I've learned.&lt;/p&gt; &lt;p&gt;First and foremost I think `uv`'s &lt;a href="https://docs.astral.sh/uv/concepts/projects/config/#build-isolation"&gt;https://docs.astral.sh/uv/concepts/projects/config/#build-isolation&lt;/a&gt; covers everything's needed. But working with teams and codebases that already had their own set up, I discovered that people do not always apply the rules correctly or maybe they don't work for them for some reason and having understanding helps a lot.&lt;/p&gt; &lt;p&gt;Like any other Python package there are two ways to install it, either using a prebuilt wheel, which is the easy path, or building it from source, which is the harder path. &lt;/p&gt; &lt;p&gt;For wheels, you can find them here &lt;a href="https://github.com/Dao-AILab/flash-attention/releases"&gt;https://github.com/Dao-AILab/flash-attention/releases&lt;/a&gt; and what do you need for wheels? Almost nothing! No nvcc required. CUDA toolkit not strictly needed to install Matching is based on: CUDA major used by your PyTorch build (normalized to 11 or 12 in FA’s setup logic), torch major.minor, cxx11abi flag, CPython tag, platform. Wheel names look like: flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp313-cp313-linux_x86_64.wh and you can set up this flag `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE` which will skip compile, will make you fail fast if no wheel is found.&lt;/p&gt; &lt;p&gt;For building from source, you'll either build for CUDA or for ROCm (AMD GPUs). I'm not knowledgeable about ROCm and AMD GPUs unfortunately but I think the build path is similar to CUDA's. What do you need? Requires: nvcc (CUDA &amp;gt;= 11.7), C++17 compiler, CUDA PyTorch, Ampere+ GPU (SM &amp;gt;= 80: 80/90/100/101/110/120 depending on toolkit), CUTLASS bundled via submodule/sdist. You can narrow targets with `FLASH_ATTN_CUDA_ARCHS` (e.g. 90 for H100, 100 for Blackwell). Otherwise targets will be added depending on your CUDA version. Flags that might help:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;MAX_JOBS&lt;/code&gt; (from ninja for parallelizing the build) + &lt;code&gt;NVCC_THREADS&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;CUDA_HOME&lt;/code&gt; for cleaner detection (less flaky builds)&lt;/li&gt; &lt;li&gt;&lt;code&gt;FLASH_ATTENTION_FORCE_BUILD=TRUE&lt;/code&gt; if you want to compile even when a wheel exists&lt;/li&gt; &lt;li&gt;&lt;code&gt;FLASH_ATTENTION_FORCE_CXX11_ABI=TRUE&lt;/code&gt; if your base image/toolchain needs C++11 ABI to match PyTorch&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Now when it comes to installing the package itself using a package manager, you can either do it with build isolation or without. I think most of you have always done it without build isolation, I think for a long time that was the only way so I'll only talk about the build isolation part. So build isolation will build flash-attn in an isolated environment. So you need torch in that isolated build environment. With `uv` you can do that by adding a `[tool.uv.extra-build-dependencies]` section and add `torch` under it. But, &lt;strong&gt;pinning torch there only affects the build env but runtime may still resolve to a different version&lt;/strong&gt;. So you either add `torch` to your base dependencies and make sure that both have the same version or you can just have it in your base deps and use `match-runtime = true` so build-time and runtime torch align. This might cause an issue though with older versions of `flash-attn` with METADATA_VERSION 2.1 since `uv` can't parse it and you'll have to supply it manually with [[tool.uv.dependency-metadata]] (a problem we didn't encounter with the simple torch declaration in [tool.uv.extra-build-dependencies]).&lt;/p&gt; &lt;p&gt;And for all of this having an extra with flash-attn works fine and similarly as having it as a base dep. Just use the same rules :)&lt;/p&gt; &lt;p&gt;I wrote a small blog article about this where I go into a little bit more details but the above is the crystalization of everything I've learned. The rules of this sub are 1/10 (self-promotion / content) so I don't want to put it here but if anyone is interested I'd be happy to share it with you :D&lt;/p&gt; &lt;p&gt;Hope this helps in case you struggle with FA!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ReinforcedKnowledge"&gt; /u/ReinforcedKnowledge &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1no4ho1/some_things_i_learned_about_installing_flashattn/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1no4ho1/some_things_i_learned_about_installing_flashattn/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1no4ho1/some_things_i_learned_about_installing_flashattn/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-23T01:28:07+00:00</published>
+  </entry>
   <entry>
     <id>t3_1no3qka</id>
     <title>GLM 4.5 Air Template Breaking llamacpp Prompt Caching</title>
@@ -58,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nntdok/qwen3omni_looks_insane/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-22T17:48:53+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1noe3wq</id>
-    <title>Best open model for generating audiobooks?</title>
-    <updated>2025-09-23T10:50:05+00:00</updated>
-    <author>
-      <name>/u/Amgadoz</name>
-      <uri>https://old.reddit.com/user/Amgadoz</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;I read a lot of novels that don't have an audiobook version. I want to develop a solution where I can feed in the chatper text and get back a narrated version. Which TTS would you recommend?&lt;/p&gt; &lt;p&gt;Most chapters are 2k tokens .&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Amgadoz"&gt; /u/Amgadoz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-23T10:50:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1nnsx1a</id>
@@ -125,17 +125,17 @@
     <published>2025-09-23T03:06:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1nogrv2</id>
-    <title>Computer literally warms my room by 5 degrees Celsius during sustained generations</title>
-    <updated>2025-09-23T13:01:27+00:00</updated>
+    <id>t3_1noe3wq</id>
+    <title>Best open model for generating audiobooks?</title>
+    <updated>2025-09-23T10:50:05+00:00</updated>
     <author>
-      <name>/u/nad_lab</name>
-      <uri>https://old.reddit.com/user/nad_lab</uri>
+      <name>/u/Amgadoz</name>
+      <uri>https://old.reddit.com/user/Amgadoz</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I don’t know how to even go about fixing this other than opening a window but for a workflow I have gpt-oss 20 b running for hours and my room acc heats up, I usually love mechanical and technological heat like 3d printing heat or heat when I play video games / pcvr BUT THIS, these ai workloads literally feel like a warm updraft from my computer, any thoughts on what to do? Anything helps on the software side to help not be so hot, yes I can and do open a window, and I live in Canada so I’m very very excited to not pay a heating bill this month cuz of this RTX 5060 ti 16 gb ram with a 3950x, cuz istg rn in the summer/fall my room avgs 30 deg c&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nad_lab"&gt; /u/nad_lab &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;I read a lot of novels that don't have an audiobook version. I want to develop a solution where I can feed in the chatper text and get back a narrated version. Which TTS would you recommend?&lt;/p&gt; &lt;p&gt;Most chapters are 2k tokens .&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Amgadoz"&gt; /u/Amgadoz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1noe3wq/best_open_model_for_generating_audiobooks/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-23T13:01:27+00:00</published>
+    <published>2025-09-23T10:50:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1nnmhai</id>
@@ -149,19 +149,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nnmhai/deepseek_released_deepseekv31terminus/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-22T13:27:35+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1nogwyu</id>
-    <title>Qwen3 15B MoE when are y’all dropping the instruct model it’s been since March since the base was done.</title>
-    <updated>2025-09-23T13:07:36+00:00</updated>
-    <author>
-      <name>/u/TroyDoesAI</name>
-      <uri>https://old.reddit.com/user/TroyDoesAI</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TroyDoesAI"&gt; /u/TroyDoesAI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1nogwyu"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nogwyu/qwen3_15b_moe_when_are_yall_dropping_the_instruct/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nogwyu/qwen3_15b_moe_when_are_yall_dropping_the_instruct/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-23T13:07:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1nof8l9</id>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nnwdnq/stay_tuned_qwen_is_coming/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-22T19:41:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1nogrv2</id>
+    <title>Computer literally warms my room by 5 degrees Celsius during sustained generations</title>
+    <updated>2025-09-23T13:01:27+00:00</updated>
+    <author>
+      <name>/u/nad_lab</name>
+      <uri>https://old.reddit.com/user/nad_lab</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I don’t know how to even go about fixing this other than opening a window but for a workflow I have gpt-oss 20 b running for hours and my room acc heats up, I usually love mechanical and technological heat like 3d printing heat or heat when I play video games / pcvr BUT THIS, these ai workloads literally feel like a warm updraft from my computer, any thoughts on what to do? Anything helps on the software side to help not be so hot, yes I can and do open a window, and I live in Canada so I’m very very excited to not pay a heating bill this month cuz of this RTX 5060 ti 16 gb ram with a 3950x, cuz istg rn in the summer/fall my room avgs 30 deg c&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nad_lab"&gt; /u/nad_lab &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1nogrv2/computer_literally_warms_my_room_by_5_degrees/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-23T13:01:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1nnt539</id>
@@ -281,19 +281,6 @@
     <published>2025-09-23T01:24:25+00:00</published>
   </entry>
   <entry>
-    <id>t3_1noefxl</id>
-    <title>Parkiet: Fine-tuning Dia for any language</title>
-    <updated>2025-09-23T11:09:00+00:00</updated>
-    <author>
-      <name>/u/pevers</name>
-      <uri>https://old.reddit.com/user/pevers</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"&gt; &lt;img alt="Parkiet: Fine-tuning Dia for any language" src="https://preview.redd.it/r8293025cwqf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=755e9d237792b112ecde2c2f108d85f0258fc59a" title="Parkiet: Fine-tuning Dia for any language" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;A lot of the open-source TTS models are released for English or Chinese and lack support for other languages. I was curious to see if I could train a state-of-the-art text-to-speech (TTS) model for Dutch by using Google's free TPU Research credits. I open-sourced the weights, and documented the whole journey, from Torch model conversion, data preparation, JAX training code and inference pipeline here &lt;a href="https://github.com/pevers/parkiet"&gt;https://github.com/pevers/parkiet&lt;/a&gt; . Hopefully it can serve as a guide for others that are curious to train these models for other languages (without burning through all the credits trying to fix the pipeline). &lt;/p&gt; &lt;p&gt;Spoiler: the results are great! I believe they are *close* to samples generated with ElevenLabs. I spent about $300, mainly on GCS egress. Sample comparison can be found here &lt;a href="https://peterevers.nl/posts/2025/09/parkiet/"&gt;https://peterevers.nl/posts/2025/09/parkiet/&lt;/a&gt; .&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pevers"&gt; /u/pevers &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/r8293025cwqf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-09-23T11:09:00+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1no765m</id>
     <title>how is qwen shipping so hard</title>
     <updated>2025-09-23T03:41:27+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1no765m/how_is_qwen_shipping_so_hard/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-09-23T03:41:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1noefxl</id>
+    <title>Parkiet: Fine-tuning Dia for any language</title>
+    <updated>2025-09-23T11:09:00+00:00</updated>
+    <author>
+      <name>/u/pevers</name>
+      <uri>https://old.reddit.com/user/pevers</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"&gt; &lt;img alt="Parkiet: Fine-tuning Dia for any language" src="https://preview.redd.it/r8293025cwqf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=755e9d237792b112ecde2c2f108d85f0258fc59a" title="Parkiet: Fine-tuning Dia for any language" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;A lot of the open-source TTS models are released for English or Chinese and lack support for other languages. I was curious to see if I could train a state-of-the-art text-to-speech (TTS) model for Dutch by using Google's free TPU Research credits. I open-sourced the weights, and documented the whole journey, from Torch model conversion, data preparation, JAX training code and inference pipeline here &lt;a href="https://github.com/pevers/parkiet"&gt;https://github.com/pevers/parkiet&lt;/a&gt; . Hopefully it can serve as a guide for others that are curious to train these models for other languages (without burning through all the credits trying to fix the pipeline). &lt;/p&gt; &lt;p&gt;Spoiler: the results are great! I believe they are *close* to samples generated with ElevenLabs. I spent about $300, mainly on GCS egress. Sample comparison can be found here &lt;a href="https://peterevers.nl/posts/2025/09/parkiet/"&gt;https://peterevers.nl/posts/2025/09/parkiet/&lt;/a&gt; .&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pevers"&gt; /u/pevers &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/r8293025cwqf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1noefxl/parkiet_finetuning_dia_for_any_language/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-09-23T11:09:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1noe09l</id>
