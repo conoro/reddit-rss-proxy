@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2025-09-26T10:24:34+00:00</updated>
+  <updated>2025-09-26T10:37:34+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1nomwnd</id>
-    <title>Performance Expectations? [AMD 7840HS / 780M]</title>
-    <updated>2025-09-23T16:59:03+00:00</updated>
-    <author>
-      <name>/u/AftermarketMesomorph</name>
-      <uri>https://old.reddit.com/user/AftermarketMesomorph</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TL;DR: Do these results make sense, or is something misconfigured? The iGPU doesn't seem to give much benefit for me.&lt;/p&gt; &lt;p&gt;edit: Fixed formatting&lt;/p&gt; &lt;p&gt;I'm playing around with ollama on a Minisforum UM780 XTX machine and after some simple prompts, I'm not sure if there is any real benefit to using the iGPU over just the CPU. In fact, there's very little air between the two.&lt;/p&gt; &lt;h2&gt;Host config:&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;CPU: 7840HS @ 54W&lt;/li&gt; &lt;li&gt;RAM: 32 GiB DDR5 5600 CL40-40-40-89 (G.SKILL F5-5600S4040A16GX2-RS)&lt;/li&gt; &lt;li&gt;GPU: 780M iGPU&lt;/li&gt; &lt;li&gt;OS: Ubuntu 24.04 LTS&lt;/li&gt; &lt;li&gt;VRAM: Set in BIOS to 16 GiB (max)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The most VRAM that can be set is 16 GiB, leaving 16 GiB for the OS.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# free -h total used free shared buff/cache available Mem: 15Gi 3.1Gi 9.7Gi 161Mi 3.1Gi 12Gi Swap: 8.0Gi 998Mi 7.0Gi &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I have installed the latest AMD drivers and used the &lt;code&gt;curl | sh&lt;/code&gt; method to install ollama. In order to enable the iGPU with ROCm, I've run &lt;code&gt;systemctl edit ollama.service&lt;/code&gt; and added the following:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[Service] Environment=&amp;quot;HSA_OVERRIDE_GFX_VERSION=11.0.0&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The service was then restarted with &lt;code&gt;systemctl restart ollama.service&lt;/code&gt;. &lt;/p&gt; &lt;p&gt;Disabling the iGPU is accomplished by commenting out the &lt;code&gt;Environment&lt;/code&gt; line and restarting the service.&lt;/p&gt; &lt;h2&gt;Model:&lt;/h2&gt; &lt;p&gt;I'm using &lt;code&gt;qwen3:latest&lt;/code&gt; - No particular reason, other than it fitting into VRAM. &lt;code&gt;qwen3:14b&lt;/code&gt; should fit, but winds up split between CPU and GPU.&lt;/p&gt; &lt;h2&gt;Prompting:&lt;/h2&gt; &lt;p&gt;In both CPU and GPU scenarios, I've issued the prompt from the command line rather than the readline interface. The model is loaded once before issuing prompts to reduce the impact on measurements.&lt;/p&gt; &lt;p&gt;The test is run using this script:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;#!/bin/sh -xe OLLAMA=/usr/local/bin/ollama MODEL=&amp;quot;qwen3:latest&amp;quot; PROMPT=&amp;quot;How much wood would a woodchuck chuck if a woodchuck could chuck wood?&amp;quot; # Pre-load model &amp;quot;${OLLAMA}&amp;quot; stop &amp;quot;${MODEL}&amp;quot; || true &amp;quot;${OLLAMA}&amp;quot; run --verbose --nowordwrap --keepalive 60m &amp;quot;${MODEL}&amp;quot; &amp;quot;&amp;quot; # Run 6 times and record output. The first run will be discarded. for run_num in $( seq 0 5 ); do OUT_FILE=&amp;quot;${PWD}/llm.out.${run_num}&amp;quot; &amp;quot;${OLLAMA}&amp;quot; ps 2&amp;gt;&amp;amp;1 | tee -a &amp;quot;${OUT_FILE}&amp;quot; &amp;quot;${OLLAMA}&amp;quot; run --verbose --nowordwrap --keepalive 60m &amp;quot;${MODEL}&amp;quot; &amp;quot;${PROMPT}&amp;quot; 2&amp;gt;&amp;amp;1 \ | tee -a &amp;quot;${OUT_FILE}&amp;quot; done &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Results:&lt;/h2&gt; &lt;p&gt;Each modality had a single outlier which affected the prompt evaluation rate. The GPU outlier was on the third run while the CPU outlier was on the first. I am not excluding these from the results since they appear to be genuine.&lt;/p&gt; &lt;p&gt;The CPU had an average prompt eval rate of 254.1 tokens/s and median of 294.4. The stddev was 110.899. The min rate was 46.83 token/s and the max was 298 token/s.&lt;/p&gt; &lt;p&gt;The average CPU response eval rate was 10.7 tokens/s, median of 10.6, and a stddev of 0.068. The number of response tokens ranged from 663 - 1263 with a mean of 896, median of 758, and stddev of 273.&lt;/p&gt; &lt;p&gt;The GPU had an average prompt eval rate of 4912.0 tokens/s and median of 5794.7. The stddev was 2597.075. The min rate was 341, max was 6622. The median was 5794 and the stddev was 2597.&lt;/p&gt; &lt;p&gt;The average CPU response eval rate was between 11.66 and 13.03 with an average of 12.6 tokens/s, median of 13.0, and a stddev of 0.590.&lt;/p&gt; &lt;p&gt;For the relatively simple prompt, the GPU gives a ~ 20% improvement for the response. Evaluating the prompt give ~ 2000% but the actual improvement is less than 1 second.&lt;/p&gt; &lt;p&gt;The response rate was only slightly improved by the GPU. 20% is nothing to sneeze at, but not revolutionary...&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AftermarketMesomorph"&gt; /u/AftermarketMesomorph &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nomwnd/performance_expectations_amd_7840hs_780m/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nomwnd/performance_expectations_amd_7840hs_780m/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1nomwnd/performance_expectations_amd_7840hs_780m/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2025-09-23T16:59:03+00:00</published>
-  </entry>
   <entry>
     <id>t3_1noijqp</id>
     <title>Best PHP Coding Model for 5060ti 16GB/128GB RAM</title>
@@ -216,19 +203,6 @@
     <published>2025-09-25T22:23:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1nqknap</id>
-    <title>How to change design of 3500 images fast,easy and extremely accurate?</title>
-    <updated>2025-09-25T22:29:08+00:00</updated>
-    <author>
-      <name>/u/Real_Investment_3726</name>
-      <uri>https://old.reddit.com/user/Real_Investment_3726</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt; &lt;img alt="How to change design of 3500 images fast,easy and extremely accurate?" src="https://b.thumbs.redditmedia.com/90gmZt2Rvlu4nBkCtORFJFssImuOYj2OTFVEdj5_7RY.jpg" title="How to change design of 3500 images fast,easy and extremely accurate?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;How to change the design of 3500 football training exercise images, fast, easily, and extremely accurately? It's not necessary to be 3500 at once; 50 by 50 is totally fine as well, but only if it's extremely accurate.&lt;/p&gt; &lt;p&gt;I was thinking of using the OpenAI API in my custom project and with a prompt to modify a large number of exercises at once (from .png to create a new .png with the Image creator), but the problem is that ChatGPT 5's vision capabilities and image generation were not accurate enough. It was always missing some of the balls, lines, and arrows; some of the arrows were not accurate enough. For example, when I ask ChatGPT to explain how many balls there are in an exercise image and to make it in JSON, instead of hitting the correct number, 22, it hits 5-10 instead, which is pretty terrible if I want perfect or almost perfect results. Seems like it's bad at counting.&lt;/p&gt; &lt;p&gt;Guys how to change design of 3500 images fast,easy and extremely accurate?&lt;/p&gt; &lt;p&gt;That's what OpenAI image generator generated. On the left side is the generated image and on the right side is the original:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/9qlzma6e0erf1.png?width=2351&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cd33b97691d9e207edfbaaffcfb489ec4195e19b"&gt;https://preview.redd.it/9qlzma6e0erf1.png?width=2351&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cd33b97691d9e207edfbaaffcfb489ec4195e19b&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Real_Investment_3726"&gt; /u/Real_Investment_3726 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2025-09-25T22:29:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1nqb2ij</id>
     <title>How can I minimize cold start time?</title>
     <updated>2025-09-25T16:15:39+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1nqb2ij/how_can_i_minimize_cold_start_time/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2025-09-25T16:15:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1nqknap</id>
+    <title>How to change design of 3500 images fast,easy and extremely accurate?</title>
+    <updated>2025-09-25T22:29:08+00:00</updated>
+    <author>
+      <name>/u/Real_Investment_3726</name>
+      <uri>https://old.reddit.com/user/Real_Investment_3726</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt; &lt;img alt="How to change design of 3500 images fast,easy and extremely accurate?" src="https://b.thumbs.redditmedia.com/90gmZt2Rvlu4nBkCtORFJFssImuOYj2OTFVEdj5_7RY.jpg" title="How to change design of 3500 images fast,easy and extremely accurate?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;How to change the design of 3500 football training exercise images, fast, easily, and extremely accurately? It's not necessary to be 3500 at once; 50 by 50 is totally fine as well, but only if it's extremely accurate.&lt;/p&gt; &lt;p&gt;I was thinking of using the OpenAI API in my custom project and with a prompt to modify a large number of exercises at once (from .png to create a new .png with the Image creator), but the problem is that ChatGPT 5's vision capabilities and image generation were not accurate enough. It was always missing some of the balls, lines, and arrows; some of the arrows were not accurate enough. For example, when I ask ChatGPT to explain how many balls there are in an exercise image and to make it in JSON, instead of hitting the correct number, 22, it hits 5-10 instead, which is pretty terrible if I want perfect or almost perfect results. Seems like it's bad at counting.&lt;/p&gt; &lt;p&gt;Guys how to change design of 3500 images fast,easy and extremely accurate?&lt;/p&gt; &lt;p&gt;That's what OpenAI image generator generated. On the left side is the generated image and on the right side is the original:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/9qlzma6e0erf1.png?width=2351&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cd33b97691d9e207edfbaaffcfb489ec4195e19b"&gt;https://preview.redd.it/9qlzma6e0erf1.png?width=2351&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cd33b97691d9e207edfbaaffcfb489ec4195e19b&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Real_Investment_3726"&gt; /u/Real_Investment_3726 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1nqknap/how_to_change_design_of_3500_images_fasteasy_and/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2025-09-25T22:29:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1nq0fgx</id>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1nqhnrc/do_you_give_your_models_a_system_prompt_if_so_can/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2025-09-25T20:27:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1nqxvsn</id>
+    <title>Ollama hangs after a while</title>
+    <updated>2025-09-26T10:34:35+00:00</updated>
+    <author>
+      <name>/u/Aggravating_Pin_8922</name>
+      <uri>https://old.reddit.com/user/Aggravating_Pin_8922</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am using ollama to run models on prem, in order to call them from my code using langchain.&lt;/p&gt; &lt;p&gt;I've noticed that everytime I run ollama for a long time, it starts hangging and I have to reboot it otherwise it doesn't work.&lt;/p&gt; &lt;p&gt;I've also tried to do &amp;quot;ollama run &amp;lt;model&amp;gt;&amp;quot; using the terminal and it also freezes when I do it.&lt;/p&gt; &lt;p&gt;Has anyone had similar problems? How did you overcome them?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Aggravating_Pin_8922"&gt; /u/Aggravating_Pin_8922 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqxvsn/ollama_hangs_after_a_while/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1nqxvsn/ollama_hangs_after_a_while/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1nqxvsn/ollama_hangs_after_a_while/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2025-09-26T10:34:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1nqpz41</id>
