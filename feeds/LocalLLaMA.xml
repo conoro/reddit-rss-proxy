@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-17T13:50:12+00:00</updated>
+  <updated>2025-10-17T14:06:49+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1o8jocc</id>
-    <title>Improving low VRAM performance for dense models using MoE offload technique</title>
-    <updated>2025-10-16T22:02:16+00:00</updated>
-    <author>
-      <name>/u/eloquentemu</name>
-      <uri>https://old.reddit.com/user/eloquentemu</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;MoE partial offload, i.e. keeping experts on CPU and the context, attention, etc on GPU, has two benefits:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The non-sparse data is kept on fast VRAM&lt;/li&gt; &lt;li&gt;Everything needed to handle context computations is on GPU&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For dense models the first point is fairly irrelevant since, well, it's all dense so how you offload isn't really going to change bandwidth needs. However the second still applies and, MoE or not, compute for attention scales with context size but doesn't for the feed forward network (FFN). Thus, in theory, given the same VRAM we should be able to get much better scaling by offloading non-ffn tensors first to the GPU, rather than just whole layers.&lt;/p&gt; &lt;p&gt;There is no handy &lt;code&gt;--n-cpu-moe&lt;/code&gt; for this, but we can use the old &lt;code&gt;-ot exps=CPU&lt;/code&gt; tool to make it work. For MoE models the tensors look like &lt;code&gt;blk.2.ffn_down_exps.weight&lt;/code&gt; (note the &amp;quot;exps&amp;quot;) whereas a dense model has names like &lt;code&gt;blk.2.ffn_down.weight&lt;/code&gt; so here we just match all the FFN tensors and put them on CPU with &lt;code&gt;-ot ffn=CPU&lt;/code&gt;. &lt;code&gt;-ngl 99&lt;/code&gt; then offloads everything else:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;model&lt;/th&gt; &lt;th align="right"&gt;size&lt;/th&gt; &lt;th align="right"&gt;params&lt;/th&gt; &lt;th&gt;backend&lt;/th&gt; &lt;th align="right"&gt;ngl&lt;/th&gt; &lt;th align="right"&gt;fa&lt;/th&gt; &lt;th&gt;ot&lt;/th&gt; &lt;th align="right"&gt;context&lt;/th&gt; &lt;th align="right"&gt;test&lt;/th&gt; &lt;th align="right"&gt;t/s&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;273.22&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;4096&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;272.13&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;16384&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;253.86&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;65536&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;188.39&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;8.40&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;4096&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;7.99&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;16384&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;7.87&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;65536&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;7.17&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;291.84&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;4096&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;280.37&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;16384&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;246.97&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;65536&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;155.81&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;8.84&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;4096&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;5.22&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;16384&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;2.42&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;llama 70B Q4_K_M&lt;/td&gt; &lt;td align="right"&gt;39.59 GiB&lt;/td&gt; &lt;td align="right"&gt;70.55 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;21&lt;/td&gt; &lt;td align="right"&gt;1&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td align="right"&gt;65536&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;0.76&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;We can see that using &lt;code&gt;-ot ffn=CPU&lt;/code&gt; scales dramatically better with context than &lt;code&gt;-ngl ??&lt;/code&gt;. The value of &lt;code&gt;-ngl 21&lt;/code&gt; here was chosen to match the VRAM utilization of &lt;code&gt;-ot ffn=CPU -c 16384&lt;/code&gt; which is about 13.7GB (note that I didn't quantize context!). The one tradeoff in terms of VRAM utilization is that this puts all the context on the GPU rather than splitting it based on &lt;code&gt;-ngl&lt;/code&gt;. As a result the fraction of model you can fit into VRAM is reduced and thus you'd expect worse performance at short context lengths. This is generally quite minor, but as always, test on your hardware. (Note that the test system is an Epyc + 6000 Blackwell so quite chonky with a lot of compute but see my laptop below test below for the opposite.)&lt;/p&gt; &lt;p&gt;Tuning for your system: - Quantize your context (e.g. &lt;code&gt;-ctk q8_0 -ctv q8_0&lt;/code&gt;) if you want/can: As mentioned, pretty much the point of this is to put the context on GPU so it'll use more VRAM than it would with &lt;code&gt;-ngl&lt;/code&gt; where some fraction of the context would be on CPU with the CPU layers. - Offloading less: If you don't have enough VRAM to handle &lt;code&gt;-ngl 99 -ot ffn=CPU&lt;/code&gt; then just use &lt;code&gt;-ngl 50&lt;/code&gt; or whatever. You'll still get better context length scaling, but obviously it won't be perfect. - Offloading more: If you have leftover VRAM after your &lt;code&gt;-ngl 99 -ot ffn=CPU -c ????&lt;/code&gt; then you can offload some of the ffn layers by doing &lt;code&gt;blk.(0|1|2|3|4).ffn=CPU&lt;/code&gt; or &lt;code&gt;blk.[2-9][0-9].ffn=CPU&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Here's a test on my laptop with a &amp;quot;can't believe it's not a 4070&amp;quot; GPU (8GB w/ ~6GB free) and 2ch 6400MHz DDR5. I only go to 10k context (quantized q8_0) and the difference isn't as quite as dramatic but it's still a ~80% improvement at full context length which is nothing to scoff at:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="right"&gt;size&lt;/th&gt; &lt;th align="right"&gt;params&lt;/th&gt; &lt;th&gt;backend&lt;/th&gt; &lt;th align="right"&gt;ngl&lt;/th&gt; &lt;th&gt;ot&lt;/th&gt; &lt;th align="right"&gt;context&lt;/th&gt; &lt;th align="right"&gt;test&lt;/th&gt; &lt;th align="right"&gt;t/s&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td&gt;blk.([8-9]&amp;#124;[1-9][0-9]).ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;428.51&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td&gt;blk.([8-9]&amp;#124;[1-9][0-9]).ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;10000&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;375.32&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td&gt;blk.([8-9]&amp;#124;[1-9][0-9]).ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;4.31&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;99&lt;/td&gt; &lt;td&gt;blk.([8-9]&amp;#124;[1-9][0-9]).ffn=CPU&lt;/td&gt; &lt;td align="right"&gt;10000&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;4.16&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;13&lt;/td&gt; &lt;td&gt;&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;429.88&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;13&lt;/td&gt; &lt;td&gt;&lt;/td&gt; &lt;td align="right"&gt;10000&lt;/td&gt; &lt;td align="right"&gt;pp512&lt;/td&gt; &lt;td align="right"&gt;367.12&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;13&lt;/td&gt; &lt;td&gt;&lt;/td&gt; &lt;td align="right"&gt;0&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;4.46&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="right"&gt;13.34 GiB&lt;/td&gt; &lt;td align="right"&gt;23.57 B&lt;/td&gt; &lt;td&gt;CUDA&lt;/td&gt; &lt;td align="right"&gt;13&lt;/td&gt; &lt;td&gt;&lt;/td&gt; &lt;td align="right"&gt;10000&lt;/td&gt; &lt;td align="right"&gt;tg128&lt;/td&gt; &lt;td align="right"&gt;2.34&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/eloquentemu"&gt; /u/eloquentemu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8jocc/improving_low_vram_performance_for_dense_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8jocc/improving_low_vram_performance_for_dense_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8jocc/improving_low_vram_performance_for_dense_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-16T22:02:16+00:00</published>
-  </entry>
   <entry>
     <id>t3_1o8yili</id>
     <title>Upgrading my PC to run Qwen3-Coder-30B-A3B, Specs advice?</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8yili/upgrading_my_pc_to_run_qwen3coder30ba3b_specs/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-17T11:16:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1o91suj</id>
+    <title>LLM speed on my system (R5 5600G, 5060Ti 16GB, 32GB RAM)</title>
+    <updated>2025-10-17T13:47:48+00:00</updated>
+    <author>
+      <name>/u/R_dva</name>
+      <uri>https://old.reddit.com/user/R_dva</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;LLM speed on my system (R5 5600G, 5060Ti 16GB, 32GB RAM)&lt;/strong&gt; &lt;/p&gt; &lt;p&gt;&lt;strong&gt;I tested several models on my system, i asked &amp;quot;Write a short text about the future of technology&amp;quot;. Here are the results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Total Duration (s)&lt;/th&gt; &lt;th align="left"&gt;Load Duration (s)&lt;/th&gt; &lt;th align="left"&gt;Prompt Eval Count (tokens)&lt;/th&gt; &lt;th align="left"&gt;Prompt Eval Duration (ms)&lt;/th&gt; &lt;th align="left"&gt;Prompt Eval Rate (tokens/s)&lt;/th&gt; &lt;th align="left"&gt;Eval Count (tokens)&lt;/th&gt; &lt;th align="left"&gt;Eval Duration (s)&lt;/th&gt; &lt;th align="left"&gt;Eval Rate (tokens/s)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Gemma3:12B-IT-Q4_K_M&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;11.004048&lt;/td&gt; &lt;td align="left"&gt;6.0978792&lt;/td&gt; &lt;td align="left"&gt;18&lt;/td&gt; &lt;td align="left"&gt;39.096&lt;/td&gt; &lt;td align="left"&gt;460.41&lt;/td&gt; &lt;td align="left"&gt;198&lt;/td&gt; &lt;td align="left"&gt;4.7246764&lt;/td&gt; &lt;td align="left"&gt;41.91&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Qwen3-Coder:30B&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;16.0636496&lt;/td&gt; &lt;td align="left"&gt;8.3487872&lt;/td&gt; &lt;td align="left"&gt;17&lt;/td&gt; &lt;td align="left"&gt;158.467&lt;/td&gt; &lt;td align="left"&gt;107.28&lt;/td&gt; &lt;td align="left"&gt;236&lt;/td&gt; &lt;td align="left"&gt;7.4952974&lt;/td&gt; &lt;td align="left"&gt;31.49&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Mistral-Small3.2:24B-Instruct-2506-Q4_K_M&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;28.5862299&lt;/td&gt; &lt;td align="left"&gt;8.6925738&lt;/td&gt; &lt;td align="left"&gt;516&lt;/td&gt; &lt;td align="left"&gt;4340.0461&lt;/td&gt; &lt;td align="left"&gt;118.89&lt;/td&gt; &lt;td align="left"&gt;228&lt;/td&gt; &lt;td align="left"&gt;15.4800842&lt;/td&gt; &lt;td align="left"&gt;14.73&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Qwen3:30B-A3B-Thinking-2507-Q4_K_M&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;30.5642031&lt;/td&gt; &lt;td align="left"&gt;9.23035&lt;/td&gt; &lt;td align="left"&gt;19&lt;/td&gt; &lt;td align="left"&gt;180.8996&lt;/td&gt; &lt;td align="left"&gt;105.03&lt;/td&gt; &lt;td align="left"&gt;627&lt;/td&gt; &lt;td align="left"&gt;20.9965337&lt;/td&gt; &lt;td align="left"&gt;29.86&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;GPT-OSS:20B&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;4.8795305&lt;/td&gt; &lt;td align="left"&gt;0.1652446&lt;/td&gt; &lt;td align="left"&gt;76&lt;/td&gt; &lt;td align="left"&gt;204.101&lt;/td&gt; &lt;td align="left"&gt;372.36&lt;/td&gt; &lt;td align="left"&gt;357&lt;/td&gt; &lt;td align="left"&gt;4.3407544&lt;/td&gt; &lt;td align="left"&gt;82.24&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Key Takeaways:&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GPT-OSS:20B&lt;/strong&gt; remains the fastest in both prompt evaluation (372.36 tokens/s) and response generation (82.24 tokens/s).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Gemma3:12B-IT-Q4_K_M&lt;/strong&gt; shows strong prompt processing speed (460.41 tokens/s) but slower generation (41.91 tokens/s).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mistral-Small3.2:24B-Instruct-2506-Q4_K_M&lt;/strong&gt; has the highest prompt evaluation rate (118.89 tokens/s) but the slowest response generation (14.73 tokens/s).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen3:30B-A3B-Thinking-2507-Q4_K_M&lt;/strong&gt; generates the longest outputs (627 tokens) but is slower in both prompt and response speed.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Testing was done with a browser running in the background, just normal PC usage with parallel testing&lt;/p&gt; &lt;p&gt;The question was simple, is there a universal question for the test? &lt;/p&gt; &lt;p&gt;Test was made with this command from blobs folder -&amp;quot;ollama run gpt-oss:20b p &amp;quot;Write a short text about future technologies.&amp;quot; --verbose&amp;quot; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/R_dva"&gt; /u/R_dva &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o91suj/llm_speed_on_my_system_r5_5600g_5060ti_16gb_32gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o91suj/llm_speed_on_my_system_r5_5600g_5060ti_16gb_32gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o91suj/llm_speed_on_my_system_r5_5600g_5060ti_16gb_32gb/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-17T13:47:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1o8st45</id>
@@ -73,19 +73,6 @@
     <published>2025-10-16T17:20:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1o8n9ym</id>
-    <title>We built an open-source coding agent CLI that can be run locally</title>
-    <updated>2025-10-17T00:41:19+00:00</updated>
-    <author>
-      <name>/u/SmilingGen</name>
-      <uri>https://old.reddit.com/user/SmilingGen</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"&gt; &lt;img alt="We built an open-source coding agent CLI that can be run locally" src="https://preview.redd.it/k22utme4jkvf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7cd5da76109133d6785e5504cde25419f8caf5ff" title="We built an open-source coding agent CLI that can be run locally" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Basically, it’s like Claude Code but with native support for local LLMs and a universal tool parser that works even on inference platforms without built-in tool call support.&lt;/p&gt; &lt;p&gt;Kolosal CLI is an open-source, cross-platform agentic command-line tool that lets you discover, download, and run models locally using an ultra-lightweight inference server. It supports coding agents, Hugging Face model integration, and a memory calculator to estimate model memory requirements.&lt;/p&gt; &lt;p&gt;It’s a fork of Qwen Code, and we also host GLM 4.6 and Kimi K2 if you prefer to use them without running them yourself.&lt;/p&gt; &lt;p&gt;You can try it at kolosal.ai and check out the source code on GitHub: github.com/KolosalAI/kolosal-cli&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SmilingGen"&gt; /u/SmilingGen &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/k22utme4jkvf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-17T00:41:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1o8pj1k</id>
     <title>Waiting on Ryzen Max 395+ w/ 128gb RAM to be delivered. How should I set it up for AI?</title>
     <updated>2025-10-17T02:28:29+00:00</updated>
@@ -97,6 +84,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8pj1k/waiting_on_ryzen_max_395_w_128gb_ram_to_be/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-17T02:28:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1o8n9ym</id>
+    <title>We built an open-source coding agent CLI that can be run locally</title>
+    <updated>2025-10-17T00:41:19+00:00</updated>
+    <author>
+      <name>/u/SmilingGen</name>
+      <uri>https://old.reddit.com/user/SmilingGen</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"&gt; &lt;img alt="We built an open-source coding agent CLI that can be run locally" src="https://preview.redd.it/k22utme4jkvf1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7cd5da76109133d6785e5504cde25419f8caf5ff" title="We built an open-source coding agent CLI that can be run locally" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Basically, it’s like Claude Code but with native support for local LLMs and a universal tool parser that works even on inference platforms without built-in tool call support.&lt;/p&gt; &lt;p&gt;Kolosal CLI is an open-source, cross-platform agentic command-line tool that lets you discover, download, and run models locally using an ultra-lightweight inference server. It supports coding agents, Hugging Face model integration, and a memory calculator to estimate model memory requirements.&lt;/p&gt; &lt;p&gt;It’s a fork of Qwen Code, and we also host GLM 4.6 and Kimi K2 if you prefer to use them without running them yourself.&lt;/p&gt; &lt;p&gt;You can try it at kolosal.ai and check out the source code on GitHub: github.com/KolosalAI/kolosal-cli&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SmilingGen"&gt; /u/SmilingGen &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/k22utme4jkvf1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8n9ym/we_built_an_opensource_coding_agent_cli_that_can/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-17T00:41:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1o8x4ta</id>
@@ -125,32 +125,6 @@
     <published>2025-10-16T13:29:48+00:00</published>
   </entry>
   <entry>
-    <id>t3_1o90jvf</id>
-    <title>do 2x MCIO to PCIe x16 adapters exist?</title>
-    <updated>2025-10-17T12:55:48+00:00</updated>
-    <author>
-      <name>/u/MelodicRecognition7</name>
-      <uri>https://old.reddit.com/user/MelodicRecognition7</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"&gt; &lt;img alt="do 2x MCIO to PCIe x16 adapters exist?" src="https://b.thumbs.redditmedia.com/TJ59uHrnaDqTSwhgsFixmhauzFcf1mPJXYCciNQy3pE.jpg" title="do 2x MCIO to PCIe x16 adapters exist?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want some kind of a &amp;quot;reverse bifurcation&amp;quot;, 2 separate x8 ports combined into one x16. Is it possible to insert a x16 GPU into these two MCIO x8 ports? I've found some cables but not sure if they will work. Where do I put that 4 pin cable on the 2nd pic? Will the adapter on the 3rd pic work if I ditch the left card and plug both cables directly into the motherboard? Any other ways of expanding PCIe x16 slots on Supermicro H13SSL or H14SSL? These motherboards have just 3 full size PCIe slots.&lt;/p&gt; &lt;p&gt;Edit: motherboard manual shows that PCIe1A and PCIe1B are connected to one PCIe x16 port, however there is no information about possibility to recombine two MCIO x8 into one PCIe x16.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MelodicRecognition7"&gt; /u/MelodicRecognition7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1o90jvf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-17T12:55:48+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1o8x2w0</id>
-    <title>What in the Black Friday hell is happening with the DDR5-5600 128GB SODIMM kits ?</title>
-    <updated>2025-10-17T09:51:44+00:00</updated>
-    <author>
-      <name>/u/HumanDrone8721</name>
-      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In summer Amazon was selling them with something like 320€, not they are almost 500€ and increasing, I wanted to update my 64GB to 128, but this is obscene :(&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-17T09:51:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1o8xd0p</id>
     <title>How do you define acceptance criteria when delivering LLM projects for companies?</title>
     <updated>2025-10-17T10:09:10+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8xd0p/how_do_you_define_acceptance_criteria_when/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-17T10:09:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1o90jvf</id>
+    <title>do 2x MCIO to PCIe x16 adapters exist?</title>
+    <updated>2025-10-17T12:55:48+00:00</updated>
+    <author>
+      <name>/u/MelodicRecognition7</name>
+      <uri>https://old.reddit.com/user/MelodicRecognition7</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"&gt; &lt;img alt="do 2x MCIO to PCIe x16 adapters exist?" src="https://b.thumbs.redditmedia.com/TJ59uHrnaDqTSwhgsFixmhauzFcf1mPJXYCciNQy3pE.jpg" title="do 2x MCIO to PCIe x16 adapters exist?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want some kind of a &amp;quot;reverse bifurcation&amp;quot;, 2 separate x8 ports combined into one x16. Is it possible to insert a x16 GPU into these two MCIO x8 ports? I've found some cables but not sure if they will work. Where do I put that 4 pin cable on the 2nd pic? Will the adapter on the 3rd pic work if I ditch the left card and plug both cables directly into the motherboard? Any other ways of expanding PCIe x16 slots on Supermicro H13SSL or H14SSL? These motherboards have just 3 full size PCIe slots.&lt;/p&gt; &lt;p&gt;Edit: motherboard manual shows that PCIe1A and PCIe1B are connected to one PCIe x16 port, however there is no information about possibility to recombine two MCIO x8 into one PCIe x16.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MelodicRecognition7"&gt; /u/MelodicRecognition7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1o90jvf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o90jvf/do_2x_mcio_to_pcie_x16_adapters_exist/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-17T12:55:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1o8k4gc</id>
@@ -190,6 +177,19 @@
     <published>2025-10-16T16:34:48+00:00</published>
   </entry>
   <entry>
+    <id>t3_1o8h9ye</id>
+    <title>China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down</title>
+    <updated>2025-10-16T20:26:18+00:00</updated>
+    <author>
+      <name>/u/sub_RedditTor</name>
+      <uri>https://old.reddit.com/user/sub_RedditTor</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"&gt; &lt;img alt="China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down" src="https://external-preview.redd.it/h0AXu77KNbLZvwy9Mngk-UUEgeAjkwRBjGOdlujFn7U.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=436c9e5446c362e3900f824dd945b76349b991ff" title="China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We need benchmarks ..&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sub_RedditTor"&gt; /u/sub_RedditTor &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtu.be/qGe_fq68x-Q?si=0w_3qjLvmHTXPWxI"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-16T20:26:18+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1o8no7i</id>
     <title>Best Open Source TTS That Sounds Most Natural Voice For Storytelling? That You Can Run With 12GB Vram?</title>
     <updated>2025-10-17T01:00:05+00:00</updated>
@@ -216,19 +216,6 @@
     <published>2025-10-17T02:57:56+00:00</published>
   </entry>
   <entry>
-    <id>t3_1o8h9ye</id>
-    <title>China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down</title>
-    <updated>2025-10-16T20:26:18+00:00</updated>
-    <author>
-      <name>/u/sub_RedditTor</name>
-      <uri>https://old.reddit.com/user/sub_RedditTor</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"&gt; &lt;img alt="China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down" src="https://external-preview.redd.it/h0AXu77KNbLZvwy9Mngk-UUEgeAjkwRBjGOdlujFn7U.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=436c9e5446c362e3900f824dd945b76349b991ff" title="China's GPU Competition: 96GB Huawei Atlas 300I Duo Dual-GPU Tear-Down" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We need benchmarks ..&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sub_RedditTor"&gt; /u/sub_RedditTor &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtu.be/qGe_fq68x-Q?si=0w_3qjLvmHTXPWxI"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8h9ye/chinas_gpu_competition_96gb_huawei_atlas_300i_duo/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-16T20:26:18+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1o8sbv1</id>
     <title>🚀 HuggingFaceChat Omni: Dynamic policy-baed routing to 115+ LLMs</title>
     <updated>2025-10-17T04:52:56+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8hacw/since_dgx_spark_is_a_disappointment_what_is_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-16T20:26:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1o8x2w0</id>
+    <title>What in the Black Friday hell is happening with the DDR5-5600 128GB SODIMM kits ?</title>
+    <updated>2025-10-17T09:51:44+00:00</updated>
+    <author>
+      <name>/u/HumanDrone8721</name>
+      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In summer Amazon was selling them with something like 320€, not they are almost 500€ and increasing, I wanted to update my 64GB to 128, but this is obscene :(&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o8x2w0/what_in_the_black_friday_hell_is_happening_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-17T09:51:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1o8ay34</id>
