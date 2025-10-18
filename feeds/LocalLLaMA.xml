@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-18T18:38:50+00:00</updated>
+  <updated>2025-10-18T18:49:30+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1o96mwq</id>
-    <title>Using llamacpp and RCP, managed to improve promt processing by 4x times (160 t/s to 680 t/s) and text generation by 2x times (12.67 t/s to 22.52 t/s) by changing the device order including RPC. GLM 4.6 IQ4_XS multiGPU + RPC.</title>
-    <updated>2025-10-17T16:52:21+00:00</updated>
-    <author>
-      <name>/u/panchovix</name>
-      <uri>https://old.reddit.com/user/panchovix</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello guys, hoping you're having a good day.&lt;/p&gt; &lt;p&gt;As you know, llamacpp has RPC since time ago.&lt;/p&gt; &lt;p&gt;I have 2 PCs in my home:&lt;/p&gt; &lt;p&gt;My &amp;quot;Server&amp;quot;:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;AM5 MSI X670E Carbon&lt;/li&gt; &lt;li&gt;AMD Ryzen 9 9900X&lt;/li&gt; &lt;li&gt;192GB DDR5 6000Mhz CL32&lt;/li&gt; &lt;li&gt;7 GPUs &lt;ul&gt; &lt;li&gt;5090x2&lt;/li&gt; &lt;li&gt;4090x2&lt;/li&gt; &lt;li&gt;A6000&lt;/li&gt; &lt;li&gt;3090x2&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;MCX314A-BCCT 40Gbps NIC (totally overkill, prob 10Gbps is fine)&lt;/li&gt; &lt;li&gt;OS: Fedora 42&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;And my &amp;quot;Gaming&amp;quot; PC:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;AM5 Gigabyte X670 Aorus Master (I wouldn't recommend this board btw)&lt;/li&gt; &lt;li&gt;AMD Ryzen 7 7800X3D&lt;/li&gt; &lt;li&gt;64GB DDR5 6000Mhz CL30&lt;/li&gt; &lt;li&gt;RTX 5090&lt;/li&gt; &lt;li&gt;MCX314A-BCCT 40Gbps NIC&lt;/li&gt; &lt;li&gt;OS: Windows 11&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;PC1 and PC2 (Server and Gaming) are connected via the MCX314A-BCCT 40Gbps NIC. As info, the max bandwidth used I have seen on llamacpp was about 10-11 Gbps when loading the model (I think here I'm either SSD bound or CPU bound) and about 3-4 Gbps on first prompt processing.&lt;/p&gt; &lt;p&gt;So for the test, I &amp;quot;disabled&amp;quot; one 3090 and replaced it layers with my 5090 via RPC.&lt;/p&gt; &lt;p&gt;I'm running GLM 4.6 IQ4_XS (~180GB) with (very complex, don't judge me):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;LLAMA_SET_ROWS=1 ./llama-server \ -m '/models/GLM-4.6-IQ4_XS.gguf' \ -c 32768 \ --no-mmap \ --rpc 192.168.50.2:50052 \ -ngl 999 \ -ot &amp;quot;blk.(0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15).ffn.=CUDA0&amp;quot; \ -ot &amp;quot;blk.(16|17|18|19|20|21|22|23|24|25).ffn.=CUDA1&amp;quot; \ -ot &amp;quot;blk.(27|28|29|30|31|32|33|34|35|36).ffn.=CUDA2&amp;quot; \ -ot &amp;quot;blk.(38|39|40|41|42|43|44|45|46|47|48|49|50).ffn.=CUDA3&amp;quot; \ -ot &amp;quot;blk.(51|52|53|54|55|56|57|58|59).ffn.=CUDA4&amp;quot; \ -ot &amp;quot;blk.(61|62|63|64|65|66|67|68|69|70).ffn.=RPC0[192.168.50.2:50052]&amp;quot; \ -ot &amp;quot;blk.(72|73|74|75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90|91).ffn.=CUDA5&amp;quot; \ -ot &amp;quot;blk.26.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.26.ffn_gate_exps.weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.26.ffn_(down_exps|up_exps).weight=CUDA0&amp;quot; \ -ot &amp;quot;blk.37.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.37.ffn_gate_exps.weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.37.ffn_(down_exps|up_exps).weight=CUDA3&amp;quot; \ -ot &amp;quot;blk.60.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA4&amp;quot; \ -ot &amp;quot;blk.60.ffn_gate_exps.weight=CUDA4&amp;quot; \ -ot &amp;quot;blk.60.ffn_(down_exps|up_exps).weight=CUDA5&amp;quot; \ -ot &amp;quot;blk.71.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=RPC0[192.168.50.2:50052]&amp;quot; \ -ot &amp;quot;blk.71.ffn_gate_exps.weight=RPC0[192.168.50.2:50052]&amp;quot; \ -ot &amp;quot;blk.71.ffn_(down_exps|up_exps).weight=CUDA5&amp;quot; \ -fa on \ -mg 0 \ -ub 1792 \ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;By default, llamacpp assigns RPC devices as &lt;strong&gt;the first device,&lt;/strong&gt; this means that the RPC device has the bigger buffers and also has to do more processing that the server itself.&lt;/p&gt; &lt;p&gt;So it is like, by the --devices parameters in this case, use:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;--device RPC0,CUDA0,CUDA1,CUDA2,CUDA3,CUDA4,CUDA5&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;And I was getting these speeds:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 27661.35 ms / 4410 tokens ( 6.27 ms per token, 159.43 tokens per second) eval time = 140832.84 ms / 1784 tokens ( 78.94 ms per token, 12.67 tokens per second) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So, I started a question on github here &lt;a href="https://github.com/ggml-org/llama.cpp/discussions/16625"&gt;https://github.com/ggml-org/llama.cpp/discussions/16625&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And &lt;a href="https://github.com/abc-nix"&gt;abc-nix&lt;/a&gt; did the great suggestion to move it.&lt;/p&gt; &lt;p&gt;So then, used&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;--device CUDA0,CUDA1,CUDA2,CUDA3,CUDA4,RPC0,CUDA5&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;And got&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 6483.46 ms / 4410 tokens ( 1.47 ms per token, 680.19 tokens per second) eval time = 78029.06 ms / 1757 tokens ( 44.41 ms per token, 22.52 tokens per second) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Which is an absolutely insane performance bump.&lt;/p&gt; &lt;p&gt;Now I want to try to dual boot the &amp;quot;Gaming&amp;quot; PC to Linux to see if there's an improvement. As multiGPU by itself is really bad on Windows, not sure if that also affects RPC.&lt;/p&gt; &lt;p&gt;EDIT: If you wonder how do I connect so much on a consumer CPU:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;X16 split into X8/X4/X4 5.0 from CPU (5090 at X8 5.0, 4090/4090 at X4 4.0)&lt;/li&gt; &lt;li&gt;X4/X4 5.0 from CPU from top 2 M2 slots, to PCIe adapters (RTX 5090 at X4 5.0 and Cx314a NIC X4 3.0)&lt;/li&gt; &lt;li&gt;X4 4.0 from Chipset from bottom PCIe slot (RTX A6000)&lt;/li&gt; &lt;li&gt;X4/X4 4.0 from Chipset from bottom M2 slots, to PCIe adapters (3090/3090)&lt;/li&gt; &lt;li&gt;X1 3.0 from NFF Wifi to PCIe adapter (for now it's open, thinking what can I put there).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;EDIT2: For those wondering, I get no money return for this. I haven't rented and I haven't sold anything related to AI either. So just expenses.&lt;/p&gt; &lt;p&gt;EDIT3: I have confirmed this also works perfectly when offloading to CPU.&lt;/p&gt; &lt;p&gt;I.e. for DeepSeek V3, I ran:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;LLAMA_SET_ROWS=1 ./llama-server -m '/models_llm_2tb/DeepSeek-V3-0324-UD-Q3_K_XL.gguf' -c 32768 --no-mmap -ngl 999 \ --rpc 192.168.50.2:50052 \ -ot &amp;quot;blk.(0|1|2|3|4|5|6|7).ffn.=CUDA0&amp;quot; \ -ot &amp;quot;blk.(8|9|10).ffn.=CUDA1&amp;quot; \ -ot &amp;quot;blk.(11|12|13).ffn.=CUDA2&amp;quot; \ -ot &amp;quot;blk.(14|15|16|17|18).ffn.=CUDA3&amp;quot; \ -ot &amp;quot;blk.(19|20|21).ffn.=CUDA4&amp;quot; \ -ot &amp;quot;blk.(22|23|24).ffn.=RPC0[192.168.50.2:50052]&amp;quot; \ -ot &amp;quot;blk.(25|26|27|28|29|30|31).ffn.=CUDA5&amp;quot; \ -ot &amp;quot;blk.32.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.32.ffn_gate_exps.weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.32.ffn_down_exps.weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.32.ffn_up_exps.weight=CUDA1&amp;quot; \ -ot &amp;quot;blk.33.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.33.ffn_gate_exps.weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.33.ffn_down_exps.weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.33.ffn_up_exps.weight=CUDA2&amp;quot; \ -ot &amp;quot;blk.34.ffn_(norm|gate_inp|gate_shexp|down_shexp|up_shexp).weight=CUDA5&amp;quot; \ -ot &amp;quot;blk.34.ffn_gate_exps.weight=CUDA5&amp;quot; \ -ot &amp;quot;blk.34.ffn_down_exps.weight=CUDA5&amp;quot; \ -ot &amp;quot;blk.35.ffn_gate_exps.weight=CUDA3&amp;quot; \ -ot &amp;quot;blk.35.ffn_down_exps.weight=CUDA3&amp;quot; \ -ot &amp;quot;exps=CPU&amp;quot; \ -fa on -mg 0 -ub 2560 -b 2560 --device CUDA0,CUDA1,CUDA2,CUDA3,CUDA4,RPC0,CUDA5 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;And got about ~10% less perf than connecting the 5090 directly into the server PC.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/panchovix"&gt; /u/panchovix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o96mwq/using_llamacpp_and_rcp_managed_to_improve_promt/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o96mwq/using_llamacpp_and_rcp_managed_to_improve_promt/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o96mwq/using_llamacpp_and_rcp_managed_to_improve_promt/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-17T16:52:21+00:00</published>
-  </entry>
   <entry>
     <id>t3_1o98f57</id>
     <title>New from Cerebras: REAP the Experts: Why Pruning Prevails for One-Shot MoE compression</title>
@@ -32,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o98f57/new_from_cerebras_reap_the_experts_why_pruning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-17T17:59:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1o9wn6x</id>
-    <title>Codex-Cli with Qwen3-Coder</title>
-    <updated>2025-10-18T14:02:23+00:00</updated>
-    <author>
-      <name>/u/chibop1</name>
-      <uri>https://old.reddit.com/user/chibop1</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was able to &lt;a href="https://github.com/openai/codex/blob/main/docs/config.md"&gt;add Ollama as a model provider&lt;/a&gt;, and Codex-CLI was successfully able to talk to Ollama.&lt;/p&gt; &lt;p&gt;When I use GPT-OSS-20b, it goes back and forth until completing the task.&lt;/p&gt; &lt;p&gt;I was hoping to use Qwen3-Coder-30b for better quality, but often it stops after a few turns—it’ll say something like “let me do X,” but then doesn’t execute it.&lt;/p&gt; &lt;p&gt;The repo only has a few files, and I’ve set the context size to 65k. It should have plenty room to keep going.&lt;/p&gt; &lt;p&gt;My guess is that Qwen3-Coder often responds without actually invoking tool calls to proceed?&lt;/p&gt; &lt;p&gt;Any thoughts would be appreciated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chibop1"&gt; /u/chibop1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-18T14:02:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1o8uxh6</id>
@@ -99,17 +73,30 @@
     <published>2025-10-18T17:18:41+00:00</published>
   </entry>
   <entry>
-    <id>t3_1oa1zfp</id>
-    <title>3x Price Increase on Llama API</title>
-    <updated>2025-10-18T17:36:52+00:00</updated>
+    <id>t3_1o9wn6x</id>
+    <title>Codex-Cli with Qwen3-Coder</title>
+    <updated>2025-10-18T14:02:23+00:00</updated>
     <author>
-      <name>/u/Player06</name>
-      <uri>https://old.reddit.com/user/Player06</uri>
+      <name>/u/chibop1</name>
+      <uri>https://old.reddit.com/user/chibop1</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This went pretty under the radar, but a few days ago the 'Meta: Llama 3 70b' model went from 0.13c/M to 0.38c/M.&lt;/p&gt; &lt;p&gt;I noticed because I run one of the apps listed in the top 10 consumers of that model (the one with the weird penguin icon). I cannot find any evidence of this online, except my openrouter bill.&lt;/p&gt; &lt;p&gt;I ditched my local inference last month because the openrouter Llama price looked so good. But now I got rug pulled.&lt;/p&gt; &lt;p&gt;Did anybody else notice this? Or am I crazy and the prices never changed? It feels unusual for a provider to bump their API prices this much.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Player06"&gt; /u/Player06 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was able to &lt;a href="https://github.com/openai/codex/blob/main/docs/config.md"&gt;add Ollama as a model provider&lt;/a&gt;, and Codex-CLI was successfully able to talk to Ollama.&lt;/p&gt; &lt;p&gt;When I use GPT-OSS-20b, it goes back and forth until completing the task.&lt;/p&gt; &lt;p&gt;I was hoping to use Qwen3-Coder-30b for better quality, but often it stops after a few turns—it’ll say something like “let me do X,” but then doesn’t execute it.&lt;/p&gt; &lt;p&gt;The repo only has a few files, and I’ve set the context size to 65k. It should have plenty room to keep going.&lt;/p&gt; &lt;p&gt;My guess is that Qwen3-Coder often responds without actually invoking tool calls to proceed?&lt;/p&gt; &lt;p&gt;Any thoughts would be appreciated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chibop1"&gt; /u/chibop1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o9wn6x/codexcli_with_qwen3coder/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-18T17:36:52+00:00</published>
+    <published>2025-10-18T14:02:23+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oa2qj2</id>
+    <title>Claude Haiku for Computer Use</title>
+    <updated>2025-10-18T18:06:00+00:00</updated>
+    <author>
+      <name>/u/Impressive_Half_2819</name>
+      <uri>https://old.reddit.com/user/Impressive_Half_2819</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa2qj2/claude_haiku_for_computer_use/"&gt; &lt;img alt="Claude Haiku for Computer Use" src="https://external-preview.redd.it/bHZ6ZGRvY2V1d3ZmMbN-OTJwTQPs45moaBiyBOFffvNmrIYfiiCYht-O6e2Z.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7b27f0096f5b66c408066417acffb69bab960dd9" title="Claude Haiku for Computer Use" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Claude Haiku 4.5 on a computer-use task and it's faster + 3.5x cheaper than Sonnet 4.5:&lt;/p&gt; &lt;p&gt;Create a landing page of Cua and open it in browser&lt;/p&gt; &lt;p&gt;Haiku 4.5: 2 minutes, $0.04&lt;/p&gt; &lt;p&gt;Sonnet 4.5: 3 minutes, ~$0.14&lt;/p&gt; &lt;p&gt;Github : &lt;a href="https://github.com/trycua/cua"&gt;https://github.com/trycua/cua&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Impressive_Half_2819"&gt; /u/Impressive_Half_2819 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/vzopwhkeuwvf1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa2qj2/claude_haiku_for_computer_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oa2qj2/claude_haiku_for_computer_use/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-18T18:06:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1o9zgww</id>
@@ -190,6 +177,19 @@
     <published>2025-10-18T03:55:36+00:00</published>
   </entry>
   <entry>
+    <id>t3_1oa1zfp</id>
+    <title>3x Price Increase on Llama API</title>
+    <updated>2025-10-18T17:36:52+00:00</updated>
+    <author>
+      <name>/u/Player06</name>
+      <uri>https://old.reddit.com/user/Player06</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This went pretty under the radar, but a few days ago the 'Meta: Llama 3 70b' model went from 0.13c/M to 0.38c/M.&lt;/p&gt; &lt;p&gt;I noticed because I run one of the apps listed in the top 10 consumers of that model (the one with the weird penguin icon). I cannot find any evidence of this online, except my openrouter bill.&lt;/p&gt; &lt;p&gt;I ditched my local inference last month because the openrouter Llama price looked so good. But now I got rug pulled.&lt;/p&gt; &lt;p&gt;Did anybody else notice this? Or am I crazy and the prices never changed? It feels unusual for a provider to bump their API prices this much.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Player06"&gt; /u/Player06 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oa1zfp/3x_price_increase_on_llama_api/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-18T17:36:52+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1oa0gid</id>
     <title>Alpharxiv</title>
     <updated>2025-10-18T16:35:53+00:00</updated>
@@ -268,19 +268,6 @@
     <published>2025-10-18T17:16:23+00:00</published>
   </entry>
   <entry>
-    <id>t3_1oa29de</id>
-    <title>Drummer's Cydonia and Magidonia 24B v4.2.0</title>
-    <updated>2025-10-18T17:47:49+00:00</updated>
-    <author>
-      <name>/u/TheLocalDrummer</name>
-      <uri>https://old.reddit.com/user/TheLocalDrummer</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"&gt; &lt;img alt="Drummer's Cydonia and Magidonia 24B v4.2.0" src="https://external-preview.redd.it/texRxv_iJ0Ni14pBUMNg-YEbpRERebh0ufaJ753mjSs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ab199da434abf76101631f6569f8bb80838d47f9" title="Drummer's Cydonia and Magidonia 24B v4.2.0" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Magidonia is Cydonia using Magistral 2509 base.&lt;/p&gt; &lt;p&gt;Magidonia variant: &lt;a href="https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0"&gt;https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Cydonia (Small 3.2) variant: &lt;a href="https://huggingface.co/TheDrummer/Cydonia-24B-v4.2.0"&gt;https://huggingface.co/TheDrummer/Cydonia-24B-v4.2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4.2.0 is an upgrade from 4.1 in regards to creativity. Enjoy!&lt;/p&gt; &lt;p&gt;Does anyone have a base to recommend for finetuning? Waiting for GLM Air 4.6 to come out :^)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheLocalDrummer"&gt; /u/TheLocalDrummer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-18T17:47:49+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1o9x4ky</id>
     <title>Qwen3VL-30b-a3b Image Caption Performance - Thinking vs Instruct (FP8) using vLLM and 2x RTX 5090</title>
     <updated>2025-10-18T14:22:05+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1o9xf4q/experiment_qwen3vl8b_vs_qwen25vl7b_test_results/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-18T14:33:56+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oa29de</id>
+    <title>Drummer's Cydonia and Magidonia 24B v4.2.0</title>
+    <updated>2025-10-18T17:47:49+00:00</updated>
+    <author>
+      <name>/u/TheLocalDrummer</name>
+      <uri>https://old.reddit.com/user/TheLocalDrummer</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"&gt; &lt;img alt="Drummer's Cydonia and Magidonia 24B v4.2.0" src="https://external-preview.redd.it/texRxv_iJ0Ni14pBUMNg-YEbpRERebh0ufaJ753mjSs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ab199da434abf76101631f6569f8bb80838d47f9" title="Drummer's Cydonia and Magidonia 24B v4.2.0" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Magidonia is Cydonia using Magistral 2509 base.&lt;/p&gt; &lt;p&gt;Magidonia variant: &lt;a href="https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0"&gt;https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Cydonia (Small 3.2) variant: &lt;a href="https://huggingface.co/TheDrummer/Cydonia-24B-v4.2.0"&gt;https://huggingface.co/TheDrummer/Cydonia-24B-v4.2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;4.2.0 is an upgrade from 4.1 in regards to creativity. Enjoy!&lt;/p&gt; &lt;p&gt;Does anyone have a base to recommend for finetuning? Waiting for GLM Air 4.6 to come out :^)&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;By the way, Huggingface has restricted storage in my account and I'm having a harder time doing my open-source work for the community. I'll be all out of space after a few days of work thanks to their storage restriction. &lt;/p&gt; &lt;p&gt;I tried contacting them via [&lt;a href="mailto:billing@hf.co"&gt;billing@hf.co&lt;/a&gt;](mailto:&lt;a href="mailto:billing@hf.co"&gt;billing@hf.co&lt;/a&gt;) but they told me to make my case to [&lt;a href="mailto:models@hf.co"&gt;models@hf.co&lt;/a&gt;](mailto:&lt;a href="mailto:models@hf.co"&gt;models@hf.co&lt;/a&gt;) . I haven't received a response from &lt;em&gt;that&lt;/em&gt; team yet. Other employees I've reached out to recommended that I pay around $200 / mo to get the storage I need, I think.&lt;/p&gt; &lt;p&gt;At this point I believe they're not interested in giving me an exception. I got bundled up with those who upload 1T models, I guess? I'm not sure what to do next, but I might have to start deleting models. Let me know if you guys have any ideas!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheLocalDrummer"&gt; /u/TheLocalDrummer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/TheDrummer/Magidonia-24B-v4.2.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oa29de/drummers_cydonia_and_magidonia_24b_v420/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-18T17:47:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1o9s60k</id>
