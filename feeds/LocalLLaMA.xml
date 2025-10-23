@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-23T05:36:46+00:00</updated>
+  <updated>2025-10-23T05:48:53+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -177,19 +177,6 @@
     <published>2025-10-22T10:48:00+00:00</published>
   </entry>
   <entry>
-    <id>t3_1odv090</id>
-    <title>I built 50+ RAGs in 2 years. Here are the architectures that get products out the door!</title>
-    <updated>2025-10-23T05:27:40+00:00</updated>
-    <author>
-      <name>/u/jremynse</name>
-      <uri>https://old.reddit.com/user/jremynse</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been ML engineering for different startups in both in Europe and in the US and I can tell you... the gap between a RAG demo and a RAG product is almost always the same: people are still using naive retrieval.&lt;/p&gt; &lt;p&gt;Let's be clear: if you actually want to ship a product that works, you must move beyond the basic &lt;code&gt;sim(BiEncoder(q), BiEncoder(d))&lt;/code&gt; setup. It fails on precision, nuance, and complex queries.&lt;/p&gt; &lt;p&gt;Your architecture must solve a specific problem. Here is a technical summary of three advanced patterns.&lt;/p&gt; &lt;h1&gt;Notation Key&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;q, d&lt;/code&gt;: Query, Document&lt;/li&gt; &lt;li&gt;&lt;code&gt;BiEncoder(x)&lt;/code&gt;: Bi-encoder model (e.g., SBERT), computes v independently.&lt;/li&gt; &lt;li&gt;&lt;code&gt;CrossEncoder(q, d)&lt;/code&gt;: Cross-encoder model, computes a joint relevance score.&lt;/li&gt; &lt;li&gt;&lt;code&gt;sim(v1, v2)&lt;/code&gt;: Cosine similarity.&lt;/li&gt; &lt;li&gt;&lt;code&gt;S_naive&lt;/code&gt; = sim(BiEncoder(q), BiEncoder(d))&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;1. The Retriever-Reranker (The Precision Stack)&lt;/h1&gt; &lt;p&gt;This is the most reliable path to production accuracy. It decouples the recall problem from the precision problem.&lt;/p&gt; &lt;p&gt;How it works:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stage 1 (Retriever):&lt;/strong&gt; Get Top-K candidates using a fast, high-recall hybrid search (RRF). &lt;/p&gt; &lt;p&gt;&lt;code&gt;RRF_Score(d) = SUM( 1 / (k + rank_r(d)) ) for r in {bm25, vector}&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stage 2 (Reranker):&lt;/strong&gt; Re-score only the Top-K with the slower, more accurate CrossEncoder(q, d).&lt;/p&gt; &lt;p&gt;Pros: This is the correct way to solve precision. The &lt;code&gt;CrossEncoder(q, d)&lt;/code&gt; is fundamentally more powerful than &lt;code&gt;S_naive&lt;/code&gt; and is the only reliable method to handle negation and nuance.&lt;/p&gt; &lt;p&gt;Cons: The latency of a second network call is a minor, predictable cost for the massive gain in accuracy.&lt;/p&gt; &lt;p&gt;There is a nice implementation of this with &lt;strong&gt;Turbotuffer&lt;/strong&gt; and &lt;strong&gt;ZeroEntropy.&lt;/strong&gt;&lt;br /&gt; (btw this has given me the best results so far but you can find different variations)&lt;/p&gt; &lt;h1&gt;2. The Query Transformer (The Recall Stack)&lt;/h1&gt; &lt;p&gt;This pattern assumes the query &lt;code&gt;q&lt;/code&gt; is the problem. It uses an LLM to refine q before retrieval.&lt;/p&gt; &lt;p&gt;How it works: An LLM generates n query variants &lt;code&gt;{q_1, ..., q_n}&lt;/code&gt; (Multi-Query) or a hypothetical document &lt;code&gt;d_hypo&lt;/code&gt; (HyDE) to search against. &lt;/p&gt; &lt;p&gt;&lt;code&gt;Search Vector = BiEncoder(d_hypo)&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Pros: Fixes bad recall from vague or semantically mismatched user input.&lt;/p&gt; &lt;p&gt;Cons: Adds a costly and slow LLM call before the search has even begun.&lt;/p&gt; &lt;h1&gt;3. The Graph RAG (The Connections Stack)&lt;/h1&gt; &lt;p&gt;A different paradigm focused on explicit, structured relationships.&lt;/p&gt; &lt;p&gt;How it works: Abandons vector similarity for a graph query language. &lt;/p&gt; &lt;p&gt;&lt;code&gt;MATCH (e:Engineer)-[:WORKS_AT]-&amp;gt;(c:Company) RETURN e .name&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Pros: Can answer complex, multi-hop questions that vector search fundamentally cannot.&lt;/p&gt; &lt;p&gt;Cons: This is often a distraction. It requires a massive, upfront data-modeling bottleneck (ETL, schema definition). It is rigid, expensive, and defeats the primary purpose of RAG, which is to work with unstructured data.&lt;/p&gt; &lt;h1&gt;TLDR&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Setup 1 (Retriever-Reranker)&lt;/strong&gt; is the production standard for fixing precision.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup 2 (Query-Transformer)&lt;/strong&gt; is a-costly-way to fix bad user queries.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup 3 (Graph RAG)&lt;/strong&gt; solves a different problem (structured data) and is mostly a distraction.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jremynse"&gt; /u/jremynse &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T05:27:40+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1odbwjj</id>
     <title>LFM2-VL 3B released today</title>
     <updated>2025-10-22T15:46:03+00:00</updated>
@@ -229,19 +216,6 @@
     <published>2025-10-22T18:51:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1odf249</id>
-    <title>Ling-1T is very impressive – why are there no independent benchmarks?</title>
-    <updated>2025-10-22T17:40:56+00:00</updated>
-    <author>
-      <name>/u/Snail_Inference</name>
-      <uri>https://old.reddit.com/user/Snail_Inference</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Today, I finally had the chance to run some tests with ubergarm’s GGUF version of Ling-1T: &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ubergarm/Ling-1T-GGUF"&gt;Hugging Face – Ling-1T-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I focused on mathematical and reasoning tasks, and I have to say: I’m genuinely impressed. I only used IQ2_K-quants and Ling-1T solved every problem I threw at it, while keeping costs low thanks to its minimal token usage.&lt;/p&gt; &lt;p&gt;But: I can’t find &lt;strong&gt;any&lt;/strong&gt; independent benchmarks. No results on Artificial Analysis, LiveBench, Aider’s LLM Leaderboard, EQ-Bench… nothing beyond anecdotal impressions. &lt;/p&gt; &lt;p&gt;What are your thoughts? Any ideas why this model seems to fly under the radar?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Snail_Inference"&gt; /u/Snail_Inference &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-22T17:40:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1od1hw4</id>
     <title>hey Z.ai, two weeks was yesterday</title>
     <updated>2025-10-22T07:13:00+00:00</updated>
@@ -255,6 +229,19 @@
     <published>2025-10-22T07:13:00+00:00</published>
   </entry>
   <entry>
+    <id>t3_1odf249</id>
+    <title>Ling-1T is very impressive – why are there no independent benchmarks?</title>
+    <updated>2025-10-22T17:40:56+00:00</updated>
+    <author>
+      <name>/u/Snail_Inference</name>
+      <uri>https://old.reddit.com/user/Snail_Inference</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Today, I finally had the chance to run some tests with ubergarm’s GGUF version of Ling-1T: &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ubergarm/Ling-1T-GGUF"&gt;Hugging Face – Ling-1T-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I focused on mathematical and reasoning tasks, and I have to say: I’m genuinely impressed. I only used IQ2_K-quants and Ling-1T solved every problem I threw at it, while keeping costs low thanks to its minimal token usage.&lt;/p&gt; &lt;p&gt;But: I can’t find &lt;strong&gt;any&lt;/strong&gt; independent benchmarks. No results on Artificial Analysis, LiveBench, Aider’s LLM Leaderboard, EQ-Bench… nothing beyond anecdotal impressions. &lt;/p&gt; &lt;p&gt;What are your thoughts? Any ideas why this model seems to fly under the radar?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Snail_Inference"&gt; /u/Snail_Inference &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odf249/ling1t_is_very_impressive_why_are_there_no/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-22T17:40:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1odg6pz</id>
     <title>olmoOCR 2 released, big quality improvements, fully open training data and code</title>
     <updated>2025-10-22T18:22:09+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odg6pz/olmoocr_2_released_big_quality_improvements_fully/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-22T18:22:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1odv090</id>
+    <title>I built 50+ RAGs in 2 years. Here are the architectures that get products out the door!</title>
+    <updated>2025-10-23T05:27:40+00:00</updated>
+    <author>
+      <name>/u/jremynse</name>
+      <uri>https://old.reddit.com/user/jremynse</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been ML engineering for different startups in both in Europe and in the US and I can tell you... the gap between a RAG demo and a RAG product is almost always the same: people are still using naive retrieval.&lt;/p&gt; &lt;p&gt;Let's be clear: if you actually want to ship a product that works, you must move beyond the basic &lt;code&gt;sim(BiEncoder(q), BiEncoder(d))&lt;/code&gt; setup. It fails on precision, nuance, and complex queries.&lt;/p&gt; &lt;p&gt;Your architecture must solve a specific problem. Here is a technical summary of three advanced patterns.&lt;/p&gt; &lt;h1&gt;Notation Key&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;q, d&lt;/code&gt;: Query, Document&lt;/li&gt; &lt;li&gt;&lt;code&gt;BiEncoder(x)&lt;/code&gt;: Bi-encoder model (e.g., SBERT), computes v independently.&lt;/li&gt; &lt;li&gt;&lt;code&gt;CrossEncoder(q, d)&lt;/code&gt;: Cross-encoder model, computes a joint relevance score.&lt;/li&gt; &lt;li&gt;&lt;code&gt;sim(v1, v2)&lt;/code&gt;: Cosine similarity.&lt;/li&gt; &lt;li&gt;&lt;code&gt;S_naive&lt;/code&gt; = sim(BiEncoder(q), BiEncoder(d))&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;1. The Retriever-Reranker (The Precision Stack)&lt;/h1&gt; &lt;p&gt;This is the most reliable path to production accuracy. It decouples the recall problem from the precision problem.&lt;/p&gt; &lt;p&gt;How it works:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stage 1 (Retriever):&lt;/strong&gt; Get Top-K candidates using a fast, high-recall hybrid search (RRF). &lt;/p&gt; &lt;p&gt;&lt;code&gt;RRF_Score(d) = SUM( 1 / (k + rank_r(d)) ) for r in {bm25, vector}&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stage 2 (Reranker):&lt;/strong&gt; Re-score only the Top-K with the slower, more accurate CrossEncoder(q, d).&lt;/p&gt; &lt;p&gt;Pros: This is the correct way to solve precision. The &lt;code&gt;CrossEncoder(q, d)&lt;/code&gt; is fundamentally more powerful than &lt;code&gt;S_naive&lt;/code&gt; and is the only reliable method to handle negation and nuance.&lt;/p&gt; &lt;p&gt;Cons: The latency of a second network call is a minor, predictable cost for the massive gain in accuracy.&lt;/p&gt; &lt;p&gt;There is a nice implementation of this with &lt;strong&gt;Turbotuffer&lt;/strong&gt; and &lt;strong&gt;ZeroEntropy.&lt;/strong&gt;&lt;br /&gt; (btw this has given me the best results so far but you can find different variations)&lt;/p&gt; &lt;h1&gt;2. The Query Transformer (The Recall Stack)&lt;/h1&gt; &lt;p&gt;This pattern assumes the query &lt;code&gt;q&lt;/code&gt; is the problem. It uses an LLM to refine q before retrieval.&lt;/p&gt; &lt;p&gt;How it works: An LLM generates n query variants &lt;code&gt;{q_1, ..., q_n}&lt;/code&gt; (Multi-Query) or a hypothetical document &lt;code&gt;d_hypo&lt;/code&gt; (HyDE) to search against. &lt;/p&gt; &lt;p&gt;&lt;code&gt;Search Vector = BiEncoder(d_hypo)&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Pros: Fixes bad recall from vague or semantically mismatched user input.&lt;/p&gt; &lt;p&gt;Cons: Adds a costly and slow LLM call before the search has even begun.&lt;/p&gt; &lt;h1&gt;3. The Graph RAG (The Connections Stack)&lt;/h1&gt; &lt;p&gt;A different paradigm focused on explicit, structured relationships.&lt;/p&gt; &lt;p&gt;How it works: Abandons vector similarity for a graph query language. &lt;/p&gt; &lt;p&gt;&lt;code&gt;MATCH (e:Engineer)-[:WORKS_AT]-&amp;gt;(c:Company) RETURN e .name&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Pros: Can answer complex, multi-hop questions that vector search fundamentally cannot.&lt;/p&gt; &lt;p&gt;Cons: This is often a distraction. It requires a massive, upfront data-modeling bottleneck (ETL, schema definition). It is rigid, expensive, and defeats the primary purpose of RAG, which is to work with unstructured data.&lt;/p&gt; &lt;h1&gt;TLDR&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Setup 1 (Retriever-Reranker)&lt;/strong&gt; is the production standard for fixing precision.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup 2 (Query-Transformer)&lt;/strong&gt; is a-costly-way to fix bad user queries.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup 3 (Graph RAG)&lt;/strong&gt; solves a different problem (structured data) and is mostly a distraction.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jremynse"&gt; /u/jremynse &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odv090/i_built_50_rags_in_2_years_here_are_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T05:27:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1od8fz0</id>
