@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-23T16:40:26+00:00</updated>
+  <updated>2025-10-23T16:51:22+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1odgyxp</id>
-    <title>I Asked Grok, Claude, ChatGPT, and Google to Fix My Code (Are we really doomed?)</title>
-    <updated>2025-10-22T18:51:11+00:00</updated>
-    <author>
-      <name>/u/FPham</name>
-      <uri>https://old.reddit.com/user/FPham</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So yesterday I spent about 3 hours on an existing project, throwing it at Grok, Claude, and Google AI. Not something huge, About 3 pairs of reasonably sized cpp/h files, nothing too flashy, rather tight coding.&lt;br /&gt; It’s a painting editor drop in — sort of a Photoshop-ish thing (complete with multi-undo, image based brushes and all that crap).&lt;/p&gt; &lt;p&gt;I still have the old code, I plan to throw it at Qwen, Deepseek, etc next.&lt;br /&gt; Edit: See bottom of the post for updates.&lt;/p&gt; &lt;p&gt;I noticed the zoom in/out was chaotic. It was supposed to zoom around the cursor when using zoomat(x,y), but instead, it was jumping all over the place.&lt;/p&gt; &lt;p&gt;So first, Grok. It noticed I did GDI+ dynamically and told me there’s no reason for that. The rewrite it came up with to “fix” my issue was a disaster — after multiple back-and-forths, it just kept getting worse. Also, Grok’s tendency to randomly change and add lot of code didn’t help. Hahaha. Reverted back to my original code. Jumpy but at least image was always visible on screen, unlike Grok's code where the image could go entirely outside the viewport.&lt;/p&gt; &lt;p&gt;ChatGPT — not enough tokens to feed entire code on my tier, so ignored for now.&lt;/p&gt; &lt;p&gt;Google AI… now that one has this funny habit of always agreeing with you. It just keeps spitting out the same code and saying, &lt;em&gt;“Now it’s perfectly fixed, this is the final version, I swear on Larry Page, I found the problem!”&lt;/em&gt; No, it didn’t.&lt;br /&gt; To be fair, it was poking in the right places and found the functions that likely needed changing, but the result was still wrong. Again, the problem got even worse. It seems that if it doesn't know it kind of starts just shuffling code around without any real changes.&lt;/p&gt; &lt;p&gt;Claude - same issue, rewrote the code multiple times, finding the bug, never found it. But then I asked if maybe I was mixing up coordinates, and boom — Claude immediately said, yep, you’re mixing local and screen coordinates. (didn't you notice that before?) And indeed, that was the broad culprit.&lt;br /&gt; Its fix then was halfway there — zoom in worked, but zoom out… the moment the image fit in the viewport, it started pushing everything to the bottom-right. (That's a new one!) Blah, blah, blah, couldn’t find the issue.&lt;/p&gt; &lt;p&gt;So I threw in the towel and looked at the code myself. It missed that the offset was based on the &lt;strong&gt;image center&lt;/strong&gt;. It was calculating the offset from the top-left corner — and the funny thing is, all the relevant code was &lt;em&gt;right there&lt;/em&gt; in front . I literally gave it everything. In fact the original code was clearly zeroing it to center it, but Claude assumed it must be wrong!&lt;/p&gt; &lt;p&gt;Summary: Claude eventually found my local/screen coordinate mix-up (the reason zooming jumped all over the place — the functions themselves were fine, just working with the wrong coordinates), but it didn't figure out the display logic. The offset was from the image center — zero means centered. I assume if I nudged Grok and google right direction, they could eventually find the coordinates issue too. (It actually didn't occurred to me that coordinates mixup was the cause, until after I thought about it...)&lt;/p&gt; &lt;p&gt;Here’s the current state of AI programming with the big boys, in practice:&lt;/p&gt; &lt;p&gt;There’s no way someone who doesn’t already know a thing or two about the project — and general graphics programming — could fix this with AI right now. On their own, all the AIs kept diverging from the right fix, touching half the codebase, when the real fix was just about four lines total.&lt;br /&gt; (correct the screen-to-image coordinates, and when the image fits in the viewport, set the offset to zero — not &lt;code&gt;(viewport - image)/2&lt;/code&gt;, even though the original code has it zeroed - that's introducing a bug!!!)&lt;/p&gt; &lt;p&gt;Still, AI programming is a big WOW to me. But after 25 years of graphics programming, yeah… that still matters (for now) when things go pear-shaped like this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Edit&lt;/strong&gt;:&lt;br /&gt; Tried Deepseek. The good part, found the error at first try without detours!&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&amp;quot;Looking at your zoom implementation, I can see the issue. The problem is in the &lt;code&gt;zoomAt&lt;/code&gt; method in &lt;code&gt;Canvas.h&lt;/code&gt; - there's a mismatch between the coordinate systems being used.&lt;/p&gt; &lt;p&gt;In &lt;code&gt;CPaintWnd::OnMouseWheel&lt;/code&gt;, you're passing screen coordinates (&lt;code&gt;pt.x, pt.y&lt;/code&gt;) to &lt;code&gt;zoomAt&amp;quot;&lt;/code&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;That is correct&lt;br /&gt; The slightly bad part: the fix was actually not exactly correct, it didn't correctly figured out which way the screen to local should go - but that would be an easy catch for me normally.&lt;br /&gt; When I prompt it to recheck the calculation, it corrected itself noticing how the screen to client is calculated elsewhere. So good point!&lt;/p&gt; &lt;p&gt;Bad part 2: Just like Claude, inexplicably introduced error down the code. It changed the offset from the original (correct) to wrong. The exact same error Claude did. (Great minds think alike?)&lt;br /&gt; Now even after multiple tries, short of giving it the answer, it could not figure out that part why it changed a working code to non working (it was doing the same as Claude version, zooming out would push the image right bottom)&lt;/p&gt; &lt;p&gt;So in summary 2: DeepSeek in this case performed slightly better than Claude, figuring out the culprit in words (but not in code) at first try. But both introduced a new error.&lt;/p&gt; &lt;p&gt;None of them did however what a proper programmer should do.&lt;br /&gt; Even the correct fix should not be to turn the zoomAt function from canvas class coordinates to viewport coordinates, just to make it work) after all as it is illogical since every other function in canvas class work in canvas coordinates, but simply go back where this code is called from (MouseWheel) and add viewport to canvas translation at that level.&lt;br /&gt; So even a correct fix introduces a bad code. Again win for human programmer. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FPham"&gt; /u/FPham &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odgyxp/i_asked_grok_claude_chatgpt_and_google_to_fix_my/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odgyxp/i_asked_grok_claude_chatgpt_and_google_to_fix_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odgyxp/i_asked_grok_claude_chatgpt_and_google_to_fix_my/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-22T18:51:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1oe64jz</id>
-    <title>Multilingual RAG chatbot challenges – how are you handling bilingual retrieval?</title>
-    <updated>2025-10-23T15:20:54+00:00</updated>
-    <author>
-      <name>/u/Funny_Working_7490</name>
-      <uri>https://old.reddit.com/user/Funny_Working_7490</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m working on a bilingual RAG chatbot that supports two languages — for example English–French or English–Arabic.&lt;/p&gt; &lt;p&gt;Here’s my setup and what’s going wrong:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The chatbot has two language modes — English and the second language (French or Arabic).&lt;/li&gt; &lt;li&gt;My RAG documents are mixed: some in English, some in the other language lets say french llanguage.&lt;/li&gt; &lt;li&gt;I’m using a multilingual embedding model (Alibaba’s multilingual model).&lt;/li&gt; &lt;li&gt;When a user selects English, the system prompt forces the model to respond in English — and same for the other language.&lt;/li&gt; &lt;li&gt;However, users can ask questions in either language, regardless of which mode they’re in.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Problem:&lt;br /&gt; When a user asks a question in one language that should match documents in another (for example Arabic query → English document, or English query → French document), retrieval often fails.&lt;br /&gt; Even when it does retrieve the correct chunk, the LLM sometimes doesn’t use it properly or still says “I don’t know.”&lt;br /&gt; Other times, it retrieves unrelated chunks that don’t match the query meaning.&lt;/p&gt; &lt;p&gt;This seems to happen specifically in bilingual setups, even when using multilingual embeddings that are supposed to handle cross-lingual mapping.&lt;/p&gt; &lt;p&gt;Why does this happen?&lt;br /&gt; How are you guys handling bilingual RAG retrieval in your systems?&lt;br /&gt; Care to share your suggestions or approach that actually worked for you?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Funny_Working_7490"&gt; /u/Funny_Working_7490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe64jz/multilingual_rag_chatbot_challenges_how_are_you/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe64jz/multilingual_rag_chatbot_challenges_how_are_you/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe64jz/multilingual_rag_chatbot_challenges_how_are_you/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T15:20:54+00:00</published>
-  </entry>
   <entry>
     <id>t3_1oe6htm</id>
     <title>The Agent Operating System: A Vision for Canonical AI Agent Development</title>
@@ -60,19 +34,6 @@
     <published>2025-10-22T13:34:41+00:00</published>
   </entry>
   <entry>
-    <id>t3_1odvxxa</id>
-    <title>what are the best models for code generation right now??</title>
-    <updated>2025-10-23T06:25:09+00:00</updated>
-    <author>
-      <name>/u/lavangamm</name>
-      <uri>https://old.reddit.com/user/lavangamm</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey!! recently a lot of new models have been released and I wanted to know which ones are the best for coding. I’ve heard that sonnet 4.5 and GLM 4.5 are really good, but I’m curious if there are any other models that perform well in different areas, such as frontend design, software architecture, or other coding dimensions. I’m open to both open-source and closed-source models. rn trying to use models that are available on bedrock&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lavangamm"&gt; /u/lavangamm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T06:25:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1odg6pz</id>
     <title>olmoOCR 2 released, big quality improvements, fully open training data and code</title>
     <updated>2025-10-22T18:22:09+00:00</updated>
@@ -86,6 +47,19 @@
     <published>2025-10-22T18:22:09+00:00</published>
   </entry>
   <entry>
+    <id>t3_1odvxxa</id>
+    <title>what are the best models for code generation right now??</title>
+    <updated>2025-10-23T06:25:09+00:00</updated>
+    <author>
+      <name>/u/lavangamm</name>
+      <uri>https://old.reddit.com/user/lavangamm</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey!! recently a lot of new models have been released and I wanted to know which ones are the best for coding. I’ve heard that sonnet 4.5 and GLM 4.5 are really good, but I’m curious if there are any other models that perform well in different areas, such as frontend design, software architecture, or other coding dimensions. I’m open to both open-source and closed-source models. rn trying to use models that are available on bedrock&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lavangamm"&gt; /u/lavangamm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odvxxa/what_are_the_best_models_for_code_generation/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T06:25:09+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1oe2hcz</id>
     <title>Chonky – a neural text semantic chunking goes multilingual</title>
     <updated>2025-10-23T12:53:33+00:00</updated>
@@ -97,6 +71,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe2hcz/chonky_a_neural_text_semantic_chunking_goes/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-23T12:53:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oe86ak</id>
+    <title>Context Sync - Persistent memory for AI assistants via MCP (local SQLite)</title>
+    <updated>2025-10-23T16:38:10+00:00</updated>
+    <author>
+      <name>/u/Spiritual_Dig_4502</name>
+      <uri>https://old.reddit.com/user/Spiritual_Dig_4502</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built an MCP server that solves persistent memory for AI assistants.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Technical:&lt;/strong&gt; - MCP (Model Context Protocol) server - SQLite local storage - Supports Claude Desktop + Cursor IDE - 50+ tools: file ops, git, code analysis&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Architecture:&lt;/strong&gt; AI connects to MCP server → server maintains context → context available across all conversations.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why it matters:&lt;/strong&gt; Current AI: No memory between chats. Constant re-explaining.&lt;/p&gt; &lt;p&gt;This: Structured context storage. Close Claude, come back next week, it remembers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How it handles context:&lt;/strong&gt; - Doesn't dump full conversations into new chats - Stores structured summaries (decisions, TODOs, metadata) - AI queries for details on-demand via MCP tools - Never saturates context window&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt; Chat 1: Build React app &lt;em&gt;close everything&lt;/em&gt; Chat 50 (next week): &amp;quot;Continue my app&amp;quot; AI: &amp;quot;Sure! Continuing your React app with Supabase auth...&amp;quot;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Open source (MIT):&lt;/strong&gt; GitHub: &lt;a href="https://github.com/Intina47/context-sync.git"&gt;https://github.com/Intina47/context-sync.git&lt;/a&gt; npm: &lt;a href="https://www.npmjs.com/package/@context-sync/server"&gt;https://www.npmjs.com/package/@context-sync/server&lt;/a&gt; HN link incase you love what we are trying to solve, give it a thumbs up: &lt;a href="https://www.producthunt.com/posts/context-sync"&gt;https://www.producthunt.com/posts/context-sync&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Feedback on approach?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Spiritual_Dig_4502"&gt; /u/Spiritual_Dig_4502 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86ak/context_sync_persistent_memory_for_ai_assistants/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86ak/context_sync_persistent_memory_for_ai_assistants/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86ak/context_sync_persistent_memory_for_ai_assistants/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T16:38:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oe86sk</id>
+    <title>I will try to benchmark every LLM + GPU combination you request in the comments</title>
+    <updated>2025-10-23T16:38:41+00:00</updated>
+    <author>
+      <name>/u/Level-Park3820</name>
+      <uri>https://old.reddit.com/user/Level-Park3820</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys, &lt;/p&gt; &lt;p&gt;I’ve been running benchmarks for different LLM and GPU combinations, and I’m planning to create even more based on your suggestions.&lt;/p&gt; &lt;p&gt;If there’s a specific model + GPU combo you’d like to see benchmarked, drop it in the comments and I’ll try to include it in the next batch. Any ideas or requests?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Level-Park3820"&gt; /u/Level-Park3820 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86sk/i_will_try_to_benchmark_every_llm_gpu_combination/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86sk/i_will_try_to_benchmark_every_llm_gpu_combination/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe86sk/i_will_try_to_benchmark_every_llm_gpu_combination/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T16:38:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1odwqul</id>
@@ -151,19 +151,6 @@
     <published>2025-10-22T20:46:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1oe70jh</id>
-    <title>Is MLX working with new M5 matmul yet?</title>
-    <updated>2025-10-23T15:54:39+00:00</updated>
-    <author>
-      <name>/u/PracticlySpeaking</name>
-      <uri>https://old.reddit.com/user/PracticlySpeaking</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Not a dev so I don't speak git, but &lt;a href="https://creativestrategies.com/research/m5-apple-silicon-its-all-about-the-cache-and-tensors/"&gt;this article&lt;/a&gt; implies that there is &amp;quot;preliminary support&amp;quot; for new in MLX. It references this issue:&lt;/p&gt; &lt;p&gt;[Experiment] Use metal performance primitives by sstame20 · Pull Request #2687 · ml-explore/mlx · GitHub - &lt;a href="https://github.com/ml-explore/mlx/pull/2687"&gt;https://github.com/ml-explore/mlx/pull/2687&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Seems not to be in a release (yet) seeing it's only three days old rn.&lt;/p&gt; &lt;p&gt;Or does the OS, compiler/interpreter or framework decide where matmul is actually executed (GPU hardware or software)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PracticlySpeaking"&gt; /u/PracticlySpeaking &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T15:54:39+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1odwj89</id>
     <title>Qwen3 Next 80B A3B Instruct on RTX 5090</title>
     <updated>2025-10-23T07:03:34+00:00</updated>
@@ -175,19 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odwj89/qwen3_next_80b_a3b_instruct_on_rtx_5090/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-23T07:03:34+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1oe2him</id>
-    <title>Pokee AI - Opensource 7B model for deep research</title>
-    <updated>2025-10-23T12:53:44+00:00</updated>
-    <author>
-      <name>/u/previse_je_sranje</name>
-      <uri>https://old.reddit.com/user/previse_je_sranje</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I asked it to give me Universities that fit specific criteria. 30 min later it produced a report with sources and really emphasized on verifying my criteria was met. It doesn't feel like just a 7B model, it's pretty good.. or maybe 7B models got too good :D?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/previse_je_sranje"&gt; /u/previse_je_sranje &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://x.com/Pokee_AI/status/1981040897346179256"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe2him/pokee_ai_opensource_7b_model_for_deep_research/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe2him/pokee_ai_opensource_7b_model_for_deep_research/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T12:53:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1odi1c0</id>
@@ -203,17 +177,30 @@
     <published>2025-10-22T19:30:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1oe6y1a</id>
-    <title>VT Code — Rust terminal coding agent doing AST-aware edits + local model workflows</title>
-    <updated>2025-10-23T15:51:59+00:00</updated>
+    <id>t3_1oe2him</id>
+    <title>Pokee AI - Opensource 7B model for deep research</title>
+    <updated>2025-10-23T12:53:44+00:00</updated>
     <author>
-      <name>/u/vinhnx</name>
-      <uri>https://old.reddit.com/user/vinhnx</uri>
+      <name>/u/previse_je_sranje</name>
+      <uri>https://old.reddit.com/user/previse_je_sranje</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all — I’m the author of &lt;strong&gt;VT Code&lt;/strong&gt;, an open-source Rust CLI/TUI coding agent built around structural code editing (via Tree-sitter + ast-grep) and multi-provider LLM support — including local model workflows via Ollama.&lt;br /&gt; Link: &lt;a href="https://github.com/vinhnx/vtcode"&gt;https://github.com/vinhnx/vtcode&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why this is relevant to LocalLLaMA&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Local-model ready: you can run it fully offline if you have Ollama + a compatible model.&lt;/li&gt; &lt;li&gt;Agent architecture: modular provider/tool traits, token budgeting, caching, and structural edits.&lt;/li&gt; &lt;li&gt;Editor integration: works with editor context and TUI + CLI control, so you can embed local model workflows into your dev loop.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How to try&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cargo install vtcode # or brew install vinhnx/tap/vtcode # or npm install -g vtcode # Local run example: ollama serve vtcode --provider ollama --model qwen3.1:7b ask &amp;quot;Refactor this Rust function into an async Result-returning API.&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;What I’d like feedback on&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;UX and performance when using &lt;strong&gt;local models&lt;/strong&gt; (what works best: hardware, model size, latency)&lt;/li&gt; &lt;li&gt;Safety &amp;amp; policy for tool execution in local/agent workflows (sandboxing, path limits, PTY handling)&lt;/li&gt; &lt;li&gt;Editor integration: how intuitive is the flow from code to agent to edit back in your environment?&lt;/li&gt; &lt;li&gt;Open-source dev workflow: ways to make contributions simpler for add-on providers/models.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;License &amp;amp; repo&lt;/strong&gt;&lt;br /&gt; MIT licensed, open for contributions: vinhnx/vtcode on GitHub.&lt;/p&gt; &lt;p&gt;Thanks for reading — happy to dive into any questions or discussions about local model setups, &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinhnx"&gt; /u/vinhnx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I asked it to give me Universities that fit specific criteria. 30 min later it produced a report with sources and really emphasized on verifying my criteria was met. It doesn't feel like just a 7B model, it's pretty good.. or maybe 7B models got too good :D?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/previse_je_sranje"&gt; /u/previse_je_sranje &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://x.com/Pokee_AI/status/1981040897346179256"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe2him/pokee_ai_opensource_7b_model_for_deep_research/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe2him/pokee_ai_opensource_7b_model_for_deep_research/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-23T15:51:59+00:00</published>
+    <published>2025-10-23T12:53:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oe70jh</id>
+    <title>Is MLX working with new M5 matmul yet?</title>
+    <updated>2025-10-23T15:54:39+00:00</updated>
+    <author>
+      <name>/u/PracticlySpeaking</name>
+      <uri>https://old.reddit.com/user/PracticlySpeaking</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Not a dev so I don't speak git, but &lt;a href="https://creativestrategies.com/research/m5-apple-silicon-its-all-about-the-cache-and-tensors/"&gt;this article&lt;/a&gt; implies that there is &amp;quot;preliminary support&amp;quot; for the M5 GPU matmul hardware in MLX. It references this issue:&lt;/p&gt; &lt;p&gt;[Experiment] Use metal performance primitives by sstame20 · Pull Request #2687 · ml-explore/mlx · GitHub - &lt;a href="https://github.com/ml-explore/mlx/pull/2687"&gt;https://github.com/ml-explore/mlx/pull/2687&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Seems not to be in a release (yet) seeing it's only three days old rn.&lt;/p&gt; &lt;p&gt;Or does the OS, compiler/interpreter or framework decide where matmul is actually executed (GPU hardware or software)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PracticlySpeaking"&gt; /u/PracticlySpeaking &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe70jh/is_mlx_working_with_new_m5_matmul_yet/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T15:54:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1odx0d4</id>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1odx0d4/llamacpp_is_looking_for_m5_neural_accelerator/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-23T07:34:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oe6y1a</id>
+    <title>VT Code — Rust terminal coding agent doing AST-aware edits + local model workflows</title>
+    <updated>2025-10-23T15:51:59+00:00</updated>
+    <author>
+      <name>/u/vinhnx</name>
+      <uri>https://old.reddit.com/user/vinhnx</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all — I’m the author of &lt;strong&gt;VT Code&lt;/strong&gt;, an open-source Rust CLI/TUI coding agent built around structural code editing (via Tree-sitter + ast-grep) and multi-provider LLM support — including local model workflows via Ollama.&lt;br /&gt; Link: &lt;a href="https://github.com/vinhnx/vtcode"&gt;https://github.com/vinhnx/vtcode&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why this is relevant to LocalLLaMA&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Local-model ready: you can run it fully offline if you have Ollama + a compatible model.&lt;/li&gt; &lt;li&gt;Agent architecture: modular provider/tool traits, token budgeting, caching, and structural edits.&lt;/li&gt; &lt;li&gt;Editor integration: works with editor context and TUI + CLI control, so you can embed local model workflows into your dev loop.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How to try&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cargo install vtcode # or brew install vinhnx/tap/vtcode # or npm install -g vtcode # Local run example: ollama serve vtcode --provider ollama --model qwen3.1:7b ask &amp;quot;Refactor this Rust function into an async Result-returning API.&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;What I’d like feedback on&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;UX and performance when using &lt;strong&gt;local models&lt;/strong&gt; (what works best: hardware, model size, latency)&lt;/li&gt; &lt;li&gt;Safety &amp;amp; policy for tool execution in local/agent workflows (sandboxing, path limits, PTY handling)&lt;/li&gt; &lt;li&gt;Editor integration: how intuitive is the flow from code to agent to edit back in your environment?&lt;/li&gt; &lt;li&gt;Open-source dev workflow: ways to make contributions simpler for add-on providers/models.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;License &amp;amp; repo&lt;/strong&gt;&lt;br /&gt; MIT licensed, open for contributions: vinhnx/vtcode on GitHub.&lt;/p&gt; &lt;p&gt;Thanks for reading — happy to dive into any questions or discussions about local model setups, &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vinhnx"&gt; /u/vinhnx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oe6y1a/vt_code_rust_terminal_coding_agent_doing_astaware/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-23T15:51:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1oda8mk</id>
