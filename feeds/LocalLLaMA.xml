@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-26T11:21:50+00:00</updated>
+  <updated>2025-10-26T11:34:28+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1ogg723</id>
-    <title>GraphScout: Intelligent Routing for Local LLM Agent Workflows</title>
-    <updated>2025-10-26T09:22:42+00:00</updated>
-    <author>
-      <name>/u/marcosomma-OrKA</name>
-      <uri>https://old.reddit.com/user/marcosomma-OrKA</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogg723/graphscout_intelligent_routing_for_local_llm/"&gt; &lt;img alt="GraphScout: Intelligent Routing for Local LLM Agent Workflows" src="https://preview.redd.it/akbwnyzbcfxf1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f91c4026cf196174c14077e41cd9593beedb1257" title="GraphScout: Intelligent Routing for Local LLM Agent Workflows" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;The Local LLM Orchestration Challenge&lt;/h1&gt; &lt;p&gt;When running local models, every token matters. You can't afford to waste inference calls on irrelevant agent sequences. Static routing often over-provisions—calling agents &amp;quot;just in case&amp;quot; because the logic can't adapt to actual query content.&lt;/p&gt; &lt;p&gt;GraphScout provides runtime path discovery for local LLM workflows. It evaluates which agents to call based on actual input, reducing unnecessary inference overhead.&lt;/p&gt; &lt;h1&gt;The Token Waste Problem&lt;/h1&gt; &lt;p&gt;Static routing with local models:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Always calls this sequence, regardless of query workflow: [memory_check, web_search, analysis, synthesis, response] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;For simple queries, you're paying for memory checks and web searches you don't need. For complex queries, you might need multiple analysis passes that aren't in the sequence.&lt;/p&gt; &lt;h1&gt;Dynamic Path Selection&lt;/h1&gt; &lt;p&gt;GraphScout uses your local LLM to evaluate which agent sequence makes sense:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;- id: smart_router type: graph_scout config: k_beam: 5 max_depth: 3 evaluation_model: &amp;quot;local_llm&amp;quot; evaluation_model_name: &amp;quot;gpt-oss:20b&amp;quot; cost_budget_tokens: 1000 prompt: &amp;quot;Select optimal path for: {{ input }}&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The system discovers available agents, simulates paths, and executes only what's needed.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Cost Control for Local Models&lt;/li&gt; &lt;li&gt;Token Budget Management&lt;/li&gt; &lt;li&gt;Set maximum tokens per path: cost_budget_tokens: 1000&lt;/li&gt; &lt;li&gt;GraphScout filters candidates that exceed budget before evaluation&lt;/li&gt; &lt;li&gt;Latency Constraints&lt;/li&gt; &lt;li&gt;Control max execution time: latency_budget_ms: 2000&lt;/li&gt; &lt;li&gt;Important when running quantized models with variable throughput&lt;/li&gt; &lt;li&gt;Beam Search&lt;/li&gt; &lt;li&gt;Configurable exploration depth prevents combinatorial explosion&lt;/li&gt; &lt;li&gt;k_beam: 3 with max_depth: 2 keeps evaluation overhead minimal&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Works with Any Local Provider&lt;/h1&gt; &lt;p&gt;Ollama:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;evaluation_model: &amp;quot;local_llm&amp;quot; evaluation_model_name: &amp;quot;gpt-oss:20b&amp;quot; provider: &amp;quot;ollama&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;LM Studio, llama.cpp, vLLM: Any OpenAI-compatible endpoint&lt;/p&gt; &lt;p&gt;GraphScout uses your local model for path evaluation no external API calls required for routing decisions.&lt;/p&gt; &lt;h1&gt;Example: Memory-Aware Local Workflow&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;orchestrator: agents: [graph_scout, memory_reader, local_analyzer, memory_writer, response_builder] agents: - id: graph_scout type: graph_scout config: evaluation_model: &amp;quot;local_llm&amp;quot; evaluation_model_name: &amp;quot;qwen2.5:7b&amp;quot; k_beam: 3 cost_budget_tokens: 800 - id: local_analyzer type: local_llm model: &amp;quot;gpt-oss:20b&amp;quot; provider: ollama - id: response_builder type: local_llm model: &amp;quot;qwen2.5:7b&amp;quot; provider: ollama &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;GraphScout automatically orders memory operations (readers first, writers last) and only calls the analyzer when needed.&lt;/p&gt; &lt;h1&gt;Real Benefit: Adaptive Token Usage&lt;/h1&gt; &lt;p&gt;Instead of fixed sequences that waste tokens on unnecessary operations, GraphScout adapts to query complexity:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Simple query: Skip memory check, direct to response builder&lt;/li&gt; &lt;li&gt;Factual query: Memory check → web search → response&lt;/li&gt; &lt;li&gt;Complex query: Memory → multiple analysis passes → synthesis → write back&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The routing intelligence runs locally on your own hardware.&lt;/p&gt; &lt;h1&gt;Privacy First&lt;/h1&gt; &lt;p&gt;All routing decisions happen locally using your models. No external API calls for path selection. Complete control over execution.&lt;/p&gt; &lt;p&gt;Works with RedisStack for local vector storage or in-memory backends. Entire reasoning workflow stays on your infrastructure.&lt;/p&gt; &lt;p&gt;Part of OrKa-Reasoning v0.9.3+&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="http://github.com/marcosomma/orka-reasoning"&gt;github.com/marcosomma/orka-reasoning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Apache 2.0 licensed, self-hostable&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/marcosomma-OrKA"&gt; /u/marcosomma-OrKA &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/akbwnyzbcfxf1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogg723/graphscout_intelligent_routing_for_local_llm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogg723/graphscout_intelligent_routing_for_local_llm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T09:22:42+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ofn0nb</id>
     <title>meituan-longcat/LongCat-Video · Hugging Face</title>
@@ -73,6 +60,19 @@
     <published>2025-10-26T07:56:23+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ogezrx</id>
+    <title>GPT-OSS DPO/RL fine-tuning, anyone?</title>
+    <updated>2025-10-26T08:04:48+00:00</updated>
+    <author>
+      <name>/u/Few_Art_4147</name>
+      <uri>https://old.reddit.com/user/Few_Art_4147</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am quite surprised that I can't find a single example of GPT-OSS fine-tuning with DPO or RL. Anyone tried? I wanted to see some benchmarks before putting time into it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Few_Art_4147"&gt; /u/Few_Art_4147 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-26T08:04:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ogfefw</id>
     <title>deepseek ocr</title>
     <updated>2025-10-26T08:31:24+00:00</updated>
@@ -99,17 +99,17 @@
     <published>2025-10-26T02:43:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ogfmt4</id>
-    <title>GLM 4.5 air for coding</title>
-    <updated>2025-10-26T08:46:12+00:00</updated>
+    <id>t3_1ogfl3a</id>
+    <title>DemyAgent</title>
+    <updated>2025-10-26T08:43:05+00:00</updated>
     <author>
-      <name>/u/Magnus114</name>
-      <uri>https://old.reddit.com/user/Magnus114</uri>
+      <name>/u/Old-Cardiologist-633</name>
+      <uri>https://old.reddit.com/user/Old-Cardiologist-633</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You who use a local glm 4.5 air for coding, can you please share your software setup?&lt;/p&gt; &lt;p&gt;I have had some success with unsloth q4_k_m on llama.cpp with opencode. To get the tool usage to work I had to use a jinja template from a pull request, and still the tool calling fails occasionally. Tried unsloth jinja template from glm 4.6, but no success. Also experimented with claude code with open router with a similar result. Considering to trying to write my own template and also trying with vllm.&lt;/p&gt; &lt;p&gt;Would love to hear how others are using glm 4.5 air. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Magnus114"&gt; /u/Magnus114 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, Did anyone of you already try the new DemyAgent Model? How did it perform for you? For a small model it should be very good - according to Benchmarks (but again I fear it's just benchmaxxed)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Old-Cardiologist-633"&gt; /u/Old-Cardiologist-633 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfl3a/demyagent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfl3a/demyagent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfl3a/demyagent/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T08:46:12+00:00</published>
+    <published>2025-10-26T08:43:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1ofrbcy</id>
@@ -164,19 +164,6 @@
     <published>2025-10-25T23:55:02+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ogezrx</id>
-    <title>GPT-OSS DPO/RL fine-tuning, anyone?</title>
-    <updated>2025-10-26T08:04:48+00:00</updated>
-    <author>
-      <name>/u/Few_Art_4147</name>
-      <uri>https://old.reddit.com/user/Few_Art_4147</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am quite surprised that I can't find a single example of GPT-OSS fine-tuning with DPO or RL. Anyone tried? I wanted to see some benchmarks before putting time into it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Few_Art_4147"&gt; /u/Few_Art_4147 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogezrx/gptoss_dporl_finetuning_anyone/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T08:04:48+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ofxt6s</id>
     <title>Optimizing gpt-oss-120B on AMD RX 6900 XT 16GB: Achieving 19 tokens/sec</title>
     <updated>2025-10-25T17:46:16+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1og4j8x/openarc_20_npu_multigpu_pipeline_parallell_cpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-25T22:28:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ogfmt4</id>
+    <title>GLM 4.5 air for coding</title>
+    <updated>2025-10-26T08:46:12+00:00</updated>
+    <author>
+      <name>/u/Magnus114</name>
+      <uri>https://old.reddit.com/user/Magnus114</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You who use a local glm 4.5 air for coding, can you please share your software setup?&lt;/p&gt; &lt;p&gt;I have had some success with unsloth q4_k_m on llama.cpp with opencode. To get the tool usage to work I had to use a jinja template from a pull request, and still the tool calling fails occasionally. Tried unsloth jinja template from glm 4.6, but no success. Also experimented with claude code with open router with a similar result. Considering to trying to write my own template and also trying with vllm.&lt;/p&gt; &lt;p&gt;Would love to hear how others are using glm 4.5 air. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Magnus114"&gt; /u/Magnus114 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogfmt4/glm_45_air_for_coding/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-26T08:46:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1og8jil</id>
