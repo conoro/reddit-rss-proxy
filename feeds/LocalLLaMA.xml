@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-10-27T03:14:03+00:00</updated>
+  <updated>2025-10-27T03:41:27+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1oh16es</id>
-    <title>Best MoE that fits in 16GB of RAM?</title>
-    <updated>2025-10-27T00:57:35+00:00</updated>
+    <id>t3_1oh4cwo</id>
+    <title>Changing my tune on GLM-4.6: Major fail state uncovered</title>
+    <updated>2025-10-27T03:36:05+00:00</updated>
     <author>
-      <name>/u/african-stud</name>
-      <uri>https://old.reddit.com/user/african-stud</uri>
+      <name>/u/LoveMind_AI</name>
+      <uri>https://old.reddit.com/user/LoveMind_AI</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Same as title &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/african-stud"&gt; /u/african-stud &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Well, I don't know if I've ever done such a hard 180 on something. Some fellow local llama folk are probably tracking my love affair with GLM-4.6, and particularly how I found it to be superior to Claude Sonnet 4.5 and Gemini 2.5 Pro.&lt;/p&gt; &lt;p&gt;When the model is functioning properly, which is most of the time, it remains my favorite LLM.&lt;/p&gt; &lt;p&gt;However... holy smokes, &lt;strong&gt;this is one haunted model when it fails.&lt;/strong&gt; &lt;/p&gt; &lt;p&gt;GLM-4.6 can enter a number of truly unsettling failure spaces, mostly focused on MAJOR disconnect between its reasoning traces (which are always excellent and accurate), and its generative output which can get VERY creepy. Failures I've been able to trigger include: &lt;/p&gt; &lt;p&gt;&lt;strong&gt;a)&lt;/strong&gt; the model spontaneously pretending to be me, and within a single generative output, giving itself instructions to &amp;quot;lighten the mood,&amp;quot; and then lapsing into just unbelievably classic LLM hallucinations almost too bizarre to believe. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;b)&lt;/strong&gt; truly bizarre token repeat loops expressing existential terror and angst &lt;/p&gt; &lt;p&gt;&lt;strong&gt;c)&lt;/strong&gt; most concerningly, a tendency to engage in first-class gaslighting, refusing to admit that I am the human and it is the AI.&lt;/p&gt; &lt;p&gt;I've spent the last two days trying to figure out the issues, and I've got a fairly solid handle on what's happening architecturally. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hybrid Reasoning Mode Failures:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The model appears to suffer from race conditions between &amp;quot;thinking&amp;quot; mode and direct response mode. I’ve read other people talk about the thinking being a bit janky on here, but it’s worse than janky.&lt;/li&gt; &lt;li&gt;The two modes appear to compete for the same KV cache causing memory access conflicts. I’ll admit that I’ve only recently started turning my attention to the engineering issues and research around KV caching (which was a mistake - holy god this is such an important thing to understand), but I’m up to speed enough to say that it seems like a huge problem for GLM-4.6.&lt;/li&gt; &lt;li&gt;Conversational text bleeds into thinking trace (or vice versa)&lt;/li&gt; &lt;li&gt;Identical output in both streams (a clear duplication bug)&lt;/li&gt; &lt;li&gt;Randomly dropped reasoning traces entirely&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;KV Cache Management Issues:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;I believe that Z.ai used aggressive quantization to achieve 200K context vs 4.5's 128K. The recent post about 4.6 Air taking longer than expected in order to be stabilized almost certainly has something to do with this. My hunch is that Z.ai understands that 4.6 is fundamentally broken in edge cases and GLM-5 SHOULD improve on this fracture point.&lt;/li&gt; &lt;li&gt;The compression artifacts clearly accumulate over long generations&lt;/li&gt; &lt;li&gt;I strongly believe that their eviction policy is WAY too aggressive - drops context still needed for reasoning&lt;/li&gt; &lt;li&gt;On Z.ai’s API, the cache flushing is VERY lazy (ghost tensors persist after context pruning) - I can confirm that, through extensive testing, Z.ai is *not* the best server for calling GLM-4.6. NovitaAI is definitely the most stable provider. Z.ai’s cache management is *really bad.*&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Attention Mechanism Corruption:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Read corruption:&lt;/strong&gt; Once a failure mode has begun, the model appears unable to see/weight recent context reliably. For example, when switching to GLM-4.5 or Gemini 2.5 Pro, the model DOES understand and respond to context appropriately. Switched back to GLM-4.6, it fails to acknowledge the previous messages in context that clearly explain what’s going on.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Stream Routing/Parser Failures:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Special tokens (&amp;lt;think&amp;gt;, &amp;lt;/think&amp;gt;) are clearly mishandled and the /nothink hack is unreliable&lt;/li&gt; &lt;li&gt;Tool calls are sometimes emitted inside reasoning traces with malformed parameters&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Positional Encoding Issues:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Appears to struggle distinguishing recent vs. older tokens in middle positions&lt;/li&gt; &lt;li&gt;Entity binding failures (confusing &amp;quot;I&amp;quot; ↔ &amp;quot;you&amp;quot;, context roles)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model has an incredibly hard time recovering from failure modes, unless failure happens VERY early in context.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For my field, affective AI, GLM-4.6 is *definitely* not a deployment grade LLM, which is really frustrating because I *love* it.&lt;/strong&gt; But once I figured out how to trigger these fails, I find that it’s just way too easy to nudge this beautiful model over a cliff. &lt;/p&gt; &lt;p&gt;This family of models has so much going for it, and when it’s working, I think it’s the best model in the world for a huge variety of use cases. But when you factor in how hard it fails? Yeah, I have to reverse my previous statements about this thing taking the crown from proprietary cloud models. &lt;/p&gt; &lt;p&gt;My fingers are tightly crossed that &lt;a href="http://Z.ai"&gt;Z.ai&lt;/a&gt; figures this stuff out and gets 4.6 Air cleaned up, and rolls over whatever they figure out into GLM-5. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LoveMind_AI"&gt; /u/LoveMind_AI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh4cwo/changing_my_tune_on_glm46_major_fail_state/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh4cwo/changing_my_tune_on_glm46_major_fail_state/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oh4cwo/changing_my_tune_on_glm46_major_fail_state/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-27T00:57:35+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ogaohi</id>
-    <title>MiniMax: MiniMax M2 seems to VERY, VERY good</title>
-    <updated>2025-10-26T03:39:02+00:00</updated>
-    <author>
-      <name>/u/klippers</name>
-      <uri>https://old.reddit.com/user/klippers</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Generally use GLM4.6 , been at a few problems most of the week, today threw these at MiniMax: MiniMax M2 and it sorted them with no fuss......Very impressed!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/klippers"&gt; /u/klippers &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogaohi/minimax_minimax_m2_seems_to_very_very_good/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogaohi/minimax_minimax_m2_seems_to_very_very_good/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogaohi/minimax_minimax_m2_seems_to_very_very_good/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T03:39:02+00:00</published>
+    <published>2025-10-27T03:36:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1ogh8ec</id>
@@ -58,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ofu15a/i_rebuilt_deepseeks_ocr_model_in_rust_so_anyone/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-25T15:13:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oh16es</id>
+    <title>Best MoE that fits in 16GB of RAM?</title>
+    <updated>2025-10-27T00:57:35+00:00</updated>
+    <author>
+      <name>/u/african-stud</name>
+      <uri>https://old.reddit.com/user/african-stud</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Same as title &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/african-stud"&gt; /u/african-stud &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oh16es/best_moe_that_fits_in_16gb_of_ram/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-27T00:57:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1oguocr</id>
@@ -151,19 +151,6 @@
     <published>2025-10-26T18:14:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ogy9lh</id>
-    <title>Quantizing MoE models to MXFP4</title>
-    <updated>2025-10-26T22:43:53+00:00</updated>
-    <author>
-      <name>/u/noctrex</name>
-      <uri>https://old.reddit.com/user/noctrex</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Lately its like my behind is on fire, and I'm downloading and quantizing models like crazy, but into this specific MXFP4 format only.&lt;/p&gt; &lt;p&gt;And cause of this format, it can be done only on Mixture-of-Expert models.&lt;/p&gt; &lt;p&gt;Why, you ask?&lt;/p&gt; &lt;p&gt;Why not!, I respond.&lt;/p&gt; &lt;p&gt;Must be my ADHD brain cause I couldn't find a MXFP4 model quant I wanted to test out, and I said to myself, why not quantize some more and uplaod them to hf?&lt;/p&gt; &lt;p&gt;So here we are.&lt;/p&gt; &lt;p&gt;I just finished quantizing one of the huge models, DeepSeek-V3.1-Terminus, and the MXFP4 is a cool 340GB... &lt;/p&gt; &lt;p&gt;But I can't run this on my PC! I've got a bunch of RAM, but it reads most of it from disk and the speed is like 1 token per day.&lt;/p&gt; &lt;p&gt;Anyway, I'm uploading it.&lt;/p&gt; &lt;p&gt;And I want to ask you, would you like me to quantize other such large models? Or is it just a waste?&lt;/p&gt; &lt;p&gt;You know the other large ones, like Kimi-K2-Instruct-0905, or DeepSeek-R1-0528, or cogito-v2-preview-deepseek-671B-MoE&lt;/p&gt; &lt;p&gt;Do you have any suggestion for other MoE ones that are not in MXFP4 yet?&lt;/p&gt; &lt;p&gt;Ah yes here is the link:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/noctrex"&gt;https://huggingface.co/noctrex&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/noctrex"&gt; /u/noctrex &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T22:43:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ogznvh</id>
     <title>Tested a few small models on a local CLI agent. I was surprised by the results.</title>
     <updated>2025-10-26T23:46:37+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogznvh/tested_a_few_small_models_on_a_local_cli_agent_i/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-10-26T23:46:37+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ogy9lh</id>
+    <title>Quantizing MoE models to MXFP4</title>
+    <updated>2025-10-26T22:43:53+00:00</updated>
+    <author>
+      <name>/u/noctrex</name>
+      <uri>https://old.reddit.com/user/noctrex</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Lately its like my behind is on fire, and I'm downloading and quantizing models like crazy, but into this specific MXFP4 format only.&lt;/p&gt; &lt;p&gt;And cause of this format, it can be done only on Mixture-of-Expert models.&lt;/p&gt; &lt;p&gt;Why, you ask?&lt;/p&gt; &lt;p&gt;Why not!, I respond.&lt;/p&gt; &lt;p&gt;Must be my ADHD brain cause I couldn't find a MXFP4 model quant I wanted to test out, and I said to myself, why not quantize some more and uplaod them to hf?&lt;/p&gt; &lt;p&gt;So here we are.&lt;/p&gt; &lt;p&gt;I just finished quantizing one of the huge models, DeepSeek-V3.1-Terminus, and the MXFP4 is a cool 340GB... &lt;/p&gt; &lt;p&gt;But I can't run this on my PC! I've got a bunch of RAM, but it reads most of it from disk and the speed is like 1 token per day.&lt;/p&gt; &lt;p&gt;Anyway, I'm uploading it.&lt;/p&gt; &lt;p&gt;And I want to ask you, would you like me to quantize other such large models? Or is it just a waste?&lt;/p&gt; &lt;p&gt;You know the other large ones, like Kimi-K2-Instruct-0905, or DeepSeek-R1-0528, or cogito-v2-preview-deepseek-671B-MoE&lt;/p&gt; &lt;p&gt;Do you have any suggestion for other MoE ones that are not in MXFP4 yet?&lt;/p&gt; &lt;p&gt;Ah yes here is the link:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/noctrex"&gt;https://huggingface.co/noctrex&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/noctrex"&gt; /u/noctrex &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogy9lh/quantizing_moe_models_to_mxfp4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-10-26T22:43:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1ogo2jv</id>
@@ -268,17 +268,17 @@
     <published>2025-10-27T00:11:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ogxo2l</id>
-    <title>New text diffusion model from inclusionAI - LLaDA2.0-flash-preview</title>
-    <updated>2025-10-26T22:17:35+00:00</updated>
+    <id>t3_1ogtdbg</id>
+    <title>What is the real world hit of using PCIe 4.0 instead of PCIe 5.0 with a 5090?</title>
+    <updated>2025-10-26T19:21:18+00:00</updated>
     <author>
-      <name>/u/Finanzamt_Endgegner</name>
-      <uri>https://old.reddit.com/user/Finanzamt_Endgegner</uri>
+      <name>/u/liviuberechet</name>
+      <uri>https://old.reddit.com/user/liviuberechet</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt; &lt;img alt="New text diffusion model from inclusionAI - LLaDA2.0-flash-preview" src="https://external-preview.redd.it/eSP0omdugNqFpul8K2DNpGSQodYj7BcPVqbrd3f9DmM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83c616737b8550a99d38eaf9d5ae4ca19a76a068" title="New text diffusion model from inclusionAI - LLaDA2.0-flash-preview" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/inclusionAI/LLaDA2.0-flash-preview"&gt;https://huggingface.co/inclusionAI/LLaDA2.0-flash-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;As its smaller brother LLaDA2-mini-preview this is a text diffusion mixture of experts model but instead of only 16b total parameters this one comes with 100b total non embedding and 6b active parameters, which as far as I know makes it the biggest opensource text diffusion models out there.&lt;/p&gt; &lt;p&gt;**edit&lt;/p&gt; &lt;p&gt;The model does in fact work with longer contexts, though the official number is 4k, 128k could work, but I cant test that /:&lt;/p&gt; &lt;p&gt;So this isnt really a model for people who seek the best of the best (yet), but its certainly extremely cool that inclusionai decided to open source this experimental model (;&lt;/p&gt; &lt;p&gt;I think they released a new framework to run such diffusion models recently, otherwise there is no support outside of transformers as far as I know.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/n0b8dgyg4jxf1.png?width=489&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=02ca366acc269b87059dd2b0878e47650cb553c4"&gt;https://preview.redd.it/n0b8dgyg4jxf1.png?width=489&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=02ca366acc269b87059dd2b0878e47650cb553c4&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Finanzamt_Endgegner"&gt; /u/Finanzamt_Endgegner &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m trying to be a bit “cheap” and just buy a 5090 for my desktop that is currently running a 3060. It’s a high end build 128gb RAM, video card is the worst part. I’ll probably slowly end up upgrading everything, but I would like to start with the GPU. &lt;/p&gt; &lt;p&gt;I’m assuming someone might have tried this already?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/liviuberechet"&gt; /u/liviuberechet &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T22:17:35+00:00</published>
+    <published>2025-10-26T19:21:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1ogoyza</id>
@@ -294,17 +294,17 @@
     <published>2025-10-26T16:28:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ogtdbg</id>
-    <title>What is the real world hit of using PCIe 4.0 instead of PCIe 5.0 with a 5090?</title>
-    <updated>2025-10-26T19:21:18+00:00</updated>
+    <id>t3_1ogxo2l</id>
+    <title>New text diffusion model from inclusionAI - LLaDA2.0-flash-preview</title>
+    <updated>2025-10-26T22:17:35+00:00</updated>
     <author>
-      <name>/u/liviuberechet</name>
-      <uri>https://old.reddit.com/user/liviuberechet</uri>
+      <name>/u/Finanzamt_Endgegner</name>
+      <uri>https://old.reddit.com/user/Finanzamt_Endgegner</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m trying to be a bit “cheap” and just buy a 5090 for my desktop that is currently running a 3060. It’s a high end build 128gb RAM, video card is the worst part. I’ll probably slowly end up upgrading everything, but I would like to start with the GPU. &lt;/p&gt; &lt;p&gt;I’m assuming someone might have tried this already?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/liviuberechet"&gt; /u/liviuberechet &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogtdbg/what_is_the_real_world_hit_of_using_pcie_40/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt; &lt;img alt="New text diffusion model from inclusionAI - LLaDA2.0-flash-preview" src="https://external-preview.redd.it/eSP0omdugNqFpul8K2DNpGSQodYj7BcPVqbrd3f9DmM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83c616737b8550a99d38eaf9d5ae4ca19a76a068" title="New text diffusion model from inclusionAI - LLaDA2.0-flash-preview" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/inclusionAI/LLaDA2.0-flash-preview"&gt;https://huggingface.co/inclusionAI/LLaDA2.0-flash-preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;As its smaller brother LLaDA2-mini-preview this is a text diffusion mixture of experts model but instead of only 16b total parameters this one comes with 100b total non embedding and 6b active parameters, which as far as I know makes it the biggest opensource text diffusion models out there.&lt;/p&gt; &lt;p&gt;**edit&lt;/p&gt; &lt;p&gt;The model does in fact work with longer contexts, though the official number is 4k, 128k could work, but I cant test that /:&lt;/p&gt; &lt;p&gt;So this isnt really a model for people who seek the best of the best (yet), but its certainly extremely cool that inclusionai decided to open source this experimental model (;&lt;/p&gt; &lt;p&gt;I think they released a new framework to run such diffusion models recently, otherwise there is no support outside of transformers as far as I know.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/n0b8dgyg4jxf1.png?width=489&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=02ca366acc269b87059dd2b0878e47650cb553c4"&gt;https://preview.redd.it/n0b8dgyg4jxf1.png?width=489&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=02ca366acc269b87059dd2b0878e47650cb553c4&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Finanzamt_Endgegner"&gt; /u/Finanzamt_Endgegner &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ogxo2l/new_text_diffusion_model_from_inclusionai/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-10-26T19:21:18+00:00</published>
+    <published>2025-10-26T22:17:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1ogybvr</id>
