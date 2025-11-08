@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-08T16:06:26+00:00</updated>
+  <updated>2025-11-08T16:24:59+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1oquezp</id>
-    <title>Kimi K2 Thinking with sglang and mixed GPU / ktransformers CPU inference @ 31 tokens/sec</title>
-    <updated>2025-11-07T13:28:44+00:00</updated>
-    <author>
-      <name>/u/__JockY__</name>
-      <uri>https://old.reddit.com/user/__JockY__</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just got Kimi K2 Thinking running locally and I'm blown away how fast it runs in simple chat tests: approximately ~ 30 tokens/sec with 4000 tokens in the context. Obviously a lot more testing to be done, but wow... a trillion parameter model running at 30 tokens/sec. &lt;/p&gt; &lt;p&gt;I'll whip up some tests around batching and available context lengths soon, but for now here's the recipe to get it running should you have the necessary hardware.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Edit&lt;/strong&gt;: it looks like only the first API request works. Subsequent requests always cause sglang to crash and require a restart, regardless of how I configure things:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; File &amp;quot;/home/carl/ktransformers/ktransformers/.venv/lib/python3.11/site-packages/triton/compiler/compiler.py&amp;quot;, line 498, in __getattribute__ self._init_handles() File &amp;quot;/home/carl/ktransformers/ktransformers/.venv/lib/python3.11/site-packages/triton/compiler/compiler.py&amp;quot;, line 483, in _init_handles raise OutOfResources(self.metadata.shared, max_shared, &amp;quot;shared memory&amp;quot;) triton.runtime.errors.OutOfResources: out of resource: shared memory, Required: 106496, Hardware limit: 101376. Reducing block sizes or `num_stages` may help. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;System&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;EPYC &lt;del&gt;7B45&lt;/del&gt; 9B45 (128-core, 256 thread) CPU&lt;/li&gt; &lt;li&gt;768GB DDR5 6400 MT/s&lt;/li&gt; &lt;li&gt;4x RTX 6000 Pro Workstation 96GB GPUs&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Setup virtual python environment&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;mkdir sglang-ktransformers cd sglang-ktransformers uv venv --python 3.11 --seed . .venv/bin/activate &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Install sglang&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;uv pip install &amp;quot;sglang&amp;quot; --prerelease=allow &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Download and initialize ktransformers repo&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;git clone https://github.com/kvcache-ai/ktransformers cd ktransformers git submodule update --init --recursive &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Install ktransformers CPU kernel for sglang&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cd kt-kernel export CPUINFER_CPU_INSTRUCT=AVX512 export CPUINFER_ENABLE_AMX=OFF uv pip install . cd .. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Download Kimi K2 Thinking GPU &amp;amp; CPU parts&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;uv pip install -U hf hf_transfer hf download moonshotai/Kimi-K2-Thinking hf download KVCache-ai/Kimi-K2-Thinking-CPU-weight &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Run k2&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_VISIBLE_DEVICES=0,1,2,3 python -m sglang.launch_server \ --host 0.0.0.0 --port 8080 \ --model ~/.cache/huggingface/hub/models--moonshotai--Kimi-K2-Thinking/snapshots/357b94aee9d50ec88e5e6dd9550fd7f957cb1baa \ --kt-amx-weight-path ~/.cache/huggingface/hub/models--KVCache-ai--Kimi-K2-Thinking-CPU-weight/snapshots/690ffacb9203d3b5e05ee8167ff1f5d4ae027c83 \ --kt-cpuinfer 252 \ --kt-threadpool-count 2 \ --kt-num-gpu-experts 238 \ --kt-amx-method AMXINT4 \ --attention-backend triton --trust-remote-code \ --mem-fraction-static 0.98 \ --chunked-prefill-size 4096 \ --max-running-requests 1 \ --max-total-tokens 32768 \ --enable-mixed-chunk \ --tensor-parallel-size 4 \ --enable-p2p-check \ --disable-shared-experts-fusion &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/__JockY__"&gt; /u/__JockY__ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oquezp/kimi_k2_thinking_with_sglang_and_mixed_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oquezp/kimi_k2_thinking_with_sglang_and_mixed_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oquezp/kimi_k2_thinking_with_sglang_and_mixed_gpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-07T13:28:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ors0ja</id>
-    <title>Anyone actually coded with Kimi K2 Thinking?</title>
-    <updated>2025-11-08T15:20:38+00:00</updated>
-    <author>
-      <name>/u/Federal_Spend2412</name>
-      <uri>https://old.reddit.com/user/Federal_Spend2412</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Curious how its debug skills and long-context feel next to Claude 4.5 Sonnet—better, worse, or just hype? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Federal_Spend2412"&gt; /u/Federal_Spend2412 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ors0ja/anyone_actually_coded_with_kimi_k2_thinking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ors0ja/anyone_actually_coded_with_kimi_k2_thinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ors0ja/anyone_actually_coded_with_kimi_k2_thinking/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T15:20:38+00:00</published>
-  </entry>
   <entry>
     <id>t3_1or323v</id>
     <title>Recently built my first LLM and im wondering why there hasn't been more innovation on moving away from transformers and gradient descent?</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1or323v/recently_built_my_first_llm_and_im_wondering_why/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-07T19:01:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ort58r</id>
+    <title>What is closest to Jarvis we have today that we can run locally?</title>
+    <updated>2025-11-08T16:06:35+00:00</updated>
+    <author>
+      <name>/u/NoFudge4700</name>
+      <uri>https://old.reddit.com/user/NoFudge4700</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A full agent that can perform tasks autonomously. Open and close apps. Browse Internet and even watch videos for me and summarize them. &lt;/p&gt; &lt;p&gt;I tried UI Tars but it didn’t work and it’s very resource intensive. Something voice to voice and can run tasks in parallel. With all this awesome technologies we’re so lagging behind. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NoFudge4700"&gt; /u/NoFudge4700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ort58r/what_is_closest_to_jarvis_we_have_today_that_we/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ort58r/what_is_closest_to_jarvis_we_have_today_that_we/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ort58r/what_is_closest_to_jarvis_we_have_today_that_we/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-08T16:06:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1ore9xo</id>
@@ -164,30 +151,17 @@
     <published>2025-11-08T15:27:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1orsdd9</id>
-    <title>Meta’s AI hidden debt</title>
-    <updated>2025-11-08T15:35:16+00:00</updated>
+    <id>t3_1ortkiq</id>
+    <title>Tips for someone new starting out on tinkering and self hosting LLMs</title>
+    <updated>2025-11-08T16:23:33+00:00</updated>
     <author>
-      <name>/u/Ok-Breakfast-4676</name>
-      <uri>https://old.reddit.com/user/Ok-Breakfast-4676</uri>
+      <name>/u/MushroomDull4699</name>
+      <uri>https://old.reddit.com/user/MushroomDull4699</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"&gt; &lt;img alt="Meta’s AI hidden debt" src="https://preview.redd.it/a6susixny10g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3e81cc9161b2f3c3a8b79ad468df241b09f83883" title="Meta’s AI hidden debt" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Meta’s hidden AI debt&lt;/p&gt; &lt;p&gt;Meta has parked $30B in AI infra debt off its balance sheet using SPVs the same financial engineering behind Enron and ’08.&lt;/p&gt; &lt;p&gt;Morgan Stanley sees tech firms needing $800B in private-credit SPVs by 2028. UBS says AI debt is growing $100B/quarter, raising red flags.&lt;/p&gt; &lt;p&gt;This isn’t dot-com equity growth it’s hidden leverage. When chips go obsolete in 3 years instead of 6, and exposure sits in short-term leases, transparency fades and that’s how bubbles start.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Breakfast-4676"&gt; /u/Ok-Breakfast-4676 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/a6susixny10g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, im fairly new to this and i got interested after bumping into Alex Ziskind’s video on recommend in a youtube channel. &lt;/p&gt; &lt;p&gt;I am a consultant here in SouthEast Asia who’s not fairly techy, but i use LLM’s a lot and i’ve built my own pc 3x before (i play games on console and pc on a regular).&lt;/p&gt; &lt;p&gt;I plan to build or purchase a decent setup with a $3,000 busget that’s relatively future proof over the next 12-18 months and study python over the next 6 months (i have zero coding experience, but i believe studying python would help me go down this rabbit hole further)&lt;/p&gt; &lt;p&gt;I’m like just 2hrs away from Shenzhen and i’m looking to either buy parts and build my own setup or have one just built there with the ryzan ai max+395 128gb.&lt;/p&gt; &lt;p&gt;Is this a good plan? Or should i look at a different setup with my budget as well as study a different coding language?&lt;/p&gt; &lt;p&gt;I’m excited and i appreciate any tips and suggestions.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MushroomDull4699"&gt; /u/MushroomDull4699 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ortkiq/tips_for_someone_new_starting_out_on_tinkering/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ortkiq/tips_for_someone_new_starting_out_on_tinkering/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ortkiq/tips_for_someone_new_starting_out_on_tinkering/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T15:35:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1orse3n</id>
-    <title>Waterblocks for RTX Pro 6000?</title>
-    <updated>2025-11-08T15:36:04+00:00</updated>
-    <author>
-      <name>/u/MachinaVerum</name>
-      <uri>https://old.reddit.com/user/MachinaVerum</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orse3n/waterblocks_for_rtx_pro_6000/"&gt; &lt;img alt="Waterblocks for RTX Pro 6000?" src="https://preview.redd.it/7ik1dn1ty10g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=50a35006a73e66cc0e8397fc68cf152f1c4114a5" title="Waterblocks for RTX Pro 6000?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone tried these? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MachinaVerum"&gt; /u/MachinaVerum &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/7ik1dn1ty10g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orse3n/waterblocks_for_rtx_pro_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orse3n/waterblocks_for_rtx_pro_6000/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T15:36:04+00:00</published>
+    <published>2025-11-08T16:23:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1or46rv</id>
@@ -203,17 +177,17 @@
     <published>2025-11-07T19:44:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1orrddh</id>
-    <title>Minimax M2 Coding Plan Pricing Revealed</title>
-    <updated>2025-11-08T14:54:27+00:00</updated>
+    <id>t3_1or4q4m</id>
+    <title>Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis</title>
+    <updated>2025-11-07T20:04:53+00:00</updated>
     <author>
-      <name>/u/lemon07r</name>
-      <uri>https://old.reddit.com/user/lemon07r</uri>
+      <name>/u/teatime1983</name>
+      <uri>https://old.reddit.com/user/teatime1983</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt; &lt;img alt="Minimax M2 Coding Plan Pricing Revealed" src="https://a.thumbs.redditmedia.com/8aEeUqxK1pswvd_byPWSO7mB5CnEhSUGwY6HlasVrB8.jpg" title="Minimax M2 Coding Plan Pricing Revealed" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/frggt9tkp10g1.png?width=1120&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f28f09c1d3058be07b78d6f2f36a44b1f87608b4"&gt;https://preview.redd.it/frggt9tkp10g1.png?width=1120&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f28f09c1d3058be07b78d6f2f36a44b1f87608b4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Recieved the following in my user notifications on the minimax platform website. Here's the main portion of interest, in text form:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Coding Plans (Available Nov 10)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Starter:&lt;/strong&gt; $10/ month&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Pro:&lt;/strong&gt; $20 / month&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Max:&lt;/strong&gt; $50 / month&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The coding plan pricing seems a lot more expensive than what was previously rumored. Usage provided is currently unknown, but I believe it was supposed to be &amp;quot;5x&amp;quot; the equivalent claude plans, but those rumors also said they were supposed to cost 20% of claude for the pro plan equivalent, and 8% for the other two max plans.&lt;/p&gt; &lt;p&gt;Seems to be a direct competitor to GLM coding plans, but I'm not sure how well this will pan out with those plans being as cheap as $3 a month for first month/quarter/year, and both offering similarly strong models. Chutes is also a strong contendor since they are able to offer both GLM and minimax models, and now K2 thinking as well at fairly cheap plans.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lemon07r"&gt; /u/lemon07r &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt; &lt;img alt="Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis" src="https://b.thumbs.redditmedia.com/rRHDbssmheavBuel7zlrGe8NTyudGIzlKqGjsplYEaI.jpg" title="Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/4l3lbor55wzf1.png?width=488&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b25065a1147654cbbf9b413b322560870a44d41e"&gt;https://preview.redd.it/4l3lbor55wzf1.png?width=488&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b25065a1147654cbbf9b413b322560870a44d41e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The Kimi K2 Thinking API pricing is $0.60 per million input tokens and $2.50 per million output tokens.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/teatime1983"&gt; /u/teatime1983 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T14:54:27+00:00</published>
+    <published>2025-11-07T20:04:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1or5j9z</id>
@@ -229,19 +203,6 @@
     <published>2025-11-07T20:36:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1or4q4m</id>
-    <title>Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis</title>
-    <updated>2025-11-07T20:04:53+00:00</updated>
-    <author>
-      <name>/u/teatime1983</name>
-      <uri>https://old.reddit.com/user/teatime1983</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt; &lt;img alt="Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis" src="https://b.thumbs.redditmedia.com/rRHDbssmheavBuel7zlrGe8NTyudGIzlKqGjsplYEaI.jpg" title="Kimi K2 Thinking SECOND most intelligent LLM according to Artificial Analysis" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/4l3lbor55wzf1.png?width=488&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b25065a1147654cbbf9b413b322560870a44d41e"&gt;https://preview.redd.it/4l3lbor55wzf1.png?width=488&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b25065a1147654cbbf9b413b322560870a44d41e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The Kimi K2 Thinking API pricing is $0.60 per million input tokens and $2.50 per million output tokens.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/teatime1983"&gt; /u/teatime1983 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1or4q4m/kimi_k2_thinking_second_most_intelligent_llm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-07T20:04:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1or8ehk</id>
     <title>Artificial Analysis has released a more in-depth benchmark breakdown of Kimi K2 Thinking (2nd image)</title>
     <updated>2025-11-07T22:30:30+00:00</updated>
@@ -253,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1or8ehk/artificial_analysis_has_released_a_more_indepth/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-07T22:30:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1orrddh</id>
+    <title>Minimax M2 Coding Plan Pricing Revealed</title>
+    <updated>2025-11-08T14:54:27+00:00</updated>
+    <author>
+      <name>/u/lemon07r</name>
+      <uri>https://old.reddit.com/user/lemon07r</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt; &lt;img alt="Minimax M2 Coding Plan Pricing Revealed" src="https://a.thumbs.redditmedia.com/8aEeUqxK1pswvd_byPWSO7mB5CnEhSUGwY6HlasVrB8.jpg" title="Minimax M2 Coding Plan Pricing Revealed" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/frggt9tkp10g1.png?width=1120&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f28f09c1d3058be07b78d6f2f36a44b1f87608b4"&gt;https://preview.redd.it/frggt9tkp10g1.png?width=1120&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f28f09c1d3058be07b78d6f2f36a44b1f87608b4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Recieved the following in my user notifications on the minimax platform website. Here's the main portion of interest, in text form:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Coding Plans (Available Nov 10)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Starter:&lt;/strong&gt; $10/ month&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Pro:&lt;/strong&gt; $20 / month&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Max:&lt;/strong&gt; $50 / month&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The coding plan pricing seems a lot more expensive than what was previously rumored. Usage provided is currently unknown, but I believe it was supposed to be &amp;quot;5x&amp;quot; the equivalent claude plans, but those rumors also said they were supposed to cost 20% of claude for the pro plan equivalent, and 8% for the other two max plans.&lt;/p&gt; &lt;p&gt;Seems to be a direct competitor to GLM coding plans, but I'm not sure how well this will pan out with those plans being as cheap as $3 a month for first month/quarter/year, and both offering similarly strong models. Chutes is also a strong contendor since they are able to offer both GLM and minimax models, and now K2 thinking as well at fairly cheap plans.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lemon07r"&gt; /u/lemon07r &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orrddh/minimax_m2_coding_plan_pricing_revealed/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-08T14:54:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1or08aq</id>
@@ -268,6 +242,19 @@
     <published>2025-11-07T17:15:05+00:00</published>
   </entry>
   <entry>
+    <id>t3_1orter8</id>
+    <title>Added Kimi-K2-Thinking to the UGI-Leaderboard</title>
+    <updated>2025-11-08T16:17:13+00:00</updated>
+    <author>
+      <name>/u/DontPlanToEnd</name>
+      <uri>https://old.reddit.com/user/DontPlanToEnd</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orter8/added_kimik2thinking_to_the_ugileaderboard/"&gt; &lt;img alt="Added Kimi-K2-Thinking to the UGI-Leaderboard" src="https://preview.redd.it/9kogdlk5620g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9be57e7458c6ad9fc1ebe6278bbb2b316a0b4ba9" title="Added Kimi-K2-Thinking to the UGI-Leaderboard" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/spaces/DontPlanToEnd/UGI-Leaderboard"&gt;https://huggingface.co/spaces/DontPlanToEnd/UGI-Leaderboard&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DontPlanToEnd"&gt; /u/DontPlanToEnd &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/9kogdlk5620g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orter8/added_kimik2thinking_to_the_ugileaderboard/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orter8/added_kimik2thinking_to_the_ugileaderboard/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-08T16:17:13+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1oro9ng</id>
     <title>ROCm(6.4, using latest LLVM) vs ROCm 7 (lemonade sdk)</title>
     <updated>2025-11-08T12:32:29+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oro9ng/rocm64_using_latest_llvm_vs_rocm_7_lemonade_sdk/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-08T12:32:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1orsdd9</id>
+    <title>Meta’s AI hidden debt</title>
+    <updated>2025-11-08T15:35:16+00:00</updated>
+    <author>
+      <name>/u/Ok-Breakfast-4676</name>
+      <uri>https://old.reddit.com/user/Ok-Breakfast-4676</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"&gt; &lt;img alt="Meta’s AI hidden debt" src="https://preview.redd.it/a6susixny10g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3e81cc9161b2f3c3a8b79ad468df241b09f83883" title="Meta’s AI hidden debt" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Meta’s hidden AI debt&lt;/p&gt; &lt;p&gt;Meta has parked $30B in AI infra debt off its balance sheet using SPVs the same financial engineering behind Enron and ’08.&lt;/p&gt; &lt;p&gt;Morgan Stanley sees tech firms needing $800B in private-credit SPVs by 2028. UBS says AI debt is growing $100B/quarter, raising red flags.&lt;/p&gt; &lt;p&gt;This isn’t dot-com equity growth it’s hidden leverage. When chips go obsolete in 3 years instead of 6, and exposure sits in short-term leases, transparency fades and that’s how bubbles start.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Breakfast-4676"&gt; /u/Ok-Breakfast-4676 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/a6susixny10g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orsdd9/metas_ai_hidden_debt/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-08T15:35:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1orn6q4</id>
