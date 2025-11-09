@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-09T14:34:42+00:00</updated>
+  <updated>2025-11-09T14:48:48+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1orlqmh</id>
-    <title>Honey we shrunk MiniMax M2</title>
-    <updated>2025-11-08T10:04:06+00:00</updated>
-    <author>
-      <name>/u/arjunainfinity</name>
-      <uri>https://old.reddit.com/user/arjunainfinity</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orlqmh/honey_we_shrunk_minimax_m2/"&gt; &lt;img alt="Honey we shrunk MiniMax M2" src="https://external-preview.redd.it/ehjUFeUe3VAS2s784qCwiz1JNp5TRqMKwWsfk9mVQNM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a556feed177eef7b3a5785bd56ea678c06d8ea4e" title="Honey we shrunk MiniMax M2" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi folks, we pruned MiniMax M2 from 250B to 192B (~25%) with only ~5% loss in coding quality. We did this with $200 worth of 8XH200 compute. Our 50% pruned model is ETA 5 more days. Would love to hear your feedback and would you want a 50% pruned Kimi K2 Thinking?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/arjunainfinity"&gt; /u/arjunainfinity &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/VibeStudio/thrift"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1orlqmh/honey_we_shrunk_minimax_m2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orlqmh/honey_we_shrunk_minimax_m2/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T10:04:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1osjfvw</id>
-    <title>Firing concurrent requests at LLM</title>
-    <updated>2025-11-09T13:31:24+00:00</updated>
-    <author>
-      <name>/u/Significant_Loss_541</name>
-      <uri>https://old.reddit.com/user/Significant_Loss_541</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone moved from single-request testing to async/threaded high concurrency setups?? That painful drop or massive p99 latency spike you're seeing isnt a bug in your Python or go code - its a mismatch on the backend inference server. This is where simple scaling just breaks down.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The core issue:&lt;/strong&gt;&lt;br /&gt; When you're using an inference server with static batching, the moment multiple requests hit the LLM at once, you run into two resource-wasting problems -&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Tail latency hostage - The whole batch gets locked until the longest sequence finishes. A 5 token answer sits there waiting for a 500 token verbose response. This creates high p99 latency and frustrates users who just wanted a quick answer.&lt;/li&gt; &lt;li&gt;Wasted GPU cycles - The kv cache sits idle... as soon as a short request completes, its allocated key/value cache memory gets freed but just sits there doing nothing. The GPU's parallel resources are now waiting for the rest of the batch to catch up, leading to GPU underutilization.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;This performance hit happens whether you're running local engines like llama.cpp (which often handles requests one by one) or hitting public APIs like deepinfra or azure under heavy load. The key issue is how the single loaded model manages resources.&lt;/p&gt; &lt;p&gt;The client side trap: Server side batching is the main culprit but your client implementation can make it worse. A lot of people try to fix slow sequential loops by firing tons of requests at once - like 100+ simultaneous requests via basic threading. This leads to:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Requests piling up causing long wait times and potential timeouts as the server's queue fills&lt;/li&gt; &lt;li&gt;Context switching overhead. Even modern schedulers struggle with a flood of simultaneous connections, which reduces efficiency&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The fix here is managed concurrency. Use async patterns with semaphore-based limits like python's asyncio.semaphore to control how many requests run at the same time - maybe 5-10 simultaneous calls to match what the API can realistically handle. This prevents bottlenecks before they even hit the inference server.&lt;/p&gt; &lt;p&gt;Better system approach - continuous batching + pagedAttention: The real solution isnt &amp;quot;more threads&amp;quot; but better scheduler logic and memory management on the server side. The current standard is continuous batching (or flight batching) combined with pagedAttention. Instead of waiting for batch boundaries, continuous batching works at the token level -&lt;/p&gt; &lt;ul&gt; &lt;li&gt;As soon as a sequence finishes, its kv cache memory gets released immediately&lt;/li&gt; &lt;li&gt;pagedAttention manages memory non-contiguously (like virtual memory paging), letting new requests immediately grab available memory slots&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This dynamic approach maximizes GPU usage and eliminates tail latency spikes while drastically improving throughput. Tools that implement this include vLLM, Hugging Face TGI, and TensorRT-LLM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Significant_Loss_541"&gt; /u/Significant_Loss_541 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osjfvw/firing_concurrent_requests_at_llm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osjfvw/firing_concurrent_requests_at_llm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1osjfvw/firing_concurrent_requests_at_llm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-09T13:31:24+00:00</published>
-  </entry>
   <entry>
     <id>t3_1os6t6w</id>
     <title>Does AMD AI Max 395+ have 8 channel memory like image says it does?</title>
@@ -45,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1os6t6w/does_amd_ai_max_395_have_8_channel_memory_like/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-09T01:46:48+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1os2756</id>
-    <title>AMD R9700: yea or nay?</title>
-    <updated>2025-11-08T22:17:19+00:00</updated>
-    <author>
-      <name>/u/regional_chumpion</name>
-      <uri>https://old.reddit.com/user/regional_chumpion</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;RDNA4, 32GB VRAM, decent bandwidth. Is rocm an option for local inference with mid-sized models or Q4 quantizations?&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Item&lt;/th&gt; &lt;th align="left"&gt;Price&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;a href="https://www.newegg.com/asrock-creator-r9700-ct-radeon-ai-pro-r9700-32gb-graphics-card/p/N82E16814930143?item=N82E16814930143&amp;amp;utm_campaign=snc-reddit-_-sr-_-14-930-143-_-11082025&amp;amp;utm_medium=social&amp;amp;utm_source=reddit"&gt;ASRock Creator Radeon AI Pro R9700 R9700 CT 32GB 256-bit GDDR6 PCI Express 5.0 x16 Graphics Card&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;$1,299.99&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/regional_chumpion"&gt; /u/regional_chumpion &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-08T22:17:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1os9sl6</id>
@@ -73,6 +34,19 @@
     <published>2025-11-09T04:17:12+00:00</published>
   </entry>
   <entry>
+    <id>t3_1os2756</id>
+    <title>AMD R9700: yea or nay?</title>
+    <updated>2025-11-08T22:17:19+00:00</updated>
+    <author>
+      <name>/u/regional_chumpion</name>
+      <uri>https://old.reddit.com/user/regional_chumpion</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;RDNA4, 32GB VRAM, decent bandwidth. Is rocm an option for local inference with mid-sized models or Q4 quantizations?&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Item&lt;/th&gt; &lt;th align="left"&gt;Price&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;a href="https://www.newegg.com/asrock-creator-r9700-ct-radeon-ai-pro-r9700-32gb-graphics-card/p/N82E16814930143?item=N82E16814930143&amp;amp;utm_campaign=snc-reddit-_-sr-_-14-930-143-_-11082025&amp;amp;utm_medium=social&amp;amp;utm_source=reddit"&gt;ASRock Creator Radeon AI Pro R9700 R9700 CT 32GB 256-bit GDDR6 PCI Express 5.0 x16 Graphics Card&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;$1,299.99&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/regional_chumpion"&gt; /u/regional_chumpion &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1os2756/amd_r9700_yea_or_nay/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-08T22:17:19+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1oskjx9</id>
     <title>"AI Done Right" - in YaCy</title>
     <updated>2025-11-09T14:20:20+00:00</updated>
@@ -84,6 +58,45 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oskjx9/ai_done_right_in_yacy/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-09T14:20:20+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1oskxx9</id>
+    <title>Any decent TTS that runs for AMD that runs on llama.cpp?</title>
+    <updated>2025-11-09T14:36:57+00:00</updated>
+    <author>
+      <name>/u/simracerman</name>
+      <uri>https://old.reddit.com/user/simracerman</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The search for Kokoro like quality and speed for a TTS that runs on AMD and llama.cpp has proven quite difficult.&lt;/p&gt; &lt;p&gt;Currently, only Kokoro on CPU offers the quality and runs decently enough on CPU. If they supported AMD GPUs or even the AMD NPU, I’d be grateful. There just seems no way to do that now.&lt;/p&gt; &lt;p&gt;What are you using?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/simracerman"&gt; /u/simracerman &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oskxx9/any_decent_tts_that_runs_for_amd_that_runs_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1oskxx9/any_decent_tts_that_runs_for_amd_that_runs_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oskxx9/any_decent_tts_that_runs_for_amd_that_runs_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-09T14:36:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1osl5o0</id>
+    <title>Help Pick the Funniest LLM at Funny Arena</title>
+    <updated>2025-11-09T14:46:21+00:00</updated>
+    <author>
+      <name>/u/demegir</name>
+      <uri>https://old.reddit.com/user/demegir</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osl5o0/help_pick_the_funniest_llm_at_funny_arena/"&gt; &lt;img alt="Help Pick the Funniest LLM at Funny Arena" src="https://b.thumbs.redditmedia.com/nsK7MKtq6rc9Ozw7ASglzA6mi7PoppBIC6C33_P5W2g.jpg" title="Help Pick the Funniest LLM at Funny Arena" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I created this joke arena to determine the least unfunny LLM. Yes, they regurgitate jokes on the internet but some are funnier than others and the jokes gives a peek into their 'personality'. Right now we have grok-4-fast at #1.&lt;/p&gt; &lt;p&gt;Vote at &lt;a href="https://demegire.com/funny-arena/"&gt;https://demegire.com/funny-arena/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;You can view the code for generating the jokes and the website at &lt;a href="https://github.com/demegire/funny-arena"&gt;https://github.com/demegire/funny-arena&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/demegir"&gt; /u/demegir &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1osl5o0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osl5o0/help_pick_the_funniest_llm_at_funny_arena/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1osl5o0/help_pick_the_funniest_llm_at_funny_arena/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-09T14:46:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1osl6dr</id>
+    <title>Advice Seeking, unRAID server / Local LLM setup</title>
+    <updated>2025-11-09T14:47:13+00:00</updated>
+    <author>
+      <name>/u/reddit-canes</name>
+      <uri>https://old.reddit.com/user/reddit-canes</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have an unRAID server that until today I couldn't put a GPU into as the x16 slots were all taken by x8 HBA SAS cards for connecting my drives. I discovered (and bought) an x8 HBA SAS card that will allow me to connect 16 drives, so now I finally have a free x16 slot for a GPU. &lt;/p&gt; &lt;p&gt;I currently run Open WebUI on my unRAID server which uses external models (ChatGPT, Gemini and Claude) for different things. I really love Open WebUI and now that I can have a GPU in my server, I want to use it for local models. &lt;/p&gt; &lt;p&gt;I'll share my use case. I use LLM's mostly for work related things such as summarizing meetings, idea generation, etc (mostly all text stuff, no image gen). For my home use, it's idea's, recipes, travel help, etc. I do use Claude Code (and Sonnet) for some dev work, but I don't expect a local model to be as useful and don't need it for that. &lt;/p&gt; &lt;p&gt;My current setup is as follows:&lt;br /&gt; - CPU: i7-10700&lt;br /&gt; - RAM: 32gb&lt;br /&gt; - Storage: I've got plenty of storage, 100+ TB's. No issues here.&lt;/p&gt; &lt;p&gt;So, that leaves me with that GPU should I get given my usage and budget. My budget is $1000. And, why models should I run, and should i make any other upgrades?&lt;/p&gt; &lt;p&gt;I do use the unRAID server for other stuff, hosting a few infrequently visited websites, Jellyfin server, Usenet downloads, Open WebUI... honestly nothing that really stresses the system currently.&lt;/p&gt; &lt;p&gt;Thanks for any advice.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/reddit-canes"&gt; /u/reddit-canes &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osl6dr/advice_seeking_unraid_server_local_llm_setup/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osl6dr/advice_seeking_unraid_server_local_llm_setup/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1osl6dr/advice_seeking_unraid_server_local_llm_setup/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-09T14:47:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1osgtnq</id>
@@ -125,19 +138,6 @@
     <published>2025-11-09T12:34:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1osiuqb</id>
-    <title>Nvidia GH200 624GB archieves 10 tokens/sec inferecning Kimi K2 Thinking 1T in FP4</title>
-    <updated>2025-11-09T13:04:05+00:00</updated>
-    <author>
-      <name>/u/GPTSHOPDOTAI</name>
-      <uri>https://old.reddit.com/user/GPTSHOPDOTAI</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Nvidia GH200 624GB archieves 10 tokens/sec inferencing Kimi K2 Thinking 1T in FP4&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GPTSHOPDOTAI"&gt; /u/GPTSHOPDOTAI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osiuqb/nvidia_gh200_624gb_archieves_10_tokenssec/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osiuqb/nvidia_gh200_624gb_archieves_10_tokenssec/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1osiuqb/nvidia_gh200_624gb_archieves_10_tokenssec/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-09T13:04:05+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1orsdd9</id>
     <title>Meta’s AI hidden debt</title>
     <updated>2025-11-08T15:35:16+00:00</updated>
@@ -164,19 +164,6 @@
     <published>2025-11-09T07:38:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1os8fmn</id>
-    <title>Any news about DeepSeek R2?</title>
-    <updated>2025-11-09T03:07:01+00:00</updated>
-    <author>
-      <name>/u/Sorry_Ad191</name>
-      <uri>https://old.reddit.com/user/Sorry_Ad191</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt; &lt;img alt="Any news about DeepSeek R2?" src="https://b.thumbs.redditmedia.com/PlhiSr0p8aXYM8RnTcq4VE2UHze85d2iBHWp0VLED0M.jpg" title="Any news about DeepSeek R2?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/xbf0p2vod50g1.png?width=450&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a63ccc2bd5ae577ce29167d3995c88a6fd898f22"&gt;Holiday wish: 300B release for community pls :)&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Oh my can't even imagine the joy and enthusiasm when/if released!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sorry_Ad191"&gt; /u/Sorry_Ad191 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-09T03:07:01+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1os5uur</id>
     <title>Locally running LLMs on DGX Spark as an attorney?</title>
     <updated>2025-11-09T01:01:07+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1orwvvj/another_day_another_model_but_does_it_really/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-08T18:36:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1os8fmn</id>
+    <title>Any news about DeepSeek R2?</title>
+    <updated>2025-11-09T03:07:01+00:00</updated>
+    <author>
+      <name>/u/Sorry_Ad191</name>
+      <uri>https://old.reddit.com/user/Sorry_Ad191</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt; &lt;img alt="Any news about DeepSeek R2?" src="https://b.thumbs.redditmedia.com/PlhiSr0p8aXYM8RnTcq4VE2UHze85d2iBHWp0VLED0M.jpg" title="Any news about DeepSeek R2?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/xbf0p2vod50g1.png?width=450&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a63ccc2bd5ae577ce29167d3995c88a6fd898f22"&gt;Holiday wish: 300B release for community pls :)&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Oh my can't even imagine the joy and enthusiasm when/if released!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sorry_Ad191"&gt; /u/Sorry_Ad191 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1os8fmn/any_news_about_deepseek_r2/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-09T03:07:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1orusbs</id>
@@ -275,7 +275,7 @@
       <name>/u/lemon07r</name>
       <uri>https://old.reddit.com/user/lemon07r</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yeah, just what the title says. If any of you are having issues with coding using K2 thinking it's because of this. Only Kimi CLI really supports it atm. Minimax m2 had a similar issue I think and glm 4.6 too, but this could be worked around by disabling tool_calling in thinking, however this can't be done for K2 thinking, hence all the issues people are having with this model for coding. Hopefully most agents will have this fixed soon. I think this is called interleaved thinking, or is something similar to that? Feel free to shed some light on this in the comments if you're more familiar with what's going on.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lemon07r"&gt; /u/lemon07r &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osd8ie/psa_kimi_k2_thinking_seems_to_currently_be_broken/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osd8ie/psa_kimi_k2_thinking_seems_to_currently_be_broken/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yeah, just what the title says. If any of you are having issues with coding using K2 thinking it's because of this. Only Kimi CLI really supports it atm. Minimax m2 had a similar issue I think and glm 4.6 too, but this could be worked around by disabling tool_calling in thinking, however this can't be done for K2 thinking, hence all the issues people are having with this model for coding. Hopefully most agents will have this fixed soon. I think this is called interleaved thinking, or is something similar to that? Feel free to shed some light on this in the comments if you're more familiar with what's going on.&lt;/p&gt; &lt;p&gt;EDIT - I found the issue: &lt;a href="https://github.com/MoonshotAI/Kimi-K2/issues/89"&gt;https://github.com/MoonshotAI/Kimi-K2/issues/89&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It's better explained there. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lemon07r"&gt; /u/lemon07r &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osd8ie/psa_kimi_k2_thinking_seems_to_currently_be_broken/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1osd8ie/psa_kimi_k2_thinking_seems_to_currently_be_broken/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1osd8ie/psa_kimi_k2_thinking_seems_to_currently_be_broken/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-09T07:32:05+00:00</published>
