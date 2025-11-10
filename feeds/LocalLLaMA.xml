@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-10T19:06:04+00:00</updated>
+  <updated>2025-11-10T19:22:46+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1ostdcn</id>
-    <title>Faster Prompt Processing in llama.cpp: Smart Proxy + Slots + Restore</title>
-    <updated>2025-11-09T20:10:26+00:00</updated>
+    <id>t3_1ot2eqd</id>
+    <title>[Research] 31 % perplexity drop on 8.4 M transformer model using a lightweight periodic regulator — looking for replication on stronger GPUs</title>
+    <updated>2025-11-10T02:42:30+00:00</updated>
     <author>
-      <name>/u/Previous_Nature_5319</name>
-      <uri>https://old.reddit.com/user/Previous_Nature_5319</uri>
+      <name>/u/freeky78</name>
+      <uri>https://old.reddit.com/user/freeky78</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ostdcn/faster_prompt_processing_in_llamacpp_smart_proxy/"&gt; &lt;img alt="Faster Prompt Processing in llama.cpp: Smart Proxy + Slots + Restore" src="https://preview.redd.it/90im3um0fa0g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1880277abb2e16deb196c79509aa47dbb7d349ae" title="Faster Prompt Processing in llama.cpp: Smart Proxy + Slots + Restore" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache"&gt;https://github.com/airnsk/proxycache&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;What this service is&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#what-this-service-is"&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;This service is a smart proxy in front of llama.cpp that makes long‑context chat and IDE workflows much faster by managing llama.cpp slots, reusing cached context, and restoring saved caches from disk when needed. It speaks an OpenAI‑compatible Chat Completions API, so existing clients can connect without changes, including both streaming (SSE) and non‑stream responses depending on request settings.&lt;/p&gt; &lt;h1&gt;Why it’s needed&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#why-its-needed"&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llama.cpp provides “slots,” each holding a conversation’s KV cache so repeated requests with the same or very similar prefix can skip recomputing the whole prompt and continue from the first mismatching token, which dramatically cuts latency for large prompts. In real teams the number of users can easily exceed the number of available slots (e.g., 20 developers but only 4 slots), so naive routing causes random slot reuse and cache overwrites that waste time and GPU/CPU cycles. This proxy solves that by steering requests to the right slot, saving evicted caches to disk, and restoring them on demand, so long prompts don’t need to be recomputed from scratch each time.&lt;/p&gt; &lt;h1&gt;How requests are balanced and slots are chosen&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#how-requests-are-balanced-and-slots-are-chosen"&gt;&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Slots and heat: When a request lands in a slot and its cache is valid for reuse, the slot is considered “hot,” and new requests won’t overwrite it if other options exist, preserving useful KV for future reuse.&lt;/li&gt; &lt;li&gt;Similarity matching: The proxy computes a fast, word‑block prefix similarity between the incoming conversation and existing hot slots, and only reuses a hot slot if the similarity meets a single ratio threshold (e.g., 85% of the shorter sequence), otherwise it rejects reuse to avoid polluting the hot cache with a weakly related prompt.&lt;/li&gt; &lt;li&gt;Free and cold first: If reuse is rejected, the proxy sends the request to a free slot or a cold slot (one not currently carrying a valuable hot cache), protecting high‑value contexts from accidental overwrites under load.&lt;/li&gt; &lt;li&gt;Oldest when full: If there are no free or cold slots, the proxy picks the least‑recently used slot and saves its current KV cache to disk before assigning the new request, ensuring nothing valuable is lost when the pool is exhausted.&lt;/li&gt; &lt;li&gt;Restore on demand: When a new request matches a cache that was previously saved, the proxy restores that cache into a free/cold/oldest slot and routes the request there, which takes seconds versus minutes for full prompt recomputation on long contexts, especially in IDE scenarios with 30–60k tokens.&lt;/li&gt; &lt;li&gt;Concurrency safety: Each slot is guarded with an async lock; if all are busy, the request waits for the first LRU slot to free, preventing race conditions and unintended cache overwrites during concurrent generation.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Save and restore from disk&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#save-and-restore-from-disk"&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llama.cpp’s HTTP server exposes slot save/restore; saving writes a cache file to the directory provided by --slot‑save‑path, and restore loads by file basename (e.g., slotcache_.bin), which is exactly how this proxy persists and revives caches across requests and restarts. The proxy keeps small local .meta files describing cached prefixes for fast lookup, while llama.cpp owns the actual KV .bin files under --slot‑save‑path for correctness and performance.&lt;/p&gt; &lt;h1&gt;Quick start&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#quick-start"&gt;&lt;/a&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Start llama.cpp ( &lt;a href="https://github.com/ggml-org/llama.cpp"&gt;https://github.com/ggml-org/llama.cpp&lt;/a&gt; ) with slots and a cache directory:&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-server -m ./model.gguf -np 4 --slot-save-path /var/kvcache --host 0.0.0.0 --port 8080 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This enables the OpenAI‑compatible HTTP server, a pool of 4 slots, and a directory where slot KV caches are saved and restored by basename.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Run the proxy next to it:&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;git clone https://github.com/airnsk/proxycache.git cd proxycache python3 -m venv venv &amp;amp;&amp;amp; source venv/bin/activate &amp;amp;&amp;amp; pip install -r requirements.txt python3 proxycache.py # or: uvicorn app:app --host 0.0.0.0 --port 8081 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Your clients should call the proxy’s /v1/chat/completions endpoint; the proxy will handle similarity, slot selection, save/restore, and streaming vs non‑streaming automatically.&lt;/p&gt; &lt;p&gt;If you run into issues using gpt-oss-20b with an IDE like Cline, follow these instructions: &lt;a href="https://www.reddit.com/r/CLine/comments/1mtcj2v/making_gptoss_20b_and_cline_work_together/"&gt;https://www.reddit.com/r/CLine/comments/1mtcj2v/making_gptoss_20b_and_cline_work_together/&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Parameters&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#parameters"&gt;&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;LLAMA_SERVER_URL: The llama.cpp server base URL, e.g., &lt;a href="http://127.0.0.1:8080/"&gt;http://127.0.0.1:8080&lt;/a&gt;, which must expose the OpenAI‑compatible chat completions endpoint.&lt;/li&gt; &lt;li&gt;SLOTS_COUNT: The number of server slots (should match llama.cpp -np) so the proxy can track and plan reuse/restore correctly under load.&lt;/li&gt; &lt;li&gt;SIMILARITY_MIN_RATIO: One similarity threshold (e.g., 0.85) controlling both active reuse and disk restore; if a match is below this ratio, the proxy will prefer a free/cold slot or restore instead of overwriting a hot slot.&lt;/li&gt; &lt;li&gt;MIN_PREFIX_* (chars/words/blocks): Requests below this size are treated as “small” and steered to free/cold/oldest slots to avoid disturbing valuable hot caches used by large, long‑running prompts.&lt;/li&gt; &lt;li&gt;LOCAL_META_DIR and --slot-save-path: The proxy stores small .meta descriptors locally for fast candidate lookup, while llama.cpp reads/writes the real KV cache files under --slot‑save‑path using basename in the HTTP API.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Why this boosts IDE and long‑context productivity&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/airnsk/proxycache/tree/main#why-this-boosts-ide-and-longcontext-productivity"&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;For 30–60k‑token contexts typical in project‑wide IDE assistants, recomputing a full prompt can take minutes, whereas restoring a previously cached context and continuing from the first mismatching token typically takes seconds on llama.cpp, dramatically improving iteration speed for large teams with limited slots.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Previous_Nature_5319"&gt; /u/Previous_Nature_5319 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/90im3um0fa0g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ostdcn/faster_prompt_processing_in_llamacpp_smart_proxy/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ostdcn/faster_prompt_processing_in_llamacpp_smart_proxy/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I ran a controlled training experiment on an 8.4 M-parameter transformer model and observed a consistent **31 % perplexity reduction** compared to baseline after 2 000 steps.&lt;/p&gt; &lt;p&gt;📊 Full metrics &amp;amp; logs: &lt;a href="https://limewire.com/d/j7jDI#OceCXHWNhG"&gt;https://limewire.com/d/j7jDI#OceCXHWNhG&lt;/a&gt;&lt;/p&gt; &lt;p&gt;**Setup**&lt;/p&gt; &lt;p&gt;- Model: small LM (~8.4 M params)&lt;/p&gt; &lt;p&gt;- GPU: RTX 5070&lt;/p&gt; &lt;p&gt;- Optimizer: AdamW, lr = 2e-6, warmup = 200, grad-clip = 1.0&lt;/p&gt; &lt;p&gt;- Sequence = 256, batch = 8 × GA 4&lt;/p&gt; &lt;p&gt;- Seed = 41&lt;/p&gt; &lt;p&gt;- Modification: added a compact periodic regulator in the optimizer update (≈ 0.07 % extra params)&lt;/p&gt; &lt;p&gt;**Result**&lt;/p&gt; &lt;p&gt;| Metric | Baseline | Regulated | Δ |&lt;/p&gt; &lt;p&gt;|---------|-----------|-----------|---|&lt;/p&gt; &lt;p&gt;| eval CE | 6.731 | 6.360 | −0.371 |&lt;/p&gt; &lt;p&gt;| eval PPL | 838.17 | **578.49 (−31 %)** |&lt;/p&gt; &lt;p&gt;| stability β | — | 0.91 |&lt;/p&gt; &lt;p&gt;Same data, same seed, no architecture changes. &lt;/p&gt; &lt;p&gt;The effect is reproducible and stable.&lt;/p&gt; &lt;p&gt;**Why post here**&lt;/p&gt; &lt;p&gt;Looking for:&lt;/p&gt; &lt;p&gt;- community replication on larger GPUs (A100 / L40S / H100)&lt;/p&gt; &lt;p&gt;- discussion about scaling behaviour and scheduler-level interventions&lt;/p&gt; &lt;p&gt;- any pointers to similar experiments you may have seen&lt;/p&gt; &lt;p&gt;I’ll share the Python scripts and configs (ready-to-run) with anyone who wants to test. &lt;/p&gt; &lt;p&gt;The full repo isn’t public yet but will follow once results are replicated.&lt;/p&gt; &lt;p&gt;Thanks for reading and for any feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freeky78"&gt; /u/freeky78 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-09T20:10:26+00:00</published>
+    <published>2025-11-10T02:42:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1ot79n2</id>
@@ -32,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ot79n2/im_new_to_llms_and_just_ran_my_first_model_what/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-10T07:10:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ot2eqd</id>
-    <title>[Research] 31 % perplexity drop on 8.4 M transformer model using a lightweight periodic regulator — looking for replication on stronger GPUs</title>
-    <updated>2025-11-10T02:42:30+00:00</updated>
-    <author>
-      <name>/u/freeky78</name>
-      <uri>https://old.reddit.com/user/freeky78</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I ran a controlled training experiment on an 8.4 M-parameter transformer model and observed a consistent **31 % perplexity reduction** compared to baseline after 2 000 steps.&lt;/p&gt; &lt;p&gt;📊 Full metrics &amp;amp; logs: &lt;a href="https://limewire.com/d/j7jDI#OceCXHWNhG"&gt;https://limewire.com/d/j7jDI#OceCXHWNhG&lt;/a&gt;&lt;/p&gt; &lt;p&gt;**Setup**&lt;/p&gt; &lt;p&gt;- Model: small LM (~8.4 M params)&lt;/p&gt; &lt;p&gt;- GPU: RTX 5070&lt;/p&gt; &lt;p&gt;- Optimizer: AdamW, lr = 2e-6, warmup = 200, grad-clip = 1.0&lt;/p&gt; &lt;p&gt;- Sequence = 256, batch = 8 × GA 4&lt;/p&gt; &lt;p&gt;- Seed = 41&lt;/p&gt; &lt;p&gt;- Modification: added a compact periodic regulator in the optimizer update (≈ 0.07 % extra params)&lt;/p&gt; &lt;p&gt;**Result**&lt;/p&gt; &lt;p&gt;| Metric | Baseline | Regulated | Δ |&lt;/p&gt; &lt;p&gt;|---------|-----------|-----------|---|&lt;/p&gt; &lt;p&gt;| eval CE | 6.731 | 6.360 | −0.371 |&lt;/p&gt; &lt;p&gt;| eval PPL | 838.17 | **578.49 (−31 %)** |&lt;/p&gt; &lt;p&gt;| stability β | — | 0.91 |&lt;/p&gt; &lt;p&gt;Same data, same seed, no architecture changes. &lt;/p&gt; &lt;p&gt;The effect is reproducible and stable.&lt;/p&gt; &lt;p&gt;**Why post here**&lt;/p&gt; &lt;p&gt;Looking for:&lt;/p&gt; &lt;p&gt;- community replication on larger GPUs (A100 / L40S / H100)&lt;/p&gt; &lt;p&gt;- discussion about scaling behaviour and scheduler-level interventions&lt;/p&gt; &lt;p&gt;- any pointers to similar experiments you may have seen&lt;/p&gt; &lt;p&gt;I’ll share the Python scripts and configs (ready-to-run) with anyone who wants to test. &lt;/p&gt; &lt;p&gt;The full repo isn’t public yet but will follow once results are replicated.&lt;/p&gt; &lt;p&gt;Thanks for reading and for any feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freeky78"&gt; /u/freeky78 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ot2eqd/research_31_perplexity_drop_on_84_m_transformer/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T02:42:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1otgxs8</id>
@@ -86,6 +73,19 @@
     <published>2025-11-10T06:04:53+00:00</published>
   </entry>
   <entry>
+    <id>t3_1otlfj4</id>
+    <title>Anyone else feel like prompt engineering is starting to hit diminishing returns?</title>
+    <updated>2025-11-10T18:19:02+00:00</updated>
+    <author>
+      <name>/u/AdVivid5763</name>
+      <uri>https://old.reddit.com/user/AdVivid5763</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been experimenting with different LLM workflows lately, system prompts, structured outputs, few-shots, etc.&lt;/p&gt; &lt;p&gt;What I’ve noticed is that after a certain point, prompt tuning gives less and less improvement unless you completely reframe the task.&lt;/p&gt; &lt;p&gt;Curious if anyone here has found consistent ways to make prompts more robust, especially for tasks that need reasoning + structure (like long tool calls or workflows).&lt;/p&gt; &lt;p&gt;Do you rely more on prompt patterns, external logic, or some hybrid approach?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AdVivid5763"&gt; /u/AdVivid5763 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otlfj4/anyone_else_feel_like_prompt_engineering_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otlfj4/anyone_else_feel_like_prompt_engineering_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otlfj4/anyone_else_feel_like_prompt_engineering_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-10T18:19:02+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1oti4tc</id>
     <title>Minimax M2 for App creation</title>
     <updated>2025-11-10T16:20:07+00:00</updated>
@@ -97,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1oti4tc/minimax_m2_for_app_creation/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-10T16:20:07+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1otgd3j</id>
-    <title>VoxCPM Text-to-Speech running or Apple Neural Engine ANE</title>
-    <updated>2025-11-10T15:13:51+00:00</updated>
-    <author>
-      <name>/u/0seba</name>
-      <uri>https://old.reddit.com/user/0seba</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt; &lt;img alt="VoxCPM Text-to-Speech running or Apple Neural Engine ANE" src="https://external-preview.redd.it/dvjTO3Ntbl7DpYMVsEyG0Q8lBCe_LB-me-5HVErZU58.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d167e12953f9af749f13c3c224b850317eb67ca9" title="VoxCPM Text-to-Speech running or Apple Neural Engine ANE" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey! I ported OpenBMB's VoxCPM to CoreML so now it mostly runs using the Apple Neural Engine ANE.&lt;/p&gt; &lt;p&gt;Here is the &lt;a href="https://github.com/0seba/VoxCPMANE"&gt;repo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The models supports voice cloning and handles real time streaming speech generation on my M1 Macbook Air 8GB.&lt;/p&gt; &lt;p&gt;Hopefully someone can try it, any feedback is useful.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1otgd3j/video/f73iublf3g0g1/player"&gt;https://reddit.com/link/1otgd3j/video/f73iublf3g0g1/player&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I am also looking into porting more models to CoreML for NE support, so let me know what could be useful to you. Here are some characteristics to help filter out if a task or model makes sense for the NE or not.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Compute heavy operations. I am looking into porting the image encoder of OCR models (like DeepsSeekOCR) and running the text generation/decoding with MLX&lt;/li&gt; &lt;li&gt;Same as above, but more generally encoder/embedding models that lean on the compute heavy and latency is not as important&lt;/li&gt; &lt;li&gt;MoEs are awful for the NE&lt;/li&gt; &lt;li&gt;4 bit quantization is a big issue, NE does not support grouping so there is too much degradation under 6 bits, 8 bits recommended to stay on the safe side.&lt;/li&gt; &lt;li&gt;NE can not access the full RAM bandwidth (120 GB/s on M3 Max, M4 Pro and M4 Max, 60 GB/s in other models, &lt;a href="https://github.com/Anemll/anemll-bench"&gt;source&lt;/a&gt;, note this is peak bandwidth and full model runs under 50 GB/s in my experience. On iPhone 15 Pro Max I get 44 GB/s peak bandwidth)&lt;/li&gt; &lt;li&gt;For the reason above avoid tasks where (big models and) latency is important, other situations where generation at reading speed is enough can be acceptable, 6 inferences per second can be performed on a 6GB model at 40 GB/s bandwidth.&lt;/li&gt; &lt;li&gt;It is highly preferable for tasks where context is bound, 0-8K tokens, CoreML computation graph is static so the attention is always performed on the full context of the computation graph you are using. It is possible to have several computations graphs with different lengths but this would require model switching and I haven't looked into the downsides if you want to do things like extend the current context if it is full.&lt;/li&gt; &lt;li&gt;Async batch generation may be a favorable scenario.&lt;/li&gt; &lt;li&gt;Running on the NE instead of the GPU means the GPU is free and it has less power consumption which could also prevent throttling.&lt;/li&gt; &lt;li&gt;I am not sure but I think it is better to lean on small-ish models. CoreML has a maximum model size of 2 GB for the NE, so to run bigger models you have to split the whole (transformer) model into groups of its consecutive blocks (also my Macbook has 8 GB so I cannot test anything bigger).&lt;/li&gt; &lt;li&gt;CoreML has a big first compilation time for a new model (specially for the Neural Engine) but on subsequent model loads it is cached and it is much faster.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Happy to help if you have any more questions or have any issues with the package.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/0seba"&gt; /u/0seba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T15:13:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1otddd4</id>
@@ -138,17 +125,17 @@
     <published>2025-11-10T11:19:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1othqbc</id>
-    <title>Minimax now offers Coding Plans, but is it worth it?</title>
-    <updated>2025-11-10T16:05:27+00:00</updated>
+    <id>t3_1otgd3j</id>
+    <title>VoxCPM Text-to-Speech running or Apple Neural Engine ANE</title>
+    <updated>2025-11-10T15:13:51+00:00</updated>
     <author>
-      <name>/u/baykarmehmet</name>
-      <uri>https://old.reddit.com/user/baykarmehmet</uri>
+      <name>/u/0seba</name>
+      <uri>https://old.reddit.com/user/0seba</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt; &lt;img alt="Minimax now offers Coding Plans, but is it worth it?" src="https://b.thumbs.redditmedia.com/-9xikgDl92qUN8nRCSqqorPnqrZja9Zt8QCFp2xFmGo.jpg" title="Minimax now offers Coding Plans, but is it worth it?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have a GLM Coding Plan subscription, and so far I’ve had a pretty good experience with GLM-4.6 in Claude Code. I paid $180, and it gives me ~600 prompts every 5 hours. Here, the plan costs $20 more and offers 300 prompts every 5 hours, which is about half. What do you guys think? Is it better to stick with GLM, or is it worth trying Minimax M2? I’m not sure if a yearly plan would include better models during the term—maybe I pay for a year and wait 6–8 months to see a new model from Minimax.&lt;/p&gt; &lt;p&gt;Let me know your thoughts.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/3zotexgkcg0g1.png?width=2534&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4fb1e7532e7e626119b7778a342ff32940a962a5"&gt;https://preview.redd.it/3zotexgkcg0g1.png?width=2534&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4fb1e7532e7e626119b7778a342ff32940a962a5&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/oc6dk9kndg0g1.png?width=2784&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ee37aeff1a01846b940e62324bcb7257f0e657e5"&gt;https://preview.redd.it/oc6dk9kndg0g1.png?width=2784&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ee37aeff1a01846b940e62324bcb7257f0e657e5&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/baykarmehmet"&gt; /u/baykarmehmet &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt; &lt;img alt="VoxCPM Text-to-Speech running or Apple Neural Engine ANE" src="https://external-preview.redd.it/dvjTO3Ntbl7DpYMVsEyG0Q8lBCe_LB-me-5HVErZU58.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d167e12953f9af749f13c3c224b850317eb67ca9" title="VoxCPM Text-to-Speech running or Apple Neural Engine ANE" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey! I ported OpenBMB's VoxCPM to CoreML so now it mostly runs using the Apple Neural Engine ANE.&lt;/p&gt; &lt;p&gt;Here is the &lt;a href="https://github.com/0seba/VoxCPMANE"&gt;repo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The models supports voice cloning and handles real time streaming speech generation on my M1 Macbook Air 8GB.&lt;/p&gt; &lt;p&gt;Hopefully someone can try it, any feedback is useful.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1otgd3j/video/f73iublf3g0g1/player"&gt;https://reddit.com/link/1otgd3j/video/f73iublf3g0g1/player&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I am also looking into porting more models to CoreML for NE support, so let me know what could be useful to you. Here are some characteristics to help filter out if a task or model makes sense for the NE or not.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Compute heavy operations. I am looking into porting the image encoder of OCR models (like DeepsSeekOCR) and running the text generation/decoding with MLX&lt;/li&gt; &lt;li&gt;Same as above, but more generally encoder/embedding models that lean on the compute heavy and latency is not as important&lt;/li&gt; &lt;li&gt;MoEs are awful for the NE&lt;/li&gt; &lt;li&gt;4 bit quantization is a big issue, NE does not support grouping so there is too much degradation under 6 bits, 8 bits recommended to stay on the safe side.&lt;/li&gt; &lt;li&gt;NE can not access the full RAM bandwidth (120 GB/s on M3 Max, M4 Pro and M4 Max, 60 GB/s in other models, &lt;a href="https://github.com/Anemll/anemll-bench"&gt;source&lt;/a&gt;, note this is peak bandwidth and full model runs under 50 GB/s in my experience. On iPhone 15 Pro Max I get 44 GB/s peak bandwidth)&lt;/li&gt; &lt;li&gt;For the reason above avoid tasks where (big models and) latency is important, other situations where generation at reading speed is enough can be acceptable, 6 inferences per second can be performed on a 6GB model at 40 GB/s bandwidth.&lt;/li&gt; &lt;li&gt;It is highly preferable for tasks where context is bound, 0-8K tokens, CoreML computation graph is static so the attention is always performed on the full context of the computation graph you are using. It is possible to have several computations graphs with different lengths but this would require model switching and I haven't looked into the downsides if you want to do things like extend the current context if it is full.&lt;/li&gt; &lt;li&gt;Async batch generation may be a favorable scenario.&lt;/li&gt; &lt;li&gt;Running on the NE instead of the GPU means the GPU is free and it has less power consumption which could also prevent throttling.&lt;/li&gt; &lt;li&gt;I am not sure but I think it is better to lean on small-ish models. CoreML has a maximum model size of 2 GB for the NE, so to run bigger models you have to split the whole (transformer) model into groups of its consecutive blocks (also my Macbook has 8 GB so I cannot test anything bigger).&lt;/li&gt; &lt;li&gt;CoreML has a big first compilation time for a new model (specially for the Neural Engine) but on subsequent model loads it is cached and it is much faster.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Happy to help if you have any more questions or have any issues with the package.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/0seba"&gt; /u/0seba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otgd3j/voxcpm_texttospeech_running_or_apple_neural/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T16:05:27+00:00</published>
+    <published>2025-11-10T15:13:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1otislj</id>
@@ -164,17 +151,17 @@
     <published>2025-11-10T16:44:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1otmamz</id>
-    <title>When does RTX 6000 Pro make sense over a 5090?</title>
-    <updated>2025-11-10T18:49:40+00:00</updated>
+    <id>t3_1othqbc</id>
+    <title>Minimax now offers Coding Plans, but is it worth it?</title>
+    <updated>2025-11-10T16:05:27+00:00</updated>
     <author>
-      <name>/u/Herald_Of_Rivia</name>
-      <uri>https://old.reddit.com/user/Herald_Of_Rivia</uri>
+      <name>/u/baykarmehmet</name>
+      <uri>https://old.reddit.com/user/baykarmehmet</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;Hey all—trying to sanity-check an upgrade. Current GPU: RTX 5090 Use cases: training mid-size LLMs, Stable Diffusion/ComfyUI, inferencing GPT-OSS-120B / GLM 4.5 Air Rig: 9950X3D / 96GB DDR5 / 1500W Corsair H1500i • OS: Win11 / Ubuntu 24.04 I’m eyeing the RTX 6000 Pro (Blackwell) mainly for: * More VRAM/ECC * Potential tensor/FP improvements for AI workloads Questions for folks who’ve used the 6000 Pro vs the RXT 5090: * In real projects, what speed/throughput gains did you see for general AI workload? * Did ECC + pro drivers measurably reduce crashes/corruption vs 5090? * Any gotchas (thermals, power, coil whine, chassis fit, Linux/Windows quirks, NVLink/virtualization)? * If you switched back, why? If my workloads are mainly for LLM inference / small training and SD, is the upgrade worth it, or is 5090 still the best value? Benchmarks and anecdotes welcome! Thanks. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Herald_Of_Rivia"&gt; /u/Herald_Of_Rivia &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt; &lt;img alt="Minimax now offers Coding Plans, but is it worth it?" src="https://b.thumbs.redditmedia.com/-9xikgDl92qUN8nRCSqqorPnqrZja9Zt8QCFp2xFmGo.jpg" title="Minimax now offers Coding Plans, but is it worth it?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have a GLM Coding Plan subscription, and so far I’ve had a pretty good experience with GLM-4.6 in Claude Code. I paid $180, and it gives me ~600 prompts every 5 hours. Here, the plan costs $20 more and offers 300 prompts every 5 hours, which is about half. What do you guys think? Is it better to stick with GLM, or is it worth trying Minimax M2? I’m not sure if a yearly plan would include better models during the term—maybe I pay for a year and wait 6–8 months to see a new model from Minimax.&lt;/p&gt; &lt;p&gt;Let me know your thoughts.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/3zotexgkcg0g1.png?width=2534&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4fb1e7532e7e626119b7778a342ff32940a962a5"&gt;https://preview.redd.it/3zotexgkcg0g1.png?width=2534&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4fb1e7532e7e626119b7778a342ff32940a962a5&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/oc6dk9kndg0g1.png?width=2784&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ee37aeff1a01846b940e62324bcb7257f0e657e5"&gt;https://preview.redd.it/oc6dk9kndg0g1.png?width=2784&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ee37aeff1a01846b940e62324bcb7257f0e657e5&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/baykarmehmet"&gt; /u/baykarmehmet &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1othqbc/minimax_now_offers_coding_plans_but_is_it_worth_it/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T18:49:40+00:00</published>
+    <published>2025-11-10T16:05:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1otk3bv</id>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otk3bv/name_your_favorite_oss_agent_tools/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-10T17:31:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1otmamz</id>
+    <title>When does RTX 6000 Pro make sense over a 5090?</title>
+    <updated>2025-11-10T18:49:40+00:00</updated>
+    <author>
+      <name>/u/Herald_Of_Rivia</name>
+      <uri>https://old.reddit.com/user/Herald_Of_Rivia</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;Hey all—trying to sanity-check an upgrade. Current GPU: RTX 5090 Use cases: training mid-size LLMs, Stable Diffusion/ComfyUI, inferencing GPT-OSS-120B / GLM 4.5 Air Rig: 9950X3D / 96GB DDR5 / 1500W Corsair H1500i • OS: Win11 / Ubuntu 24.04 I’m eyeing the RTX 6000 Pro (Blackwell) mainly for: * More VRAM/ECC * Potential tensor/FP improvements for AI workloads Questions for folks who’ve used the 6000 Pro vs the RXT 5090: * In real projects, what speed/throughput gains did you see for general AI workload? * Did ECC + pro drivers measurably reduce crashes/corruption vs 5090? * Any gotchas (thermals, power, coil whine, chassis fit, Linux/Windows quirks, NVLink/virtualization)? * If you switched back, why? If my workloads are mainly for LLM inference / small training and SD, is the upgrade worth it, or is 5090 still the best value? Benchmarks and anecdotes welcome! Thanks. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Herald_Of_Rivia"&gt; /u/Herald_Of_Rivia &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otmamz/when_does_rtx_6000_pro_make_sense_over_a_5090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-10T18:49:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1osnnfn</id>
@@ -229,19 +229,6 @@
     <published>2025-11-10T07:58:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1otihl1</id>
-    <title>Open-dLLM: Open Diffusion Large Language Models</title>
-    <updated>2025-11-10T16:33:06+00:00</updated>
-    <author>
-      <name>/u/pengzhangzhi</name>
-      <uri>https://old.reddit.com/user/pengzhangzhi</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"&gt; &lt;img alt="Open-dLLM: Open Diffusion Large Language Models" src="https://external-preview.redd.it/eHlpNXJmc3BpZzBnMbC2Q-rs9CfDNgw85akHP4ZCgTS81bEyqZb3k8CkqU2r.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6fedc17befcb0ad76c15f3434bb58981727894c5" title="Open-dLLM: Open Diffusion Large Language Models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;the most open release of a diffusion-based large language model to date —&lt;br /&gt; including &lt;strong&gt;pretraining, evaluation, inference, and checkpoints&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;Code: &lt;a href="https://github.com/pengzhangzhi/Open-dLLM"&gt;https://github.com/pengzhangzhi/Open-dLLM&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Blog: &lt;a href="https://oval-shell-31c.notion.site/Open-dLLM-Open-Diffusion-Large-Language-Model-25e03bf6136480b7a4ebe3d53be9f68a"&gt;https://oval-shell-31c.notion.site/Open-dLLM-Open-Diffusion-Large-Language-Model-25e03bf6136480b7a4ebe3d53be9f68a&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pengzhangzhi"&gt; /u/pengzhangzhi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/qb62efspig0g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T16:33:06+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1osydym</id>
     <title>BERTs that chat: turn any BERT into a chatbot with dLLM</title>
     <updated>2025-11-09T23:34:15+00:00</updated>
@@ -268,6 +255,19 @@
     <published>2025-11-10T13:28:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1otihl1</id>
+    <title>Open-dLLM: Open Diffusion Large Language Models</title>
+    <updated>2025-11-10T16:33:06+00:00</updated>
+    <author>
+      <name>/u/pengzhangzhi</name>
+      <uri>https://old.reddit.com/user/pengzhangzhi</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"&gt; &lt;img alt="Open-dLLM: Open Diffusion Large Language Models" src="https://external-preview.redd.it/eHlpNXJmc3BpZzBnMbC2Q-rs9CfDNgw85akHP4ZCgTS81bEyqZb3k8CkqU2r.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6fedc17befcb0ad76c15f3434bb58981727894c5" title="Open-dLLM: Open Diffusion Large Language Models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;the most open release of a diffusion-based large language model to date —&lt;br /&gt; including &lt;strong&gt;pretraining, evaluation, inference, and checkpoints&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;Code: &lt;a href="https://github.com/pengzhangzhi/Open-dLLM"&gt;https://github.com/pengzhangzhi/Open-dLLM&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Blog: &lt;a href="https://oval-shell-31c.notion.site/Open-dLLM-Open-Diffusion-Large-Language-Model-25e03bf6136480b7a4ebe3d53be9f68a"&gt;https://oval-shell-31c.notion.site/Open-dLLM-Open-Diffusion-Large-Language-Model-25e03bf6136480b7a4ebe3d53be9f68a&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pengzhangzhi"&gt; /u/pengzhangzhi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/qb62efspig0g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otihl1/opendllm_open_diffusion_large_language_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-10T16:33:06+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1otj99f</id>
     <title>LinkedIn now tells you when you're looking at an AI-generated image, if you haven't noticed.</title>
     <updated>2025-11-10T17:01:12+00:00</updated>
@@ -281,19 +281,6 @@
     <published>2025-11-10T17:01:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1otl8q8</id>
-    <title>Omnilingual ASR: Advancing Automatic Speech Recognition for 1,600+ Languages</title>
-    <updated>2025-11-10T18:12:13+00:00</updated>
-    <author>
-      <name>/u/jean-</name>
-      <uri>https://old.reddit.com/user/jean-</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jean-"&gt; /u/jean- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://ai.meta.com/blog/omnilingual-asr-advancing-automatic-speech-recognition/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otl8q8/omnilingual_asr_advancing_automatic_speech/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otl8q8/omnilingual_asr_advancing_automatic_speech/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-10T18:12:13+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ot6k56</id>
     <title>Kimi infra team: Quantization is not a compromise, it's the next paradigm</title>
     <updated>2025-11-10T06:25:55+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ot6k56/kimi_infra_team_quantization_is_not_a_compromise/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-10T06:25:55+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1otl8q8</id>
+    <title>Omnilingual ASR: Advancing Automatic Speech Recognition for 1,600+ Languages</title>
+    <updated>2025-11-10T18:12:13+00:00</updated>
+    <author>
+      <name>/u/jean-</name>
+      <uri>https://old.reddit.com/user/jean-</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jean-"&gt; /u/jean- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://ai.meta.com/blog/omnilingual-asr-advancing-automatic-speech-recognition/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1otl8q8/omnilingual_asr_advancing_automatic_speech/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1otl8q8/omnilingual_asr_advancing_automatic_speech/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-10T18:12:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1ot3lxv</id>
