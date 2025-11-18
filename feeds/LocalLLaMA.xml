@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-18T15:38:49+00:00</updated>
+  <updated>2025-11-18T15:50:35+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1p04mf6</id>
-    <title>Guide: Setting up llama-swap on Strix Halo with Bazzite Linux</title>
-    <updated>2025-11-18T06:21:31+00:00</updated>
-    <author>
-      <name>/u/No-Statement-0001</name>
-      <uri>https://old.reddit.com/user/No-Statement-0001</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I got my Framework Desktop last week and spent some time over the weekend setting up llama-swap. This is my quick set up instructions for configuring llama-swap with Bazzite Linux. Why Bazzite? As a gaming focused distro things just worked out of the box with GPU drivers and decent performance. &lt;/p&gt; &lt;p&gt;After spending a couple of days and trying different distros I'm pretty happy with this set up. It's easy to maintain and relatively easy to get going. I would recommend Bazzite as everything I needed worked out of the box where I can run LLMs and maybe the occational game. I have the Framework Desktop but I expect these instructions to work for Bazzite on other Strix Halo platforms. &lt;/p&gt; &lt;h2&gt;Installing llama-swap&lt;/h2&gt; &lt;p&gt;First create the directories for storing the config and models in /var/llama-swap:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sh $ sudo mkdir -p /var/llama-swap/models $ sudo chown -R $USER /var/llama-swap &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Create /var/llama-swap/config.yaml. &lt;/p&gt; &lt;p&gt;Here's a starter one: &lt;/p&gt; &lt;p&gt;```yaml logLevel: debug sendLoadingState: true&lt;/p&gt; &lt;p&gt;macros: &amp;quot;default_strip_params&amp;quot;: &amp;quot;temperature, min_p, top_k, top_p&amp;quot;&lt;/p&gt; &lt;p&gt;&amp;quot;server-latest&amp;quot;: | /app/llama-server --host 0.0.0.0 --port ${PORT} -ngl 999 -ngld 999 --no-mmap --no-warmup --jinja&lt;/p&gt; &lt;p&gt;&amp;quot;gptoss-server&amp;quot;: | /app/llama-server --host 127.0.0.1 --port ${PORT} -ngl 999 -ngld 999 --no-mmap --no-warmup --model /models/gpt-oss-120b-mxfp4-00001-of-00003.gguf --ctx-size 65536 --jinja --temp 1.0 --top-k 100 --top-p 1.0&lt;/p&gt; &lt;p&gt;models: gptoss-high: name: &amp;quot;GPT-OSS 120B high&amp;quot; filters: strip_params: &amp;quot;${default_strip_params}&amp;quot; cmd: | ${gptoss-server} --chat-template-kwargs '{&amp;quot;reasoning_effort&amp;quot;: &amp;quot;high&amp;quot;}'&lt;/p&gt; &lt;p&gt;gptoss-med: name: &amp;quot;GPT-OSS 120B med&amp;quot; filters: strip_params: &amp;quot;${default_strip_params}&amp;quot; cmd: | ${gptoss-server} --chat-template-kwargs '{&amp;quot;reasoning_effort&amp;quot;: &amp;quot;medium&amp;quot;}'&lt;/p&gt; &lt;p&gt;gptoss-20B: name: &amp;quot;GPT-OSS 20B&amp;quot; filters: strip_params: &amp;quot;${default_strip_params}&amp;quot; cmd: | ${server-latest} --model /models/gpt-oss-20b-mxfp4.gguf --temp 1.0 --top-k 0 --top-p 1.0 --ctx-size 65536 ```&lt;/p&gt; &lt;p&gt;Now create the &lt;a href="https://docs.bazzite.gg/Installing_and_Managing_Software/Quadlet/"&gt;Quadlet&lt;/a&gt; service file in &lt;code&gt;$HOME/.config/containers/systemd&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;``` [Container] ContainerName=llama-swap Image=ghcr.io/mostlygeek/llama-swap:vulkan AutoUpdate=registry PublishPort=8080:8080 AddDevice=/dev/dri&lt;/p&gt; &lt;p&gt;Volume=/var/llama-swap/models:/models:z,ro Volume=/var/llama-swap/config.yaml:/app/config.yaml:z,ro&lt;/p&gt; &lt;p&gt;[Install] WantedBy=default.target ```&lt;/p&gt; &lt;p&gt;Then start up llama-swap: &lt;/p&gt; &lt;p&gt;``` $ systemctl --user daemon-reload $ systemctl --user restart llama-swap&lt;/p&gt; &lt;h1&gt;run services even if you're not logged in&lt;/h1&gt; &lt;p&gt;$ loginctl enable-linger $USER ```&lt;/p&gt; &lt;p&gt;llama-swap should now be running on port 8080 on your host. When you edit your config.yaml you will have to restart llama-swap with: &lt;/p&gt; &lt;p&gt;``` $ systemctl --user restart llama-swap&lt;/p&gt; &lt;h1&gt;tail llama-swap's logs&lt;/h1&gt; &lt;p&gt;$ journalctl --user -fu llama-swap&lt;/p&gt; &lt;h1&gt;update llama-swap:vulkan&lt;/h1&gt; &lt;p&gt;$ podman pull ghcr.io/mostlygeek/llama-swap:vulkan ```&lt;/p&gt; &lt;h2&gt;Performance Tweaks&lt;/h2&gt; &lt;p&gt;The general recommendation is to allocate the lowest amount of memory (512MB) in BIOS. On Linux it's possible to use up almost all of the 128GB but I haven't tested beyond gpt-oss 120B at this point.&lt;/p&gt; &lt;p&gt;There are three kernel params to add:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ttm.pages_limit=27648000&lt;/li&gt; &lt;li&gt;ttm.page_pool_size=27648000&lt;/li&gt; &lt;li&gt;amd_iommu=off&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;```sh $ sudo rpm-ostree kargs --editor&lt;/p&gt; &lt;h1&gt;add ttm.pages_limit, ttm.page_pool_size - use all the memory availble in the framework&lt;/h1&gt; &lt;h1&gt;add amd_iommu=off - increases memory speed&lt;/h1&gt; &lt;p&gt;rhgb quiet root=UUID=&amp;lt;redacted&amp;gt; rootflags=subvol=root rw iomem=relaxed bluetooth.disable_ertm=1 ttm.pages_limit=27648000 ttm.page_pool_size=27648000 amd_iommu=off ```&lt;/p&gt; &lt;p&gt;After rebooting you can run a memory speed test. Here's what mine look like after the tweaks: &lt;/p&gt; &lt;p&gt;``` $ curl -LO &lt;a href="https://github.com/GpuZelenograd/memtest_vulkan/releases/download/v0.5.0/memtest_vulkan-v0.5.0_DesktopLinux_X86_64.tar.xz"&gt;https://github.com/GpuZelenograd/memtest_vulkan/releases/download/v0.5.0/memtest_vulkan-v0.5.0_DesktopLinux_X86_64.tar.xz&lt;/a&gt; $ tar -xf memtest_vulkan-v0.5.0_DesktopLinux_X86_64.tar.xz $ ./memtest_vulkan &lt;a href="https://github.com/GpuZelenograd/memtest_vulkan"&gt;https://github.com/GpuZelenograd/memtest_vulkan&lt;/a&gt; v0.5.0 by GpuZelenograd To finish testing use Ctrl+C&lt;/p&gt; &lt;p&gt;1: Bus=0xC2:00 DevId=0x1586 71GB Radeon 8060S Graphics (RADV GFX1151) 2: Bus=0x00:00 DevId=0x0000 126GB llvmpipe (LLVM 21.1.4, 256 bits) (first device will be autoselected in 8 seconds) Override index to test: ...testing default device confirmed Standard 5-minute test of 1: Bus=0xC2:00 DevId=0x1586 71GB Radeon 8060S Graphics (RADV GFX1151) 1 iteration. Passed 0.5851 seconds written: 63.8GB 231.1GB/sec checked: 67.5GB 218.3GB/sec 3 iteration. Passed 1.1669 seconds written: 127.5GB 231.0GB/sec checked: 135.0GB 219.5GB/sec 12 iteration. Passed 5.2524 seconds written: 573.8GB 230.9GB/sec checked: 607.5GB 219.5GB/sec 64 iteration. Passed 30.4095 seconds written: 3315.0GB 230.4GB/sec checked: 3510.0GB 219.1GB/sec 116 iteration. Passed 30.4793 seconds written: 3315.0GB 229.8GB/sec checked: 3510.0GB 218.7GB/sec ```&lt;/p&gt; &lt;p&gt;Here are some things I really like about the Strix Halo: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;It very low power, it idle at about 16W. My nvidia server (2x3090, 2xP40), 128GB DDR4, X99 with 22-core xeon idles at ~150W.&lt;/li&gt; &lt;li&gt;It's good for MoE models. Qwen3 series, gpt-oss, etc are good. &lt;/li&gt; &lt;li&gt;It's not so good for dense models. llama-3 70B Q4_K_M w/ speculative decoding gets about 5.5tok/sec. &lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Hope this helps you set up your own Strix Halo LLM server quickly! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Statement-0001"&gt; /u/No-Statement-0001 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p04mf6/guide_setting_up_llamaswap_on_strix_halo_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p04mf6/guide_setting_up_llamaswap_on_strix_halo_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p04mf6/guide_setting_up_llamaswap_on_strix_halo_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-18T06:21:31+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p0biql</id>
-    <title>Question for people who have only one 3090, use llamacpp, and models around 32B</title>
-    <updated>2025-11-18T13:10:31+00:00</updated>
-    <author>
-      <name>/u/XiRw</name>
-      <uri>https://old.reddit.com/user/XiRw</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I would like to know if your inference times are as quick as a cloud based AI as well as the text output?&lt;/p&gt; &lt;p&gt;Also how long does it take to analyze around 20+ pictures at once? (If you tried)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/XiRw"&gt; /u/XiRw &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0biql/question_for_people_who_have_only_one_3090_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0biql/question_for_people_who_have_only_one_3090_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0biql/question_for_people_who_have_only_one_3090_use/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-18T13:10:31+00:00</published>
-  </entry>
   <entry>
     <id>t3_1p0d45q</id>
     <title>GPT, Grok, Perplexity all are down</title>
@@ -60,17 +34,30 @@
     <published>2025-11-18T04:49:55+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p0euvd</id>
-    <title>The world’s fastest open-source TTS: Supertonic</title>
-    <updated>2025-11-18T15:27:47+00:00</updated>
+    <id>t3_1p0eeox</id>
+    <title>Model recommendations for 128GB Strix Halo for long novel and story writing (multilingual)</title>
+    <updated>2025-11-18T15:10:25+00:00</updated>
     <author>
-      <name>/u/ANLGBOY</name>
-      <uri>https://old.reddit.com/user/ANLGBOY</uri>
+      <name>/u/PristineMarch7738</name>
+      <uri>https://old.reddit.com/user/PristineMarch7738</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"&gt; &lt;img alt="The world’s fastest open-source TTS: Supertonic" src="https://external-preview.redd.it/YTdlbmtuc2FhMTJnMeUni0jQysE8S8tC5OeTL5WYLlemOmlkeCkLZq86D7UU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=35f3083d0ba442d2daf2de8bc05be89e611809d9" title="The world’s fastest open-source TTS: Supertonic" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Demo &lt;a href="https://huggingface.co/spaces/Supertone/supertonic#interactive-demo"&gt;https://huggingface.co/spaces/Supertone/supertonic#interactive-demo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Code &lt;a href="https://github.com/supertone-inc/supertonic"&gt;https://github.com/supertone-inc/supertonic&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hello!&lt;/p&gt; &lt;p&gt;I want to share Supertonic, a newly open-sourced TTS engine that focuses on extreme speed, lightweight deployment, and real-world text understanding.&lt;/p&gt; &lt;p&gt;It’s available in 8+ programming languages: C++, C#, Java, JavaScript, Rust, Go, Swift, and Python, so you can plug it almost anywhere — from native apps to browsers to embedded/edge devices.&lt;/p&gt; &lt;p&gt;Technical highlights are&lt;/p&gt; &lt;p&gt;(1) Lightning-speed — Real-time factor:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; 0.001 on RTX4090&lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; 0.006 on M4 Pro&lt;/p&gt; &lt;p&gt;(2) Ultra lightweight — 66M parameters&lt;/p&gt; &lt;p&gt;(3) On-device TTS — Complete privacy and zero network latency&lt;/p&gt; &lt;p&gt;(4) Advanced text understanding — Handles complex, real-world inputs naturally&lt;/p&gt; &lt;p&gt;(5) Flexible deployment — Works in browsers, mobile apps, and small edge devices&lt;/p&gt; &lt;p&gt;Regarding (4), one of my favorite test sentences is: &lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; He spent 10,000 JPY to buy tickets for a JYP concert.&lt;/p&gt; &lt;p&gt;Here, “JPY” refers to Japanese yen, while “JYP” refers to a name — Supertonic handles the difference seamlessly.&lt;/p&gt; &lt;p&gt;Hope it's useful for you!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ANLGBOY"&gt; /u/ANLGBOY &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/w8c1bnsaa12g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, &lt;/p&gt; &lt;p&gt;I have a question please. What are your model(s) recommendations for 128GB Strix Halo for novel and story writing (multilingual). How much output in tokens and words can they generate in one response ? And can they be run on 128GB Strix Halo ?&lt;/p&gt; &lt;p&gt;What's the largest and biggest most refined with longest response and coherence that could be run on 128GB Strix Halo ?&lt;/p&gt; &lt;p&gt;Thanks&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PristineMarch7738"&gt; /u/PristineMarch7738 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0eeox/model_recommendations_for_128gb_strix_halo_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0eeox/model_recommendations_for_128gb_strix_halo_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0eeox/model_recommendations_for_128gb_strix_halo_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-18T15:27:47+00:00</published>
+    <published>2025-11-18T15:10:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p0f4r8</id>
+    <title>Gemini 3 Pro vs Kimi K2 Thinking</title>
+    <updated>2025-11-18T15:38:27+00:00</updated>
+    <author>
+      <name>/u/SlowFail2433</name>
+      <uri>https://old.reddit.com/user/SlowFail2433</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone done some initial comparisons between the new Gemini 3 Pro and Kimi K2 Thinking?&lt;/p&gt; &lt;p&gt;What are their strengths/weaknesses relative to each other?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SlowFail2433"&gt; /u/SlowFail2433 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0f4r8/gemini_3_pro_vs_kimi_k2_thinking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0f4r8/gemini_3_pro_vs_kimi_k2_thinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0f4r8/gemini_3_pro_vs_kimi_k2_thinking/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-18T15:38:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1p096do</id>
@@ -110,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p039e3/epstein_emails_graph_relationship_extraction_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-18T05:04:27+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p0b9ly</id>
-    <title>Orange Pi 6 Plus - revised(I believe) documents for using Linux, including some NPU instructions</title>
-    <updated>2025-11-18T12:59:15+00:00</updated>
-    <author>
-      <name>/u/pauljdavis</name>
-      <uri>https://old.reddit.com/user/pauljdavis</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Orange Pi 6 Plus Linux SystemUser Manual&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pauljdavis"&gt; /u/pauljdavis &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://drive.usercontent.google.com/download?id=1mCtcebEih9DtDV0rFS8KEIcP9AlxyAuQ&amp;amp;export=download&amp;amp;authuser=0&amp;amp;confirm=t&amp;amp;uuid=798c7b47-45ad-44a3-9e91-c81330e8d5c9&amp;amp;at=ALWLOp6aLM6FYJ4oVikzmdwiRRTR:1763407385934"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0b9ly/orange_pi_6_plus_revisedi_believe_documents_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0b9ly/orange_pi_6_plus_revisedi_believe_documents_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-18T12:59:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1oziszl</id>
@@ -177,17 +151,17 @@
     <published>2025-11-17T18:36:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p0d18g</id>
-    <title>Cloudfare down = ChatGPT down. Local LLM gang for the win!</title>
-    <updated>2025-11-18T14:14:53+00:00</updated>
+    <id>t3_1p0b9ly</id>
+    <title>Orange Pi 6 Plus - revised(I believe) documents for using Linux, including some NPU instructions</title>
+    <updated>2025-11-18T12:59:15+00:00</updated>
     <author>
-      <name>/u/satireplusplus</name>
-      <uri>https://old.reddit.com/user/satireplusplus</uri>
+      <name>/u/pauljdavis</name>
+      <uri>https://old.reddit.com/user/pauljdavis</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"&gt; &lt;img alt="Cloudfare down = ChatGPT down. Local LLM gang for the win!" src="https://external-preview.redd.it/AGL421fF8rguq6HfntHEktFb_6D8E61a63BOf9nljqw.jpg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c0b9fcd248f726ab4f10022b9235b7e02a4c61c6" title="Cloudfare down = ChatGPT down. Local LLM gang for the win!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/satireplusplus"&gt; /u/satireplusplus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://imgur.com/a/B1K8M3f"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Orange Pi 6 Plus Linux SystemUser Manual&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pauljdavis"&gt; /u/pauljdavis &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://drive.usercontent.google.com/download?id=1mCtcebEih9DtDV0rFS8KEIcP9AlxyAuQ&amp;amp;export=download&amp;amp;authuser=0&amp;amp;confirm=t&amp;amp;uuid=798c7b47-45ad-44a3-9e91-c81330e8d5c9&amp;amp;at=ALWLOp6aLM6FYJ4oVikzmdwiRRTR:1763407385934"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0b9ly/orange_pi_6_plus_revisedi_believe_documents_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0b9ly/orange_pi_6_plus_revisedi_believe_documents_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-18T14:14:53+00:00</published>
+    <published>2025-11-18T12:59:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1ozo2v8</id>
@@ -203,6 +177,19 @@
     <published>2025-11-17T18:27:54+00:00</published>
   </entry>
   <entry>
+    <id>t3_1p0euvd</id>
+    <title>The world’s fastest open-source TTS: Supertonic</title>
+    <updated>2025-11-18T15:27:47+00:00</updated>
+    <author>
+      <name>/u/ANLGBOY</name>
+      <uri>https://old.reddit.com/user/ANLGBOY</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"&gt; &lt;img alt="The world’s fastest open-source TTS: Supertonic" src="https://external-preview.redd.it/YTdlbmtuc2FhMTJnMeUni0jQysE8S8tC5OeTL5WYLlemOmlkeCkLZq86D7UU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=35f3083d0ba442d2daf2de8bc05be89e611809d9" title="The world’s fastest open-source TTS: Supertonic" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Demo &lt;a href="https://huggingface.co/spaces/Supertone/supertonic#interactive-demo"&gt;https://huggingface.co/spaces/Supertone/supertonic#interactive-demo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Code &lt;a href="https://github.com/supertone-inc/supertonic"&gt;https://github.com/supertone-inc/supertonic&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hello!&lt;/p&gt; &lt;p&gt;I want to share Supertonic, a newly open-sourced TTS engine that focuses on extreme speed, lightweight deployment, and real-world text understanding.&lt;/p&gt; &lt;p&gt;It’s available in 8+ programming languages: C++, C#, Java, JavaScript, Rust, Go, Swift, and Python, so you can plug it almost anywhere — from native apps to browsers to embedded/edge devices.&lt;/p&gt; &lt;p&gt;Technical highlights are&lt;/p&gt; &lt;p&gt;(1) Lightning-speed — Real-time factor:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; 0.001 on RTX4090&lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; 0.006 on M4 Pro&lt;/p&gt; &lt;p&gt;(2) Ultra lightweight — 66M parameters&lt;/p&gt; &lt;p&gt;(3) On-device TTS — Complete privacy and zero network latency&lt;/p&gt; &lt;p&gt;(4) Advanced text understanding — Handles complex, real-world inputs naturally&lt;/p&gt; &lt;p&gt;(5) Flexible deployment — Works in browsers, mobile apps, and small edge devices&lt;/p&gt; &lt;p&gt;Regarding (4), one of my favorite test sentences is: &lt;/p&gt; &lt;p&gt;&lt;strong&gt;•&lt;/strong&gt; He spent 10,000 JPY to buy tickets for a JYP concert.&lt;/p&gt; &lt;p&gt;Here, “JPY” refers to Japanese yen, while “JYP” refers to a name — Supertonic handles the difference seamlessly.&lt;/p&gt; &lt;p&gt;Hope it's useful for you!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ANLGBOY"&gt; /u/ANLGBOY &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/w8c1bnsaa12g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0euvd/the_worlds_fastest_opensource_tts_supertonic/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-18T15:27:47+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ozy72c</id>
     <title>Baguettotron, a 321 million parameters generalist Small Reasoning Model (80-layers deep)</title>
     <updated>2025-11-18T01:02:19+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ozy72c/baguettotron_a_321_million_parameters_generalist/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-18T01:02:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p0d18g</id>
+    <title>Cloudfare down = ChatGPT down. Local LLM gang for the win!</title>
+    <updated>2025-11-18T14:14:53+00:00</updated>
+    <author>
+      <name>/u/satireplusplus</name>
+      <uri>https://old.reddit.com/user/satireplusplus</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"&gt; &lt;img alt="Cloudfare down = ChatGPT down. Local LLM gang for the win!" src="https://external-preview.redd.it/AGL421fF8rguq6HfntHEktFb_6D8E61a63BOf9nljqw.jpg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c0b9fcd248f726ab4f10022b9235b7e02a4c61c6" title="Cloudfare down = ChatGPT down. Local LLM gang for the win!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/satireplusplus"&gt; /u/satireplusplus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://imgur.com/a/B1K8M3f"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p0d18g/cloudfare_down_chatgpt_down_local_llm_gang_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-18T14:14:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1p0b5d5</id>
