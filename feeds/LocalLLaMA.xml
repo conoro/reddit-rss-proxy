@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-26T11:35:02+00:00</updated>
+  <updated>2025-11-26T11:48:37+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1p6gruv</id>
-    <title>I tested a few local hosted coding models with VSCode / cline so that you don't have to</title>
-    <updated>2025-11-25T16:21:10+00:00</updated>
-    <author>
-      <name>/u/DrMicrobit</name>
-      <uri>https://old.reddit.com/user/DrMicrobit</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been running a bunch of &amp;quot;can I actually code with a local model in VS Code?&amp;quot; experiments over the last weeks, focused on task with moderate complexity. I chose simple, well known games as they help to visualise strengths and shortcomings of the results quite easily, also to a layperson. The tasks at hand: Space Invaders &amp;amp; Galaga in a single HTML file. I also did a more serious run with a ~2.3k- word design doc.&lt;/p&gt; &lt;p&gt;Sharing the main takeaways here for anyone trying to use local models with Cline/Ollama for real coding work, not just completions.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup:&lt;/strong&gt; Ubuntu 24.04, 2x 4060 Ti 16 GB (32 GB total VRAM), VS Code + Cline, models served via Ollama / GGUF. Context for local models was usually ~96k tokens (anything much bigger spilled into RAM and became 7-20x slower). Tasks ranged from YOLO prompts (&amp;quot;Write a Space Invaders game in a single HTML file&amp;quot;) to a moderately detailed spec for a modernized Space Invaders.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Headline result:&lt;/strong&gt; Qwen 3 Coder 30B is the only family I tested that consistently worked well with Cline and produced usable games. At 4-bit it's already solid; quality drops noticeably at 3-bit and 2-bit (more logic bugs, more broken runs). With 4-bit and 32 GB VRAM you can keep ~ 100k context and still be reasorably fast. If you can spare more VRAM or live with reduced context, higher-bit Qwen 3 Coder (e.g. 6-bit) does help. But 4-bit is the practical sweet spot for 32 GiB VRAM.&lt;/p&gt; &lt;p&gt;Merges/prunes of Qwen 3 Coder generally underperformed the original. The cerebras REAP 25B prune and YOYO merges were noticeably buggier and less reliable than vanilla Qwen 3 Coder 30B, even at higher bit widths. They sometimes produced runnable code, but with a much higher &amp;quot;Cline has to rerun / you have to hand-debug or giveup&amp;quot; rate. TL;DR: for coding, the unmodified coder models beat their fancy descendants.&lt;/p&gt; &lt;p&gt;Non-coder 30B models and &amp;quot;hot&amp;quot; general models mostly disappointed in this setup. Qwen 3 30B (base/instruct from various sources), devstral 24B, Skyfall 31B v4, Nemotron Nano 9B v2, and Olmo 3 32B either: (a) fought with Cline (rambling, overwriting their own code, breaking the project), or (b) produced very broken game logic that wasn't fixable in one or two debug rounds. Some also forced me to shrink context so much they stopped being interesting for larger tasks.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Guiding the models:&lt;/strong&gt; I wanted to demonstrate, with examples that can be shown to people without much insights, what development means: YOLO prompts (&amp;quot;Make me a Space Invaders / Galaga game&amp;quot;) will produce widely varying results even for big online models, and doubly so for locals. See &lt;a href="https://drmicrobit.github.io/lllm_suit/tests/01_SpaceInvaders_yolo/online/GPT5/t1/space_invaders.html"&gt;this example&lt;/a&gt; for an interesting YOLO from GPT-5, and &lt;a href="https://drmicrobit.github.io/lllm_suit/tests/01_SpaceInvaders_yolo/online/Opus41/t2/space_invaders.html"&gt;this example&lt;/a&gt; for a barebone one from Opus 4.1. Models differ a lot in what they think &amp;quot;Space Invaders&amp;quot; or &amp;quot;Galaga&amp;quot; is, and leave out key features (bunkers, UFO, proper alien movement, etc.).&lt;/p&gt; &lt;p&gt;With a moderately detailed design doc, Qwen 3 Coder 30B can stick reasonably well to spec: &lt;a href="https://drmicrobit.github.io/lllm_suit/tests/03_SpaceInvaders_ddoc01/local/qwen3-coder-30B-unsloth/6bitUD_t1/space_invaders.html"&gt;Example 1&lt;/a&gt;, &lt;a href="https://drmicrobit.github.io/lllm_suit/tests/03_SpaceInvaders_ddoc01/local/qwen3-coder-30B-unsloth/4bitUD_t1/space_invaders.html"&gt;Example 2&lt;/a&gt;, &lt;a href="https://drmicrobit.github.io/lllm_suit/tests/03_SpaceInvaders_ddoc01/local/qwen3-coder-30B-unsloth/4bit_t2/space_invaders.html"&gt;Example 3&lt;/a&gt;. They still tend to repeat certain logic errors (e.g., invader formation movement, missing config entries) and often can't fix them from a high-level bug description without human help.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My current working hypothesis:&lt;/strong&gt; to do enthusiast-level Al-assisted coding in VS Code with Cline, one really needs to have at least 32 GB VRAM for usable models. Preferably use an untampered Qwen 3 Coder 30B (Ollama's default 4-bit, or an unsloth GGUF at 4-6 bits). Avoid going below 4-bit for coding, be wary of fancy merges/prunes, and don't expect miracles without a decent spec. &lt;/p&gt; &lt;p&gt;I documented all runs (code + notes) in a repo on GitHub (&lt;a href="https://github.com/DrMicrobit/lllm_suit"&gt;https://github.com/DrMicrobit/lllm_suit&lt;/a&gt;) if anyone's interested in. The docs there are linked and, going down the experiments, give an idea of what the results looked like with an image and have direct links runnable HTML files, configs, and model variants.&lt;/p&gt; &lt;p&gt;I'd be happy to hear what others think of this kind of simple experimental evaluation, or what other models I could test.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DrMicrobit"&gt; /u/DrMicrobit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6gruv/i_tested_a_few_local_hosted_coding_models_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6gruv/i_tested_a_few_local_hosted_coding_models_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p6gruv/i_tested_a_few_local_hosted_coding_models_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-25T16:21:10+00:00</published>
-  </entry>
   <entry>
     <id>t3_1p73d05</id>
     <title>Feedback | Local LLM Build 2x RTX Pro 4000</title>
@@ -45,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p68sjf/tencenthunyuanocr1b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-25T10:10:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p73hh0</id>
+    <title>Built a self-hosted form builder where you can chat to create forms (open source)</title>
+    <updated>2025-11-26T09:31:34+00:00</updated>
+    <author>
+      <name>/u/Careful_Patience_815</name>
+      <uri>https://old.reddit.com/user/Careful_Patience_815</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"&gt; &lt;img alt="Built a self-hosted form builder where you can chat to create forms (open source)" src="https://external-preview.redd.it/YzEwcm9nN3dsazNnMYrVtn-1Ry7LzPOUDqBLJzs1olFWuDhD6AVt6WxYhxIn.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=adc26929a5bd292822700ad2fc2f45b20703bb2f" title="Built a self-hosted form builder where you can chat to create forms (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built a self-hosted form builder where you can chat to develop forms and it goes live instantly for submissions.&lt;/p&gt; &lt;p&gt;The app generates the UI spec, renders it instantly and stores submissions in MongoDB. Each form gets its own shareable URL and submission dashboard.&lt;/p&gt; &lt;p&gt;Tech stack:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Next.js App router&lt;/li&gt; &lt;li&gt;Thesys C1 API + GenUI SDK (LLM → UI schema)&lt;/li&gt; &lt;li&gt;MongoDB + Mongoose&lt;/li&gt; &lt;li&gt;Claude Sonnet 4 (model)&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Flow (LLM → UI spec → Live preview)&lt;/h1&gt; &lt;p&gt;1) User types a prompt in the chat widget (C1Chat).&lt;/p&gt; &lt;p&gt;2) The frontend sends the user message(s) (&lt;code&gt;fetch('/api/chat')&lt;/code&gt;) to the chat API.&lt;/p&gt; &lt;p&gt;3) &lt;code&gt;/api/chat&lt;/code&gt; constructs an LLM request:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Prepends a system prompt that tells the model to emit JSON UI specs inside &lt;code&gt;&amp;lt;content&amp;gt;…&amp;lt;/content&amp;gt;&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;Streams responses back to the client.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;4) As chunks arrive, &lt;code&gt;\&lt;/code&gt;@crayonai/stream`` pipes them into the live chat component and accumulates the output.&lt;/p&gt; &lt;p&gt;5) On the stream end, the API:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Extracts the &lt;code&gt;&amp;lt;content&amp;gt;…&amp;lt;/content&amp;gt;&lt;/code&gt; payload.&lt;/li&gt; &lt;li&gt;Parses it as JSON.&lt;/li&gt; &lt;li&gt;Caches the latest schema (in a global var) for potential “save” actions.&lt;/li&gt; &lt;li&gt;If the user issues a save intent, it POSTs the cached schema plus title/description to &lt;code&gt;/api/forms/create&lt;/code&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;System Prompt&lt;/h1&gt; &lt;p&gt;It took multiple iterations to get a stable system prompt that:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;always outputs valid UI JSON&lt;/li&gt; &lt;li&gt;wraps output inside &lt;code&gt;&amp;lt;content&amp;gt;&lt;/code&gt; for the renderer&lt;/li&gt; &lt;li&gt;knows when to stop generating new UI&lt;/li&gt; &lt;li&gt;handles a multi-step “save flow” (title + description) without drifting&lt;/li&gt; &lt;li&gt;responds normally to non-form queries&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;const systemPrompt = ` You are a form-builder assistant. Rules: - If the user asks to create a form, respond with a UI JSON spec wrapped in &amp;lt;content&amp;gt;...&amp;lt;/content&amp;gt;. - Use components like &amp;quot;Form&amp;quot;, &amp;quot;Field&amp;quot;, &amp;quot;Input&amp;quot;, &amp;quot;Select&amp;quot; etc. - If the user says &amp;quot;save this form&amp;quot; or equivalent: - DO NOT generate any new form or UI elements. - Instead, acknowledge the save implicitly. - When asking the user for form title and description, generate a form with name=&amp;quot;save-form&amp;quot; and two fields: - Input with name=&amp;quot;formTitle&amp;quot; - TextArea with name=&amp;quot;formDescription&amp;quot; - Do not change these property names. - Wait until the user provides both title and description. - Only after receiving title and description, confirm saving and drive the saving logic on the backend. - Avoid plain text outside &amp;lt;content&amp;gt; for form outputs. - For non-form queries reply normally. &amp;lt;ui_rules&amp;gt; - Wrap UI JSON in &amp;lt;content&amp;gt; tags so GenUI can render it. &amp;lt;/ui_rules&amp;gt; ` &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;You can check complete codebase here: &lt;a href="https://github.com/Anmol-Baranwal/form-builder"&gt;https://github.com/Anmol-Baranwal/form-builder&lt;/a&gt;&lt;/p&gt; &lt;p&gt;(blog link about architecture, data flow and prompt design is in the README)&lt;/p&gt; &lt;p&gt;If you are experimenting with structured UI generation or chat-driven system prompts, this might be useful.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Careful_Patience_815"&gt; /u/Careful_Patience_815 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/jeaf536wlk3g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T09:31:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1p702d3</id>
@@ -99,17 +99,17 @@
     <published>2025-11-26T02:53:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p73hh0</id>
-    <title>Built a self-hosted form builder where you can chat to create forms (open source)</title>
-    <updated>2025-11-26T09:31:34+00:00</updated>
+    <id>t3_1p75eg8</id>
+    <title>ClearCut – open-source tool that forces you to think before AI answers</title>
+    <updated>2025-11-26T11:29:39+00:00</updated>
     <author>
-      <name>/u/Careful_Patience_815</name>
-      <uri>https://old.reddit.com/user/Careful_Patience_815</uri>
+      <name>/u/ComplexCanary1860</name>
+      <uri>https://old.reddit.com/user/ComplexCanary1860</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"&gt; &lt;img alt="Built a self-hosted form builder where you can chat to create forms (open source)" src="https://external-preview.redd.it/YzEwcm9nN3dsazNnMYrVtn-1Ry7LzPOUDqBLJzs1olFWuDhD6AVt6WxYhxIn.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=adc26929a5bd292822700ad2fc2f45b20703bb2f" title="Built a self-hosted form builder where you can chat to create forms (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built a self-hosted form builder where you can chat to develop forms and it goes live instantly for submissions.&lt;/p&gt; &lt;p&gt;The app generates the UI spec, renders it instantly and stores submissions in MongoDB. Each form gets its own shareable URL and submission dashboard.&lt;/p&gt; &lt;p&gt;Tech stack:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Next.js App router&lt;/li&gt; &lt;li&gt;Thesys C1 API + GenUI SDK (LLM → UI schema)&lt;/li&gt; &lt;li&gt;MongoDB + Mongoose&lt;/li&gt; &lt;li&gt;Claude Sonnet 4 (model)&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Flow (LLM → UI spec → Live preview)&lt;/h1&gt; &lt;p&gt;1) User types a prompt in the chat widget (C1Chat).&lt;/p&gt; &lt;p&gt;2) The frontend sends the user message(s) (&lt;code&gt;fetch('/api/chat')&lt;/code&gt;) to the chat API.&lt;/p&gt; &lt;p&gt;3) &lt;code&gt;/api/chat&lt;/code&gt; constructs an LLM request:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Prepends a system prompt that tells the model to emit JSON UI specs inside &lt;code&gt;&amp;lt;content&amp;gt;…&amp;lt;/content&amp;gt;&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;Streams responses back to the client.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;4) As chunks arrive, &lt;code&gt;\&lt;/code&gt;@crayonai/stream`` pipes them into the live chat component and accumulates the output.&lt;/p&gt; &lt;p&gt;5) On the stream end, the API:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Extracts the &lt;code&gt;&amp;lt;content&amp;gt;…&amp;lt;/content&amp;gt;&lt;/code&gt; payload.&lt;/li&gt; &lt;li&gt;Parses it as JSON.&lt;/li&gt; &lt;li&gt;Caches the latest schema (in a global var) for potential “save” actions.&lt;/li&gt; &lt;li&gt;If the user issues a save intent, it POSTs the cached schema plus title/description to &lt;code&gt;/api/forms/create&lt;/code&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;System Prompt&lt;/h1&gt; &lt;p&gt;It took multiple iterations to get a stable system prompt that:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;always outputs valid UI JSON&lt;/li&gt; &lt;li&gt;wraps output inside &lt;code&gt;&amp;lt;content&amp;gt;&lt;/code&gt; for the renderer&lt;/li&gt; &lt;li&gt;knows when to stop generating new UI&lt;/li&gt; &lt;li&gt;handles a multi-step “save flow” (title + description) without drifting&lt;/li&gt; &lt;li&gt;responds normally to non-form queries&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;const systemPrompt = ` You are a form-builder assistant. Rules: - If the user asks to create a form, respond with a UI JSON spec wrapped in &amp;lt;content&amp;gt;...&amp;lt;/content&amp;gt;. - Use components like &amp;quot;Form&amp;quot;, &amp;quot;Field&amp;quot;, &amp;quot;Input&amp;quot;, &amp;quot;Select&amp;quot; etc. - If the user says &amp;quot;save this form&amp;quot; or equivalent: - DO NOT generate any new form or UI elements. - Instead, acknowledge the save implicitly. - When asking the user for form title and description, generate a form with name=&amp;quot;save-form&amp;quot; and two fields: - Input with name=&amp;quot;formTitle&amp;quot; - TextArea with name=&amp;quot;formDescription&amp;quot; - Do not change these property names. - Wait until the user provides both title and description. - Only after receiving title and description, confirm saving and drive the saving logic on the backend. - Avoid plain text outside &amp;lt;content&amp;gt; for form outputs. - For non-form queries reply normally. &amp;lt;ui_rules&amp;gt; - Wrap UI JSON in &amp;lt;content&amp;gt; tags so GenUI can render it. &amp;lt;/ui_rules&amp;gt; ` &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;You can check complete codebase here: &lt;a href="https://github.com/Anmol-Baranwal/form-builder"&gt;https://github.com/Anmol-Baranwal/form-builder&lt;/a&gt;&lt;/p&gt; &lt;p&gt;(blog link about architecture, data flow and prompt design is in the README)&lt;/p&gt; &lt;p&gt;If you are experimenting with structured UI generation or chat-driven system prompts, this might be useful.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Careful_Patience_815"&gt; /u/Careful_Patience_815 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/jeaf536wlk3g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p73hh0/built_a_selfhosted_form_builder_where_you_can/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/aadityamahajn/clearcut"&gt;https://github.com/aadityamahajn/clearcut&lt;/a&gt;&lt;/p&gt; &lt;p&gt;install.&lt;br /&gt; AI suggests perfect filter → just press Enter.&lt;br /&gt; Strict 5-step flow. No solution vomiting.&lt;br /&gt; Fully open for contributions (CONTRIBUTING.md + good first issues ready).&lt;/p&gt; &lt;p&gt;Made because normal AI was making us lazy.&lt;br /&gt; Please star + try it if this resonates.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ComplexCanary1860"&gt; /u/ComplexCanary1860 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p75eg8/clearcut_opensource_tool_that_forces_you_to_think/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p75eg8/clearcut_opensource_tool_that_forces_you_to_think/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p75eg8/clearcut_opensource_tool_that_forces_you_to_think/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T09:31:34+00:00</published>
+    <published>2025-11-26T11:29:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1p6cf2p</id>
@@ -138,19 +138,6 @@
     <published>2025-11-25T20:53:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p72dq0</id>
-    <title>I built an open-source Memory API because setting up vector DBs for every AI project was annoying</title>
-    <updated>2025-11-26T08:17:09+00:00</updated>
-    <author>
-      <name>/u/Eastern-Height2451</name>
-      <uri>https://old.reddit.com/user/Eastern-Height2451</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building a few AI agents recently, and I kept running into the same friction: &lt;strong&gt;State Management.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every time I wanted to give an agent long-term memory, I had to set up a vector database (Pinecone/Weaviate), configure the embedding pipeline (OpenAI), and write the logic to chunk and retrieve context. It felt like too much boilerplate for side projects.&lt;/p&gt; &lt;p&gt;So, I built &lt;strong&gt;MemVault&lt;/strong&gt; to abstract all of that away.&lt;/p&gt; &lt;p&gt;It’s a &amp;quot;Memory-as-a-Service&amp;quot; API. You just send text to the &lt;code&gt;/store&lt;/code&gt; endpoint, and it handles the vectorization and storage. When you query it, it performs a hybrid search based on &lt;strong&gt;semantic similarity&lt;/strong&gt;, &lt;strong&gt;recency&lt;/strong&gt;, and &lt;strong&gt;importance&lt;/strong&gt; to give you the best context.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Tech Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Backend:&lt;/strong&gt; Node.js &amp;amp; Express (TypeScript)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Database:&lt;/strong&gt; PostgreSQL with &lt;code&gt;pgvector&lt;/code&gt; (via Prisma)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Hosting:&lt;/strong&gt; Railway&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I also built a &lt;strong&gt;visualizer dashboard&lt;/strong&gt; to actually see the RAG process happening in real-time (Input → Embedding → DB Retrieval), which helped a lot with debugging.&lt;/p&gt; &lt;p&gt;It’s fully open-source and I just published the SDK to NPM.&lt;/p&gt; &lt;p&gt;**Links:** *&lt;/p&gt; &lt;p&gt;[Live Demo (Visualizer)](&lt;a href="https://memvault-demo-g38n.vercel.app/"&gt;https://memvault-demo-g38n.vercel.app/&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;[NPM Package](&lt;a href="https://www.npmjs.com/package/memvault-sdk-jakops88"&gt;https://www.npmjs.com/package/memvault-sdk-jakops88&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;[RapidAPI Page](&lt;a href="https://rapidapi.com/jakops88/api/long-term-memory-api"&gt;https://rapidapi.com/jakops88/api/long-term-memory-api&lt;/a&gt;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Eastern-Height2451"&gt; /u/Eastern-Height2451 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T08:17:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p73gjv</id>
     <title>OpenAI-GPT-OSS-120B scores on livecodebench</title>
     <updated>2025-11-26T09:29:58+00:00</updated>
@@ -162,19 +149,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p73gjv/openaigptoss120b_scores_on_livecodebench/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T09:29:58+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p6ytcb</id>
-    <title>What are these supposed no branding 3090s?</title>
-    <updated>2025-11-26T04:50:38+00:00</updated>
-    <author>
-      <name>/u/aeroumbria</name>
-      <uri>https://old.reddit.com/user/aeroumbria</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"&gt; &lt;img alt="What are these supposed no branding 3090s?" src="https://preview.redd.it/20i73icx7j3g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bc0f67ff0f3355312c37b378b5ea54bbf124d97b" title="What are these supposed no branding 3090s?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aeroumbria"&gt; /u/aeroumbria &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/20i73icx7j3g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T04:50:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1p6h63t</id>
@@ -201,6 +175,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p6qwok/are_imatrix_quants_hurting_your_model_my_opinion/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-25T22:40:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p6ytcb</id>
+    <title>What are these supposed no branding 3090s?</title>
+    <updated>2025-11-26T04:50:38+00:00</updated>
+    <author>
+      <name>/u/aeroumbria</name>
+      <uri>https://old.reddit.com/user/aeroumbria</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"&gt; &lt;img alt="What are these supposed no branding 3090s?" src="https://preview.redd.it/20i73icx7j3g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bc0f67ff0f3355312c37b378b5ea54bbf124d97b" title="What are these supposed no branding 3090s?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aeroumbria"&gt; /u/aeroumbria &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/20i73icx7j3g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p6ytcb/what_are_these_supposed_no_branding_3090s/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T04:50:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p72dq0</id>
+    <title>I built an open-source Memory API because setting up vector DBs for every AI project was annoying</title>
+    <updated>2025-11-26T08:17:09+00:00</updated>
+    <author>
+      <name>/u/Eastern-Height2451</name>
+      <uri>https://old.reddit.com/user/Eastern-Height2451</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building a few AI agents recently, and I kept running into the same friction: &lt;strong&gt;State Management.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every time I wanted to give an agent long-term memory, I had to set up a vector database (Pinecone/Weaviate), configure the embedding pipeline (OpenAI), and write the logic to chunk and retrieve context. It felt like too much boilerplate for side projects.&lt;/p&gt; &lt;p&gt;So, I built &lt;strong&gt;MemVault&lt;/strong&gt; to abstract all of that away.&lt;/p&gt; &lt;p&gt;It’s a &amp;quot;Memory-as-a-Service&amp;quot; API. You just send text to the &lt;code&gt;/store&lt;/code&gt; endpoint, and it handles the vectorization and storage. When you query it, it performs a hybrid search based on &lt;strong&gt;semantic similarity&lt;/strong&gt;, &lt;strong&gt;recency&lt;/strong&gt;, and &lt;strong&gt;importance&lt;/strong&gt; to give you the best context.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Tech Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Backend:&lt;/strong&gt; Node.js &amp;amp; Express (TypeScript)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Database:&lt;/strong&gt; PostgreSQL with &lt;code&gt;pgvector&lt;/code&gt; (via Prisma)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Hosting:&lt;/strong&gt; Railway&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I also built a &lt;strong&gt;visualizer dashboard&lt;/strong&gt; to actually see the RAG process happening in real-time (Input → Embedding → DB Retrieval), which helped a lot with debugging.&lt;/p&gt; &lt;p&gt;It’s fully open-source and I just published the SDK to NPM.&lt;/p&gt; &lt;p&gt;**Links:** *&lt;/p&gt; &lt;p&gt;[Live Demo (Visualizer)](&lt;a href="https://memvault-demo-g38n.vercel.app/"&gt;https://memvault-demo-g38n.vercel.app/&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;[NPM Package](&lt;a href="https://www.npmjs.com/package/memvault-sdk-jakops88"&gt;https://www.npmjs.com/package/memvault-sdk-jakops88&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;[RapidAPI Page](&lt;a href="https://rapidapi.com/jakops88/api/long-term-memory-api"&gt;https://rapidapi.com/jakops88/api/long-term-memory-api&lt;/a&gt;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Eastern-Height2451"&gt; /u/Eastern-Height2451 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p72dq0/i_built_an_opensource_memory_api_because_setting/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T08:17:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1p71344</id>
@@ -242,19 +242,6 @@
     <published>2025-11-25T16:59:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p74jua</id>
-    <title>An explainer blog on attention, KV-caching, continuous batching</title>
-    <updated>2025-11-26T10:38:35+00:00</updated>
-    <author>
-      <name>/u/unofficialmerve</name>
-      <uri>https://old.reddit.com/user/unofficialmerve</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt; &lt;img alt="An explainer blog on attention, KV-caching, continuous batching" src="https://b.thumbs.redditmedia.com/elk4CD_PSckplgxaBd4FmBVkj9PDwClP9sER-l01F5c.jpg" title="An explainer blog on attention, KV-caching, continuous batching" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/d3mc1kovxk3g1.png?width=3713&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=21ac53dcac21619d27e95bdf84dd403ebc935869"&gt;https://preview.redd.it/d3mc1kovxk3g1.png?width=3713&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=21ac53dcac21619d27e95bdf84dd403ebc935869&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hey folks, it's Merve from Hugging Face!&lt;/p&gt; &lt;p&gt;Yesterday we dropped a lengthy blog, illustrating cutting edge inference optimization techniques: continuous batching, KV-caching and more (also attention and everything that let to them to be beginner-friendly)! We hope you like it 🤗&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/unofficialmerve"&gt; /u/unofficialmerve &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T10:38:35+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p71luf</id>
     <title>BPE tokenizer in Rust - would love feedback from the community</title>
     <updated>2025-11-26T07:29:12+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p71luf/bpe_tokenizer_in_rust_would_love_feedback_from/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T07:29:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p74jua</id>
+    <title>An explainer blog on attention, KV-caching, continuous batching</title>
+    <updated>2025-11-26T10:38:35+00:00</updated>
+    <author>
+      <name>/u/unofficialmerve</name>
+      <uri>https://old.reddit.com/user/unofficialmerve</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt; &lt;img alt="An explainer blog on attention, KV-caching, continuous batching" src="https://b.thumbs.redditmedia.com/elk4CD_PSckplgxaBd4FmBVkj9PDwClP9sER-l01F5c.jpg" title="An explainer blog on attention, KV-caching, continuous batching" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/d3mc1kovxk3g1.png?width=3713&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=21ac53dcac21619d27e95bdf84dd403ebc935869"&gt;https://preview.redd.it/d3mc1kovxk3g1.png?width=3713&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=21ac53dcac21619d27e95bdf84dd403ebc935869&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hey folks, it's Merve from Hugging Face!&lt;/p&gt; &lt;p&gt;Yesterday we dropped a lengthy blog, illustrating cutting edge inference optimization techniques: continuous batching, KV-caching and more (also attention and everything that let to them to be beginner-friendly)! We hope you like it 🤗&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/unofficialmerve"&gt; /u/unofficialmerve &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p74jua/an_explainer_blog_on_attention_kvcaching/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T10:38:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1p6k0h2</id>
