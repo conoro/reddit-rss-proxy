@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-27T01:35:24+00:00</updated>
+  <updated>2025-11-27T02:20:12+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1p7ddv3</id>
+    <title>Optimising NVIDIA’s DGX Spark (Grace + Blackwell) – 1.5× PyTorch speedup with custom build</title>
+    <updated>2025-11-26T17:12:57+00:00</updated>
+    <author>
+      <name>/u/guigsss</name>
+      <uri>https://old.reddit.com/user/guigsss</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve open-sourced a complete end-to-end setup to maximise AI performance on the new NVIDIA DGX Spark – the compact dev box built on the Grace-Blackwell superchip (20-core Grace ARM CPU + 6144-core Blackwell GPU).&lt;/p&gt; &lt;p&gt;Because this architecture is so new (SM 12.x GPU, unified CPU-GPU memory), many libraries weren’t fully utilising it out-of-the-box. I found that PyTorch and CUDA libs would fallback to older GPU kernels and miss out on Blackwell’s new FP8/FP4 tensor core formats, and even ignore some ARM64 CPU optimisations on the Grace side. So I decided to rebuild the stack myself to unlock its full potential.&lt;/p&gt; &lt;p&gt;What I did and why it matters:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Rebuilt PyTorch from source with Blackwell (SM 12.x) support on Arm64 , so it recognises the new GPU architecture. This enables PyTorch to fully detect SM 12.x capabilities and use optimised kernels.&lt;/li&gt; &lt;li&gt;Updated NVIDIA libraries (cuBLAS, cuDNN, etc.) to the latest versions for CUDA 13. I also manually installed cuSPARSELt (sparse GEMM library) since it wasn’t yet in the default DGX OS repos . This adds support for 2:4 structured sparsity acceleration on Blackwell’s tensor cores.&lt;/li&gt; &lt;li&gt;Enabled FP4/FP8 Tensor Cores: the custom build unlocks new low-precision tensor core instructions (FP8/FP4) that Blackwell supports , which the default libraries didn’t leverage. This should help with future models that use these formats.&lt;/li&gt; &lt;li&gt;Triton GPU compiler tuned for Blackwell: recompiled the Triton compiler with LLVM for SM 12.x . This means operations like FlashAttention or fused kernels can JIT compile optimised code for Blackwell’s GPU.&lt;/li&gt; &lt;li&gt;GPUDirect Storage (GDS): enabled cuFile so the GPU can load data directly from SSDs, bypassing the CPU . Useful for faster data throughput in training.&lt;/li&gt; &lt;li&gt;Grace CPU optimisations: made sure to compile with ARM64 optimisations for the Grace CPU. The Grace has 20 cores (10× Cortex-X9 + 10× A7) and I didn’t want it bottlenecked by x86 assumptions . The build uses OpenBLAS/BLIS tuned for ARM and OpenMPI etc., to utilise the CPU fully for any preprocessing or distributed work.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Results: I wrote a simple FP16 GEMM (matrix multiply) burn-in benchmark to compare baseline vs optimised environments.&lt;/p&gt; &lt;p&gt;Baseline FP16 GEMM throughput (matrix size 8192) using stock PyTorch (CUDA 13 wheel). It sustains ~87 TFLOPs after warm-up, indicating the Blackwell GPU isn’t fully utilized by default kernels . Many new tensor core features remained inactive, resulting in suboptimal performance.&lt;/p&gt; &lt;p&gt;Optimised environment FP16 GEMM throughput (matrix size 8192) after rebuilding the stack. Sustained throughput is ~127 TFLOPs – roughly 50% higher than baseline. This gain comes from Blackwell-specific optimisations: updated cuBLAS routines, enabled FP8/FP4 cores, Triton JIT, and sparse tensor support. In practice, that’s about 1.5× the matrix multiplication performance on the same hardware.&lt;/p&gt; &lt;p&gt;In summary, recompiling and updating the ML stack specifically for DGX Spark yielded a ~50% speedup on this heavy compute workload. The repository includes all the installation scripts, build steps, and even a pre-built PyTorch wheels (torch 2.9.1 for CUDA 13 on aarch64) if you want to skip compiling .&lt;/p&gt; &lt;p&gt;Link to repo: 🔗 GitHub – &lt;a href="https://github.com/GuigsEvt/dgx_spark_config"&gt;https://github.com/GuigsEvt/dgx_spark_config&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’d love feedback from others who have a DGX Spark or similar hardware. Feel free to try out the build or use the wheel and let me know if it improves your workloads. Any suggestions for further tuning are very welcome!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/guigsss"&gt; /u/guigsss &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T17:12:57+00:00</published>
+  </entry>
   <entry>
     <id>t3_1p7h5ah</id>
     <title>SGLang just solved FP8 stability for RL training - turns out it was the quantization step all along</title>
@@ -19,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7h5ah/sglang_just_solved_fp8_stability_for_rl_training/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T19:33:43+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p6k0h2</id>
-    <title>You can now do FP8 reinforcement learning locally! (&lt;5GB VRAM)</title>
-    <updated>2025-11-25T18:19:47+00:00</updated>
-    <author>
-      <name>/u/danielhanchen</name>
-      <uri>https://old.reddit.com/user/danielhanchen</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6k0h2/you_can_now_do_fp8_reinforcement_learning_locally/"&gt; &lt;img alt="You can now do FP8 reinforcement learning locally! (&amp;lt;5GB VRAM)" src="https://preview.redd.it/t5wv1iax1g3g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c2fb5f6ea2413c66c20bbe83efc473ce566ff763" title="You can now do FP8 reinforcement learning locally! (&amp;lt;5GB VRAM)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLlama"&gt;r/LocalLlama&lt;/a&gt;! We're getting close to our last release of 2025! Thanks so much for all the support this year. The DeepSeek team back in Jan showcased how powerful FP8 RL can be with GRPO. Well, you can now try it on your local hardware using only 5GB VRAM! RTX 50x, 40x series all work! Unsloth GitHub: &lt;a href="https://github.com/unslothai/unsloth"&gt;https://github.com/unslothai/unsloth&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why should you do FP8 training?&lt;/strong&gt;&lt;br /&gt; NVIDIA's research finds FP8 training can match BF16 accuracy whilst getting 1.6x faster inference time. We collabed with TorchAO from PyTorch to introduce FP8 RL training, making FP8 GRPO possible on home GPUs with no accuracy loss!&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Qwen3-4B FP8 GRPO works on just 6GB VRAM. Qwen3-1.7B on 5GB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;1.4x faster RL training and 2× longer context vs BF16/FP16&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;60% less VRAM and 10× longer context than other FP8 RL implementations&lt;/li&gt; &lt;li&gt;Unsloth is the only framework that makes FP8 RL LoRA work on consumer GPUs (e.g. NVIDIA RTX 40 &amp;amp; 50 Series). Also runs on H100, H200, B200.&lt;/li&gt; &lt;li&gt;You may notice &lt;a href="https://github.com/unslothai/unsloth"&gt;Unsloth&lt;/a&gt; now uses much less VRAM than before, enabling even longer context. We’re also implementing faster training soon. Blog coming soon&lt;/li&gt; &lt;li&gt;Our notebooks use 24GB L4s which fit Qwen3-14B as Tesla T4s don’t support FP8.&lt;/li&gt; &lt;li&gt;Our FP8 RL incorporates Unsloth’s weight sharing, Standby, Flex Attention + more.&lt;/li&gt; &lt;li&gt;Works on any NVIDIA RTX 40, 50 series and H100, B200 etc. GPUs&lt;/li&gt; &lt;li&gt;Use &lt;code&gt;load_in_fp8 = True&lt;/code&gt; within &lt;code&gt;FastLanguageModel&lt;/code&gt; to enable FP8 RL.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;You can read our blogpost for our findings and more: &lt;a href="https://docs.unsloth.ai/new/fp8-reinforcement-learning"&gt;https://docs.unsloth.ai/new/fp8-reinforcement-learning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Llama 3.2 1B FP8 Colab Notebook: &lt;a href="https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama_FP8_GRPO.ipynb"&gt;https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Llama_FP8_GRPO.ipynb&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In the notebook, you can plug in any of our previous reward functions or RL environment examples, including our auto kernel creation and our 2048 game notebooks. To enable fp8:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;import os; os.environ['UNSLOTH_VLLM_STANDBY'] = &amp;quot;1&amp;quot; # Saves 30% VRAM from unsloth import FastLanguageModel model, tokenizer = FastLanguageModel.from_pretrained( model_name = &amp;quot;unsloth/Qwen3-8B&amp;quot;, max_seq_length = 2048, load_in_4bit = False, # False for LoRA 16bit fast_inference = True, # Enable vLLM fast inference max_lora_rank = 32, load_in_fp8 = True, # Float8 RL / GRPO! ) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Hope you all have a lovely Thanksgiving, a lovely rest of the week and I'll be here to answer any and all questions! =)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/danielhanchen"&gt; /u/danielhanchen &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/t5wv1iax1g3g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p6k0h2/you_can_now_do_fp8_reinforcement_learning_locally/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p6k0h2/you_can_now_do_fp8_reinforcement_learning_locally/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-25T18:19:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1p7briq</id>
@@ -47,19 +47,6 @@
     <published>2025-11-26T16:12:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7ddv3</id>
-    <title>Optimising NVIDIA’s DGX Spark (Grace + Blackwell) – 1.5× PyTorch speedup with custom build</title>
-    <updated>2025-11-26T17:12:57+00:00</updated>
-    <author>
-      <name>/u/guigsss</name>
-      <uri>https://old.reddit.com/user/guigsss</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve open-sourced a complete end-to-end setup to maximise AI performance on the new NVIDIA DGX Spark – the compact dev box built on the Grace-Blackwell superchip (20-core Grace ARM CPU + 6144-core Blackwell GPU).&lt;/p&gt; &lt;p&gt;Because this architecture is so new (SM 12.x GPU, unified CPU-GPU memory), many libraries weren’t fully utilising it out-of-the-box. I found that PyTorch and CUDA libs would fallback to older GPU kernels and miss out on Blackwell’s new FP8/FP4 tensor core formats, and even ignore some ARM64 CPU optimisations on the Grace side. So I decided to rebuild the stack myself to unlock its full potential.&lt;/p&gt; &lt;p&gt;What I did and why it matters:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Rebuilt PyTorch from source with Blackwell (SM 12.x) support on Arm64 , so it recognises the new GPU architecture. This enables PyTorch to fully detect SM 12.x capabilities and use optimised kernels.&lt;/li&gt; &lt;li&gt;Updated NVIDIA libraries (cuBLAS, cuDNN, etc.) to the latest versions for CUDA 13. I also manually installed cuSPARSELt (sparse GEMM library) since it wasn’t yet in the default DGX OS repos . This adds support for 2:4 structured sparsity acceleration on Blackwell’s tensor cores.&lt;/li&gt; &lt;li&gt;Enabled FP4/FP8 Tensor Cores: the custom build unlocks new low-precision tensor core instructions (FP8/FP4) that Blackwell supports , which the default libraries didn’t leverage. This should help with future models that use these formats.&lt;/li&gt; &lt;li&gt;Triton GPU compiler tuned for Blackwell: recompiled the Triton compiler with LLVM for SM 12.x . This means operations like FlashAttention or fused kernels can JIT compile optimised code for Blackwell’s GPU.&lt;/li&gt; &lt;li&gt;GPUDirect Storage (GDS): enabled cuFile so the GPU can load data directly from SSDs, bypassing the CPU . Useful for faster data throughput in training.&lt;/li&gt; &lt;li&gt;Grace CPU optimisations: made sure to compile with ARM64 optimisations for the Grace CPU. The Grace has 20 cores (10× Cortex-X9 + 10× A7) and I didn’t want it bottlenecked by x86 assumptions . The build uses OpenBLAS/BLIS tuned for ARM and OpenMPI etc., to utilise the CPU fully for any preprocessing or distributed work.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Results: I wrote a simple FP16 GEMM (matrix multiply) burn-in benchmark to compare baseline vs optimised environments.&lt;/p&gt; &lt;p&gt;Baseline FP16 GEMM throughput (matrix size 8192) using stock PyTorch (CUDA 13 wheel). It sustains ~87 TFLOPs after warm-up, indicating the Blackwell GPU isn’t fully utilized by default kernels . Many new tensor core features remained inactive, resulting in suboptimal performance.&lt;/p&gt; &lt;p&gt;Optimised environment FP16 GEMM throughput (matrix size 8192) after rebuilding the stack. Sustained throughput is ~127 TFLOPs – roughly 50% higher than baseline. This gain comes from Blackwell-specific optimisations: updated cuBLAS routines, enabled FP8/FP4 cores, Triton JIT, and sparse tensor support. In practice, that’s about 1.5× the matrix multiplication performance on the same hardware.&lt;/p&gt; &lt;p&gt;In summary, recompiling and updating the ML stack specifically for DGX Spark yielded a ~50% speedup on this heavy compute workload. The repository includes all the installation scripts, build steps, and even a pre-built PyTorch wheels (torch 2.9.1 for CUDA 13 on aarch64) if you want to skip compiling .&lt;/p&gt; &lt;p&gt;Link to repo: 🔗 GitHub – &lt;a href="https://github.com/GuigsEvt/dgx_spark_config"&gt;https://github.com/GuigsEvt/dgx_spark_config&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’d love feedback from others who have a DGX Spark or similar hardware. Feel free to try out the build or use the wheel and let me know if it improves your workloads. Any suggestions for further tuning are very welcome!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/guigsss"&gt; /u/guigsss &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T17:12:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p7iwzj</id>
     <title>[Guide] Running NVIDIA’s new Omni-Embed-3B (Vectorize Text/Image/Audio/Video in the same vector space!)</title>
     <updated>2025-11-26T20:43:01+00:00</updated>
@@ -71,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T20:43:01+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p7j85z</id>
-    <title>Minimax-Thrift a Pruned Minimax M2 for consumer cards</title>
-    <updated>2025-11-26T20:55:21+00:00</updated>
-    <author>
-      <name>/u/Sea-Speaker1700</name>
-      <uri>https://old.reddit.com/user/Sea-Speaker1700</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did a bunch of work getting this setup, it includes a proxy for thinking/analysis injection per the Minimax M2 guide to get best results.&lt;/p&gt; &lt;p&gt;Verified to work, I'm using it as I type this. Would be great across dual RTX Pro 6000s to run 500k kvcache or so with a highly capable model.&lt;/p&gt; &lt;p&gt;Tool calling verified to work.&lt;br /&gt; Cline verified to work.&lt;/p&gt; &lt;p&gt;The thinking proxy needs a small amount of coding work on your part to make compatible, but there is a guide on how to modify openwebui to make it compatible (2 edits). Then run it between your vLLM server and the client to get full thinking injection working. The delay the proxy incurs in undetectable to a human, a few ms at most on a Zen 5 cpu.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD"&gt;https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Performance on AMD ROCM 7 is currently vllm kernel limited, but, like I cover in the readme I get ~30 tps on a single user request for decode and prefill is in the thousands, seeing up to 12,000 tps prefill speed for non-cached requests for a single user. Concurrency scales well, roughly decode * 0.85 per request for decode tps, haven't tested high load scenarios yet, but across 3 concurrent requests I get ~ 75 tps. &lt;/p&gt; &lt;p&gt;I'm sure nvidia will run it much faster for decode.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Speaker1700"&gt; /u/Sea-Speaker1700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T20:55:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1p6x5dh</id>
@@ -99,17 +73,17 @@
     <published>2025-11-26T03:24:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7jpap</id>
-    <title>A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory</title>
-    <updated>2025-11-26T21:13:38+00:00</updated>
+    <id>t3_1p7o59l</id>
+    <title>Stress testing my O(1) Graph Engine: 50M Nodes on 8GB RAM (Jetson Orin)</title>
+    <updated>2025-11-27T00:23:46+00:00</updated>
     <author>
-      <name>/u/batuhanaktass</name>
-      <uri>https://old.reddit.com/user/batuhanaktass</uri>
+      <name>/u/DetectiveMindless652</name>
+      <uri>https://old.reddit.com/user/DetectiveMindless652</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt; &lt;img alt="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" src="https://preview.redd.it/jgp03cnb3o3g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a8fb6fe5a6a42c8db4ba007716d49464d06f6d3" title="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone! Today we are making dnet, a distributed inference framework that lets Apple Silicon clusters run models that exceed their physical memory, public. &lt;/p&gt; &lt;p&gt;We fuse pipelined-ring parallelism, disk streaming and UMA-aware scheduling so “out of memory” stops being the limit.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/firstbatchxyz/dnet?tab=readme-ov-file"&gt;https://github.com/firstbatchxyz/dnet?tab=readme-ov-file&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In alpha, we ship a pipelined-ring strategy inspired by PRIMA.CPP. dnet’s solver (distilp) extends it so devices can punch above memory: layers stream from disk mid-round and overlap with compute, so total model size can exceed total cluster RAM.&lt;/p&gt; &lt;p&gt;Please let us know if you have any questions or feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/batuhanaktass"&gt; /u/batuhanaktass &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jgp03cnb3o3g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o59l/stress_testing_my_o1_graph_engine_50m_nodes_on/"&gt; &lt;img alt="Stress testing my O(1) Graph Engine: 50M Nodes on 8GB RAM (Jetson Orin)" src="https://b.thumbs.redditmedia.com/VYd1nNjBw-IQ7n9v1npjQu1qm-8CZTs9rVE9PiJx_Sw.jpg" title="Stress testing my O(1) Graph Engine: 50M Nodes on 8GB RAM (Jetson Orin)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm finalizing the storage engine for AION Omega. The goal is to run massive Knowledge Graphs on edge devices without the JVM overhead. The Logs (Attached): Image 1: Shows the moment vm.dirty_background_bytes kicks in. We write beyond physical RAM, but memory usage stays pinned at ~5.2GB. Image 2: Shows a [SAFETY-SYNC] event. Usually, msync stalls the thread or spikes RAM. Here, because of the mmap architecture, the flush is invisible to the application heap. Stats: Graph Size: 50GB Hardware: Jetson Orin Nano (8GB) Read Latency: 0.16µs (Hot) / 1.5µs (Streaming) Video demo dropping tomorrow.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ey0ynptb1p3g1.jpg?width=1602&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=28b0859e26e7c24d39cd05c502c5f1caf5e7838f"&gt;https://preview.redd.it/ey0ynptb1p3g1.jpg?width=1602&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=28b0859e26e7c24d39cd05c502c5f1caf5e7838f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/aq5zlrtb1p3g1.jpg?width=1581&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=773860d5a060972d9d81ebc7fa6659d6efc29551"&gt;https://preview.redd.it/aq5zlrtb1p3g1.jpg?width=1581&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=773860d5a060972d9d81ebc7fa6659d6efc29551&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DetectiveMindless652"&gt; /u/DetectiveMindless652 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o59l/stress_testing_my_o1_graph_engine_50m_nodes_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o59l/stress_testing_my_o1_graph_engine_50m_nodes_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o59l/stress_testing_my_o1_graph_engine_50m_nodes_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T21:13:38+00:00</published>
+    <published>2025-11-27T00:23:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1p79ziz</id>
@@ -125,6 +99,19 @@
     <published>2025-11-26T15:03:53+00:00</published>
   </entry>
   <entry>
+    <id>t3_1p7jpap</id>
+    <title>A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory</title>
+    <updated>2025-11-26T21:13:38+00:00</updated>
+    <author>
+      <name>/u/batuhanaktass</name>
+      <uri>https://old.reddit.com/user/batuhanaktass</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt; &lt;img alt="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" src="https://preview.redd.it/jgp03cnb3o3g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a8fb6fe5a6a42c8db4ba007716d49464d06f6d3" title="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone! Today we are making dnet, a distributed inference framework that lets Apple Silicon clusters run models that exceed their physical memory, public. &lt;/p&gt; &lt;p&gt;We fuse pipelined-ring parallelism, disk streaming and UMA-aware scheduling so “out of memory” stops being the limit.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/firstbatchxyz/dnet?tab=readme-ov-file"&gt;https://github.com/firstbatchxyz/dnet?tab=readme-ov-file&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In alpha, we ship a pipelined-ring strategy inspired by PRIMA.CPP. dnet’s solver (distilp) extends it so devices can punch above memory: layers stream from disk mid-round and overlap with compute, so total model size can exceed total cluster RAM.&lt;/p&gt; &lt;p&gt;Please let us know if you have any questions or feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/batuhanaktass"&gt; /u/batuhanaktass &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jgp03cnb3o3g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T21:13:38+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1p786cm</id>
     <title>Tested AI tools by making them build and play Tetris. Results were weird.</title>
     <updated>2025-11-26T13:48:46+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p786cm/tested_ai_tools_by_making_them_build_and_play/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T13:48:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7j85z</id>
+    <title>Minimax-Thrift a Pruned Minimax M2 for consumer cards</title>
+    <updated>2025-11-26T20:55:21+00:00</updated>
+    <author>
+      <name>/u/Sea-Speaker1700</name>
+      <uri>https://old.reddit.com/user/Sea-Speaker1700</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did a bunch of work getting this setup, it includes a proxy for thinking/analysis injection per the Minimax M2 guide to get best results.&lt;/p&gt; &lt;p&gt;Verified to work, I'm using it as I type this. Would be great across dual RTX Pro 6000s to run 500k kvcache or so with a highly capable model.&lt;/p&gt; &lt;p&gt;Tool calling verified to work.&lt;br /&gt; Cline verified to work.&lt;/p&gt; &lt;p&gt;The thinking proxy needs a small amount of coding work on your part to make compatible, but there is a guide on how to modify openwebui to make it compatible (2 edits). Then run it between your vLLM server and the client to get full thinking injection working. The delay the proxy incurs in undetectable to a human, a few ms at most on a Zen 5 cpu.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD"&gt;https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Performance on AMD ROCM 7 is currently vllm kernel limited, but, like I cover in the readme I get ~30 tps on a single user request for decode and prefill is in the thousands, seeing up to 12,000 tps prefill speed for non-cached requests for a single user. Concurrency scales well, roughly decode * 0.85 per request for decode tps, haven't tested high load scenarios yet, but across 3 concurrent requests I get ~ 75 tps. &lt;/p&gt; &lt;p&gt;I'm sure nvidia will run it much faster for decode.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Speaker1700"&gt; /u/Sea-Speaker1700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T20:55:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1p7hs3m</id>
@@ -164,19 +164,6 @@
     <published>2025-11-26T10:38:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7news</id>
-    <title>Happy Thanksgiving to the LocalLLaMA community</title>
-    <updated>2025-11-26T23:49:55+00:00</updated>
-    <author>
-      <name>/u/Fun-Wolf-2007</name>
-      <uri>https://old.reddit.com/user/Fun-Wolf-2007</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This Thanksgiving, we're thankful for our teams and focused on the future: building resilience, excellence, and quality to foster everyone's growth.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fun-Wolf-2007"&gt; /u/Fun-Wolf-2007 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T23:49:55+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p7e1u9</id>
     <title>Inferencing 4 models on AMD NPU and GPU at the same time from a single URL</title>
     <updated>2025-11-26T17:37:30+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7e1u9/inferencing_4_models_on_amd_npu_and_gpu_at_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T17:37:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7news</id>
+    <title>Happy Thanksgiving to the LocalLLaMA community</title>
+    <updated>2025-11-26T23:49:55+00:00</updated>
+    <author>
+      <name>/u/Fun-Wolf-2007</name>
+      <uri>https://old.reddit.com/user/Fun-Wolf-2007</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This Thanksgiving, we're thankful for our teams and focused on the future: building resilience, excellence, and quality to foster everyone's growth.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fun-Wolf-2007"&gt; /u/Fun-Wolf-2007 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7news/happy_thanksgiving_to_the_localllama_community/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T23:49:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1p78fni</id>
@@ -281,19 +281,6 @@
     <published>2025-11-26T17:08:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7o83p</id>
-    <title>Where did the Epstein emails dataset go</title>
-    <updated>2025-11-27T00:27:19+00:00</updated>
-    <author>
-      <name>/u/egomarker</name>
-      <uri>https://old.reddit.com/user/egomarker</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Removed from Hugging Face (&lt;a href="https://huggingface.co/datasets/tensonaut/EPSTEIN_FILES_20K"&gt;link&lt;/a&gt;)&lt;br /&gt; Removed from GitHub (&lt;a href="https://github.com/EF20K/"&gt;link&lt;/a&gt;)&lt;br /&gt; Reddit account deleted (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1p683yz/thank_you_all_for_your_contribution_with_tools/"&gt;last post&lt;/a&gt;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/egomarker"&gt; /u/egomarker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-27T00:27:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p7hg5g</id>
     <title>Qwen3 Next almost ready in llama.cpp</title>
     <updated>2025-11-26T19:45:25+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7hg5g/qwen3_next_almost_ready_in_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T19:45:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7o83p</id>
+    <title>Where did the Epstein emails dataset go</title>
+    <updated>2025-11-27T00:27:19+00:00</updated>
+    <author>
+      <name>/u/egomarker</name>
+      <uri>https://old.reddit.com/user/egomarker</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Removed from Hugging Face (&lt;a href="https://huggingface.co/datasets/tensonaut/EPSTEIN_FILES_20K"&gt;link&lt;/a&gt;)&lt;br /&gt; Removed from GitHub (&lt;a href="https://github.com/EF20K/"&gt;link&lt;/a&gt;)&lt;br /&gt; Reddit account deleted (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1p683yz/thank_you_all_for_your_contribution_with_tools/"&gt;last post&lt;/a&gt;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/egomarker"&gt; /u/egomarker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7o83p/where_did_the_epstein_emails_dataset_go/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-27T00:27:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1p1b550</id>
