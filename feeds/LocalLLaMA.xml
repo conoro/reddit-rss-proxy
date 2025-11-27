@@ -2,49 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-27T04:09:33+00:00</updated>
+  <updated>2025-11-27T04:25:31+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1p7iwzj</id>
-    <title>[Guide] Running NVIDIA’s new Omni-Embed-3B (Vectorize Text/Image/Audio/Video in the same vector space!)</title>
-    <updated>2025-11-26T20:43:01+00:00</updated>
+    <id>t3_1p7ddv3</id>
+    <title>Optimising NVIDIA’s DGX Spark (Grace + Blackwell) – 1.5× PyTorch speedup with custom build</title>
+    <updated>2025-11-26T17:12:57+00:00</updated>
     <author>
-      <name>/u/KvAk_AKPlaysYT</name>
-      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
+      <name>/u/guigsss</name>
+      <uri>https://old.reddit.com/user/guigsss</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey folks,&lt;/p&gt; &lt;p&gt;I wanted to play with this model really bad but couldn't find a project on it, so I spent the afternoon getting one up! It’s feels pretty sick- it maps text, images, audio, and video into the same vector space, meaning you can search your video library using text or find audio clips that match an image.&lt;/p&gt; &lt;p&gt;I managed to get it running smoothly on my RTX 5070 Ti (12 GB).&lt;/p&gt; &lt;p&gt;Since it's an experimental model, troubleshooting was hell so there's an AI generated SUMMARY.md for the issues I went through.&lt;/p&gt; &lt;p&gt;I also slapped a local vector index on it so u can do stuff like search for &amp;quot;A dog barking&amp;quot; and both the .wav file and the video clip!&lt;/p&gt; &lt;p&gt;*&lt;strong&gt;&lt;em&gt;License Warning:&lt;/em&gt;&lt;/strong&gt;* Heads up that NVIDIA released this under their Non-Commercial License (Research/Eval only), so don't build a startup on it yet.&lt;/p&gt; &lt;p&gt;Here's the repo: &lt;a href="https://github.com/Aaryan-Kapoor/NvidiaOmniEmbed"&gt;https://github.com/Aaryan-Kapoor/NvidiaOmniEmbed&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/nvidia/omni-embed-nemotron-3b"&gt;https://huggingface.co/nvidia/omni-embed-nemotron-3b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;May your future be full of VRAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve open-sourced a complete end-to-end setup to maximise AI performance on the new NVIDIA DGX Spark – the compact dev box built on the Grace-Blackwell superchip (20-core Grace ARM CPU + 6144-core Blackwell GPU).&lt;/p&gt; &lt;p&gt;Because this architecture is so new (SM 12.x GPU, unified CPU-GPU memory), many libraries weren’t fully utilising it out-of-the-box. I found that PyTorch and CUDA libs would fallback to older GPU kernels and miss out on Blackwell’s new FP8/FP4 tensor core formats, and even ignore some ARM64 CPU optimisations on the Grace side. So I decided to rebuild the stack myself to unlock its full potential.&lt;/p&gt; &lt;p&gt;What I did and why it matters:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Rebuilt PyTorch from source with Blackwell (SM 12.x) support on Arm64 , so it recognises the new GPU architecture. This enables PyTorch to fully detect SM 12.x capabilities and use optimised kernels.&lt;/li&gt; &lt;li&gt;Updated NVIDIA libraries (cuBLAS, cuDNN, etc.) to the latest versions for CUDA 13. I also manually installed cuSPARSELt (sparse GEMM library) since it wasn’t yet in the default DGX OS repos . This adds support for 2:4 structured sparsity acceleration on Blackwell’s tensor cores.&lt;/li&gt; &lt;li&gt;Enabled FP4/FP8 Tensor Cores: the custom build unlocks new low-precision tensor core instructions (FP8/FP4) that Blackwell supports , which the default libraries didn’t leverage. This should help with future models that use these formats.&lt;/li&gt; &lt;li&gt;Triton GPU compiler tuned for Blackwell: recompiled the Triton compiler with LLVM for SM 12.x . This means operations like FlashAttention or fused kernels can JIT compile optimised code for Blackwell’s GPU.&lt;/li&gt; &lt;li&gt;GPUDirect Storage (GDS): enabled cuFile so the GPU can load data directly from SSDs, bypassing the CPU . Useful for faster data throughput in training.&lt;/li&gt; &lt;li&gt;Grace CPU optimisations: made sure to compile with ARM64 optimisations for the Grace CPU. The Grace has 20 cores (10× Cortex-X9 + 10× A7) and I didn’t want it bottlenecked by x86 assumptions . The build uses OpenBLAS/BLIS tuned for ARM and OpenMPI etc., to utilise the CPU fully for any preprocessing or distributed work.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Results: I wrote a simple FP16 GEMM (matrix multiply) burn-in benchmark to compare baseline vs optimised environments.&lt;/p&gt; &lt;p&gt;Baseline FP16 GEMM throughput (matrix size 8192) using stock PyTorch (CUDA 13 wheel). It sustains ~87 TFLOPs after warm-up, indicating the Blackwell GPU isn’t fully utilized by default kernels . Many new tensor core features remained inactive, resulting in suboptimal performance.&lt;/p&gt; &lt;p&gt;Optimised environment FP16 GEMM throughput (matrix size 8192) after rebuilding the stack. Sustained throughput is ~127 TFLOPs – roughly 50% higher than baseline. This gain comes from Blackwell-specific optimisations: updated cuBLAS routines, enabled FP8/FP4 cores, Triton JIT, and sparse tensor support. In practice, that’s about 1.5× the matrix multiplication performance on the same hardware.&lt;/p&gt; &lt;p&gt;In summary, recompiling and updating the ML stack specifically for DGX Spark yielded a ~50% speedup on this heavy compute workload. The repository includes all the installation scripts, build steps, and even a pre-built PyTorch wheels (torch 2.9.1 for CUDA 13 on aarch64) if you want to skip compiling .&lt;/p&gt; &lt;p&gt;Link to repo: 🔗 GitHub – &lt;a href="https://github.com/GuigsEvt/dgx_spark_config"&gt;https://github.com/GuigsEvt/dgx_spark_config&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’d love feedback from others who have a DGX Spark or similar hardware. Feel free to try out the build or use the wheel and let me know if it improves your workloads. Any suggestions for further tuning are very welcome!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/guigsss"&gt; /u/guigsss &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7ddv3/optimising_nvidias_dgx_spark_grace_blackwell_15/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T20:43:01+00:00</published>
+    <published>2025-11-26T17:12:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7rzfg</id>
-    <title>good local llms that offer freedom/not censored? and work on a everyday machine?</title>
-    <updated>2025-11-27T03:37:38+00:00</updated>
+    <id>t3_1p7jpap</id>
+    <title>A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory</title>
+    <updated>2025-11-26T21:13:38+00:00</updated>
     <author>
-      <name>/u/No_Strawberry_8719</name>
-      <uri>https://old.reddit.com/user/No_Strawberry_8719</uri>
+      <name>/u/batuhanaktass</name>
+      <uri>https://old.reddit.com/user/batuhanaktass</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Im looking for a model that offers freedom and isint heavily censored like online models. i want to test the limits of ai and some coding tasks but i cant seem to find a local model that im happy with, it dosent help how i have 12 vram and my machine isint the newest of the new.&lt;/p&gt; &lt;p&gt;What model will you suggest and why so?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Strawberry_8719"&gt; /u/No_Strawberry_8719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rzfg/good_local_llms_that_offer_freedomnot_censored/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rzfg/good_local_llms_that_offer_freedomnot_censored/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rzfg/good_local_llms_that_offer_freedomnot_censored/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt; &lt;img alt="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" src="https://preview.redd.it/jgp03cnb3o3g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a8fb6fe5a6a42c8db4ba007716d49464d06f6d3" title="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone! Today we are making dnet, a distributed inference framework that lets Apple Silicon clusters run models that exceed their physical memory, public. &lt;/p&gt; &lt;p&gt;We fuse pipelined-ring parallelism, disk streaming and UMA-aware scheduling so “out of memory” stops being the limit.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/firstbatchxyz/dnet?tab=readme-ov-file"&gt;https://github.com/firstbatchxyz/dnet?tab=readme-ov-file&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In alpha, we ship a pipelined-ring strategy inspired by PRIMA.CPP. dnet’s solver (distilp) extends it so devices can punch above memory: layers stream from disk mid-round and overlap with compute, so total model size can exceed total cluster RAM.&lt;/p&gt; &lt;p&gt;Please let us know if you have any questions or feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/batuhanaktass"&gt; /u/batuhanaktass &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jgp03cnb3o3g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-27T03:37:38+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p7siuu</id>
-    <title>Anthropic just showed how to make AI agents work on long projects without falling apart</title>
-    <updated>2025-11-27T04:05:59+00:00</updated>
-    <author>
-      <name>/u/purealgo</name>
-      <uri>https://old.reddit.com/user/purealgo</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most AI agents forget everything between sessions, which means they completely lose track of long tasks. Anthropic’s new article shows a surprisingly practical fix. Instead of giving an agent one giant goal like “build a web app,” they wrap it in a simple harness that forces structure, memory, and accountability.&lt;/p&gt; &lt;p&gt;First, an initializer agent sets up the project. It creates a full feature list, marks everything as failing, initializes git, and writes a progress log. Then each later session uses a coding agent that reads the log and git history, picks exactly one unfinished feature, implements it, tests it, commits the changes, and updates the log. No guessing, no drift, no forgetting.&lt;/p&gt; &lt;p&gt;The result is an AI that can stop, restart, and keep improving a project across many independent runs. It behaves more like a disciplined engineer than a clever autocomplete. It also shows that the real unlock for long-running agents may not be smarter models, but better scaffolding.&lt;/p&gt; &lt;p&gt;Read the article here:&lt;br /&gt; &lt;a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents"&gt;https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/purealgo"&gt; /u/purealgo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-27T04:05:59+00:00</published>
+    <published>2025-11-26T21:13:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1p6x5dh</id>
@@ -60,17 +47,17 @@
     <published>2025-11-26T03:24:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7jpap</id>
-    <title>A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory</title>
-    <updated>2025-11-26T21:13:38+00:00</updated>
+    <id>t3_1p7iwzj</id>
+    <title>[Guide] Running NVIDIA’s new Omni-Embed-3B (Vectorize Text/Image/Audio/Video in the same vector space!)</title>
+    <updated>2025-11-26T20:43:01+00:00</updated>
     <author>
-      <name>/u/batuhanaktass</name>
-      <uri>https://old.reddit.com/user/batuhanaktass</uri>
+      <name>/u/KvAk_AKPlaysYT</name>
+      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt; &lt;img alt="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" src="https://preview.redd.it/jgp03cnb3o3g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a8fb6fe5a6a42c8db4ba007716d49464d06f6d3" title="A Distributed Inference Framework That Lets Apple Silicon Run Models That Exceed Their Physical Memory" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone! Today we are making dnet, a distributed inference framework that lets Apple Silicon clusters run models that exceed their physical memory, public. &lt;/p&gt; &lt;p&gt;We fuse pipelined-ring parallelism, disk streaming and UMA-aware scheduling so “out of memory” stops being the limit.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/firstbatchxyz/dnet?tab=readme-ov-file"&gt;https://github.com/firstbatchxyz/dnet?tab=readme-ov-file&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In alpha, we ship a pipelined-ring strategy inspired by PRIMA.CPP. dnet’s solver (distilp) extends it so devices can punch above memory: layers stream from disk mid-round and overlap with compute, so total model size can exceed total cluster RAM.&lt;/p&gt; &lt;p&gt;Please let us know if you have any questions or feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/batuhanaktass"&gt; /u/batuhanaktass &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jgp03cnb3o3g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jpap/a_distributed_inference_framework_that_lets_apple/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey folks,&lt;/p&gt; &lt;p&gt;I wanted to play with this model really bad but couldn't find a project on it, so I spent the afternoon getting one up! It’s feels pretty sick- it maps text, images, audio, and video into the same vector space, meaning you can search your video library using text or find audio clips that match an image.&lt;/p&gt; &lt;p&gt;I managed to get it running smoothly on my RTX 5070 Ti (12 GB).&lt;/p&gt; &lt;p&gt;Since it's an experimental model, troubleshooting was hell so there's an AI generated SUMMARY.md for the issues I went through.&lt;/p&gt; &lt;p&gt;I also slapped a local vector index on it so u can do stuff like search for &amp;quot;A dog barking&amp;quot; and both the .wav file and the video clip!&lt;/p&gt; &lt;p&gt;*&lt;strong&gt;&lt;em&gt;License Warning:&lt;/em&gt;&lt;/strong&gt;* Heads up that NVIDIA released this under their Non-Commercial License (Research/Eval only), so don't build a startup on it yet.&lt;/p&gt; &lt;p&gt;Here's the repo: &lt;a href="https://github.com/Aaryan-Kapoor/NvidiaOmniEmbed"&gt;https://github.com/Aaryan-Kapoor/NvidiaOmniEmbed&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/nvidia/omni-embed-nemotron-3b"&gt;https://huggingface.co/nvidia/omni-embed-nemotron-3b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;May your future be full of VRAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7iwzj/guide_running_nvidias_new_omniembed3b_vectorize/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T21:13:38+00:00</published>
+    <published>2025-11-26T20:43:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1p786cm</id>
@@ -99,19 +86,6 @@
     <published>2025-11-27T00:23:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7j85z</id>
-    <title>Minimax-Thrift a Pruned Minimax M2 for consumer cards</title>
-    <updated>2025-11-26T20:55:21+00:00</updated>
-    <author>
-      <name>/u/Sea-Speaker1700</name>
-      <uri>https://old.reddit.com/user/Sea-Speaker1700</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did a bunch of work getting this setup, it includes a proxy for thinking/analysis injection per the Minimax M2 guide to get best results.&lt;/p&gt; &lt;p&gt;Verified to work, I'm using it as I type this. Would be great across dual RTX Pro 6000s to run 500k kvcache or so with a highly capable model.&lt;/p&gt; &lt;p&gt;Tool calling verified to work.&lt;br /&gt; Cline verified to work.&lt;/p&gt; &lt;p&gt;The thinking proxy needs a small amount of coding work on your part to make compatible, but there is a guide on how to modify openwebui to make it compatible (2 edits). Then run it between your vLLM server and the client to get full thinking injection working. The delay the proxy incurs in undetectable to a human, a few ms at most on a Zen 5 cpu.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD"&gt;https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Performance on AMD ROCM 7 is currently vllm kernel limited, but, like I cover in the readme I get ~30 tps on a single user request for decode and prefill is in the thousands, seeing up to 12,000 tps prefill speed for non-cached requests for a single user. Concurrency scales well, roughly decode * 0.85 per request for decode tps, haven't tested high load scenarios yet, but across 3 concurrent requests I get ~ 75 tps. &lt;/p&gt; &lt;p&gt;I'm sure nvidia will run it much faster for decode.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Speaker1700"&gt; /u/Sea-Speaker1700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-26T20:55:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p7hs3m</id>
     <title>What's the best AI assistant for day to day use?</title>
     <updated>2025-11-26T19:58:24+00:00</updated>
@@ -136,6 +110,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p79ziz/how_the_heck_is_qwen3coder_so_fast_nearly_10x/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T15:03:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7j85z</id>
+    <title>Minimax-Thrift a Pruned Minimax M2 for consumer cards</title>
+    <updated>2025-11-26T20:55:21+00:00</updated>
+    <author>
+      <name>/u/Sea-Speaker1700</name>
+      <uri>https://old.reddit.com/user/Sea-Speaker1700</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I did a bunch of work getting this setup, it includes a proxy for thinking/analysis injection per the Minimax M2 guide to get best results.&lt;/p&gt; &lt;p&gt;Verified to work, I'm using it as I type this. Would be great across dual RTX Pro 6000s to run 500k kvcache or so with a highly capable model.&lt;/p&gt; &lt;p&gt;Tool calling verified to work.&lt;br /&gt; Cline verified to work.&lt;/p&gt; &lt;p&gt;The thinking proxy needs a small amount of coding work on your part to make compatible, but there is a guide on how to modify openwebui to make it compatible (2 edits). Then run it between your vLLM server and the client to get full thinking injection working. The delay the proxy incurs in undetectable to a human, a few ms at most on a Zen 5 cpu.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD"&gt;https://huggingface.co/tcclaviger/Minimax-M2-Thrift-GPTQ-W4A16-AMD&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Performance on AMD ROCM 7 is currently vllm kernel limited, but, like I cover in the readme I get ~30 tps on a single user request for decode and prefill is in the thousands, seeing up to 12,000 tps prefill speed for non-cached requests for a single user. Concurrency scales well, roughly decode * 0.85 per request for decode tps, haven't tested high load scenarios yet, but across 3 concurrent requests I get ~ 75 tps. &lt;/p&gt; &lt;p&gt;I'm sure nvidia will run it much faster for decode.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Speaker1700"&gt; /u/Sea-Speaker1700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7j85z/minimaxthrift_a_pruned_minimax_m2_for_consumer/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-26T20:55:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7siuu</id>
+    <title>Anthropic just showed how to make AI agents work on long projects without falling apart</title>
+    <updated>2025-11-27T04:05:59+00:00</updated>
+    <author>
+      <name>/u/purealgo</name>
+      <uri>https://old.reddit.com/user/purealgo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most AI agents forget everything between sessions, which means they completely lose track of long tasks. Anthropic’s new article shows a surprisingly practical fix. Instead of giving an agent one giant goal like “build a web app,” they wrap it in a simple harness that forces structure, memory, and accountability.&lt;/p&gt; &lt;p&gt;First, an initializer agent sets up the project. It creates a full feature list, marks everything as failing, initializes git, and writes a progress log. Then each later session uses a coding agent that reads the log and git history, picks exactly one unfinished feature, implements it, tests it, commits the changes, and updates the log. No guessing, no drift, no forgetting.&lt;/p&gt; &lt;p&gt;The result is an AI that can stop, restart, and keep improving a project across many independent runs. It behaves more like a disciplined engineer than a clever autocomplete. It also shows that the real unlock for long-running agents may not be smarter models, but better scaffolding.&lt;/p&gt; &lt;p&gt;Read the article here:&lt;br /&gt; &lt;a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents"&gt;https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/purealgo"&gt; /u/purealgo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7siuu/anthropic_just_showed_how_to_make_ai_agents_work/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-27T04:05:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1p74jua</id>
@@ -216,19 +216,6 @@
     <published>2025-11-26T10:28:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p7rr0g</id>
-    <title>Intellect-3: Post-trained GLM 4.5 Air</title>
-    <updated>2025-11-27T03:25:16+00:00</updated>
-    <author>
-      <name>/u/Cute-Sprinkles4911</name>
-      <uri>https://old.reddit.com/user/Cute-Sprinkles4911</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;106B (A12B) parameter Mixture-of-Experts reasoning model&lt;/p&gt; &lt;p&gt;NGL the reported stats are sick:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/PrimeIntellect/INTELLECT-3"&gt;https://huggingface.co/PrimeIntellect/INTELLECT-3&lt;/a&gt;&lt;/p&gt; &lt;p&gt;BF16 version can run on 2x H200s, with FP8 on 1x H200&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Cute-Sprinkles4911"&gt; /u/Cute-Sprinkles4911 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-27T03:25:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1p7jjjx</id>
     <title>MIT study finds AI can already replace 11.7% of U.S. workforce</title>
     <updated>2025-11-26T21:07:33+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7jjjx/mit_study_finds_ai_can_already_replace_117_of_us/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-26T21:07:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p7rr0g</id>
+    <title>Intellect-3: Post-trained GLM 4.5 Air</title>
+    <updated>2025-11-27T03:25:16+00:00</updated>
+    <author>
+      <name>/u/Cute-Sprinkles4911</name>
+      <uri>https://old.reddit.com/user/Cute-Sprinkles4911</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;106B (A12B) parameter Mixture-of-Experts reasoning model&lt;/p&gt; &lt;p&gt;NGL the reported stats are sick:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/PrimeIntellect/INTELLECT-3"&gt;https://huggingface.co/PrimeIntellect/INTELLECT-3&lt;/a&gt;&lt;/p&gt; &lt;p&gt;BF16 version can run on 2x H200s, with FP8 on 1x H200&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Cute-Sprinkles4911"&gt; /u/Cute-Sprinkles4911 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p7rr0g/intellect3_posttrained_glm_45_air/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-27T03:25:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1p7i9qh</id>
