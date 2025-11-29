@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-29T16:50:30+00:00</updated>
+  <updated>2025-11-29T17:06:07+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1p93r0w</id>
-    <title>Benchmarking LLM Inference on RTX PRO 6000 vs H100 vs H200</title>
-    <updated>2025-11-28T19:28:09+00:00</updated>
-    <author>
-      <name>/u/NoVibeCoding</name>
-      <uri>https://old.reddit.com/user/NoVibeCoding</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p93r0w/benchmarking_llm_inference_on_rtx_pro_6000_vs/"&gt; &lt;img alt="Benchmarking LLM Inference on RTX PRO 6000 vs H100 vs H200" src="https://b.thumbs.redditmedia.com/rFGM4WACmn7770XlqkGVAHUlLK43-ZKyVzkyAkXKtqk.jpg" title="Benchmarking LLM Inference on RTX PRO 6000 vs H100 vs H200" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi LocalLlama community. I present an LLM inference throughput benchmark for RTX PRO 6000 WK vs H100 vs H200 vs L40S GPUs, based on the vllm serve and vllm bench serve benchmarking tools, to understand the cost efficiency of RTX PRO 6000 vs previous-generation datacenter GPUs for LLM inference. Pro 6000 is significantly cheaper and is built on the latest Blackwell architecture, but it has slower GDDR memory and lacks NVLink.&lt;/p&gt; &lt;p&gt;&lt;a href="https://medium.com/p/fde1798571a1"&gt;Full article on Medium&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.cloudrift.ai/blog/benchmarking-rtx6000-vs-datacenter-gpus"&gt;Non-medium link&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Benchmarking Setup&lt;/h1&gt; &lt;p&gt;The hardware configurations used:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;1xPRO6000; 1xH100; 1xH200; 2xL40s&lt;/li&gt; &lt;li&gt;8xPRO6000; 8xH100; 8xH200&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;I have optimized the benchmark setup for throughput.&lt;/strong&gt; VLLM serves models. The model is split across multiple GPUs using the --tensor-parallel-size VLLM option, if needed. I run as many VLLM instances as possible, using an NGINX load balancer on top to distribute requests across them and maximize throughput (replica parallelism). For example, if only four GPUs are required to run the model on an 8-GPU machine, I run two VLLM instances with --tensor-parallel-size=4 and an NGINX load balancer. If all eight GPUs are required, then a single VLLM instance with --tensor-parallel-size=8 is used.&lt;/p&gt; &lt;p&gt;The &lt;strong&gt;vllm bench serve&lt;/strong&gt; tool is used for benchmarking with random data and a sequence length of 1000. The number of concurrent requests is set between 256 and 512 to ensure the LLM's token-generation capacity is saturated.&lt;/p&gt; &lt;p&gt;I have benchmarked three models to better understand the effect of PCIe communication on the 8xPro6000 server vs. NVLink on the H100/H200.&lt;/p&gt; &lt;p&gt;Here is the model selection and the logic behind it:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;GLM-4.5-Air-AWQ-4bit (fits 80GB).&lt;/strong&gt; Testing single-GPU performance and maximum throughput with replica scaling on 8 GPU setups. No PCIE bottleneck. The Pro 6000 should demonstrate strong results thanks to Blackwell native support for FP4.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen3-Coder-480B-A35B-Instruct-AWQ (fits 320GB).&lt;/strong&gt; This 4-bit-quantized model fits into 4 GPUs. Some PCIe communication overhead in Pro 6000 setups may reduce performance relative to NVLink-enabled datacenter GPUs.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;GLM-4.6-FP8 (fits 640GB).&lt;/strong&gt; This model requires all eight GPUs. PCIe communication overhead expected. The H100 and H200 configurations should have an advantage.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Besides raw throughput, graphs show the serving cost per million tokens for each model on its respective hardware. The rental price is set to $2.09 for Pro6000; $2.69 for H100; $3.39 for H200, and $0.86 for L40S - today's rental prices from Runpod secure cloud.&lt;/p&gt; &lt;h1&gt;Results&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;For single-GPU workloads&lt;/strong&gt;, RTX PRO 6000 is a clear winner—and arguably an H100 killer. Remarkably, the PRO 6000 with GDDR7 memory outperforms even the H100 SXM with its HBM3e in single-GPU throughput (3,140 vs 2,987 tok/s), while delivering 28% lower cost per token ($0.18 vs $0.25/mtok). The 2xL40S configuration is the least performant and most cost-effective of the bunch.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For medium-sized models&lt;/strong&gt; requiring 2-4 GPUs, PRO 6000 remains competitive. While it loses some ground to NVLink-equipped datacenter GPUs, the cost efficiency stays within the same ballpark ($1.03 vs $1.01/mtok for Qwen3-480B).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For large models&lt;/strong&gt; requiring 8-way tensor parallelism, datacenter GPUs pull ahead significantly. The H100 and H200's NVLink interconnect delivers 3-4x the throughput of PCIe-bound PRO 6000s. The cost efficiency gap is significant: $1.72/mtok for Pro6000 vs $0.72-0.76/mtok for H100/H200.&lt;/p&gt; &lt;p&gt;&lt;a href="https://i.redd.it/qyda1ooas14g1.gif"&gt;Price in millidollars, i.e. around $0.2&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://i.redd.it/69a68sbks14g1.gif"&gt;https://i.redd.it/69a68sbks14g1.gif&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://i.redd.it/rtyvpiars14g1.gif"&gt;https://i.redd.it/rtyvpiars14g1.gif&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Code and Resources&lt;/h1&gt; &lt;p&gt;The code is available &lt;a href="https://github.com/cloudrift-ai/server-benchmark"&gt;here&lt;/a&gt;. Instructions for performing your own benchmark are in the README. You can find the benchmark data in the results folder.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NoVibeCoding"&gt; /u/NoVibeCoding &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p93r0w/benchmarking_llm_inference_on_rtx_pro_6000_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p93r0w/benchmarking_llm_inference_on_rtx_pro_6000_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p93r0w/benchmarking_llm_inference_on_rtx_pro_6000_vs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-28T19:28:09+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p8w9hg</id>
-    <title>unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF · Hugging Face</title>
-    <updated>2025-11-28T14:31:50+00:00</updated>
-    <author>
-      <name>/u/WhaleFactory</name>
-      <uri>https://old.reddit.com/user/WhaleFactory</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p8w9hg/unslothqwen3next80ba3bthinkinggguf_hugging_face/"&gt; &lt;img alt="unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF · Hugging Face" src="https://external-preview.redd.it/ble3gnyoRHIxGbCkynVYdB5oBvepM5IUsQgkKmTQPvE.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8b518c02f5843d8adaaa30fd9ccf229f596ac77a" title="unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WhaleFactory"&gt; /u/WhaleFactory &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p8w9hg/unslothqwen3next80ba3bthinkinggguf_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p8w9hg/unslothqwen3next80ba3bthinkinggguf_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-28T14:31:50+00:00</published>
-  </entry>
   <entry>
     <id>t3_1p9pcix</id>
     <title>Inference-time drift reduces repetition collapse in frozen Llama-3.1-8B (repo + reproducible script)</title>
@@ -123,6 +97,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9s68u/gaming_laptop_for_llm_and_sd/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-29T15:50:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p9t5c8</id>
+    <title>Is vLLM worth it?</title>
+    <updated>2025-11-29T16:30:50+00:00</updated>
+    <author>
+      <name>/u/Smooth-Cow9084</name>
+      <uri>https://old.reddit.com/user/Smooth-Cow9084</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;*For running n8n flows and agents locally, using different models. &lt;/p&gt; &lt;p&gt;I just tried oss family (not with docker) and have stumbled on error after error. Reddit is also full of people having constant trouble with vllm too.&lt;/p&gt; &lt;p&gt;So I wonder, are the high volume gains worth it? Those who were on a similar spot, what did you ended up doing?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Smooth-Cow9084"&gt; /u/Smooth-Cow9084 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t5c8/is_vllm_worth_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t5c8/is_vllm_worth_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t5c8/is_vllm_worth_it/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-29T16:30:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p9t8tz</id>
+    <title>How do I enable vision capabilities of a model ? Linux Mint 22.2, rx 6600. I ran this at bash/terminal to start the server: llama-server -m ./Qwen3-VL-8B-Instruct-Q4_K_M.gguf</title>
+    <updated>2025-11-29T16:34:56+00:00</updated>
+    <author>
+      <name>/u/Badhunter31415</name>
+      <uri>https://old.reddit.com/user/Badhunter31415</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t8tz/how_do_i_enable_vision_capabilities_of_a_model/"&gt; &lt;img alt="How do I enable vision capabilities of a model ? Linux Mint 22.2, rx 6600. I ran this at bash/terminal to start the server: llama-server -m ./Qwen3-VL-8B-Instruct-Q4_K_M.gguf" src="https://preview.redd.it/u591pzs7484g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ad0d6002360697a583ce8470bb60b195db6b8082" title="How do I enable vision capabilities of a model ? Linux Mint 22.2, rx 6600. I ran this at bash/terminal to start the server: llama-server -m ./Qwen3-VL-8B-Instruct-Q4_K_M.gguf" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Badhunter31415"&gt; /u/Badhunter31415 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/u591pzs7484g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t8tz/how_do_i_enable_vision_capabilities_of_a_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9t8tz/how_do_i_enable_vision_capabilities_of_a_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-29T16:34:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1p8wcbn</id>
