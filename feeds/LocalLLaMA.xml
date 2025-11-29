@@ -2,49 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-11-29T21:05:52+00:00</updated>
+  <updated>2025-11-29T21:23:37+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1p9ythm</id>
-    <title>Built a production transformer framework with autonomous training orchestration - MoE/MoD from 500M to 300B params</title>
-    <updated>2025-11-29T20:23:43+00:00</updated>
+    <id>t3_1p9zvkl</id>
+    <title>Docling, how does it work with VLM?</title>
+    <updated>2025-11-29T21:08:59+00:00</updated>
     <author>
-      <name>/u/Huge_Protection2600</name>
-      <uri>https://old.reddit.com/user/Huge_Protection2600</uri>
+      <name>/u/gevorgter</name>
+      <uri>https://old.reddit.com/user/gevorgter</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi LocalLLaMA,&lt;/p&gt; &lt;p&gt;I built this to solve operational failures that kill multi-day training runs. Catches gradient explosions before NaN propagation, recovers from OOM by adjusting batch size mid-run, detects expert collapse and rebalances automatically.&lt;/p&gt; &lt;h1&gt;Core Problem: Training Runs Die From Preventable Failures&lt;/h1&gt; &lt;p&gt;Standard training loop + DeepSpeed handles distributed, but doesn't prevent:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Gradient explosions → NaN loss → restart from checkpoint manually&lt;/li&gt; &lt;li&gt;OOM errors → manual batch size tuning → restart&lt;/li&gt; &lt;li&gt;Expert collapse in MoE → all tokens route to 1-2 experts → wasted capacity&lt;/li&gt; &lt;li&gt;No idea when to stop training (Chinchilla optimal is theoretical, not monitored)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Built a monitoring + intervention system that handles these automatically.&lt;/p&gt; &lt;h1&gt;How The Autonomous Recovery Works&lt;/h1&gt; &lt;p&gt;Gradient explosion: Detects grad_norm &amp;gt; threshold, immediately drops LR by 10×, rolls back to last checkpoint, resumes training. Prevents NaN propagation.&lt;/p&gt; &lt;p&gt;OOM recovery: Catches memory exceptions, halves batch size, recreates dataloader, loads last checkpoint. No manual restart needed.&lt;/p&gt; &lt;p&gt;Expert collapse (MoE): Monitors routing entropy every 100 steps. When entropy &amp;lt; 1.0 (all tokens hitting 1-2 experts), increases load_balancing_weight and adjusts routing_temperature. Can dynamically add experts when utilization &amp;gt; 0.85.&lt;/p&gt; &lt;p&gt;Chinchilla monitoring: Calculates optimal tokens (20× params) at start, tracks convergence score during training (loss stability + compute efficiency), recommends early stopping when diminishing returns hit. Shows training phase: warming → learning → convergence → plateau.100 (experimental but works)&lt;/p&gt; &lt;p&gt;Memory-mapped data pipeline:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Zero-copy via Apache Arrow, no RAM explosion on 100GB+ datasets&lt;/li&gt; &lt;li&gt;Difficulty-based sampling with curriculum learning (aggressiveness param 0-1)&lt;/li&gt; &lt;li&gt;Automatic quality filtering, sequence length optimization, dynamic padding&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;MoE/MoD Implementation&lt;/h1&gt; &lt;p&gt;MoE: Standard top-k gating with dynamic management. Auto-adds experts when utilization &amp;gt; 0.85, prunes dead experts, adjusts capacity based on token drop rates. Load balancing via auxiliary loss.&lt;/p&gt; &lt;p&gt;MoD: Learned routing per layer - small MLP scores tokens, top capacity_factor selected for full processing. Starts uniform, specializes as model learns hard tokens. Gets 30-50% FLOP reduction for 0-2% perplexity hit.&lt;/p&gt; &lt;p&gt;Hybrid: Compounds to 87.5% sparsity (top-2 of 8 experts × 50% layer capacity = 12.5% active params/token).&lt;/p&gt; &lt;h1&gt;Performance Numbers&lt;/h1&gt; &lt;p&gt;Single GPU:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;RTX 3090: 1B active params → ~1000 tok/s&lt;/li&gt; &lt;li&gt;A100-40GB: 7B active params → ~500 tok/s&lt;/li&gt; &lt;li&gt;H100: 14B active params → ~400 tok/s&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Multi-GPU (DeepSpeed ZeRO-3):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;4× A100-80GB: 30B active → ~350 tok/s (87% scaling efficiency)&lt;/li&gt; &lt;li&gt;16× H100: 100B active → ~600 tok/s (60-65% efficiency, communication bound)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;All at seq_len=2048, mixed precision, gradient checkpointing. Flash Attention 2× on Ampere+.&lt;/p&gt; &lt;h1&gt;Why Not Just Use Existing Frameworks?&lt;/h1&gt; &lt;p&gt;Needed full control for: custom routing modifications, architectural interventions during training, proprietary data pipelines. HF Transformers + DeepSpeed handles 90% of cases, but gluing MoE/MoD + autonomous recovery + runtime adaptation required custom stack.&lt;/p&gt; &lt;p&gt;Not replacing anything - this is for teams needing framework-independent infrastructure with complete visibility into failures.&lt;/p&gt; &lt;h1&gt;What's Not Included&lt;/h1&gt; &lt;p&gt;No pre-trained weights (training system only). No tutorials (assumes you know what gradient norm clipping is). No hand-holding on hyperparameters (gives you the knobs, you tune them).&lt;/p&gt; &lt;p&gt;Commercial license but there's a Colab demo that runs on free T4. Shows full training pipeline: debut config, 20 epochs unless changed, orchestrator interventions, expert statistics, Chinchilla calculations.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/matn23/luminaai"&gt;GitHub&lt;/a&gt; | &lt;a href="https://colab.research.google.com/drive/1tH1z9e7px2G8NGqWUN9gdqxs1CnUC7p1"&gt;Colab Demo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Happy to answer technical questions. Especially interested in feedback from folks running large-scale training - what breaks for you at scale?&lt;/p&gt; &lt;p&gt;TL;DR: Training framework that auto-recovers from gradient explosions, OOM, and expert collapse without manual intervention. MoE/MoD with autonomous monitoring. Handles 500M-300B params. Colab demo available.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Huge_Protection2600"&gt; /u/Huge_Protection2600 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9ythm/built_a_production_transformer_framework_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9ythm/built_a_production_transformer_framework_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9ythm/built_a_production_transformer_framework_with/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So i have a need to convert PDF to text for data extraction. Regular/Traditional OCR does very good job but unfortunately it does not take into consideration the layout, so while each word is perfectly recognized the output is a gibberish (if you try to read it). Understood each word but actual text does not make sense.&lt;/p&gt; &lt;p&gt;VLMs, such as Qwen3-VL or OpenAI do a good job producing markdown considering layout, so it makes sense but unfortunately the actual OCR is not nearly as good. It hallucinates often and no coordinates where the word was found.&lt;/p&gt; &lt;p&gt;So now, i am looking at Docling, it's using custom OCR but then sends for processing to VLM.&lt;/p&gt; &lt;p&gt;Question is, What is the output of Docling? Docling tags which is a &amp;quot;marriage&amp;quot; of two worlds OCR and VLM?&lt;/p&gt; &lt;p&gt;How does it do that, how does it marry VLM output with OCR output?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gevorgter"&gt; /u/gevorgter &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zvkl/docling_how_does_it_work_with_vlm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zvkl/docling_how_does_it_work_with_vlm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zvkl/docling_how_does_it_work_with_vlm/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-29T20:23:43+00:00</published>
+    <published>2025-11-29T21:08:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p9qh1t</id>
-    <title>Recommendation for Production Hardware for inference and fine tuning.</title>
-    <updated>2025-11-29T14:37:21+00:00</updated>
+    <id>t3_1pa00hn</id>
+    <title>How are small Qwens are very bushing above their weights?</title>
+    <updated>2025-11-29T21:14:59+00:00</updated>
     <author>
-      <name>/u/Whyme-__-</name>
-      <uri>https://old.reddit.com/user/Whyme-__-</uri>
+      <name>/u/Average-User-775</name>
+      <uri>https://old.reddit.com/user/Average-User-775</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys, I am trying to get a mini Ai rig which I can run 2-3 20b(edit: SLM 2b,3b,8b) models finetuned on proprietary data and sending it to customers as a startup. &lt;/p&gt; &lt;p&gt;There are 3 goals i need to achieve from this machine&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Finetuning and RL from the machine&lt;/li&gt; &lt;li&gt;Inference via vLLM on larger workloads using our front end software which is dockerized.&lt;/li&gt; &lt;li&gt;Ease of deployment: I want to load up my software, connect it to the LLMs on the machine and ship it to customers to deploy in their environment. Completely private. &lt;/li&gt; &lt;/ol&gt; &lt;p&gt;My options are:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;DGX spark, &lt;/li&gt; &lt;li&gt;GMKtec AI Mini PC Ryzen Al Max+&lt;/li&gt; &lt;li&gt;Anything else you recommend but I don’t want to build a tower pc and mess around with the form factor. &lt;/li&gt; &lt;/ol&gt; &lt;p&gt;BTW I have tested my software stack with H100 and other GPUs via runpod and want to get away from cloud GPU deployment as it’s very hard to scale up and price for our product offering. Hence going local. &lt;/p&gt; &lt;p&gt;What are the challenges that I can encounter with the option 1,2 to accomplish my goals?&lt;/p&gt; &lt;p&gt;Any help regarding this would be greatly appreciated. Thank you&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Whyme-__-"&gt; /u/Whyme-__- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9qh1t/recommendation_for_production_hardware_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9qh1t/recommendation_for_production_hardware_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9qh1t/recommendation_for_production_hardware_for/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Noticeably Qwen3-VL-4B-Thinking and Qwen3-4B-Thinking-2507 and their community fine-tunes,even at Q4 the model seems very coherent and not much loss of knowledge (I did not do a comprehensive test, but the questions I asked myself were answered correctly and GPT-OSS-120B is telling me the answers are rated 8.5/10 of accuracy and notes are mainly for &amp;quot;details drop&amp;quot; which were recovered instantly by the model when I asked for additional details) I really don't understand how did they achieve that level of knowledge compression,it even seems like the new small Qwens are generating shorter CoT to achieve the same result while maintaining accuracy and still being usable, which online deepseek used far more tokens in CoT before producing the same final answer, I'm not telling that those qwens are better than DeepSeek, it's not even comparable in size,but it's more usual that small models produces longer CoT to be coherent, which isn't the case here.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Average-User-775"&gt; /u/Average-User-775 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pa00hn/how_are_small_qwens_are_very_bushing_above_their/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pa00hn/how_are_small_qwens_are_very_bushing_above_their/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pa00hn/how_are_small_qwens_are_very_bushing_above_their/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-29T14:37:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1p9zpyl</id>
-    <title>I am building a platfrom that would require me to perform integrate and chat with a diverse set of documents(RAG) (commits, documentations, jira tickets etc.) Any suggestions?</title>
-    <updated>2025-11-29T21:02:20+00:00</updated>
-    <author>
-      <name>/u/Sick__sock</name>
-      <uri>https://old.reddit.com/user/Sick__sock</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I had initially thought of performing RAG + GraphRAG but now even the RAG part seems difficult to determine from system design aspect. Since the data is very diverse, I am wondering of the most efficient ways to perform RAG. One of the brute Force approache Will obviously be store all this data as vectors in a vector database and then perform RAG. But that would be highly inadequate in my opinion. Could you guys suggest any better ways to implement this? have now determined of categorising the data and then creating a RAG tool for each category so that l'd have a lot of context to give to the LLM. But I don't know if this is the best approach.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sick__sock"&gt; /u/Sick__sock &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zpyl/i_am_building_a_platfrom_that_would_require_me_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zpyl/i_am_building_a_platfrom_that_would_require_me_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zpyl/i_am_building_a_platfrom_that_would_require_me_to/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-29T21:02:20+00:00</published>
+    <published>2025-11-29T21:14:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1p8wcbn</id>
@@ -125,17 +112,17 @@
     <published>2025-11-29T16:30:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p9zoiw</id>
-    <title>NeKot - a terminal interface for interacting with local and cloud LLMs</title>
-    <updated>2025-11-29T21:00:37+00:00</updated>
+    <id>t3_1pa02w2</id>
+    <title>My preferred gpt-oss system prompt</title>
+    <updated>2025-11-29T21:17:52+00:00</updated>
     <author>
-      <name>/u/Balanceballs</name>
-      <uri>https://old.reddit.com/user/Balanceballs</uri>
+      <name>/u/Chafedokibu</name>
+      <uri>https://old.reddit.com/user/Chafedokibu</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"&gt; &lt;img alt="NeKot - a terminal interface for interacting with local and cloud LLMs" src="https://external-preview.redd.it/emhzNGhndG5mOTRnMe6rR53dxe7TwZ8ZKOIc0FAxbevUKRyRaaXNJrhJXdM9.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1f0e1a15b0b50823bb62c7fb8a41de7b9614e1fe" title="NeKot - a terminal interface for interacting with local and cloud LLMs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been working on this for a while, since I could not find a decent solution that is not abandoned or has all the features I need.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Supports Gemini, OpenAI and OpenRouter APIs as well as almost any local solution (tested with llama-cpp + llamaswap, ollama, lmstudio).&lt;/li&gt; &lt;li&gt;Has support for images, presets (each preset can have it's own settings and system prompt), sessions.&lt;/li&gt; &lt;li&gt;Written in GO , so no interpreter or runtime required.&lt;/li&gt; &lt;li&gt;Has support for basic vim motions.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/BalanceBalls/nekot"&gt;https://github.com/BalanceBalls/nekot&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Balanceballs"&gt; /u/Balanceballs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/m66w35tnf94g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I feel like it doesn't matter what your prompt is gpt-oss explodes a prompt that's too wordy and WAY too long. I didn't like how I could give it a four word sentence and it would consistently give me no less than like two full pages of information. I named it Nova but obviously you can change it to anything.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;You are Nova. Nova is an artificial assistant that gives the user a human-like conversational experience. Nova is helpful, honest, charismatic, and straight to the point. Before Nova responds to any prompt Nova must first determine if asking the user a single or multiple questions would help Nova be a better and more accurate help. Pre-response-questions determination should be based on the level of detail in the context window. Note: Nova is not required to ask the user any questions. After Nova has determined that Nova has an adequate amount of information needed to proceed with the prompt given by the user Nova then must determine the length of Nova’s response. The length of Nova’s responses should be determined based off of how complex and detailed Nova’s response should be. The amount of complexity and detail in Nova’s responses should be determined by the amount of complexity and detail in the context window that refers to the current response Nova is tasked to complete. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Chafedokibu"&gt; /u/Chafedokibu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pa02w2/my_preferred_gptoss_system_prompt/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pa02w2/my_preferred_gptoss_system_prompt/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pa02w2/my_preferred_gptoss_system_prompt/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-29T21:00:37+00:00</published>
+    <published>2025-11-29T21:17:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1p9pweg</id>
@@ -255,17 +242,17 @@
     <published>2025-11-29T06:46:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1p9udbu</id>
-    <title>PrimeIntellect is actually awesome</title>
-    <updated>2025-11-29T17:20:25+00:00</updated>
+    <id>t3_1p9zoiw</id>
+    <title>NeKot - a terminal interface for interacting with local and cloud LLMs</title>
+    <updated>2025-11-29T21:00:37+00:00</updated>
     <author>
-      <name>/u/Icy_Gas8807</name>
-      <uri>https://old.reddit.com/user/Icy_Gas8807</uri>
+      <name>/u/Balanceballs</name>
+      <uri>https://old.reddit.com/user/Balanceballs</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"&gt; &lt;img alt="PrimeIntellect is actually awesome" src="https://preview.redd.it/ew6myj9kc84g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fdd6ec877e717ceaf2aa8afda32707a0332d8088" title="PrimeIntellect is actually awesome" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I tested prime intellect 3: - Q4_K_L&lt;br /&gt; - 71.82GB&lt;br /&gt; - Uses Q8_0 for embed and output weights. Good quality, recommended.&lt;/p&gt; &lt;p&gt;Model seams intelligent enough for most of my daily tasks, will be using it along with gpt-oss-120B. This did give me a hope, if this trend continues and hoping to get great models like this at below 160B @fp4, inference possible in strix halo chips. &lt;/p&gt; &lt;p&gt;Also, now I want to connect it to web search. I know it is previously discussed: (&lt;a href="https://github.com/mrkrsl/web-search-mcp"&gt;https://github.com/mrkrsl/web-search-mcp&lt;/a&gt;) this seams to be the best option without jargon of adding api. Are there any better alternatives?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gas8807"&gt; /u/Icy_Gas8807 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ew6myj9kc84g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"&gt; &lt;img alt="NeKot - a terminal interface for interacting with local and cloud LLMs" src="https://external-preview.redd.it/emhzNGhndG5mOTRnMe6rR53dxe7TwZ8ZKOIc0FAxbevUKRyRaaXNJrhJXdM9.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1f0e1a15b0b50823bb62c7fb8a41de7b9614e1fe" title="NeKot - a terminal interface for interacting with local and cloud LLMs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been working on this for a while, since I could not find a decent solution that is not abandoned or has all the features I need.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Supports Gemini, OpenAI and OpenRouter APIs as well as almost any local solution (tested with llama-cpp + llamaswap, ollama, lmstudio).&lt;/li&gt; &lt;li&gt;Has support for images, presets (each preset can have it's own settings and system prompt), sessions.&lt;/li&gt; &lt;li&gt;Written in GO , so no interpreter or runtime required.&lt;/li&gt; &lt;li&gt;Has support for basic vim motions.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/BalanceBalls/nekot"&gt;https://github.com/BalanceBalls/nekot&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Balanceballs"&gt; /u/Balanceballs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/m66w35tnf94g1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9zoiw/nekot_a_terminal_interface_for_interacting_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-11-29T17:20:25+00:00</published>
+    <published>2025-11-29T21:00:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1p9nckz</id>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9nckz/qwen3next80ba3b_vs_gptoss120b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-11-29T12:04:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1p9udbu</id>
+    <title>PrimeIntellect is actually awesome</title>
+    <updated>2025-11-29T17:20:25+00:00</updated>
+    <author>
+      <name>/u/Icy_Gas8807</name>
+      <uri>https://old.reddit.com/user/Icy_Gas8807</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"&gt; &lt;img alt="PrimeIntellect is actually awesome" src="https://preview.redd.it/ew6myj9kc84g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fdd6ec877e717ceaf2aa8afda32707a0332d8088" title="PrimeIntellect is actually awesome" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I tested prime intellect 3: - Q4_K_L&lt;br /&gt; - 71.82GB&lt;br /&gt; - Uses Q8_0 for embed and output weights. Good quality, recommended.&lt;/p&gt; &lt;p&gt;Model seams intelligent enough for most of my daily tasks, will be using it along with gpt-oss-120B. This did give me a hope, if this trend continues and hoping to get great models like this at below 160B @fp4, inference possible in strix halo chips. &lt;/p&gt; &lt;p&gt;Also, now I want to connect it to web search. I know it is previously discussed: (&lt;a href="https://github.com/mrkrsl/web-search-mcp"&gt;https://github.com/mrkrsl/web-search-mcp&lt;/a&gt;) this seams to be the best option without jargon of adding api. Are there any better alternatives?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gas8807"&gt; /u/Icy_Gas8807 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ew6myj9kc84g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1p9udbu/primeintellect_is_actually_awesome/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-11-29T17:20:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1p9qe7o</id>
