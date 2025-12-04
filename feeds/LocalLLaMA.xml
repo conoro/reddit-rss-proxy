@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-12-04T04:43:13+00:00</updated>
+  <updated>2025-12-04T04:54:44+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1pdm96q</id>
-    <title>Local LLM doesn't fit in Browser Extension</title>
-    <updated>2025-12-04T01:02:36+00:00</updated>
-    <author>
-      <name>/u/RandomGamingDev</name>
-      <uri>https://old.reddit.com/user/RandomGamingDev</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;Context:&lt;/strong&gt;&lt;br /&gt; So I've been interested in edge/local LLMs for a while (SmolLM, Phi, Gemma, etc.) and thought that it'd be great for me and the community in general if LLM-powered or potentially LLM-powered extensions didn't require sending requests to not just an expensive, but privacy-risky, Cloud-based LLM.&lt;/p&gt; &lt;p&gt;I've tried Google's Gemma models via their MediaPipe examples and &lt;a href="https://github.com/google-ai-edge/mediapipe-samples/pull/640"&gt;fixed an issue with loading larger files in their JS example via buffers where it'd previously it'd just load the whole model into memory and crash for larger models like the Gemma 3N&lt;/a&gt;. (Created an issue on the MediaPipe repo and have a fix ready so fingers crossed.)&lt;/p&gt; &lt;p&gt;Since it works on regular webpages I thought that getting it into an extension would be a great idea and got the smaller model (Gemma 3 1B) working (yes I know the Edge LLM advantages table is extremely biased it's meant to be): &lt;a href="https://github.com/RandomGamingDev/local-on-device-llm-browser-extension-example"&gt;https://github.com/RandomGamingDev/local-on-device-llm-browser-extension-example&lt;/a&gt;&lt;/p&gt; &lt;p&gt;All of those examples run perfectly on even regular phones which is great.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issue:&lt;/strong&gt;&lt;br /&gt; However, I've run into an issue where, wanting the model to be loaded in the background and reused (yes I'm aware content scripts can handle the load since they're part of the webpage, but they're for each page on initialization which is very expensive) I've decided to use an offscreen page (more flexibility including idle time than background service workers and DOM's nice for media content with a multi-modal model, but I'm willing to sacrifice it if needed) which can't seem to handle the larger model despite regular web pages being able to handle it perfectly with the same exact code.&lt;/p&gt; &lt;p&gt;Keep in mind, I could just be making a dumb mistake here since I don't really work with browser extensions much. Maybe there's some permissions issue limiting its resources, maybe there's a better way for the buffering in the first place that would work.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Primary Question:&lt;/strong&gt;&lt;br /&gt; What's the suggested way to get enough resources to run larger LLMs (e.g. Gemma 3N family) in a browser extension in the background of the browser without needing to reload it for every page or have something like an ugly sidetab visible?&lt;/p&gt; &lt;p&gt;Immediate Context:&lt;br /&gt; &lt;a href="https://github.com/RandomGamingDev/local-on-device-llm-browser-extension-example/blob/main/src/index.js"&gt;src/index.js&lt;/a&gt; (offscreen page's script):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;// HTML Elements const input = document.getElementById('input'); const output = document.getElementById('output'); const submit = document.getElementById('submit'); // Create a listener to the background so it doesn't have to be reloaded everything and everything's abstracted const RUNTIME = typeof browser !== 'undefined' ? browser.runtime : chrome.runtime; function connect() { const port = RUNTIME.connect({ name: &amp;quot;mediapipe-llm&amp;quot; }); port.onMessage.addListener((msg) =&amp;gt; { // Stream in the partial results output.textContent += msg.partialResult; // Allow for another prompt to be entered if response is done if (msg.complete) { submit.disabled = false; submit.value = &amp;quot;Get response&amp;quot;; } }); // Send a request to the background worker server so that it can relay the input and response to and from the offscreen page submit.onclick = () =&amp;gt; { // Stop another prompt being entered if response is being generated output.textContent = &amp;quot;&amp;quot;; submit.disabled = true; submit.value = &amp;quot;Generating response...&amp;quot;; // Request from the local server (specifically background proxy which will request from offscreen page) LLM's inference port.postMessage({ input: input.value }); }; port.onDisconnect.addListener(() =&amp;gt; { console.log(&amp;quot;Disconnected from MediaPipe Local Server&amp;quot;); submit.disabled = true; submit.value = &amp;quot;Disconnected&amp;quot;; }); } // Set initial state to disabled and begin polling for readiness. submit.disabled = true; submit.value = &amp;quot;Initializing...&amp;quot;; const readyInterval = setInterval(() =&amp;gt; { RUNTIME.sendMessage('is_ready', (isReady) =&amp;gt; { if (isReady) { clearInterval(readyInterval); submit.disabled = false; submit.value = &amp;quot;Get response&amp;quot;; connect(); } }); }, 1000); // Poll every second. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Repos are needed context since pasting the whole thing would be a monster. Not self promotion.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RandomGamingDev"&gt; /u/RandomGamingDev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdm96q/local_llm_doesnt_fit_in_browser_extension/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdm96q/local_llm_doesnt_fit_in_browser_extension/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdm96q/local_llm_doesnt_fit_in_browser_extension/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-04T01:02:36+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1pdhmiw</id>
-    <title>Qwen3-Coder-30B-A3B-Instruct[-FP8] config.json updated</title>
-    <updated>2025-12-03T21:49:59+00:00</updated>
-    <author>
-      <name>/u/MutantEggroll</name>
-      <uri>https://old.reddit.com/user/MutantEggroll</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"&gt;Update config.json · Qwen/Qwen3-Coder-30B-A3B-Instruct at b2cff64&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Unsure of the implications of this, maybe someone here can explain what's changed?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MutantEggroll"&gt; /u/MutantEggroll &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-03T21:49:59+00:00</published>
-  </entry>
   <entry>
     <id>t3_1pd3mdw</id>
     <title>Intel Arc Pro B60 Battlematrix Preview: 192GB of VRAM for On-Premise AI</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pd3mdw/intel_arc_pro_b60_battlematrix_preview_192gb_of/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-03T13:05:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1pdqlkp</id>
+    <title>Built a Python SDK for tool calling with Ollama (also has a TUI)</title>
+    <updated>2025-12-04T04:26:39+00:00</updated>
+    <author>
+      <name>/u/jrummy16</name>
+      <uri>https://old.reddit.com/user/jrummy16</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"&gt; &lt;img alt="Built a Python SDK for tool calling with Ollama (also has a TUI)" src="https://external-preview.redd.it/H_Xk72f2p-5BMENjkachQUexRhOMhSdq6pGnN1HVmBM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c0ed292d5b1727c8c0a87f5cad09195ad91ce81d" title="Built a Python SDK for tool calling with Ollama (also has a TUI)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been running Ollama locally and got tired of writing the same boilerplate for tool calling every time. Built Consoul so I can just do:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;from consoul import Consoul console = Consoul(provider=&amp;quot;ollama&amp;quot;, model=&amp;quot;llama3.2&amp;quot;) console.chat(&amp;quot;refactor this&amp;quot;, tools=True) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;It handles the tool calling loop, file editing, code search, etc. Also works with Claude/GPT if you want to compare responses.&lt;/p&gt; &lt;p&gt;The TUI is actually nice too (Textual-based):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pip install 'consoul[tui]' consoul tui &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Added HuggingFace tokenizers for Ollama because calling the API to count tokens was painfully slow. Now it's instant.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/goatbytes/consoul"&gt;https://github.com/goatbytes/consoul&lt;/a&gt;&lt;/p&gt; &lt;p&gt;MIT licensed. Been using it daily, curious what breaks for others.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jrummy16"&gt; /u/jrummy16 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/goatbytes/consoul"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-04T04:26:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1pcp8z3</id>
@@ -60,17 +47,17 @@
     <published>2025-12-03T00:16:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1pdlhyn</id>
-    <title>Local ai for music?</title>
-    <updated>2025-12-04T00:28:51+00:00</updated>
+    <id>t3_1pdhmiw</id>
+    <title>Qwen3-Coder-30B-A3B-Instruct[-FP8] config.json updated</title>
+    <updated>2025-12-03T21:49:59+00:00</updated>
     <author>
-      <name>/u/Rique_Belt</name>
-      <uri>https://old.reddit.com/user/Rique_Belt</uri>
+      <name>/u/MutantEggroll</name>
+      <uri>https://old.reddit.com/user/MutantEggroll</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There is the Qwen-image-editing and those fancy new VLM that can be run on local hardware without requiring crazy specs. But are there such thing for music input and output? Recently, there was two situations on which I wanted to extract only the piano melody from a song and find similar songs that starts with an specific rhythm like Supernaut from Black Sabbath which sounded really familiar. The first situation I know that there is ai for that for I have used but in that case was for vocals, but the second case I am not sure since it would require a world-knowledge and special training for that.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Rique_Belt"&gt; /u/Rique_Belt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"&gt;Update config.json · Qwen/Qwen3-Coder-30B-A3B-Instruct at b2cff64&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Unsure of the implications of this, maybe someone here can explain what's changed?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MutantEggroll"&gt; /u/MutantEggroll &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdhmiw/qwen3coder30ba3binstructfp8_configjson_updated/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-04T00:28:51+00:00</published>
+    <published>2025-12-03T21:49:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1pdhuyy</id>
@@ -112,6 +99,32 @@
     <published>2025-12-04T01:06:21+00:00</published>
   </entry>
   <entry>
+    <id>t3_1pdlhyn</id>
+    <title>Local ai for music?</title>
+    <updated>2025-12-04T00:28:51+00:00</updated>
+    <author>
+      <name>/u/Rique_Belt</name>
+      <uri>https://old.reddit.com/user/Rique_Belt</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There is the Qwen-image-editing and those fancy new VLM that can be run on local hardware without requiring crazy specs. But are there such thing for music input and output? Recently, there was two situations on which I wanted to extract only the piano melody from a song and find similar songs that starts with an specific rhythm like Supernaut from Black Sabbath which sounded really familiar. The first situation I know that there is ai for that for I have used but in that case was for vocals, but the second case I am not sure since it would require a world-knowledge and special training for that.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Rique_Belt"&gt; /u/Rique_Belt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlhyn/local_ai_for_music/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-04T00:28:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1pdqxbw</id>
+    <title>Chinese CXMT unveils DDR5-8000 RAM</title>
+    <updated>2025-12-04T04:43:35+00:00</updated>
+    <author>
+      <name>/u/Ok_Warning2146</name>
+      <uri>https://old.reddit.com/user/Ok_Warning2146</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.techpowerup.com/343185/chinese-cxmt-shows-homegrown-ddr5-8000-and-lpddr5x-10667-memory"&gt;https://www.techpowerup.com/343185/chinese-cxmt-shows-homegrown-ddr5-8000-and-lpddr5x-10667-memory&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Chinese RAM might be the way to buck the trend of rising prices.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Warning2146"&gt; /u/Ok_Warning2146 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqxbw/chinese_cxmt_unveils_ddr58000_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqxbw/chinese_cxmt_unveils_ddr58000_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqxbw/chinese_cxmt_unveils_ddr58000_ram/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-04T04:43:35+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1pdl3q0</id>
     <title>Parameters to run Deepseek R1 671b Q4</title>
     <updated>2025-12-04T00:11:46+00:00</updated>
@@ -123,19 +136,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdl3q0/parameters_to_run_deepseek_r1_671b_q4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-04T00:11:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1pdqlkp</id>
-    <title>Built a Python SDK for tool calling with Ollama (also has a TUI)</title>
-    <updated>2025-12-04T04:26:39+00:00</updated>
-    <author>
-      <name>/u/jrummy16</name>
-      <uri>https://old.reddit.com/user/jrummy16</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"&gt; &lt;img alt="Built a Python SDK for tool calling with Ollama (also has a TUI)" src="https://external-preview.redd.it/H_Xk72f2p-5BMENjkachQUexRhOMhSdq6pGnN1HVmBM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c0ed292d5b1727c8c0a87f5cad09195ad91ce81d" title="Built a Python SDK for tool calling with Ollama (also has a TUI)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been running Ollama locally and got tired of writing the same boilerplate for tool calling every time. Built Consoul so I can just do:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;from consoul import Consoul console = Consoul(provider=&amp;quot;ollama&amp;quot;, model=&amp;quot;llama3.2&amp;quot;) console.chat(&amp;quot;refactor this&amp;quot;, tools=True) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;It handles the tool calling loop, file editing, code search, etc. Also works with Claude/GPT if you want to compare responses.&lt;/p&gt; &lt;p&gt;The TUI is actually nice too (Textual-based):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pip install 'consoul[tui]' consoul tui &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Added HuggingFace tokenizers for Ollama because calling the API to count tokens was painfully slow. Now it's instant.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/goatbytes/consoul"&gt;https://github.com/goatbytes/consoul&lt;/a&gt;&lt;/p&gt; &lt;p&gt;MIT licensed. Been using it daily, curious what breaks for others.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jrummy16"&gt; /u/jrummy16 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/goatbytes/consoul"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdqlkp/built_a_python_sdk_for_tool_calling_with_ollama/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-04T04:26:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1pd9tgj</id>
@@ -229,19 +229,6 @@
     <published>2025-12-03T12:31:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1pdlfu3</id>
-    <title>Frozen networks show usable early-layer intent: 1370× fewer FLOPs and 10× faster inference (code + weights)9</title>
-    <updated>2025-12-04T00:26:15+00:00</updated>
-    <author>
-      <name>/u/anima-core</name>
-      <uri>https://old.reddit.com/user/anima-core</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been experimenting with whether a frozen network’s early activations contain enough “semantic intent” to skip most of the compute.&lt;/p&gt; &lt;p&gt;I used a standard ResNet-18 trained on CIFAR-10 (87.89 percent accuracy), pulled a single 64-dimensional vector from an early layer, and trained a tiny decoder on top of it.&lt;/p&gt; &lt;p&gt;Results on the same hardware: • 72.57 percent accuracy from that early-layer vector • ~10× faster real latency • 1370× fewer FLOPs • No pruning, distillation, quantization, early exit tricks, or sparsity • The full model stayed completely frozen&lt;/p&gt; &lt;p&gt;This means 99.93 percent of the original network’s compute was not required to recover 82.6 percent of its performance.&lt;/p&gt; &lt;p&gt;Code + one-click run script: &lt;a href="https://github.com/Anima-Core/an1-meaning-engine"&gt;https://github.com/Anima-Core/an1-meaning-engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;HF demo + pretrained weights: &lt;a href="https://huggingface.co/Anima-Core/an1-meaning-engine"&gt;https://huggingface.co/Anima-Core/an1-meaning-engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Runs end to end on almost any GPU or CPU in a few minutes.&lt;/p&gt; &lt;p&gt;Dedicated to my late father, Asad Shamim, whose loss opened the path that led me here.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anima-core"&gt; /u/anima-core &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-04T00:26:15+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pd04cn</id>
     <title>Chinese startup founded by Google engineer claims to have developed its own tpu reportedly 1.5 times faster than nvidia a100.</title>
     <updated>2025-12-03T09:51:40+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdin3b/the_best_open_weights_coding_models_of_2025/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-03T22:29:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1pdlfu3</id>
+    <title>Frozen networks show usable early-layer intent: 1370× fewer FLOPs and 10× faster inference (code + weights)9</title>
+    <updated>2025-12-04T00:26:15+00:00</updated>
+    <author>
+      <name>/u/anima-core</name>
+      <uri>https://old.reddit.com/user/anima-core</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been experimenting with whether a frozen network’s early activations contain enough “semantic intent” to skip most of the compute.&lt;/p&gt; &lt;p&gt;I used a standard ResNet-18 trained on CIFAR-10 (87.89 percent accuracy), pulled a single 64-dimensional vector from an early layer, and trained a tiny decoder on top of it.&lt;/p&gt; &lt;p&gt;Results on the same hardware: • 72.57 percent accuracy from that early-layer vector • ~10× faster real latency • 1370× fewer FLOPs • No pruning, distillation, quantization, early exit tricks, or sparsity • The full model stayed completely frozen&lt;/p&gt; &lt;p&gt;This means 99.93 percent of the original network’s compute was not required to recover 82.6 percent of its performance.&lt;/p&gt; &lt;p&gt;Code + one-click run script: &lt;a href="https://github.com/Anima-Core/an1-meaning-engine"&gt;https://github.com/Anima-Core/an1-meaning-engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;HF demo + pretrained weights: &lt;a href="https://huggingface.co/Anima-Core/an1-meaning-engine"&gt;https://huggingface.co/Anima-Core/an1-meaning-engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Runs end to end on almost any GPU or CPU in a few minutes.&lt;/p&gt; &lt;p&gt;Dedicated to my late father, Asad Shamim, whose loss opened the path that led me here.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anima-core"&gt; /u/anima-core &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pdlfu3/frozen_networks_show_usable_earlylayer_intent/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-04T00:26:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1pdm268</id>
