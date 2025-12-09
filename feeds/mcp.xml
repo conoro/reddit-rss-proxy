@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2025-12-09T19:22:17+00:00</updated>
+  <updated>2025-12-09T19:34:37+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -268,19 +268,6 @@
     <published>2025-12-09T15:16:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1piga1d</id>
-    <title>MCP token costs exploded at 10+ servers - here's how we fixed it</title>
-    <updated>2025-12-09T19:13:48+00:00</updated>
-    <author>
-      <name>/u/dinkinflika0</name>
-      <uri>https://old.reddit.com/user/dinkinflika0</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We built &lt;a href="https://github.com/maximhq/bifrost"&gt;&lt;strong&gt;Bifrost&lt;/strong&gt;&lt;/a&gt;, an LLM gateway that sits between your app and models. It handles routing, caching, observability, and MCP.&lt;/p&gt; &lt;h1&gt;The problem we hit&lt;/h1&gt; &lt;p&gt;We started with &lt;strong&gt;3 MCP servers;&lt;/strong&gt; everything worked great.&lt;br /&gt; Then we added &lt;strong&gt;7 more&lt;/strong&gt; (Notion, Slack, Gmail, Docs, internal APIs…).&lt;/p&gt; &lt;p&gt;Suddenly, the LLM was receiving &lt;strong&gt;~150 tool definitions on every single request&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The pain:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Token explosion&lt;/strong&gt; - 150 tool schemas sent before the model even reads the question&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Latency death&lt;/strong&gt; - 6–10 LLM turns for multi-step workflows&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Cost spiral&lt;/strong&gt; - paying repeatedly to send the same 150 tool definitions&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Example workflow: &lt;em&gt;search web → get YouTube videos → create a Doc&lt;/em&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Turn 1: prompt + 150 tools → web.search Turn 2: prompt + result + 150 tools → youtube.listChannels Turn 3: prompt + results + 150 tools → youtube.listVideos ... ~6 total turns &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Each intermediate result loops back through the model.&lt;/p&gt; &lt;p&gt;Our solution: &lt;strong&gt;Bifrost MCP Code Mode&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Instead of exposing 150 tools, the model sees &lt;strong&gt;just 3&lt;/strong&gt;:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;listFiles&lt;/code&gt; — discover MCP servers&lt;/li&gt; &lt;li&gt;&lt;code&gt;readFile&lt;/code&gt; — load TypeScript definitions on demand&lt;/li&gt; &lt;li&gt;&lt;code&gt;executeCode&lt;/code&gt; — run code in a sandbox&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model writes &lt;strong&gt;one code block&lt;/strong&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;import * as web from &amp;quot;servers/web&amp;quot;; import * as youtube from &amp;quot;servers/youtube&amp;quot;; import * as docs from &amp;quot;servers/docs&amp;quot;; const company = await web.search({ ... }); const channels = await youtube.listChannels({ ... }); const videos = await youtube.listVideos({ ... }); return await docs.createDoc({ ... }); &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;We execute it once.&lt;/p&gt; &lt;p&gt;All MCP calls run inside the sandbox; &lt;strong&gt;intermediate results never touch the model&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;Results&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;60–70% fewer tokens&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;3–4 turns instead of 6–10&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Better orchestration&lt;/strong&gt; (code gives us loops, branching, and error handling)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;You can mix &lt;strong&gt;code mode&lt;/strong&gt; and &lt;strong&gt;classic tool calling&lt;/strong&gt; per MCP server, so adoption can be gradual. Anyone else hitting this at scale?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dinkinflika0"&gt; /u/dinkinflika0 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2025-12-09T19:13:48+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pi0d5c</id>
     <title>Yeah, most MCPs are bad. So how do we make tool calling actually work?</title>
     <updated>2025-12-09T06:25:14+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1pi0d5c/yeah_most_mcps_are_bad_so_how_do_we_make_tool/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2025-12-09T06:25:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1piga1d</id>
+    <title>MCP token costs exploded at 10+ servers - here's how we fixed it</title>
+    <updated>2025-12-09T19:13:48+00:00</updated>
+    <author>
+      <name>/u/dinkinflika0</name>
+      <uri>https://old.reddit.com/user/dinkinflika0</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We built &lt;a href="https://github.com/maximhq/bifrost"&gt;&lt;strong&gt;Bifrost&lt;/strong&gt;&lt;/a&gt;, an LLM gateway that sits between your app and models. It handles routing, caching, observability, and MCP.&lt;/p&gt; &lt;h1&gt;The problem we hit&lt;/h1&gt; &lt;p&gt;We started with &lt;strong&gt;3 MCP servers;&lt;/strong&gt; everything worked great.&lt;br /&gt; Then we added &lt;strong&gt;7 more&lt;/strong&gt; (Notion, Slack, Gmail, Docs, internal APIs…).&lt;/p&gt; &lt;p&gt;Suddenly, the LLM was receiving &lt;strong&gt;~150 tool definitions on every single request&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The pain:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Token explosion&lt;/strong&gt; - 150 tool schemas sent before the model even reads the question&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Latency death&lt;/strong&gt; - 6–10 LLM turns for multi-step workflows&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Cost spiral&lt;/strong&gt; - paying repeatedly to send the same 150 tool definitions&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Example workflow: &lt;em&gt;search web → get YouTube videos → create a Doc&lt;/em&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Turn 1: prompt + 150 tools → web.search Turn 2: prompt + result + 150 tools → youtube.listChannels Turn 3: prompt + results + 150 tools → youtube.listVideos ... ~6 total turns &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Each intermediate result loops back through the model.&lt;/p&gt; &lt;p&gt;Our solution: &lt;strong&gt;Bifrost MCP Code Mode&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Instead of exposing 150 tools, the model sees &lt;strong&gt;just 3&lt;/strong&gt;:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;listFiles&lt;/code&gt; — discover MCP servers&lt;/li&gt; &lt;li&gt;&lt;code&gt;readFile&lt;/code&gt; — load TypeScript definitions on demand&lt;/li&gt; &lt;li&gt;&lt;code&gt;executeCode&lt;/code&gt; — run code in a sandbox&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model writes &lt;strong&gt;one code block&lt;/strong&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;import * as web from &amp;quot;servers/web&amp;quot;; import * as youtube from &amp;quot;servers/youtube&amp;quot;; import * as docs from &amp;quot;servers/docs&amp;quot;; const company = await web.search({ ... }); const channels = await youtube.listChannels({ ... }); const videos = await youtube.listVideos({ ... }); return await docs.createDoc({ ... }); &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;We execute it once.&lt;/p&gt; &lt;p&gt;All MCP calls run inside the sandbox; &lt;strong&gt;intermediate results never touch the model&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;Results&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;60–70% fewer tokens&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;3–4 turns instead of 6–10&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Better orchestration&lt;/strong&gt; (code gives us loops, branching, and error handling)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;You can mix &lt;strong&gt;code mode&lt;/strong&gt; and &lt;strong&gt;classic tool calling&lt;/strong&gt; per MCP server, so adoption can be gradual. Anyone else hitting this at scale?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dinkinflika0"&gt; /u/dinkinflika0 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1piga1d/mcp_token_costs_exploded_at_10_servers_heres_how/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2025-12-09T19:13:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1pid0vu</id>
