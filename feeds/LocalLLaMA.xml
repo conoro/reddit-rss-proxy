@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-12-22T09:31:00+00:00</updated>
+  <updated>2025-12-22T09:52:12+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1psiq8a</id>
-    <title>Using local VLMs and SAM 3 to Agentically Segment Characters</title>
-    <updated>2025-12-21T22:17:57+00:00</updated>
-    <author>
-      <name>/u/Complete-Lawfulness</name>
-      <uri>https://old.reddit.com/user/Complete-Lawfulness</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psiq8a/using_local_vlms_and_sam_3_to_agentically_segment/"&gt; &lt;img alt="Using local VLMs and SAM 3 to Agentically Segment Characters" src="https://preview.redd.it/z1a1qt5otm8g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f37a6822173e8ed9be99727ccdf9a798e0ffc9a4" title="Using local VLMs and SAM 3 to Agentically Segment Characters" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It's been my goal for a while to come up with a reliable way to segment characters in an automated way, (hence why I built my &lt;a href="https://github.com/adambarbato/ComfyUI-Sa2VA"&gt;Sa2VA node&lt;/a&gt;), so I was excited when SAM 3 released last month. Just like its predecessor, SAM 3 is great at segmenting the general concepts it knows and is even better than SAM 2 and can do simple noun phrases like &amp;quot;blonde woman&amp;quot;. However, that's not good enough for character-specific segmentation descriptions like &amp;quot;the fourth woman from the left holding a suitcase&amp;quot;.&lt;/p&gt; &lt;p&gt;But at the same time that SAM 3 released, I started hearing people talk about the &lt;a href="https://github.com/facebookresearch/sam3/blob/main/examples/sam3_agent.ipynb"&gt;SAM 3 Agent&lt;/a&gt; example notebook that the authors released showing how SAM 3 could be used in an agentic workflow with a VLM. I wanted to put that to the test, so &lt;a href="https://github.com/adambarbato/ComfyUI-Segmentation-Agent"&gt;I adapted their workbook into a ComfyUI node&lt;/a&gt; that works with both local GGUF VLMs (via llama-cpp-python) and through OpenRouter.&lt;/p&gt; &lt;h2&gt;How It Works&lt;/h2&gt; &lt;ol&gt; &lt;li&gt;The agent analyzes the base image and character description prompt&lt;/li&gt; &lt;li&gt;It chooses one or more appropriate simple noun phrases for segmentation (e.g., &amp;quot;woman&amp;quot;, &amp;quot;brown hair&amp;quot;, &amp;quot;red dress&amp;quot;) that will likely be known by the SAM 3 model&lt;/li&gt; &lt;li&gt;SAM 3 generates masks for those phrases&lt;/li&gt; &lt;li&gt;The masks are numbered and visualized on the original image and shown to the agent&lt;/li&gt; &lt;li&gt;The agent evaluates if the masks correctly segment the character&lt;/li&gt; &lt;li&gt;If correct, it accepts all or a subset of the masks that best cover the intended character; if not, it tries additional phrases&lt;/li&gt; &lt;li&gt;This iterates until satisfactory masks are found or max_iterations is reached and the agent fails&lt;/li&gt; &lt;/ol&gt; &lt;h3&gt;Limitations&lt;/h3&gt; &lt;p&gt;This agentic process works, but the results are often worse (and much slower) than purpose-trained solutions like &lt;a href="https://github.com/IDEA-Research/Grounded-SAM-2"&gt;Grounded SAM&lt;/a&gt; and &lt;a href="https://github.com/bytedance/Sa2VA"&gt;Sa2VA&lt;/a&gt;. The agentic method CAN get even more correct results than those solutions if used with frontier vision models (mostly the Gemini series from Google) but I've found that the rate of hallucinations from the VLM often cancels out the benefits of checking the segmentation results rather than going with the 1-shot approach of Grounded SAM/Sa2VA.&lt;/p&gt; &lt;p&gt;This may still be the best approach if your use case needs to be 100% agentic and can tolerate long latencies and needs the absolute highest accuracy. I suspect using frontier VLMs paired with many more iterations and a more aggressive system prompt may increase accuracy at the cost of price and speed.&lt;/p&gt; &lt;p&gt;Personally though, I think I'm sticking to Sa2VA for now for its good-enough segmentation and fast speed.&lt;/p&gt; &lt;h3&gt;Future Improvements&lt;/h3&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Refine the system prompt to include known-good SAM 3 prompts&lt;/p&gt; &lt;ul&gt; &lt;li&gt;A lot of the system's current slowness involves the first few steps where the agent may try phrases that are too complicated for SAM and result in 0 masks being generated (often this is just a rephrasing of the user's initial prompt). Including a larger list of known-useful SAM 3 prompts may help speed up the agentic loop at the cost of more system prompt tokens.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Use the same agentic loop but with Grounded SAM or Sa2VA&lt;/p&gt; &lt;ul&gt; &lt;li&gt;What may produce the best results is to pair this agentic loop with one of the segmentation solutions that has a more open vocabulary. Although not as powerful as the new SAM 3, Grounded SAM or Sa2VA may play better with the verbose tendencies of most VLMs and their smaller number of masks produced per prompt may help cut down on hallucinations.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Try with bounding box/pointing VLMs like Moondream&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The original SAM 3 Agent (which is reproduced here) uses text prompts from the VLM to SAM to indicate what should be segmented, but, as mentioned, SAM's native language is not text, it's visuals. Some VLMs (like the Moondream series) are trained to produce bounding boxes/points. Putting one of those into a similar agentic loop may reduce the issues described above, but may introduce its own issue in deciding what each system considers segmentable within a bounding box.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ol&gt; &lt;h3&gt;Quick Links&lt;/h3&gt; &lt;ul&gt; &lt;li&gt;GitHub Repo: &lt;a href="https://github.com/adambarbato/ComfyUI-Segmentation-Agent"&gt;https://github.com/adambarbato/ComfyUI-Segmentation-Agent&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Example ComfyUI workflow: &lt;a href="https://github.com/adambarbato/ComfyUI-Segmentation-Agent/blob/main/workflow/comfyui-segment-agent.json"&gt;https://github.com/adambarbato/ComfyUI-Segmentation-Agent/blob/main/workflow/comfyui-segment-agent.json&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Complete-Lawfulness"&gt; /u/Complete-Lawfulness &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/z1a1qt5otm8g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psiq8a/using_local_vlms_and_sam_3_to_agentically_segment/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psiq8a/using_local_vlms_and_sam_3_to_agentically_segment/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-21T22:17:57+00:00</published>
-  </entry>
   <entry>
     <id>t3_1psp17x</id>
     <title>RAG Paper 25.12.18</title>
@@ -99,6 +86,19 @@
     <published>2025-12-22T03:38:25+00:00</published>
   </entry>
   <entry>
+    <id>t3_1psvg25</id>
+    <title>I built a 100% Java RAG engine from scratch that runs on &lt;500MB RAM</title>
+    <updated>2025-12-22T09:31:01+00:00</updated>
+    <author>
+      <name>/u/Swimming-Regret-7278</name>
+      <uri>https://old.reddit.com/user/Swimming-Regret-7278</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi folks,&lt;/p&gt; &lt;p&gt;I’ve spent the last few weeks building &lt;strong&gt;LiteRAG&lt;/strong&gt;, a lightweight search &amp;amp; retrieval engine designed specifically for low-resource edge devices where running a full Python stack (LangChain + Chroma/FAISS + Torch) is too heavy.&lt;/p&gt; &lt;p&gt;It has a r&lt;strong&gt;ecall@10 of ~75%&lt;/strong&gt;, this is without vector embeddings or any local transformer.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Problem I wanted to solve:&lt;/strong&gt; Most RAG pipelines eat 2GB+ of RAM just to load the dependencies. I wanted something that could run on a Raspberry Pi or a cheap VPS without OOMing.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Resource Benchmarks (Early Alpha):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;RAM Usage (Idle): ~45MB&lt;/li&gt; &lt;li&gt;RAM Usage (Indexing SQuAD dataset): Peaks at ~350-450MB (configurable)&lt;/li&gt; &lt;li&gt;Storage: The custom delta-encoded index is just around 6.3MB for 100k documents.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How it works (The Engineering Part):&lt;/strong&gt; Instead of brute-force cosine similarity on vectors that needs embedding models and vector databases, I built a classic &lt;strong&gt;Inverted Index&lt;/strong&gt; with some systems-level optimizations:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Disk-Based Merging:&lt;/strong&gt; Uses a Log-Structured Merge (LSM) tree approach. It buffers chunks in memory and flushes sorted segments to disk, allowing it to index datasets larger than available RAM.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Custom Delta Encoding:&lt;/strong&gt; Instead of storing raw numbers in the index, it stores the differences between subsequent numbers. It is working well for now.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Zero Dependencies:&lt;/strong&gt; It’s standard library Java. No PyTorch, no Numpy, no Docker containers required.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/pri1712/LiteRAG"&gt;&lt;strong&gt;https://github.com/pri1712/LiteRAG&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I am looking for feedback and/or contributors, feedback would help me decide the future direction of this.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Swimming-Regret-7278"&gt; /u/Swimming-Regret-7278 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psvg25/i_built_a_100_java_rag_engine_from_scratch_that/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psvg25/i_built_a_100_java_rag_engine_from_scratch_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psvg25/i_built_a_100_java_rag_engine_from_scratch_that/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-22T09:31:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1pstar1</id>
     <title>Tiny local LLM (Gemma 3) as front-end manager for Claude Code on home server</title>
     <updated>2025-12-22T07:12:11+00:00</updated>
@@ -112,19 +112,6 @@
     <published>2025-12-22T07:12:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1psj1pr</id>
-    <title>Any regrets A6000 Pro owners?</title>
-    <updated>2025-12-21T22:32:15+00:00</updated>
-    <author>
-      <name>/u/val_in_tech</name>
-      <uri>https://old.reddit.com/user/val_in_tech</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Seems like quite a future proof option at the moment for local ai needs. For those who bought - how do you guys feel about your decision. What's been working for you best and where things fall short of your expectations. &lt;/p&gt; &lt;p&gt;I use to have threadripper rig with 6 RTX 3090, it was messy and very power hungry, then started feeling dated. Also Claude was so much better than local models, it was hard to keep as much workloads local as I wish. Now the models yet again improved and some are more decent for agentic use than before, thinking of a more clean and modern setup.&lt;/p&gt; &lt;p&gt;PS. I meant the RTX 6000 Blackwell, the new one. Couldn't find a way to edit the post title &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/val_in_tech"&gt; /u/val_in_tech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-21T22:32:15+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1psd918</id>
     <title>As 2025 wraps up, which local LLMs really mattered this year and what do you want to see in 2026?</title>
     <updated>2025-12-21T18:23:33+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psd918/as_2025_wraps_up_which_local_llms_really_mattered/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-21T18:23:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1psj1pr</id>
+    <title>Any regrets A6000 Pro owners?</title>
+    <updated>2025-12-21T22:32:15+00:00</updated>
+    <author>
+      <name>/u/val_in_tech</name>
+      <uri>https://old.reddit.com/user/val_in_tech</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Seems like quite a future proof option at the moment for local ai needs. For those who bought - how do you guys feel about your decision. What's been working for you best and where things fall short of your expectations. &lt;/p&gt; &lt;p&gt;I use to have threadripper rig with 6 RTX 3090, it was messy and very power hungry, then started feeling dated. Also Claude was so much better than local models, it was hard to keep as much workloads local as I wish. Now the models yet again improved and some are more decent for agentic use than before, thinking of a more clean and modern setup.&lt;/p&gt; &lt;p&gt;PS. I meant the RTX 6000 Blackwell, the new one. Couldn't find a way to edit the post title &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/val_in_tech"&gt; /u/val_in_tech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psj1pr/any_regrets_a6000_pro_owners/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-21T22:32:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1psnlm0</id>
@@ -229,19 +229,6 @@
     <published>2025-12-21T19:03:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1psuy8g</id>
-    <title>GLM 4.7 IS COMING!!!</title>
-    <updated>2025-12-22T08:59:22+00:00</updated>
-    <author>
-      <name>/u/External_Mood4719</name>
-      <uri>https://old.reddit.com/user/External_Mood4719</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Zhipu’s next-generation model, GLM-4.7, is about to be released! We are now opening Early Access Beta Permissions specifically for our long-term supporters. We look forward to your feedback we work together to make the GLM model even better!&lt;/p&gt; &lt;p&gt;As the latest flagship of the GLM series, &lt;strong&gt;GLM-4.7 features enhanced coding capabilities, long-range task planning, and tool orchestration specifically optimized for Agentic Coding scenarios. It has already achieved leading performance among open-source models across multiple public benchmarks&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This Early Access Beta aims to collect feedback from &amp;quot;real-world development scenarios&amp;quot; to continuously improve the model's coding ability, engineering comprehension, and overall user experience.&lt;/p&gt; &lt;p&gt;📌 &lt;strong&gt;Testing Key Points&lt;/strong&gt;:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Freedom of Choice: Feel free to choose the tech stack and development scenarios you are familiar with (e.g., developing from scratch, refactoring, adding features, fixing bugs, etc.).&lt;/li&gt; &lt;li&gt;Focus Areas:Pay attention to code quality, instruction following, and whether the intermediate reasoning/processes meet your expectations.&lt;/li&gt; &lt;li&gt;• Authenticity: There is no need to intentionally cover every type of task; prioritize your actual, real-world usage scenarios.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;⏰ &lt;strong&gt;Beta Period: December 22, 2025 – Official Release&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Feedback Channels: For API errors or integration issues, you can provide feedback directly within the group. If you encounter results that do not meet expectations, please post a &amp;quot;Topic&amp;quot; (including the date, prompt, tool descriptions, expected vs. actual results, and attached local logs). Other developers can brainstorm with you, and our algorithm engineers and architects will be responding to your queries!&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Current early access form only available for Chinese user&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-22T08:59:22+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pstuyv</id>
     <title>MiniMax M2.1 is a straight up beast at UI/UX design. Just saw this demo...</title>
     <updated>2025-12-22T07:48:01+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psh1w2/1_year_later_and_people_are_still_speedrunning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-21T21:04:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1psuy8g</id>
+    <title>GLM 4.7 IS COMING!!!</title>
+    <updated>2025-12-22T08:59:22+00:00</updated>
+    <author>
+      <name>/u/External_Mood4719</name>
+      <uri>https://old.reddit.com/user/External_Mood4719</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Zhipu’s next-generation model, GLM-4.7, is about to be released! We are now opening Early Access Beta Permissions specifically for our long-term supporters. We look forward to your feedback we work together to make the GLM model even better!&lt;/p&gt; &lt;p&gt;As the latest flagship of the GLM series, &lt;strong&gt;GLM-4.7 features enhanced coding capabilities, long-range task planning, and tool orchestration specifically optimized for Agentic Coding scenarios. It has already achieved leading performance among open-source models across multiple public benchmarks&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This Early Access Beta aims to collect feedback from &amp;quot;real-world development scenarios&amp;quot; to continuously improve the model's coding ability, engineering comprehension, and overall user experience.&lt;/p&gt; &lt;p&gt;📌 &lt;strong&gt;Testing Key Points&lt;/strong&gt;:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Freedom of Choice: Feel free to choose the tech stack and development scenarios you are familiar with (e.g., developing from scratch, refactoring, adding features, fixing bugs, etc.).&lt;/li&gt; &lt;li&gt;Focus Areas:Pay attention to code quality, instruction following, and whether the intermediate reasoning/processes meet your expectations.&lt;/li&gt; &lt;li&gt;• Authenticity: There is no need to intentionally cover every type of task; prioritize your actual, real-world usage scenarios.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;⏰ &lt;strong&gt;Beta Period: December 22, 2025 – Official Release&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Feedback Channels: For API errors or integration issues, you can provide feedback directly within the group. If you encounter results that do not meet expectations, please post a &amp;quot;Topic&amp;quot; (including the date, prompt, tool descriptions, expected vs. actual results, and attached local logs). Other developers can brainstorm with you, and our algorithm engineers and architects will be responding to your queries!&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Current early access form only available for Chinese user&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1psuy8g/glm_47_is_coming/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-22T08:59:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1pstaoo</id>
