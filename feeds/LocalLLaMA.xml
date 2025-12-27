@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-12-27T18:53:46+00:00</updated>
+  <updated>2025-12-27T19:05:44+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1px5avl</id>
-    <title>[Discussion] The "Noise" Bottleneck in Local 8B RAG – A comparison of cleaning strategies (Regex vs. Unstructured vs. Entropy)</title>
-    <updated>2025-12-27T18:47:39+00:00</updated>
-    <author>
-      <name>/u/Low-Flow-6572</name>
-      <uri>https://old.reddit.com/user/Low-Flow-6572</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We talk a lot about quantization (EXL2 vs GGUF) and context window extension (RoPE scaling), but I feel we overlook the most boring part of the stack: &lt;strong&gt;Pre-ingestion hygiene.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I've been debugging a pipeline using Llama-3-8B-Instruct, and I noticed that while the model is smart, its attention mechanism gets easily &amp;quot;distracted&amp;quot; by low-value tokens. When 30% of your retrieved context is legal footers, HTML div soup, or duplicate error logs, the &amp;quot;Signal-to-Noise&amp;quot; ratio drops, and hallucinations spike.&lt;/p&gt; &lt;p&gt;I’ve been benchmarking a few ways to solve this locally. I wanted to share my notes on the trade-offs of each approach and hear how you handle this.&lt;/p&gt; &lt;h1&gt;1. The &amp;quot;Heavy&amp;quot; Approach: &lt;a href="http://Unstructured.io"&gt;Unstructured.io&lt;/a&gt;&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Best for:&lt;/strong&gt; Messy, layout-heavy raw files (PDFs with columns, tables).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Trade-off:&lt;/strong&gt; It is structurally heavy. For a local pipeline running on a consumer GPU/CPU, the dependency tree is massive, and processing speed is slow.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;My take:&lt;/strong&gt; Essential for the &lt;em&gt;first&lt;/em&gt; pass (getting text out of files), but overkill for the cleaning/deduplication step itself.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. The &amp;quot;Data Science&amp;quot; Approach: Cleanlab&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Best for:&lt;/strong&gt; Finding mislabeled data or specific outliers in a static dataset.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Trade-off:&lt;/strong&gt; It’s designed for &amp;quot;Data-Centric AI&amp;quot; (training/fine-tuning workflows) rather than streaming RAG ingestion. It feels like bringing a bazooka to a knife fight when you just want to filter out garbage chunks. Also, relies on SaaS components which might break air-gapped requirements.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. The &amp;quot;Good Enough&amp;quot; Approach: RegEx / Heuristics&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Best for:&lt;/strong&gt; Speed. &lt;code&gt;text.replace()&lt;/code&gt; is virtually free.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Trade-off:&lt;/strong&gt; It’s brittle. If you filter chunks &lt;code&gt;&amp;lt; 50 chars&lt;/code&gt;, you lose short, valid answers. If you filter by keyword, you miss semantic variations. It also fails to catch &amp;quot;Semantically Null&amp;quot; text (e.g., a chunk that is unique but contains only random alphanumeric strings or timestamps).&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;4. The &amp;quot;Experimental&amp;quot; Approach: Entropy + Semantic Dedup (EntropyGuard)&lt;/h1&gt; &lt;p&gt;I couldn't find a lightweight tool that filtered by &amp;quot;Information Density,&amp;quot; so I wrote a CLI script to test a hypothesis: &lt;strong&gt;Can Shannon Entropy predict chunk quality?&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Logic:&lt;/strong&gt; It calculates the entropy of text. High repetition or low complexity = low entropy = discard. Then it uses MinHash/Embeddings to remove semantic duplicates.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Trade-off:&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Slower than Regex:&lt;/strong&gt; Running embeddings (even small ones) adds latency compared to simple string matching.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tuning:&lt;/strong&gt; You have to tune the entropy threshold. Code requires a different threshold than prose, otherwise, you might accidentally strip valid data.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;My take:&lt;/strong&gt; It drastically improves context quality for 8B models by removing &amp;quot;distractors,&amp;quot; but adds complexity to the ingestion pipeline.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;The Discussion Point: Is &amp;quot;Cleaning&amp;quot; worth the compute?&lt;/h1&gt; &lt;p&gt;For those running local RAG:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Where do you draw the line?&lt;/strong&gt; Do you strictly trust your re-ranker (BGE/Cohere) to push garbage to the bottom, or do you aggressively prune data &lt;em&gt;before&lt;/em&gt; indexing?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Measuring Success:&lt;/strong&gt; Has anyone found a reliable metric for &amp;quot;Context Noise&amp;quot;? I'm currently looking at PPL (Perplexity) of the retrieved chunks, but I'm curious if there's a better proxy for &amp;quot;how confusing is this chunk for an 8B model.&amp;quot;&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;Full Disclosure&lt;/h1&gt; &lt;p&gt;I ended up packaging my script as an open-source tool (&lt;strong&gt;EntropyGuard&lt;/strong&gt;, tool #4) because I got tired of copying Python snippets between projects. It’s MIT licensed if you want to test the entropy hypothesis yourself, but I'm mostly looking for validation on the &lt;em&gt;methodology&lt;/em&gt;, is entropy a valid proxy for quality in your experience?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/DamianSiuta/entropyguard"&gt;https://github.com/DamianSiuta/entropyguard&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Low-Flow-6572"&gt; /u/Low-Flow-6572 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px5avl/discussion_the_noise_bottleneck_in_local_8b_rag_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px5avl/discussion_the_noise_bottleneck_in_local_8b_rag_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1px5avl/discussion_the_noise_bottleneck_in_local_8b_rag_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-27T18:47:39+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1pw3fih</id>
-    <title>MiniMax M2.1 is OPEN SOURCE: SOTA for real-world dev &amp; agents</title>
-    <updated>2025-12-26T12:43:08+00:00</updated>
-    <author>
-      <name>/u/Difficult-Cap-7527</name>
-      <uri>https://old.reddit.com/user/Difficult-Cap-7527</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pw3fih/minimax_m21_is_open_source_sota_for_realworld_dev/"&gt; &lt;img alt="MiniMax M2.1 is OPEN SOURCE: SOTA for real-world dev &amp;amp; agents" src="https://preview.redd.it/mxsku2dnnj9g1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b27c9e0dbc5e46995d16f434d126d93ba14f68da" title="MiniMax M2.1 is OPEN SOURCE: SOTA for real-world dev &amp;amp; agents" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hugging face: &lt;a href="https://huggingface.co/MiniMaxAI/MiniMax-M2.1"&gt;https://huggingface.co/MiniMaxAI/MiniMax-M2.1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;SOTA on coding benchmarks (SWE / VIBE / Multi-SWE) • Beats Gemini 3 Pro &amp;amp; Claude Sonnet 4.5 • 10B active / 230B total (MoE)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Difficult-Cap-7527"&gt; /u/Difficult-Cap-7527 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/mxsku2dnnj9g1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pw3fih/minimax_m21_is_open_source_sota_for_realworld_dev/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pw3fih/minimax_m21_is_open_source_sota_for_realworld_dev/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-26T12:43:08+00:00</published>
-  </entry>
   <entry>
     <id>t3_1pwplsz</id>
     <title>Strix Halo llama-bench Results (GLM-4.5-Air)</title>
@@ -216,6 +190,19 @@
     <published>2025-12-27T13:52:37+00:00</published>
   </entry>
   <entry>
+    <id>t3_1px5goc</id>
+    <title>GLM 4.7 - the highest ranked open weights model on artificialanalysis.ai</title>
+    <updated>2025-12-27T18:54:17+00:00</updated>
+    <author>
+      <name>/u/harlekinrains</name>
+      <uri>https://old.reddit.com/user/harlekinrains</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px5goc/glm_47_the_highest_ranked_open_weights_model_on/"&gt; &lt;img alt="GLM 4.7 - the highest ranked open weights model on artificialanalysis.ai" src="https://external-preview.redd.it/RI7TYUR2uKfcM2LclG1O8ike1HcgWiwmXAZMx4cFQnY.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=824e1074fb510b1a930203ab6c2ca9ae74aa5188" title="GLM 4.7 - the highest ranked open weights model on artificialanalysis.ai" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/harlekinrains"&gt; /u/harlekinrains &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.imgur.com/42vY5l3.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px5goc/glm_47_the_highest_ranked_open_weights_model_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1px5goc/glm_47_the_highest_ranked_open_weights_model_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-27T18:54:17+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1px3x5s</id>
     <title>More than 20% of videos shown to new YouTube users are ‘AI slop’, study finds</title>
     <updated>2025-12-27T17:51:45+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1px3x5s/more_than_20_of_videos_shown_to_new_youtube_users/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-27T17:51:45+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1px55wg</id>
+    <title>GLM 4.7 IS NOW THE #1 OPEN SOURCE MODEL IN ARTIFICIAL ANALYSIS</title>
+    <updated>2025-12-27T18:42:04+00:00</updated>
+    <author>
+      <name>/u/ZeeleSama</name>
+      <uri>https://old.reddit.com/user/ZeeleSama</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px55wg/glm_47_is_now_the_1_open_source_model_in/"&gt; &lt;img alt="GLM 4.7 IS NOW THE #1 OPEN SOURCE MODEL IN ARTIFICIAL ANALYSIS" src="https://preview.redd.it/9wzn809jks9g1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a4de55096d77fed72c8e49191b815e4f735ff388" title="GLM 4.7 IS NOW THE #1 OPEN SOURCE MODEL IN ARTIFICIAL ANALYSIS" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZeeleSama"&gt; /u/ZeeleSama &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/9wzn809jks9g1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1px55wg/glm_47_is_now_the_1_open_source_model_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1px55wg/glm_47_is_now_the_1_open_source_model_in/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-27T18:42:04+00:00</published>
   </entry>
   <entry>
     <id>t3_1pwt6ir</id>
