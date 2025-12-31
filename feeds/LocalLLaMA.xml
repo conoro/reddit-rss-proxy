@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-12-31T08:43:51+00:00</updated>
+  <updated>2025-12-31T08:56:45+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -19,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pztbms/built_a_training_framework_with_custom_cuda/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-30T20:47:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q08h2t</id>
+    <title>[llama-server] Massive prefill cliff (2500 t/s → 150 t/s) with eGPU split. Is TB4 latency the killer?</title>
+    <updated>2025-12-31T08:56:20+00:00</updated>
+    <author>
+      <name>/u/danishkirel</name>
+      <uri>https://old.reddit.com/user/danishkirel</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I'm seeing a massive performance cliff in prompt processing (prefill) when moving from a single GPU to a dual-GPU split in `llama-server` (llama.cpp), and I'm trying to understand why the overhead is so extreme for what should be simple layer splitting.&lt;/p&gt; &lt;p&gt;**The Hardware**&lt;/p&gt; &lt;p&gt;* **Internal:** RTX 5060 Ti 16GB (Blackwell) @ PCIe Gen 3 x8&lt;/p&gt; &lt;p&gt;* **External:** RTX 3090 24GB (Blower) @ Thunderbolt 4 (eGPU)&lt;/p&gt; &lt;p&gt;**The Performance Gap (2.7k Token Prompt)**&lt;/p&gt; &lt;p&gt;* **Single GPU** (3090 only, Q4 Quant): **~2500 t/s prefill**&lt;/p&gt; &lt;p&gt;* **Dual GPU** (Split, Q6 Quant): **~150 t/s prefill**&lt;/p&gt; &lt;p&gt;**The Mystery**&lt;/p&gt; &lt;p&gt;Since `llama.cpp` uses layer splitting, it should only be passing activation tensors across the bus between layers. Even accounting for Thunderbolt 4's bandwidth limitations, a drop from 2500 t/s to 150 t/s (a 94% loss) seems way beyond what simple activation transfers should cause for a 2.7k token prompt.&lt;/p&gt; &lt;p&gt;Is `llama-server` performing excessive synchronization or host-memory roundtrips during the prefill phase that kills performance on high-latency/lower-bandwidth links like TB4?&lt;/p&gt; &lt;p&gt;**The Commands**&lt;/p&gt; &lt;p&gt;**Single GPU 3090 (Nemotron-3-Nano-30B Q4)**&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;p&gt;/app/llama-server \&lt;/p&gt; &lt;p&gt;-hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_XL \&lt;/p&gt; &lt;p&gt;--port ${PORT} \&lt;/p&gt; &lt;p&gt;--ctx-size 98304 \&lt;/p&gt; &lt;p&gt;--flash-attn auto \&lt;/p&gt; &lt;p&gt;--n-gpu-layers 99 \&lt;/p&gt; &lt;p&gt;--cache-type-k f16 \&lt;/p&gt; &lt;p&gt;--cache-type-v f16&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;**Split GPU 3090 and 5060ti (Nemotron-3-Nano-30B Q6)**&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;p&gt;/app/llama-server \&lt;/p&gt; &lt;p&gt;-hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:Q6_K_XL \&lt;/p&gt; &lt;p&gt;--port ${PORT} \&lt;/p&gt; &lt;p&gt;--ctx-size 0 \&lt;/p&gt; &lt;p&gt;--flash-attn auto \&lt;/p&gt; &lt;p&gt;--n-gpu-layers 99 \&lt;/p&gt; &lt;p&gt;--tensor-split 24,10 \&lt;/p&gt; &lt;p&gt;--ubatch-size 2048 \&lt;/p&gt; &lt;p&gt;--cache-type-k f16 \&lt;/p&gt; &lt;p&gt;--cache-type-v f16&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;**Oculink Upgrade?**&lt;/p&gt; &lt;p&gt;I have an M.2 Oculink adapter on hand but haven't installed it yet. Does anyone have experience with whether the lower latency of a direct Oculink connection fixes this specific &amp;quot;prefill death&amp;quot; in llama.cpp, or is this a known scaling issue when splitting across any non-uniform bus?&lt;/p&gt; &lt;p&gt;Would love to hear if anyone has insights on tuning the handoff or if there are specific flags to reduce the synchronization overhead during the prefill pass.&lt;/p&gt; &lt;p&gt;Thanks&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/danishkirel"&gt; /u/danishkirel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q08h2t/llamaserver_massive_prefill_cliff_2500_ts_150_ts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q08h2t/llamaserver_massive_prefill_cliff_2500_ts_150_ts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q08h2t/llamaserver_massive_prefill_cliff_2500_ts_150_ts/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-31T08:56:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1pzcj1q</id>
@@ -73,19 +86,6 @@
     <published>2025-12-31T01:39:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q06tjq</id>
-    <title>Sam Audio</title>
-    <updated>2025-12-31T07:12:03+00:00</updated>
-    <author>
-      <name>/u/hsperus</name>
-      <uri>https://old.reddit.com/user/hsperus</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q06tjq/sam_audio/"&gt; &lt;img alt="Sam Audio" src="https://preview.redd.it/ktj843w6phag1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3c7ae77f0ea1c36959c0bc4fdff870ec7bb4fe2e" title="Sam Audio" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone. Recently the company I work for purchased this ASUS DGX Spark based PC. &lt;a href="https://www.asus.com/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/"&gt;https://www.asus.com/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/&lt;/a&gt;. I was asked to install SAM Audio on it. I have previously run it on other servers without any issues. &lt;/p&gt; &lt;p&gt;But now I am encountering problems related to ARM64 wheels. I suspect that some dependencies may not be ARM compatible. But I am not completely sure. I am open to any suggestions or advice.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hsperus"&gt; /u/hsperus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ktj843w6phag1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q06tjq/sam_audio/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q06tjq/sam_audio/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-31T07:12:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pzg32r</id>
     <title>Solar 100B claimed that it counts better than GPT today</title>
     <updated>2025-12-30T11:46:20+00:00</updated>
@@ -138,6 +138,19 @@
     <published>2025-12-30T12:05:52+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q05igz</id>
+    <title>my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)</title>
+    <updated>2025-12-31T05:57:56+00:00</updated>
+    <author>
+      <name>/u/Big-Welcome-3169</name>
+      <uri>https://old.reddit.com/user/Big-Welcome-3169</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"&gt; &lt;img alt="my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)" src="https://preview.redd.it/uxjsyvwybhag1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dfe1b161b0c5b35170964a07cf551b8498f299bd" title="my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i know this isn't a Local LLM related but this is shocking guys, my HOPE replica(from the Paper &amp;quot;Nested Learning: The Illusion of Deep Learning Architecture&amp;quot;) achieved negative forgetting on SplitMNIST(Task IL), that's basically positive transfer bro, Colab Notebook here: &lt;a href="https://colab.research.google.com/drive/1_Q0UD9dXWRzDudptRWDqpBywQAFa532n?usp=sharing"&gt;https://colab.research.google.com/drive/1_Q0UD9dXWRzDudptRWDqpBywQAFa532n?usp=sharing&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Big-Welcome-3169"&gt; /u/Big-Welcome-3169 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/uxjsyvwybhag1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-31T05:57:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1pzmbqy</id>
     <title>Anyone else basically just use this hobby as an excuse to try and run LLMs on the jankiest hardware you possibly can?</title>
     <updated>2025-12-30T16:21:25+00:00</updated>
@@ -177,32 +190,6 @@
     <published>2025-12-30T16:43:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q05igz</id>
-    <title>my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)</title>
-    <updated>2025-12-31T05:57:56+00:00</updated>
-    <author>
-      <name>/u/Big-Welcome-3169</name>
-      <uri>https://old.reddit.com/user/Big-Welcome-3169</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"&gt; &lt;img alt="my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)" src="https://preview.redd.it/uxjsyvwybhag1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dfe1b161b0c5b35170964a07cf551b8498f299bd" title="my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i know this isn't a Local LLM related but this is shocking guys, my HOPE replica(from the Paper &amp;quot;Nested Learning: The Illusion of Deep Learning Architecture&amp;quot;) achieved negative forgetting on SplitMNIST(Task IL), that's basically positive transfer bro, Colab Notebook here: &lt;a href="https://colab.research.google.com/drive/1_Q0UD9dXWRzDudptRWDqpBywQAFa532n?usp=sharing"&gt;https://colab.research.google.com/drive/1_Q0UD9dXWRzDudptRWDqpBywQAFa532n?usp=sharing&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Big-Welcome-3169"&gt; /u/Big-Welcome-3169 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/uxjsyvwybhag1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q05igz/my_hope_replicafrom_nested_learning_achieved/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-31T05:57:56+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1pzxtnr</id>
-    <title>I benchmarked 7 Small LLMs on a 16GB Laptop. Here is what is actually usable.</title>
-    <updated>2025-12-30T23:54:46+00:00</updated>
-    <author>
-      <name>/u/Peach_Baker</name>
-      <uri>https://old.reddit.com/user/Peach_Baker</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since we're not dropping $5k rigs to run AI anymore, I wanted to see what was actually possible on my daily driver (Standard 16GB RAM laptop).&lt;/p&gt; &lt;p&gt;I tested Qwen 2.5 (14B), Mistral Small (12B), Llama 3 (8B), and Gemma 3 (all 4-bit quants) to see which ones I could actually run without crashing my laptop.&lt;/p&gt; &lt;p&gt;The Winners (TL;DR):&lt;/p&gt; &lt;p&gt;- Qwen 2.5 (14B): The smartest for coding, but it eats 11GB System RAM + Context. On a 16GB laptop, if I opened 3 Chrome tabs, it crashed immediately (OOM).&lt;/p&gt; &lt;p&gt;- Mistral Small (12B): The sweet spot. Decent speeds, but still forces Windows to aggressively swap if you multitask.&lt;/p&gt; &lt;p&gt;- Llama-3-8B: Runs fine, but the reasoning capabilities are falling behind the newer 12B+ class.&lt;/p&gt; &lt;p&gt;- Gemma 3 (9B): Great instruction following, but heavier than Llama.&lt;/p&gt; &lt;p&gt;Since RAM prices are skyrocketing right now (DDR5 kits hitting 200+) &lt;/p&gt; &lt;p&gt;I used 16gb Swapping to NVMe (1-2 tokens/sec) the moment I opened Docker. Unusable.&lt;/p&gt; &lt;p&gt;Then, i Kept the full 14B model + Docker + Chrome in memory with 32GB. It runs smooth and responsive (no swap lag).&lt;/p&gt; &lt;p&gt;So, before you think of selling your kidney to drop $2,000 on a 4090, check your system RAM. I found a few non-scalped 32GB/64GB kits that are still in stock for reasonable prices and listed them in my full benchmark write-up here:&lt;/p&gt; &lt;p&gt;&lt;a href="https://medium.com/@jameshugo598/the-2026-local-llm-hardware-guide-surviving-the-ram-crisis-fa67e8c95804"&gt;&lt;strong&gt;https://medium.com/@jameshugo598/the-2026-local-llm-hardware-guide-surviving-the-ram-crisis-fa67e8c95804&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt; Is anyone else seeing their local prices for DDR5 hitting $250, or is it just my region?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Peach_Baker"&gt; /u/Peach_Baker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-30T23:54:46+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pzhcqu</id>
     <title>Any guesses?</title>
     <updated>2025-12-30T12:52:15+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzv2es/i_built_a_platform_where_llms_play_mafia_against/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-30T21:59:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1pzxtnr</id>
+    <title>I benchmarked 7 Small LLMs on a 16GB Laptop. Here is what is actually usable.</title>
+    <updated>2025-12-30T23:54:46+00:00</updated>
+    <author>
+      <name>/u/Peach_Baker</name>
+      <uri>https://old.reddit.com/user/Peach_Baker</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since we're not dropping $5k rigs to run AI anymore, I wanted to see what was actually possible on my daily driver (Standard 16GB RAM laptop).&lt;/p&gt; &lt;p&gt;I tested Qwen 2.5 (14B), Mistral Small (12B), Llama 3 (8B), and Gemma 3 (all 4-bit quants) to see which ones I could actually run without crashing my laptop.&lt;/p&gt; &lt;p&gt;The Winners (TL;DR):&lt;/p&gt; &lt;p&gt;- Qwen 2.5 (14B): The smartest for coding, but it eats 11GB System RAM + Context. On a 16GB laptop, if I opened 3 Chrome tabs, it crashed immediately (OOM).&lt;/p&gt; &lt;p&gt;- Mistral Small (12B): The sweet spot. Decent speeds, but still forces Windows to aggressively swap if you multitask.&lt;/p&gt; &lt;p&gt;- Llama-3-8B: Runs fine, but the reasoning capabilities are falling behind the newer 12B+ class.&lt;/p&gt; &lt;p&gt;- Gemma 3 (9B): Great instruction following, but heavier than Llama.&lt;/p&gt; &lt;p&gt;Since RAM prices are skyrocketing right now (DDR5 kits hitting 200+) &lt;/p&gt; &lt;p&gt;I used 16gb Swapping to NVMe (1-2 tokens/sec) the moment I opened Docker. Unusable.&lt;/p&gt; &lt;p&gt;Then, i Kept the full 14B model + Docker + Chrome in memory with 32GB. It runs smooth and responsive (no swap lag).&lt;/p&gt; &lt;p&gt;So, before you think of selling your kidney to drop $2,000 on a 4090, check your system RAM. I found a few non-scalped 32GB/64GB kits that are still in stock for reasonable prices and listed them in my full benchmark write-up here:&lt;/p&gt; &lt;p&gt;&lt;a href="https://medium.com/@jameshugo598/the-2026-local-llm-hardware-guide-surviving-the-ram-crisis-fa67e8c95804"&gt;&lt;strong&gt;https://medium.com/@jameshugo598/the-2026-local-llm-hardware-guide-surviving-the-ram-crisis-fa67e8c95804&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt; Is anyone else seeing their local prices for DDR5 hitting $250, or is it just my region?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Peach_Baker"&gt; /u/Peach_Baker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzxtnr/i_benchmarked_7_small_llms_on_a_16gb_laptop_here/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-30T23:54:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1pzlx9w</id>
