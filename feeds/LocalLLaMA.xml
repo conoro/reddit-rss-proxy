@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2025-12-31T15:07:22+00:00</updated>
+  <updated>2025-12-31T15:24:46+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1pzggbf</id>
+    <title>Running GLM-4.7 (355B MoE) in Q8 at ~5 Tokens/s on 2015 CPU-Only Hardware – Full Optimization Guide</title>
+    <updated>2025-12-30T12:05:52+00:00</updated>
+    <author>
+      <name>/u/at0mi</name>
+      <uri>https://old.reddit.com/user/at0mi</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzggbf/running_glm47_355b_moe_in_q8_at_5_tokenss_on_2015/"&gt; &lt;img alt="Running GLM-4.7 (355B MoE) in Q8 at ~5 Tokens/s on 2015 CPU-Only Hardware – Full Optimization Guide" src="https://preview.redd.it/2eimvrgo0cag1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a97232a34737346670be6cb9292a1cdde03aa47a" title="Running GLM-4.7 (355B MoE) in Q8 at ~5 Tokens/s on 2015 CPU-Only Hardware – Full Optimization Guide" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt; ! If you're passionate about squeezing every last bit of performance out of older hardware for local large language models, I've got something exciting to share. I managed to get GLM-4.7 – that's the massive 355B parameter Mixture of Experts model – running in Q8_0 and BF16 quantization on a seriously vintage setup: a 2015 Lenovo System x3950 X6 with eight Xeon E7-8880 v3 CPUs (no GPU in sight, just pure CPU inference). After a bunch of trial and error, I'm hitting around 5-6 tokens per second, which is pretty respectable for such an ancient beast. The Q8 quantization delivers extremely high quality outputs, preserving nearly all the model's intelligence with minimal degradation – it's practically indistinguishable from full precision for most tasks.&lt;/p&gt; &lt;p&gt;The key was optimizing everything from BIOS settings (like enabling hyper-threading and tweaking power management) to NUMA node distribution for better memory access, and experimenting with different llama.cpp forks to handle the MoE architecture efficiently. I also dove into Linux kernel tweaks, like adjusting CPU governors and hugepages, to minimize latency. Keep in mind, this setup draws about 1300W AC under full load, so it's power-hungry but worth it for local runs. Benchmarks show solid performance for generation tasks, though it's not blazing fast – perfect for homelab enthusiasts or those without access to modern GPUs.&lt;/p&gt; &lt;p&gt;I documented the entire process chronologically in this blog post, including step-by-step setup, code snippets, potential pitfalls, and full performance metrics: &lt;a href="https://postl.ai/2025/12/29/glm47on3950x6/?referrer=grok.com"&gt;https://postl.ai/2025/12/29/glm47on3950x6/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Has anyone else tried pushing big MoE models like this on CPU-only rigs? What optimizations worked for you, or what models are you running on similar hardware? Let's discuss!&lt;/p&gt; &lt;p&gt;UPDATE q8 and bf16 results:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;=== GLM-4.7-Q8_0 Real-World Benchmark (CPU, 64 Threads) === NUMA distribute | fmoe 1 | 3 Runs pro Test | Batch 512 (wie gewünscht) | model | size | params | backend | threads | n_batch | test | t/s | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp512 | 42.47 ± 1.64 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp2048 | 39.46 ± 0.06 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp8192 | 29.99 ± 0.06 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp16384 | 21.43 ± 0.02 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | tg256 | 6.30 ± 0.00 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp512+tg128 | 19.42 ± 0.01 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp2048+tg256 | 23.18 ± 0.01 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp8192+tg512 | 21.42 ± 0.01 | | glm4moe 355B.A32B Q8_0 | 349.31 GiB | 352.80 B | BLAS | 64 | 512 | pp16384+tg512 | 17.92 ± 0.01 | === GLM-4.7-BF16 Real-World Benchmark (CPU, 64 Threads) === NUMA distribute | fmoe 1 | 1 Run pro Test | Batch 512 | model | size | params | backend | threads | n_batch | test | t/s | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp512 | 26.05 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp2048 | 26.32 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp8192 | 21.74 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp16384 | 16.93 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | tg256 | 5.49 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp512+tg128 | 15.05 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp2048+tg256 | 17.53 ± 0.00 | | glm4moe 355B.A32B BF16 | 657.28 GiB | 352.80 B | BLAS | 64 | 512 | pp8192+tg512 | 16.64 ± 0.00 | &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/at0mi"&gt; /u/at0mi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/2eimvrgo0cag1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1pzggbf/running_glm47_355b_moe_in_q8_at_5_tokenss_on_2015/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzggbf/running_glm47_355b_moe_in_q8_at_5_tokenss_on_2015/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-30T12:05:52+00:00</published>
+  </entry>
   <entry>
     <id>t3_1q05igz</id>
     <title>my HOPE Replica(from Nested Learning) achieved negative forgetting on SplitMNIST(Task IL)</title>
@@ -45,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzcrtb/tencent_hymotion_10_a_billionparameter/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-30T08:26:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q0blg9</id>
-    <title>Wich model for philosophy / humanities on a MSI rtx 2060 Super (8Gb)?</title>
-    <updated>2025-12-31T12:11:17+00:00</updated>
-    <author>
-      <name>/u/Excellent_Piccolo848</name>
-      <uri>https://old.reddit.com/user/Excellent_Piccolo848</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, i have a geekom IT 13(Mini PC), with a external GPU (MSI RTX 2060 Super OC, 8Gb). I havent found any good Model(s) yet, for philosophical / humanities applications, mainly chatting about topics in a Web Interface (OWUI). Can you recommend anything? Thanks for your Help!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Piccolo848"&gt; /u/Excellent_Piccolo848 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0blg9/wich_model_for_philosophy_humanities_on_a_msi_rtx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0blg9/wich_model_for_philosophy_humanities_on_a_msi_rtx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q0blg9/wich_model_for_philosophy_humanities_on_a_msi_rtx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-31T12:11:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1pzmwzh</id>
@@ -164,19 +164,6 @@
     <published>2025-12-30T20:36:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q0clou</id>
-    <title>Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)</title>
-    <updated>2025-12-31T13:07:20+00:00</updated>
-    <author>
-      <name>/u/Nunki08</name>
-      <uri>https://old.reddit.com/user/Nunki08</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"&gt; &lt;img alt="Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)" src="https://preview.redd.it/qpjb7igsfjag1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cdefd8ab8fcfa58e639e0c27266c01e61e3dc190" title="Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/skt/A.X-K1"&gt;https://huggingface.co/skt/A.X-K1&lt;/a&gt;&lt;br /&gt; From elie on 𝕏: &lt;a href="https://x.com/eliebakouch/status/2006345217965011009"&gt;https://x.com/eliebakouch/status/2006345217965011009&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/qpjb7igsfjag1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-31T13:07:20+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q06z2l</id>
     <title>We open-sourced LLMRouter: the first unified LLM routing library with 300+ stars in 24h</title>
     <updated>2025-12-31T07:21:24+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q06z2l/we_opensourced_llmrouter_the_first_unified_llm/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-31T07:21:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q0clou</id>
+    <title>Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)</title>
+    <updated>2025-12-31T13:07:20+00:00</updated>
+    <author>
+      <name>/u/Nunki08</name>
+      <uri>https://old.reddit.com/user/Nunki08</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"&gt; &lt;img alt="Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)" src="https://preview.redd.it/qpjb7igsfjag1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cdefd8ab8fcfa58e639e0c27266c01e61e3dc190" title="Another large open model from Korea about to be released (no weight or benchmark yet) release planned on 4th of january 2026 - A.X K1 by SK Telecom (SK Hynix)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/skt/A.X-K1"&gt;https://huggingface.co/skt/A.X-K1&lt;/a&gt;&lt;br /&gt; From elie on 𝕏: &lt;a href="https://x.com/eliebakouch/status/2006345217965011009"&gt;https://x.com/eliebakouch/status/2006345217965011009&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/qpjb7igsfjag1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q0clou/another_large_open_model_from_korea_about_to_be/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-31T13:07:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1q0ai5z</id>
@@ -229,19 +229,6 @@
     <published>2025-12-31T11:06:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q0dkwz</id>
-    <title>Tested glm 4.7 for coding projects past week, comparison with deepseek and qwen</title>
-    <updated>2025-12-31T13:56:21+00:00</updated>
-    <author>
-      <name>/u/CarpenterFine3887</name>
-      <uri>https://old.reddit.com/user/CarpenterFine3887</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;been doing a lot of python backend and react work, probably 200-300 api requests daily. been using deepseek v3 mainly but wanted to test glm 4.7 since it dropped recently&lt;/p&gt; &lt;p&gt;ran it through my actual workflow for about a week&lt;/p&gt; &lt;p&gt;&lt;strong&gt;what i tested:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;refactoring messy legacy code (python flask app)&lt;/li&gt; &lt;li&gt;building new features from scratch (react components)&lt;/li&gt; &lt;li&gt;debugging prod issues&lt;/li&gt; &lt;li&gt;writing unit tests&lt;/li&gt; &lt;li&gt;code review and suggestions&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;comparison context:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;mainly used deepseek v3, also tried qwen2.5-coder and kimi in past few months&lt;/p&gt; &lt;p&gt;&lt;strong&gt;where glm 4.7 actually impressed me:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;python backend work&lt;/strong&gt; - really solid here. refactoring was clean, understood context well without hallucinating random libraries&lt;/p&gt; &lt;p&gt;asked it to optimize a slow database query and it actually got the schema relationships without me explaining everything twice&lt;/p&gt; &lt;p&gt;&lt;strong&gt;code review&lt;/strong&gt; - caught edge cases i missed. not just syntax but actual logic issues&lt;/p&gt; &lt;p&gt;&lt;strong&gt;maintaining context&lt;/strong&gt; - this was big difference from qwen. when debugging iteratively, it remembered what we tried before and adjusted approach. qwen would sometimes lose track after 3-4 iterations&lt;/p&gt; &lt;p&gt;&lt;strong&gt;comparison to other models:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs deepseek v3:&lt;/strong&gt; roughly same level for most tasks, maybe glm slightly better at keeping context in long conversations. deepseek still edges it out for very complex algorithmic stuff&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs qwen2.5-coder:&lt;/strong&gt; glm better at context maintenance. qwen sometimes felt like starting fresh each response. but qwen was faster to respond&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs kimi:&lt;/strong&gt; glm way less verbose. kimi would write essay explaining code, glm just gives you working code with brief explanation&lt;/p&gt; &lt;p&gt;&lt;strong&gt;where it struggled:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;complex react state management&lt;/strong&gt; - got confused with nested context providers. needed more guidance&lt;/p&gt; &lt;p&gt;&lt;strong&gt;architectural decisions&lt;/strong&gt; - better at implementing than designing. tell it what to build and itll do it well, but asking &amp;quot;how should i structure this&amp;quot; gave generic answers&lt;/p&gt; &lt;p&gt;&lt;strong&gt;very new libraries&lt;/strong&gt; - struggled with anything released past mid 2024. training cutoff showing&lt;/p&gt; &lt;p&gt;&lt;strong&gt;pricing reality:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;deepseek: was spending around $25-30/month&lt;br /&gt; qwen via alibaba cloud: similar, maybe $20-25&lt;br /&gt; glm 4.7: spent like $15 this week doing same work&lt;/p&gt; &lt;p&gt;not huge difference but adds up if youre doing heavy usage&lt;/p&gt; &lt;p&gt;&lt;strong&gt;open source angle:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;glm being open source is nice. can self-host if needed, fine-tune for specific domains&lt;/p&gt; &lt;p&gt;deepseek also open source but glm feels more actively developed right now&lt;/p&gt; &lt;p&gt;&lt;strong&gt;honest take:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;for everyday coding work (refactoring, debugging, tests, code review) - glm 4.7 handles it fine&lt;/p&gt; &lt;p&gt;comparable to deepseek v3 for most tasks. slightly better context, slightly worse on complex algorithms&lt;/p&gt; &lt;p&gt;way better than kimi (less verbose), better than qwen at maintaining conversation flow&lt;/p&gt; &lt;p&gt;&lt;strong&gt;who should try it:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;doing high volume coding work&lt;/li&gt; &lt;li&gt;mostly implementation not architecture&lt;/li&gt; &lt;li&gt;want good context maintenance across iterations&lt;/li&gt; &lt;li&gt;already using chinese models, curious about alternatives&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;tldr:&lt;/strong&gt; glm 4.7 solid for coding, comparable to deepseek v3, better context than qwen, less verbose than kimi, open source, good for everyday dev work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CarpenterFine3887"&gt; /u/CarpenterFine3887 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2025-12-31T13:56:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1pzwlie</id>
     <title>[In the Wild] Reverse-engineered a Snapchat Sextortion Bot: It’s running a raw Llama-7B instance with a 2048 token window.</title>
     <updated>2025-12-30T23:03:12+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1pzwlie/in_the_wild_reverseengineered_a_snapchat/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2025-12-30T23:03:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q0dkwz</id>
+    <title>Tested glm 4.7 for coding projects past week, comparison with deepseek and qwen</title>
+    <updated>2025-12-31T13:56:21+00:00</updated>
+    <author>
+      <name>/u/CarpenterFine3887</name>
+      <uri>https://old.reddit.com/user/CarpenterFine3887</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;been doing a lot of python backend and react work, probably 200-300 api requests daily. been using deepseek v3 mainly but wanted to test glm 4.7 since it dropped recently&lt;/p&gt; &lt;p&gt;ran it through my actual workflow for about a week&lt;/p&gt; &lt;p&gt;&lt;strong&gt;what i tested:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;refactoring messy legacy code (python flask app)&lt;/li&gt; &lt;li&gt;building new features from scratch (react components)&lt;/li&gt; &lt;li&gt;debugging prod issues&lt;/li&gt; &lt;li&gt;writing unit tests&lt;/li&gt; &lt;li&gt;code review and suggestions&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;comparison context:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;mainly used deepseek v3, also tried qwen2.5-coder and kimi in past few months&lt;/p&gt; &lt;p&gt;&lt;strong&gt;where glm 4.7 actually impressed me:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;python backend work&lt;/strong&gt; - really solid here. refactoring was clean, understood context well without hallucinating random libraries&lt;/p&gt; &lt;p&gt;asked it to optimize a slow database query and it actually got the schema relationships without me explaining everything twice&lt;/p&gt; &lt;p&gt;&lt;strong&gt;code review&lt;/strong&gt; - caught edge cases i missed. not just syntax but actual logic issues&lt;/p&gt; &lt;p&gt;&lt;strong&gt;maintaining context&lt;/strong&gt; - this was big difference from qwen. when debugging iteratively, it remembered what we tried before and adjusted approach. qwen would sometimes lose track after 3-4 iterations&lt;/p&gt; &lt;p&gt;&lt;strong&gt;comparison to other models:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs deepseek v3:&lt;/strong&gt; roughly same level for most tasks, maybe glm slightly better at keeping context in long conversations. deepseek still edges it out for very complex algorithmic stuff&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs qwen2.5-coder:&lt;/strong&gt; glm better at context maintenance. qwen sometimes felt like starting fresh each response. but qwen was faster to respond&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vs kimi:&lt;/strong&gt; glm way less verbose. kimi would write essay explaining code, glm just gives you working code with brief explanation&lt;/p&gt; &lt;p&gt;&lt;strong&gt;where it struggled:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;complex react state management&lt;/strong&gt; - got confused with nested context providers. needed more guidance&lt;/p&gt; &lt;p&gt;&lt;strong&gt;architectural decisions&lt;/strong&gt; - better at implementing than designing. tell it what to build and itll do it well, but asking &amp;quot;how should i structure this&amp;quot; gave generic answers&lt;/p&gt; &lt;p&gt;&lt;strong&gt;very new libraries&lt;/strong&gt; - struggled with anything released past mid 2024. training cutoff showing&lt;/p&gt; &lt;p&gt;&lt;strong&gt;pricing reality:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;deepseek: was spending around $25-30/month&lt;br /&gt; qwen via alibaba cloud: similar, maybe $20-25&lt;br /&gt; glm 4.7: spent like $15 this week doing same work&lt;/p&gt; &lt;p&gt;not huge difference but adds up if youre doing heavy usage&lt;/p&gt; &lt;p&gt;&lt;strong&gt;open source angle:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;glm being open source is nice. can self-host if needed, fine-tune for specific domains&lt;/p&gt; &lt;p&gt;deepseek also open source but glm feels more actively developed right now&lt;/p&gt; &lt;p&gt;&lt;strong&gt;honest take:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;for everyday coding work (refactoring, debugging, tests, code review) - glm 4.7 handles it fine&lt;/p&gt; &lt;p&gt;comparable to deepseek v3 for most tasks. slightly better context, slightly worse on complex algorithms&lt;/p&gt; &lt;p&gt;way better than kimi (less verbose), better than qwen at maintaining conversation flow&lt;/p&gt; &lt;p&gt;&lt;strong&gt;who should try it:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;doing high volume coding work&lt;/li&gt; &lt;li&gt;mostly implementation not architecture&lt;/li&gt; &lt;li&gt;want good context maintenance across iterations&lt;/li&gt; &lt;li&gt;already using chinese models, curious about alternatives&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;tldr:&lt;/strong&gt; glm 4.7 solid for coding, comparable to deepseek v3, better context than qwen, less verbose than kimi, open source, good for everyday dev work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CarpenterFine3887"&gt; /u/CarpenterFine3887 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q0dkwz/tested_glm_47_for_coding_projects_past_week/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2025-12-31T13:56:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1q06ddc</id>
