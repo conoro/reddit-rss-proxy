@@ -2,11 +2,37 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-07T14:25:29+00:00</updated>
+  <updated>2026-01-07T14:41:42+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1q5ta4l</id>
+    <title>llama-benchy - llama-bench style benchmarking for ANY LLM backend</title>
+    <updated>2026-01-06T20:02:33+00:00</updated>
+    <author>
+      <name>/u/Eugr</name>
+      <uri>https://old.reddit.com/user/Eugr</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TL;DR: I've built this tool primarily for myself as I couldn't easily compare model performance across different backends in the way that is easy to digest and useful for me. I decided to share this in case someone has the same need.&lt;/p&gt; &lt;h2&gt;Why I built this?&lt;/h2&gt; &lt;p&gt;As probably many of you here, I've been happily using llama-bench to benchmark local models performance running in llama.cpp. One great feature is that it can help to evaluate performance at different context lengths and present the output in a table format that is easy to digest.&lt;/p&gt; &lt;p&gt;However, llama.cpp is not the only inference engine I use, I also use SGLang and vLLM. But llama-bench can only work with llama.cpp, and other benchmarking tools that I found are more focused on concurrency and total throughput.&lt;/p&gt; &lt;p&gt;Also, llama-bench performs measurements using the C++ engine directly which is not representative of the end user experience which can be quite different in practice.&lt;/p&gt; &lt;p&gt;vLLM has its own powerful benchmarking tool, but while it can be used with other inference engines, there are a few issues:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;You can't easily measure how prompt processing speed degrades as context grows. You can use &lt;code&gt;vllm bench sweep serve&lt;/code&gt;, but it only works well with vLLM with prefix caching disabled on the server. Even with random prompts it will reuse the same prompt between multiple runs which will hit the cache in &lt;code&gt;llama-server&lt;/code&gt; for instance. So you will get very low median TTFT times and very high prompt processing speeds. &lt;/li&gt; &lt;li&gt;The TTFT measurement it uses is not actually until the first usable token, it's until the very first data chunk from the server which may not contain any generated tokens in /v1/chat/completions mode.&lt;/li&gt; &lt;li&gt;Random dataset is the only ones that allows to specify an arbitrary number of tokens, but randomly generated token sequence doesn't let you adequately measure speculative decoding/MTP.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;As of today, I haven't been able to find any existing benchmarking tool that brings llama-bench style measurements at different context lengths to any OpenAI-compatible endpoint.&lt;/p&gt; &lt;h2&gt;What is llama-benchy?&lt;/h2&gt; &lt;p&gt;It's a CLI benchmarking tool that measures:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Prompt Processing (pp) and Token Generation (tg) speeds at different context lengths.&lt;/li&gt; &lt;li&gt;Allows to benchmark context prefill and follow up prompt separately.&lt;/li&gt; &lt;li&gt;Reports additional metrics, like time to first response, estimated prompt processing time and end-to-end time to first token.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It works with any OpenAI-compatible endpoint that exposes /v1/chat/completions and also:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Supports configurable prompt length (&lt;code&gt;--pp&lt;/code&gt;), generation length (&lt;code&gt;--tg&lt;/code&gt;), and context depth (&lt;code&gt;--depth&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Can run multiple iterations (&lt;code&gt;--runs&lt;/code&gt;) and report mean ± std.&lt;/li&gt; &lt;li&gt;Uses HuggingFace tokenizers for accurate token counts.&lt;/li&gt; &lt;li&gt;Downloads a book from Project Gutenberg to use as source text for prompts to ensure better benchmarking of spec.decoding/MTP models.&lt;/li&gt; &lt;li&gt;Supports executing a command after each run (e.g., to clear cache).&lt;/li&gt; &lt;li&gt;Configurable latency measurement mode to estimate server/network overhead and provide more accurate prompt processing numbers.&lt;/li&gt; &lt;/ul&gt; &lt;h2&gt;Quick Demo&lt;/h2&gt; &lt;p&gt;Benchmarking MiniMax 2.1 AWQ running on my dual Spark cluster with up to 100000 context:&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;h1&gt;Run without installation&lt;/h1&gt; &lt;p&gt;uvx llama-benchy --base-url http://spark:8888/v1 --model cyankiwi/MiniMax-M2.1-AWQ-4bit --depth 0 4096 8192 16384 32768 65535 100000 --adapt-prompt --latency-mode generation --enable-prefix-caching ```&lt;/p&gt; &lt;p&gt;Output:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;model&lt;/th&gt; &lt;th align="right"&gt;test&lt;/th&gt; &lt;th align="right"&gt;t/s&lt;/th&gt; &lt;th align="right"&gt;ttfr (ms)&lt;/th&gt; &lt;th align="right"&gt;est_ppt (ms)&lt;/th&gt; &lt;th align="right"&gt;e2e_ttft (ms)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048&lt;/td&gt; &lt;td align="right"&gt;3544.10 ± 37.29&lt;/td&gt; &lt;td align="right"&gt;688.41 ± 6.09&lt;/td&gt; &lt;td align="right"&gt;577.93 ± 6.09&lt;/td&gt; &lt;td align="right"&gt;688.45 ± 6.10&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32&lt;/td&gt; &lt;td align="right"&gt;36.11 ± 0.06&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d4096&lt;/td&gt; &lt;td align="right"&gt;3150.63 ± 7.84&lt;/td&gt; &lt;td align="right"&gt;1410.55 ± 3.24&lt;/td&gt; &lt;td align="right"&gt;1300.06 ± 3.24&lt;/td&gt; &lt;td align="right"&gt;1410.58 ± 3.24&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d4096&lt;/td&gt; &lt;td align="right"&gt;34.36 ± 0.08&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d4096&lt;/td&gt; &lt;td align="right"&gt;2562.47 ± 21.71&lt;/td&gt; &lt;td align="right"&gt;909.77 ± 6.75&lt;/td&gt; &lt;td align="right"&gt;799.29 ± 6.75&lt;/td&gt; &lt;td align="right"&gt;909.81 ± 6.75&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d4096&lt;/td&gt; &lt;td align="right"&gt;33.41 ± 0.05&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d8192&lt;/td&gt; &lt;td align="right"&gt;2832.52 ± 12.34&lt;/td&gt; &lt;td align="right"&gt;3002.66 ± 12.57&lt;/td&gt; &lt;td align="right"&gt;2892.18 ± 12.57&lt;/td&gt; &lt;td align="right"&gt;3002.70 ± 12.57&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d8192&lt;/td&gt; &lt;td align="right"&gt;31.38 ± 0.06&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d8192&lt;/td&gt; &lt;td align="right"&gt;2261.83 ± 10.69&lt;/td&gt; &lt;td align="right"&gt;1015.96 ± 4.29&lt;/td&gt; &lt;td align="right"&gt;905.48 ± 4.29&lt;/td&gt; &lt;td align="right"&gt;1016.00 ± 4.29&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d8192&lt;/td&gt; &lt;td align="right"&gt;30.55 ± 0.08&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d16384&lt;/td&gt; &lt;td align="right"&gt;2473.70 ± 2.15&lt;/td&gt; &lt;td align="right"&gt;6733.76 ± 5.76&lt;/td&gt; &lt;td align="right"&gt;6623.28 ± 5.76&lt;/td&gt; &lt;td align="right"&gt;6733.80 ± 5.75&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d16384&lt;/td&gt; &lt;td align="right"&gt;27.89 ± 0.04&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d16384&lt;/td&gt; &lt;td align="right"&gt;1824.55 ± 6.32&lt;/td&gt; &lt;td align="right"&gt;1232.96 ± 3.89&lt;/td&gt; &lt;td align="right"&gt;1122.48 ± 3.89&lt;/td&gt; &lt;td align="right"&gt;1233.00 ± 3.89&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d16384&lt;/td&gt; &lt;td align="right"&gt;27.21 ± 0.04&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d32768&lt;/td&gt; &lt;td align="right"&gt;2011.11 ± 2.40&lt;/td&gt; &lt;td align="right"&gt;16403.98 ± 19.43&lt;/td&gt; &lt;td align="right"&gt;16293.50 ± 19.43&lt;/td&gt; &lt;td align="right"&gt;16404.03 ± 19.43&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d32768&lt;/td&gt; &lt;td align="right"&gt;22.09 ± 0.07&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d32768&lt;/td&gt; &lt;td align="right"&gt;1323.21 ± 4.62&lt;/td&gt; &lt;td align="right"&gt;1658.25 ± 5.41&lt;/td&gt; &lt;td align="right"&gt;1547.77 ± 5.41&lt;/td&gt; &lt;td align="right"&gt;1658.29 ± 5.41&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d32768&lt;/td&gt; &lt;td align="right"&gt;21.81 ± 0.07&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d65535&lt;/td&gt; &lt;td align="right"&gt;1457.71 ± 0.26&lt;/td&gt; &lt;td align="right"&gt;45067.98 ± 7.94&lt;/td&gt; &lt;td align="right"&gt;44957.50 ± 7.94&lt;/td&gt; &lt;td align="right"&gt;45068.01 ± 7.94&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d65535&lt;/td&gt; &lt;td align="right"&gt;15.72 ± 0.04&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d65535&lt;/td&gt; &lt;td align="right"&gt;840.36 ± 2.35&lt;/td&gt; &lt;td align="right"&gt;2547.54 ± 6.79&lt;/td&gt; &lt;td align="right"&gt;2437.06 ± 6.79&lt;/td&gt; &lt;td align="right"&gt;2547.60 ± 6.80&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d65535&lt;/td&gt; &lt;td align="right"&gt;15.63 ± 0.02&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_pp @ d100000&lt;/td&gt; &lt;td align="right"&gt;1130.05 ± 1.89&lt;/td&gt; &lt;td align="right"&gt;88602.31 ± 148.70&lt;/td&gt; &lt;td align="right"&gt;88491.83 ± 148.70&lt;/td&gt; &lt;td align="right"&gt;88602.37 ± 148.70&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;ctx_tg @ d100000&lt;/td&gt; &lt;td align="right"&gt;12.14 ± 0.02&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;pp2048 @ d100000&lt;/td&gt; &lt;td align="right"&gt;611.01 ± 2.50&lt;/td&gt; &lt;td align="right"&gt;3462.39 ± 13.73&lt;/td&gt; &lt;td align="right"&gt;3351.90 ± 13.73&lt;/td&gt; &lt;td align="right"&gt;3462.42 ± 13.73&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;cyankiwi/MiniMax-M2.1-AWQ-4bit&lt;/td&gt; &lt;td align="right"&gt;tg32 @ d100000&lt;/td&gt; &lt;td align="right"&gt;12.05 ± 0.03&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;td align="right"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;llama-benchy (0.1.0) date: 2026-01-06 11:44:49 | latency mode: generation&lt;/p&gt; &lt;h2&gt;GitHub&lt;/h2&gt; &lt;p&gt;&lt;a href="https://github.com/eugr/llama-benchy"&gt;https://github.com/eugr/llama-benchy&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Eugr"&gt; /u/Eugr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q5ta4l/llamabenchy_llamabench_style_benchmarking_for_any/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q5ta4l/llamabenchy_llamabench_style_benchmarking_for_any/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q5ta4l/llamabenchy_llamabench_style_benchmarking_for_any/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-06T20:02:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q5t0hr</id>
+    <title>Building opensource Zero Server Code Intelligence Engine</title>
+    <updated>2026-01-06T19:53:26+00:00</updated>
+    <author>
+      <name>/u/DeathShot7777</name>
+      <uri>https://old.reddit.com/user/DeathShot7777</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q5t0hr/building_opensource_zero_server_code_intelligence/"&gt; &lt;img alt="Building opensource Zero Server Code Intelligence Engine" src="https://external-preview.redd.it/d3piOG55d2Fhc2JnMRc4K08WCLBencfsxOajXaBEA9NZR-l8om0wN65iL7dR.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e0e96e2b737fe1c01f0efd03220c91d85880ea64" title="Building opensource Zero Server Code Intelligence Engine" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, guys, I m building GitNexus, an opensource Code Intelligence Engine which works fully client sided in-browser. What all features would be useful, any integrations, cool ideas, etc?&lt;/p&gt; &lt;p&gt;site: &lt;a href="https://gitnexus.vercel.app/"&gt;https://gitnexus.vercel.app/&lt;/a&gt;&lt;br /&gt; repo: &lt;a href="https://github.com/abhigyanpatwari/GitNexus"&gt;https://github.com/abhigyanpatwari/GitNexus&lt;/a&gt;&lt;/p&gt; &lt;p&gt;This is the crux of how it works:&lt;br /&gt; Repo parsed into Graph using AST -&amp;gt; Embeddings model running in browser creates the embeddings -&amp;gt; Everything is stored in a graph DB ( this also runs in browser through webassembly ) -&amp;gt; user sees UI visualization -&amp;gt; AI gets tools to query graph (cyfer query tool), semantic search, grep and node highlight.&lt;/p&gt; &lt;p&gt;So therefore we get a quick code intelligence engine that works fully client sided 100% private. Except the LLM provider there is no external data outlet. ( working on ollama support )&lt;/p&gt; &lt;p&gt;Would really appreciate any cool ideas / inputs / etc.&lt;/p&gt; &lt;p&gt;This is what I m aiming for right now:&lt;/p&gt; &lt;p&gt;1&amp;gt; Case 1 is quick way to chat with a repo, but then deepwiki is already there. But gitnexus has graph tools+ui so should be more accurate on audits and UI can help in visualize.&lt;/p&gt; &lt;p&gt;2&amp;gt; Downstream potential usecase will be MCP server exposed from browser itself, windsurf / cursor, etc can use it to perform codebase wise audits, blast radius detection of code changes, etc.&lt;/p&gt; &lt;p&gt;3&amp;gt; Another case might be since its fully private, devs having severe restrictions can use it with ollama or their own inference&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DeathShot7777"&gt; /u/DeathShot7777 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/6xrs78taasbg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q5t0hr/building_opensource_zero_server_code_intelligence/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q5t0hr/building_opensource_zero_server_code_intelligence/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-06T19:53:26+00:00</published>
+  </entry>
   <entry>
     <id>t3_1q5xftv</id>
     <title>I built my own AMD based AI rig</title>
@@ -47,30 +73,17 @@
     <published>2026-01-07T12:27:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q6e4sm</id>
-    <title>Models for middle eastern languages?</title>
-    <updated>2026-01-07T12:30:51+00:00</updated>
+    <id>t3_1q6cx7x</id>
+    <title>A.X-K1 - New korean LLM benchmark released</title>
+    <updated>2026-01-07T11:26:34+00:00</updated>
     <author>
-      <name>/u/WeekLarge7607</name>
-      <uri>https://old.reddit.com/user/WeekLarge7607</uri>
+      <name>/u/Leather-Term-30</name>
+      <uri>https://old.reddit.com/user/Leather-Term-30</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm learning geopolitics, specifically about the middle east, and I'm wondering if anyone knows a good local model for translation and summarization for middle eastern languages (various types of Arabic, Hebrew, Persian)?&lt;/p&gt; &lt;p&gt;I've been using gemma3 and cohere command models, but some of them are old now, and new ones are too big for me (command a models are 100 something B and dense).&lt;/p&gt; &lt;p&gt;Something around 30b or 70b quantized would be perfect.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WeekLarge7607"&gt; /u/WeekLarge7607 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6e4sm/models_for_middle_eastern_languages/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6e4sm/models_for_middle_eastern_languages/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6e4sm/models_for_middle_eastern_languages/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"&gt; &lt;img alt="A.X-K1 - New korean LLM benchmark released" src="https://preview.redd.it/54p3jxjywwbg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4f245d4be5450f8919f9889e8b73dbcdd62f0142" title="A.X-K1 - New korean LLM benchmark released" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Leather-Term-30"&gt; /u/Leather-Term-30 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/54p3jxjywwbg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T12:30:51+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q6cbgy</id>
-    <title>Released v0.1.6 of Owlex, an MCP server that integrates Codex CLI, Gemini CLI, and OpenCode into Claude Code.</title>
-    <updated>2026-01-07T10:51:43+00:00</updated>
-    <author>
-      <name>/u/spokv</name>
-      <uri>https://old.reddit.com/user/spokv</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cbgy/released_v016_of_owlex_an_mcp_server_that/"&gt; &lt;img alt="Released v0.1.6 of Owlex, an MCP server that integrates Codex CLI, Gemini CLI, and OpenCode into Claude Code." src="https://external-preview.redd.it/ArYRt78-5RFb6CiMNI10gprlO6acxZMy0DlZ2xmn3uI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=85292b673f6b38a2ab14ccd0da115b0f59ab17ec" title="Released v0.1.6 of Owlex, an MCP server that integrates Codex CLI, Gemini CLI, and OpenCode into Claude Code." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The new async feature lets you:&lt;br /&gt; - Start a council deliberation that queries multiple AI models&lt;br /&gt; - Get a task ID immediately and continue working&lt;br /&gt; - Check back later for results with wait_for_task&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/agentic-mcp-tools/owlex"&gt;https://github.com/agentic-mcp-tools/owlex&lt;/a&gt;&lt;/p&gt; &lt;p&gt;What's a &amp;quot;council&amp;quot;?&lt;br /&gt; Instead of relying on a single model's opinion, the council queries multiple agents (Codex/o3, Gemini, OpenCode) with your question and synthesizes their responses. Great for architecture decisions, code reviews, or when you want diverse perspectives.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1q6cbgy/video/hrj7rycqqwbg1/player"&gt;https://reddit.com/link/1q6cbgy/video/hrj7rycqqwbg1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/spokv"&gt; /u/spokv &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cbgy/released_v016_of_owlex_an_mcp_server_that/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cbgy/released_v016_of_owlex_an_mcp_server_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cbgy/released_v016_of_owlex_an_mcp_server_that/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T10:51:43+00:00</published>
+    <published>2026-01-07T11:26:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1q62pyh</id>
@@ -86,19 +99,6 @@
     <published>2026-01-07T02:12:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q6cx7x</id>
-    <title>A.X-K1 - New korean LLM benchmark released</title>
-    <updated>2026-01-07T11:26:34+00:00</updated>
-    <author>
-      <name>/u/Leather-Term-30</name>
-      <uri>https://old.reddit.com/user/Leather-Term-30</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"&gt; &lt;img alt="A.X-K1 - New korean LLM benchmark released" src="https://preview.redd.it/54p3jxjywwbg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4f245d4be5450f8919f9889e8b73dbcdd62f0142" title="A.X-K1 - New korean LLM benchmark released" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Leather-Term-30"&gt; /u/Leather-Term-30 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/54p3jxjywwbg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cx7x/axk1_new_korean_llm_benchmark_released/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T11:26:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q5mh84</id>
     <title>Unsloth-MLX - Fine-tune LLMs on your Mac (same API as Unsloth)</title>
     <updated>2026-01-06T16:00:10+00:00</updated>
@@ -110,19 +110,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q5mh84/unslothmlx_finetune_llms_on_your_mac_same_api_as/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-06T16:00:10+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q6cihe</id>
-    <title>I built a mobile game where a local Qwen3-VL acts as an "Oracle" that analyzes player photos</title>
-    <updated>2026-01-07T11:03:08+00:00</updated>
-    <author>
-      <name>/u/franke777</name>
-      <uri>https://old.reddit.com/user/franke777</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been working on a solo project called Lenswalker a walking RPG where players physically walk to charge mana, then photograph real-world subjects. The interesting part: a locally-hosted vision model analyzes each photo and determines what they found.&lt;/p&gt; &lt;p&gt;The setup:&lt;/p&gt; &lt;p&gt;- Ollama running Qwen3-VL on my home server (RTX 4090)&lt;/p&gt; &lt;p&gt;- FastAPI backend, PWA frontend&lt;/p&gt; &lt;p&gt;- Everything self-hosted, no cloud APIs, no data leaving my network&lt;/p&gt; &lt;p&gt;What the Oracle does:&lt;/p&gt; &lt;p&gt;- Analyzes the photo and identifies the subject&lt;/p&gt; &lt;p&gt;- Assigns a &amp;quot;rarity&amp;quot; (1-10) based on how interesting/unusual it is (a trash can = 1, a wild fox = 9)&lt;/p&gt; &lt;p&gt;- Determines capture quality (composition, lighting, focus)&lt;/p&gt; &lt;p&gt;- Extracts dominant color -&amp;gt; maps to game element (green -&amp;gt; Nature, white -&amp;gt; Light, etc.)&lt;/p&gt; &lt;p&gt;- Generates flavor text for the discovery&lt;/p&gt; &lt;p&gt;What surprised me:&lt;/p&gt; &lt;p&gt;- Qwen3-VL is remarkably consistent at judging &amp;quot;interestingness&amp;quot; - mundane objects score low, genuinely unusual finds score high&lt;/p&gt; &lt;p&gt;- Color extraction works well for element assignment&lt;/p&gt; &lt;p&gt;- ~15-45s per analysis on first load, ~5-10s when model is warm&lt;/p&gt; &lt;p&gt;- Running OLLAMA_MAX_CONCURRENT=4 handles multiple players fine&lt;/p&gt; &lt;p&gt;The whole thing started because I wanted a game where the AI couldn't be cheated by googling answers, you have to actually go outside and find something worth photographing.&lt;/p&gt; &lt;p&gt;Currently in pre-alpha with ~25 testers. Happy to answer questions about the vision model integration or the prompt engineering approach. &lt;/p&gt; &lt;p&gt;If anyone in Europe wants to try it out, DM me, server's hosted in Germany so latency is best for EU players.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/franke777"&gt; /u/franke777 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T11:03:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1q6c2cr</id>
@@ -138,6 +125,19 @@
     <published>2026-01-07T10:36:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q6cihe</id>
+    <title>I built a mobile game where a local Qwen3-VL acts as an "Oracle" that analyzes player photos</title>
+    <updated>2026-01-07T11:03:08+00:00</updated>
+    <author>
+      <name>/u/franke777</name>
+      <uri>https://old.reddit.com/user/franke777</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been working on a solo project called Lenswalker a walking RPG where players physically walk to charge mana, then photograph real-world subjects. The interesting part: a locally-hosted vision model analyzes each photo and determines what they found.&lt;/p&gt; &lt;p&gt;The setup:&lt;/p&gt; &lt;p&gt;- Ollama running Qwen3-VL on my home server (RTX 4090)&lt;/p&gt; &lt;p&gt;- FastAPI backend, PWA frontend&lt;/p&gt; &lt;p&gt;- Everything self-hosted, no cloud APIs, no data leaving my network&lt;/p&gt; &lt;p&gt;What the Oracle does:&lt;/p&gt; &lt;p&gt;- Analyzes the photo and identifies the subject&lt;/p&gt; &lt;p&gt;- Assigns a &amp;quot;rarity&amp;quot; (1-10) based on how interesting/unusual it is (a trash can = 1, a wild fox = 9)&lt;/p&gt; &lt;p&gt;- Determines capture quality (composition, lighting, focus)&lt;/p&gt; &lt;p&gt;- Extracts dominant color -&amp;gt; maps to game element (green -&amp;gt; Nature, white -&amp;gt; Light, etc.)&lt;/p&gt; &lt;p&gt;- Generates flavor text for the discovery&lt;/p&gt; &lt;p&gt;What surprised me:&lt;/p&gt; &lt;p&gt;- Qwen3-VL is remarkably consistent at judging &amp;quot;interestingness&amp;quot; - mundane objects score low, genuinely unusual finds score high&lt;/p&gt; &lt;p&gt;- Color extraction works well for element assignment&lt;/p&gt; &lt;p&gt;- ~15-45s per analysis on first load, ~5-10s when model is warm&lt;/p&gt; &lt;p&gt;- Running OLLAMA_MAX_CONCURRENT=4 handles multiple players fine&lt;/p&gt; &lt;p&gt;The whole thing started because I wanted a game where the AI couldn't be cheated by googling answers, you have to actually go outside and find something worth photographing.&lt;/p&gt; &lt;p&gt;Currently in pre-alpha with ~25 testers. Happy to answer questions about the vision model integration or the prompt engineering approach. &lt;/p&gt; &lt;p&gt;If anyone in Europe wants to try it out, DM me, server's hosted in Germany so latency is best for EU players.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/franke777"&gt; /u/franke777 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cihe/i_built_a_mobile_game_where_a_local_qwen3vl_acts/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-07T11:03:08+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q5dnyw</id>
     <title>Performance improvements in llama.cpp over time</title>
     <updated>2026-01-06T09:03:03+00:00</updated>
@@ -149,19 +149,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q5dnyw/performance_improvements_in_llamacpp_over_time/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-06T09:03:03+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q6cuh5</id>
-    <title>In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by "adaptive compression"?</title>
-    <updated>2026-01-07T11:22:07+00:00</updated>
-    <author>
-      <name>/u/michaelmalak</name>
-      <uri>https://old.reddit.com/user/michaelmalak</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"&gt; &lt;img alt="In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by &amp;quot;adaptive compression&amp;quot;?" src="https://external-preview.redd.it/5t8jfpe67v909kH8kONfOcl8j7uy46XjufTzHSp5p-I.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=81304f3376532fa1f1d936cef16bcd151043d65a" title="In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by &amp;quot;adaptive compression&amp;quot;?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/michaelmalak"&gt; /u/michaelmalak &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T11:22:07+00:00</published>
   </entry>
   <entry>
     <id>t3_1q6524l</id>
@@ -190,6 +177,19 @@
     <published>2026-01-06T21:24:42+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q6cuh5</id>
+    <title>In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by "adaptive compression"?</title>
+    <updated>2026-01-07T11:22:07+00:00</updated>
+    <author>
+      <name>/u/michaelmalak</name>
+      <uri>https://old.reddit.com/user/michaelmalak</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"&gt; &lt;img alt="In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by &amp;quot;adaptive compression&amp;quot;?" src="https://external-preview.redd.it/5t8jfpe67v909kH8kONfOcl8j7uy46XjufTzHSp5p-I.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=81304f3376532fa1f1d936cef16bcd151043d65a" title="In NVIDIA's announcement of Rubin (successor to Blackwell) what do you think is meant by &amp;quot;adaptive compression&amp;quot;?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/michaelmalak"&gt; /u/michaelmalak &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6cuh5/in_nvidias_announcement_of_rubin_successor_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-07T11:22:07+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q5m2n6</id>
     <title>A 30B Qwen Model Walks Into a Raspberry Pi… and Runs in Real Time</title>
     <updated>2026-01-06T15:45:12+00:00</updated>
@@ -201,19 +201,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q5m2n6/a_30b_qwen_model_walks_into_a_raspberry_pi_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-06T15:45:12+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q6a32c</id>
-    <title>NousCoder-14B-GGUF is here!</title>
-    <updated>2026-01-07T08:33:13+00:00</updated>
-    <author>
-      <name>/u/KvAk_AKPlaysYT</name>
-      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"&gt; &lt;img alt="NousCoder-14B-GGUF is here!" src="https://external-preview.redd.it/DMiOkJBVtF0q2KjwqWnPlke-IPF1A5a0Z_XDB7tGLn8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b59c49d178c2f341a958665b9686d84962973bbe" title="NousCoder-14B-GGUF is here!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;RL post training on Qwen 3 14B&lt;/p&gt; &lt;p&gt;&amp;quot;On LiveCodeBench v6 (08/01/2024 - 05/01/2025), we achieve a Pass@1 accuracy of 67.87%, up 7.08% from the baseline Pass@1 accuracy of 60.79% of Qwen3-14B. We trained on 24k verifiable coding problems using 48 B200s over the course of four days.&amp;quot;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/AaryanK/NousCoder-14B-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-07T08:33:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1q617ug</id>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6edb2/ai_agents_for_searching_and_reasoning_over/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-07T12:42:45+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q6a32c</id>
+    <title>NousCoder-14B-GGUF is here!</title>
+    <updated>2026-01-07T08:33:13+00:00</updated>
+    <author>
+      <name>/u/KvAk_AKPlaysYT</name>
+      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"&gt; &lt;img alt="NousCoder-14B-GGUF is here!" src="https://external-preview.redd.it/DMiOkJBVtF0q2KjwqWnPlke-IPF1A5a0Z_XDB7tGLn8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b59c49d178c2f341a958665b9686d84962973bbe" title="NousCoder-14B-GGUF is here!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;RL post training on Qwen 3 14B&lt;/p&gt; &lt;p&gt;&amp;quot;On LiveCodeBench v6 (08/01/2024 - 05/01/2025), we achieve a Pass@1 accuracy of 67.87%, up 7.08% from the baseline Pass@1 accuracy of 60.79% of Qwen3-14B. We trained on 24k verifiable coding problems using 48 B200s over the course of four days.&amp;quot;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/AaryanK/NousCoder-14B-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q6a32c/nouscoder14bgguf_is_here/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-07T08:33:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1q64f26</id>
