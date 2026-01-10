@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-10T23:06:49+00:00</updated>
+  <updated>2026-01-10T23:24:29+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1q97dky</id>
-    <title>Entropy-Adaptive Finetuning</title>
-    <updated>2026-01-10T15:47:29+00:00</updated>
-    <author>
-      <name>/u/netikas</name>
-      <uri>https://old.reddit.com/user/netikas</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys! I did a review on a recent paper for my peers and decided it would be cool to post it here too. This is a translation from Russian via opus 4.5, I’ve checked everything, but some mistakes might have slipped. Sorry for that!&lt;/p&gt; &lt;p&gt;___&lt;/p&gt; &lt;p&gt;Fine-tuning models is hard. My master’s thesis advisor once said it’s more alchemy than science — I don’t fully agree, but there’s something to it. Wrong hyperparameters — model diverged. Dataset too small — model diverged. Too many epochs — model diverged. Used a dataset with a distribution too different from pretraining — model forgot everything it learned during previous stages, then diverged.&lt;/p&gt; &lt;p&gt;Naturally, this state of affairs doesn’t sit well with us, so people started devising methods to work around this problem. In GOLD guys from HF used distillation from the model before finetuning to restore the quality of finetuned model on a general domain — but that adds extra complexity to the training recipe, which we’d rather avoid. Today’s paper attempts to solve the problem of catastrophic forgetting during SFT without additional steps — just through a small modification to the loss.&lt;/p&gt; &lt;p&gt;Consider the standard SFT loss — cross-entropy. We train the model to approximate logprobs for the entire target sequence equally for each token, regardless of whether the tokens are “beneficial” or “harmful” for the model. So if a token’s signal happens to be “harmful,” the model will learn from it just like from all others, leading to forgetting.&lt;/p&gt; &lt;p&gt;The authors define token “harmfulness” as follows: low entropy and confidence within top-K means the model is confident about which token it wants to pick (low entropy), but this token doesn’t match the label (low label probability at that position). This creates a confident conflict — the model learned some bias during pretraining, and now during SFT this bias isn’t confirmed, essentially making it OOD. Consequently, training produces large gradients, weights change significantly, and we risk forgetting part of the pretraining knowledge.&lt;/p&gt; &lt;p&gt;As a preliminary experiment, the authors tried training the model while masking 15% of tokens with the lowest confidence and probability — and got significantly less catastrophic forgetting compared to base SFT. However, the model also learned less, so a more precise approach is needed.&lt;/p&gt; &lt;p&gt;As an improvement, the authors decided to modify standard cross-entropy with an adaptive gating mechanism — they simply multiplied the logarithm in the loss by H_t / ln(K), where H_t is the entropy over top-K, and ln(K) is the maximum entropy over top-K. So when entropy is low, the coefficient approaches zero, the loss scales down, and the model changes its weights less. Meanwhile, when entropy is high, the coefficient approaches one, and the model learns as usual. Since this is done per-token, gradients change not in scale (as they would with lower lr in SGD, for example) but in direction (since different tokens have different scales), and the model forgets less. Very elegant.&lt;/p&gt; &lt;p&gt;For experiments, they trained Qwen3-4b-Instruct, Qwen-2.5-32b-Instruct, and GLM4-9b-0414 on math, medical, and function calling, measuring the quality on these domains and some general benchmarks (MMLU, IFEval, etc) to see how much the model learns and forgets. Baselines included vanilla SFT, SFT with KL-divergence (KL was calculated in relevance to the original model), FLOW (per-sequence downweighting of dangerous samples, as I understand it), DFT (scaling loss by token probability instead of entropy), and TALR (scaling per-token loss based on gradient norm). The proposed method turned out to be the best in regards to forgetting-learning ratio among all tested approaches.&lt;/p&gt; &lt;p&gt;Additionally, the authors checked what happens if you use f(H_t) instead of H_t as the coefficient—maybe the scaling is actually nonlinear. They tried H_t^p, Sigmoid(H_t), and the aforementioned Masked SFT, but the vanilla approach proved best.&lt;/p&gt; &lt;p&gt;My thoughts:&lt;/p&gt; &lt;p&gt;- It’s rare that such a simple and elegant idea works. Huge respect to the authors.&lt;/p&gt; &lt;p&gt;- I think there will be problems when using a very different domain — for example, when adapting a model to another language, the model will not train as well since it’ll be OOD for it.&lt;/p&gt; &lt;p&gt;- An even bigger problem will emerge when switching to text that tokenizes worse. For instance, in Russian, English-centric models have many more tokens per word—so the word “выкобениваться” (a longer slang word, which is rarely used so is not really prevalent in the pretraining corpus) will have low entropy with low label probability on all tokens except the first — again, it’s a rare word, and continuing a word is easier than starting it. This means the whole sequence loss will shift, and something nasty might emerge. Word boundaries will also be problematic — as the model expects a different language and different tokens, it won’t learn to start words in the new language.&lt;/p&gt; &lt;p&gt;- Despite all this, it looks like a decent and relatively cheap way to improve robustness for small domain-specific tunes. Something like Gemma really needs this, because that model is fragile and easy to break.&lt;/p&gt; &lt;p&gt;Here’s the link to the paper, if you’re interested: &lt;a href="https://www.arxiv.org/abs/2601.02151"&gt;https://www.arxiv.org/abs/2601.02151&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/netikas"&gt; /u/netikas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T15:47:29+00:00</published>
-  </entry>
   <entry>
     <id>t3_1q96x42</id>
     <title>Your favorite Claude replacement and MCPs</title>
@@ -58,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T19:41:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q9hu43</id>
-    <title>I built an end-to-end local LLM fine-tuning GUI for M series macs</title>
-    <updated>2026-01-10T22:31:40+00:00</updated>
-    <author>
-      <name>/u/riman717</name>
-      <uri>https://old.reddit.com/user/riman717</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wanted to share a tool I’ve been working on to make local fine-tuning on M series Macs a bit less painful and manual. Essentially it wraps Apple’s MLX framework, so it runs native on M-series chips. The goal of this was to include the whole end-to-end local LLM workflow all within a GUI. Here are the features I put in:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Data Prep- You can drag and drop CSV or JSONL files to clean/format them. I also added a local PII scrubber to strip names/emails from datasets before training.&lt;/li&gt; &lt;li&gt;Fine-Tuning- UI for LoRA/QLoRA. You can tweak learning rates, epochs, rank, etc&lt;/li&gt; &lt;li&gt;Inference- Built-in chat interface to test your Fine Tuned model adapters against the base model&lt;/li&gt; &lt;li&gt;Models- One-click download for open source LLMs, or you can &amp;quot;add a model&amp;quot; if you have local model rates&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo is here if you want to check it out: &lt;a href="https://github.com/rileycleavenger/Silicon-Studio"&gt;https://github.com/rileycleavenger/Silicon-Studio&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Feel free to contribute or open any issues on the repo.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/riman717"&gt; /u/riman717 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T22:31:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9dq8b</id>
@@ -125,19 +99,6 @@
     <published>2026-01-10T06:52:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9gwpx</id>
-    <title>Developers: what code orchestration tools do you swear by?</title>
-    <updated>2026-01-10T21:54:34+00:00</updated>
-    <author>
-      <name>/u/formatme</name>
-      <uri>https://old.reddit.com/user/formatme</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been loving code orchestration lately. There’s been an explosion of open-source multi-agent orchestration projects on GitHub, and it’s exciting to watch.&lt;/p&gt; &lt;p&gt;Here is a list of tools come across. &lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;a href="https://github.com/BloopAI/vibe-kanban"&gt;https://github.com/BloopAI/vibe-kanban&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://www.conductor.build/"&gt;https://www.conductor.build/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/pedramamini/Maestro"&gt;https://github.com/pedramamini/Maestro&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/AndyMik90/Auto-Claude"&gt;https://github.com/AndyMik90/Auto-Claude&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/AutoMaker-Org/automaker"&gt;https://github.com/AutoMaker-Org/automaker&lt;/a&gt; &lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/covibes/zeroshot/"&gt;https://github.com/covibes/zeroshot/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/preset-io/agor"&gt;https://github.com/preset-io/agor&lt;/a&gt; &lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/superset-sh/superset"&gt;https://github.com/superset-sh/superset&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/Ido-Levi/Hephaestus"&gt;https://github.com/Ido-Levi/Hephaestus&lt;/a&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Tools i personally tried are auto claude, agor, automaker, vibe-kanban and Hephaestus.&lt;br /&gt; So far agor and auto claude have been my favorite. I'm waiting for superset to support linux/windows and I think im going to try zeroshot.&lt;/p&gt; &lt;p&gt;What orchestration tools genuinely improved your dev workflow? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/formatme"&gt; /u/formatme &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T21:54:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q8tdcz</id>
     <title>Introducing "UITPSDT" a novel approach to runtime efficiency in organic agents</title>
     <updated>2026-01-10T03:30:19+00:00</updated>
@@ -164,6 +125,19 @@
     <published>2026-01-10T20:40:10+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q9gwpx</id>
+    <title>Developers: what code orchestration tools do you swear by?</title>
+    <updated>2026-01-10T21:54:34+00:00</updated>
+    <author>
+      <name>/u/formatme</name>
+      <uri>https://old.reddit.com/user/formatme</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been loving code orchestration lately. There’s been an explosion of open-source multi-agent orchestration projects on GitHub, and it’s exciting to watch.&lt;/p&gt; &lt;p&gt;Here is a list of tools come across. &lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;a href="https://github.com/BloopAI/vibe-kanban"&gt;https://github.com/BloopAI/vibe-kanban&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://www.conductor.build/"&gt;https://www.conductor.build/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/pedramamini/Maestro"&gt;https://github.com/pedramamini/Maestro&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/AndyMik90/Auto-Claude"&gt;https://github.com/AndyMik90/Auto-Claude&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/AutoMaker-Org/automaker"&gt;https://github.com/AutoMaker-Org/automaker&lt;/a&gt; &lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/covibes/zeroshot/"&gt;https://github.com/covibes/zeroshot/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/preset-io/agor"&gt;https://github.com/preset-io/agor&lt;/a&gt; &lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/superset-sh/superset"&gt;https://github.com/superset-sh/superset&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/Ido-Levi/Hephaestus"&gt;https://github.com/Ido-Levi/Hephaestus&lt;/a&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Tools i personally tried are auto claude, agor, automaker, vibe-kanban and Hephaestus.&lt;br /&gt; So far agor and auto claude have been my favorite. I'm waiting for superset to support linux/windows and I think im going to try zeroshot.&lt;/p&gt; &lt;p&gt;What orchestration tools genuinely improved your dev workflow? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/formatme"&gt; /u/formatme &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9gwpx/developers_what_code_orchestration_tools_do_you/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T21:54:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q9by7w</id>
     <title>Preview logprobs in Open WebUI</title>
     <updated>2026-01-10T18:44:05+00:00</updated>
@@ -175,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T18:44:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9hu43</id>
+    <title>I built an end-to-end local LLM fine-tuning GUI for M series macs</title>
+    <updated>2026-01-10T22:31:40+00:00</updated>
+    <author>
+      <name>/u/riman717</name>
+      <uri>https://old.reddit.com/user/riman717</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wanted to share a tool I’ve been working on to make local fine-tuning on M series Macs a bit less painful and manual. Essentially it wraps Apple’s MLX framework, so it runs native on M-series chips. The goal of this was to include the whole end-to-end local LLM workflow all within a GUI. Here are the features I put in:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Data Prep- You can drag and drop CSV or JSONL files to clean/format them. I also added a local PII scrubber to strip names/emails from datasets before training.&lt;/li&gt; &lt;li&gt;Fine-Tuning- UI for LoRA/QLoRA. You can tweak learning rates, epochs, rank, etc&lt;/li&gt; &lt;li&gt;Inference- Built-in chat interface to test your Fine Tuned model adapters against the base model&lt;/li&gt; &lt;li&gt;Models- One-click download for open source LLMs, or you can &amp;quot;add a model&amp;quot; if you have local model rates&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo is here if you want to check it out: &lt;a href="https://github.com/rileycleavenger/Silicon-Studio"&gt;https://github.com/rileycleavenger/Silicon-Studio&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Feel free to contribute or open any issues on the repo.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/riman717"&gt; /u/riman717 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9hu43/i_built_an_endtoend_local_llm_finetuning_gui_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T22:31:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1q8hqgd</id>
@@ -242,17 +229,17 @@
     <published>2026-01-10T06:28:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9bnqc</id>
-    <title>RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)</title>
-    <updated>2026-01-10T18:33:05+00:00</updated>
+    <id>t3_1q9io50</id>
+    <title>Model: cerebras/GLM-4.7-REAP-268B-A32B incoming!</title>
+    <updated>2026-01-10T23:06:33+00:00</updated>
     <author>
-      <name>/u/3090orBust</name>
-      <uri>https://old.reddit.com/user/3090orBust</uri>
+      <name>/u/LegacyRemaster</name>
+      <uri>https://old.reddit.com/user/LegacyRemaster</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt; &lt;img alt="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" src="https://external-preview.redd.it/o9dwYZagSuAh6lGApyCDxDEoIhgXfz9GzoXhVGYG6FI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb419ac1006074d3e7d893a55075c0de8698965" title="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3090orBust"&gt; /u/3090orBust &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/RTX-50-Super-GPUs-may-be-delayed-indefinitely-as-Nvidia-prioritizes-AI-during-memory-shortage.1199980.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Can't wait!&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/cerebras/GLM-4.7-REAP-268B-A32B"&gt;https://huggingface.co/cerebras/GLM-4.7-REAP-268B-A32B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LegacyRemaster"&gt; /u/LegacyRemaster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9io50/model_cerebrasglm47reap268ba32b_incoming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9io50/model_cerebrasglm47reap268ba32b_incoming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9io50/model_cerebrasglm47reap268ba32b_incoming/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:33:05+00:00</published>
+    <published>2026-01-10T23:06:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1q959am</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q959am/strix_halo_bosgame_m5_7900_xtx_egpu_local_llm/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T14:20:31+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9bnqc</id>
+    <title>RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)</title>
+    <updated>2026-01-10T18:33:05+00:00</updated>
+    <author>
+      <name>/u/3090orBust</name>
+      <uri>https://old.reddit.com/user/3090orBust</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt; &lt;img alt="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" src="https://external-preview.redd.it/o9dwYZagSuAh6lGApyCDxDEoIhgXfz9GzoXhVGYG6FI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb419ac1006074d3e7d893a55075c0de8698965" title="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3090orBust"&gt; /u/3090orBust &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/RTX-50-Super-GPUs-may-be-delayed-indefinitely-as-Nvidia-prioritizes-AI-during-memory-shortage.1199980.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:33:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1q8ckz0</id>
