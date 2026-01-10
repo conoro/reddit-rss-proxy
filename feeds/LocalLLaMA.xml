@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-10T19:23:28+00:00</updated>
+  <updated>2026-01-10T19:34:33+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1q88hdc</id>
-    <title>(The Information): DeepSeek To Release Next Flagship AI Model With Strong Coding Ability</title>
-    <updated>2026-01-09T13:39:02+00:00</updated>
+    <id>t3_1q97dky</id>
+    <title>Entropy-Adaptive Finetuning</title>
+    <updated>2026-01-10T15:47:29+00:00</updated>
     <author>
-      <name>/u/Nunki08</name>
-      <uri>https://old.reddit.com/user/Nunki08</uri>
+      <name>/u/netikas</name>
+      <uri>https://old.reddit.com/user/netikas</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q88hdc/the_information_deepseek_to_release_next_flagship/"&gt; &lt;img alt="(The Information): DeepSeek To Release Next Flagship AI Model With Strong Coding Ability" src="https://a.thumbs.redditmedia.com/V0cq5JgXRMYN60IWmZOgeWuSilWb4Gxub72PzqtA_08.jpg" title="(The Information): DeepSeek To Release Next Flagship AI Model With Strong Coding Ability" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;(paywall): &lt;a href="https://www.theinformation.com/articles/deepseek-release-next-flagship-ai-model-strong-coding-ability"&gt;https://www.theinformation.com/articles/deepseek-release-next-flagship-ai-model-strong-coding-ability&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1q88hdc"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q88hdc/the_information_deepseek_to_release_next_flagship/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q88hdc/the_information_deepseek_to_release_next_flagship/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys! I did a review on a recent paper for my peers and decided it would be cool to post it here too. This is a translation from Russian via opus 4.5, I’ve checked everything, but some mistakes might have slipped. Sorry for that!&lt;/p&gt; &lt;p&gt;___&lt;/p&gt; &lt;p&gt;Fine-tuning models is hard. My master’s thesis advisor once said it’s more alchemy than science — I don’t fully agree, but there’s something to it. Wrong hyperparameters — model diverged. Dataset too small — model diverged. Too many epochs — model diverged. Used a dataset with a distribution too different from pretraining — model forgot everything it learned during previous stages, then diverged.&lt;/p&gt; &lt;p&gt;Naturally, this state of affairs doesn’t sit well with us, so people started devising methods to work around this problem. In GOLD guys from HF used distillation from the model before finetuning to restore the quality of finetuned model on a general domain — but that adds extra complexity to the training recipe, which we’d rather avoid. Today’s paper attempts to solve the problem of catastrophic forgetting during SFT without additional steps — just through a small modification to the loss.&lt;/p&gt; &lt;p&gt;Consider the standard SFT loss — cross-entropy. We train the model to approximate logprobs for the entire target sequence equally for each token, regardless of whether the tokens are “beneficial” or “harmful” for the model. So if a token’s signal happens to be “harmful,” the model will learn from it just like from all others, leading to forgetting.&lt;/p&gt; &lt;p&gt;The authors define token “harmfulness” as follows: low entropy and confidence within top-K means the model is confident about which token it wants to pick (low entropy), but this token doesn’t match the label (low label probability at that position). This creates a confident conflict — the model learned some bias during pretraining, and now during SFT this bias isn’t confirmed, essentially making it OOD. Consequently, training produces large gradients, weights change significantly, and we risk forgetting part of the pretraining knowledge.&lt;/p&gt; &lt;p&gt;As a preliminary experiment, the authors tried training the model while masking 15% of tokens with the lowest confidence and probability — and got significantly less catastrophic forgetting compared to base SFT. However, the model also learned less, so a more precise approach is needed.&lt;/p&gt; &lt;p&gt;As an improvement, the authors decided to modify standard cross-entropy with an adaptive gating mechanism — they simply multiplied the logarithm in the loss by H_t / ln(K), where H_t is the entropy over top-K, and ln(K) is the maximum entropy over top-K. So when entropy is low, the coefficient approaches zero, the loss scales down, and the model changes its weights less. Meanwhile, when entropy is high, the coefficient approaches one, and the model learns as usual. Since this is done per-token, gradients change not in scale (as they would with lower lr in SGD, for example) but in direction (since different tokens have different scales), and the model forgets less. Very elegant.&lt;/p&gt; &lt;p&gt;For experiments, they trained Qwen3-4b-Instruct, Qwen-2.5-32b-Instruct, and GLM4-9b-0414 on math, medical, and function calling, measuring the quality on these domains and some general benchmarks (MMLU, IFEval, etc) to see how much the model learns and forgets. Baselines included vanilla SFT, SFT with KL-divergence (KL was calculated in relevance to the original model), FLOW (per-sequence downweighting of dangerous samples, as I understand it), DFT (scaling loss by token probability instead of entropy), and TALR (scaling per-token loss based on gradient norm). The proposed method turned out to be the best in regards to forgetting-learning ratio among all tested approaches.&lt;/p&gt; &lt;p&gt;Additionally, the authors checked what happens if you use f(H_t) instead of H_t as the coefficient—maybe the scaling is actually nonlinear. They tried H_t^p, Sigmoid(H_t), and the aforementioned Masked SFT, but the vanilla approach proved best.&lt;/p&gt; &lt;p&gt;My thoughts:&lt;/p&gt; &lt;p&gt;- It’s rare that such a simple and elegant idea works. Huge respect to the authors.&lt;/p&gt; &lt;p&gt;- I think there will be problems when using a very different domain — for example, when adapting a model to another language, the model will not train as well since it’ll be OOD for it.&lt;/p&gt; &lt;p&gt;- An even bigger problem will emerge when switching to text that tokenizes worse. For instance, in Russian, English-centric models have many more tokens per word—so the word “выкобениваться” (a longer slang word, which is rarely used so is not really prevalent in the pretraining corpus) will have low entropy with low label probability on all tokens except the first — again, it’s a rare word, and continuing a word is easier than starting it. This means the whole sequence loss will shift, and something nasty might emerge. Word boundaries will also be problematic — as the model expects a different language and different tokens, it won’t learn to start words in the new language.&lt;/p&gt; &lt;p&gt;- Despite all this, it looks like a decent and relatively cheap way to improve robustness for small domain-specific tunes. Something like Gemma really needs this, because that model is fragile and easy to break.&lt;/p&gt; &lt;p&gt;Here’s the link to the paper, if you’re interested: &lt;a href="https://www.arxiv.org/abs/2601.02151"&gt;https://www.arxiv.org/abs/2601.02151&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/netikas"&gt; /u/netikas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-09T13:39:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q8fagh</id>
-    <title>RTX Blackwell Pro 6000 wholesale pricing has dropped by $150-200</title>
-    <updated>2026-01-09T17:57:11+00:00</updated>
-    <author>
-      <name>/u/TastesLikeOwlbear</name>
-      <uri>https://old.reddit.com/user/TastesLikeOwlbear</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Obviously the RTX Blackwell Pro 6000 cards are of great interest to the people here. I see them come up a lot. And we all ooh and ahh over the people that have 8 of them lined up in a nice row.&lt;/p&gt; &lt;p&gt;It also seems to me like the market is suffering from lack of transparency on these.&lt;/p&gt; &lt;p&gt;My employer buys these cards wholesale, and I can see current pricing and stock in our distributors' systems. (And I &lt;strong&gt;may have&lt;/strong&gt; slipped in an order for one for myself...) It's eye-opening.&lt;/p&gt; &lt;p&gt;I'm probably not supposed to disclose the exact price we buy these at. But I wanted people to know that unlike everything else with RAM in it, the wholesale price of these has &lt;strong&gt;dropped&lt;/strong&gt; by about ~$150-200 from December to January.&lt;/p&gt; &lt;p&gt;I will also say that the wholesale price for the 6000 Pro is only about $600 higher than the wholesale price for the new 72GiB 5000 Pro. So, for the love of god, please don't buy that!&lt;/p&gt; &lt;p&gt;(And no, this is &lt;strong&gt;not&lt;/strong&gt; marketing or an ad; I &lt;strong&gt;cannot&lt;/strong&gt; sell &lt;strong&gt;anyone&lt;/strong&gt; these cards at &lt;strong&gt;any&lt;/strong&gt; price. I would be fired immediately. I just want people to have the best available information when they're looking to buy something this expensive.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TastesLikeOwlbear"&gt; /u/TastesLikeOwlbear &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8fagh/rtx_blackwell_pro_6000_wholesale_pricing_has/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8fagh/rtx_blackwell_pro_6000_wholesale_pricing_has/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8fagh/rtx_blackwell_pro_6000_wholesale_pricing_has/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-09T17:57:11+00:00</published>
+    <published>2026-01-10T15:47:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1q89g1i</id>
@@ -125,6 +112,19 @@
     <published>2026-01-10T17:41:32+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q9csk3</id>
+    <title>Offloom Update, private web searching RAG added. My personal, locally powered, privacy first chatbot that uses small language models yet still somehow returns quality answers. Apparently SLMs paired with agentic behavior can compete with chatGPT</title>
+    <updated>2026-01-10T19:15:51+00:00</updated>
+    <author>
+      <name>/u/Little-Put6364</name>
+      <uri>https://old.reddit.com/user/Little-Put6364</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9csk3/offloom_update_private_web_searching_rag_added_my/"&gt; &lt;img alt="Offloom Update, private web searching RAG added. My personal, locally powered, privacy first chatbot that uses small language models yet still somehow returns quality answers. Apparently SLMs paired with agentic behavior can compete with chatGPT" src="https://external-preview.redd.it/c2o2am53Y2hra2NnMT4Y6BQ8jdJqfQ-1VABkhNdVh0RAKUk7WqR4J_3U91_y.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=adb66c65441112a69210f0c68866a5494ac09a9e" title="Offloom Update, private web searching RAG added. My personal, locally powered, privacy first chatbot that uses small language models yet still somehow returns quality answers. Apparently SLMs paired with agentic behavior can compete with chatGPT" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on my own private chatbot for awhile now. I wanted a private, locally hosted chatbot that I could use in place of chatGPT. I already have document RAG working very well, and figured the next logical step was to bundle a private web searching framework alongside it. &lt;/p&gt; &lt;p&gt;I'm a windows user, so searXNG isn't necessarily embeddable into this application while still allowing a one click download for an end user. So I choose Whoogle instead.&lt;/p&gt; &lt;p&gt;This is fully runnable on my 4090 (I think it would work on 12GB VRAM as well I just don't have a machine for testing that). It uses an agentic approach juggling between multiple models to ensure quality answers. The powerhouse model is Qwen 8B thinking model. Which gives surprisingly good results when context is engineered properly. &lt;/p&gt; &lt;p&gt;Offloom is now capable of document and web search RAG as well as image generation using comfyUI as a sidecar process. I've evolved the idea away from just simply a chatbot and want to create a local 'entertainment' center. So future plans include the ability to agentically generate coherent short stories, comics, music, text adventures, and who knows what else lol. &lt;/p&gt; &lt;p&gt;&lt;em&gt;This isn't a public project. It's simply a learning platform for me to mess around with while still being pleasant to use. I wasn't convinced I'd be able to replace chatGPT up until thinking models came into being. Now quality answers happen the vast majority of the time meaning this project went from learning to something I can actually use.&lt;/em&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Little-Put6364"&gt; /u/Little-Put6364 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/2084smchkkcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9csk3/offloom_update_private_web_searching_rag_added_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9csk3/offloom_update_private_web_searching_rag_added_my/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T19:15:51+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q911fj</id>
     <title>Choosing a GGUF Model: K-Quants, I-Quants, and Legacy Formats</title>
     <updated>2026-01-10T10:42:09+00:00</updated>
@@ -151,19 +151,6 @@
     <published>2026-01-10T06:52:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9by7w</id>
-    <title>Preview logprobs in Open WebUI</title>
-    <updated>2026-01-10T18:44:05+00:00</updated>
-    <author>
-      <name>/u/Everlier</name>
-      <uri>https://old.reddit.com/user/Everlier</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt; &lt;img alt="Preview logprobs in Open WebUI" src="https://external-preview.redd.it/dWwycnFtMGJla2NnMaEwWMFVZEhNLMuQhxpftmmu_kTUOseThBPm8C0qkT1T.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=492a7ba88c5b57f4f44c2ee4148af4eadd5bada1" title="Preview logprobs in Open WebUI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;What is this?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A specially crafted HTML artifact that connects back to the custom OpenAI-compatible proxy and listens to the same chunks as displayed in the UI itself, but with the logprobs data. Tokens outside of top 25% bucket are highlighted when chosen.&lt;/p&gt; &lt;p&gt;You can find the source here: &lt;a href="https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py"&gt;https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/pecxh50bekcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:44:05+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q8tdcz</id>
     <title>Introducing "UITPSDT" a novel approach to runtime efficiency in organic agents</title>
     <updated>2026-01-10T03:30:19+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8tdcz/introducing_uitpsdt_a_novel_approach_to_runtime/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T03:30:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9by7w</id>
+    <title>Preview logprobs in Open WebUI</title>
+    <updated>2026-01-10T18:44:05+00:00</updated>
+    <author>
+      <name>/u/Everlier</name>
+      <uri>https://old.reddit.com/user/Everlier</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt; &lt;img alt="Preview logprobs in Open WebUI" src="https://external-preview.redd.it/dWwycnFtMGJla2NnMaEwWMFVZEhNLMuQhxpftmmu_kTUOseThBPm8C0qkT1T.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=492a7ba88c5b57f4f44c2ee4148af4eadd5bada1" title="Preview logprobs in Open WebUI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;What is this?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A specially crafted HTML artifact that connects back to the custom OpenAI-compatible proxy and listens to the same chunks as displayed in the UI itself, but with the logprobs data. Tokens outside of top 25% bucket are highlighted when chosen.&lt;/p&gt; &lt;p&gt;You can find the source here: &lt;a href="https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py"&gt;https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/pecxh50bekcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:44:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1q97081</id>
@@ -190,19 +190,6 @@
     <published>2026-01-10T15:32:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9bj5j</id>
-    <title>I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)</title>
-    <updated>2026-01-10T18:28:17+00:00</updated>
-    <author>
-      <name>/u/bullmeza</name>
-      <uri>https://old.reddit.com/user/bullmeza</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt; &lt;img alt="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" src="https://preview.redd.it/yrb4rq69ekcg1.gif?width=640&amp;amp;crop=smart&amp;amp;s=22c6cdbfa015e9f0b501163a5ab174d6aa588f3f" title="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built Screen Vision, an &lt;strong&gt;open source website&lt;/strong&gt; that guides you through any task by screen sharing with AI.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Privacy Focused:&lt;/strong&gt; Your screen data is &lt;strong&gt;never&lt;/strong&gt; stored or used to train models. &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Local LLM Support:&lt;/strong&gt; If you don't trust cloud APIs, the app has a &amp;quot;Local Mode&amp;quot; that connects to local AI models running on your own machine. Your data never leaves your computer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Web-Native:&lt;/strong&gt; No desktop app or extension required. Works directly on your browser.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How it works:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Instruction &amp;amp; Grounding:&lt;/strong&gt; The system uses GPT-5.2 to determine the next logical step based on your goal and current screen state. These instructions are then passed to Qwen 3VL (30B), which identifies the exact screen coordinates for the action.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Visual Verification:&lt;/strong&gt; The app monitors your screen for changes every 200ms using a pixel-comparison loop. Once a change is detected, it compares before and after snapshots using Gemini 3 Flash to confirm the step was completed successfully before automatically moving to the next task.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Source Code:&lt;/strong&gt; &lt;a href="https://github.com/bullmeza/screen.vision"&gt;https://github.com/bullmeza/screen.vision&lt;/a&gt;&lt;br /&gt; &lt;strong&gt;Demo:&lt;/strong&gt; &lt;a href="https://screen.vision/"&gt;https://screen.vision&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’m looking for feedback, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullmeza"&gt; /u/bullmeza &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/yrb4rq69ekcg1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:28:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q8hqgd</id>
     <title>I clustered 3 DGX Sparks that NVIDIA said couldn't be clustered yet...took 1500 lines of C to make it work</title>
     <updated>2026-01-09T19:27:29+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8hqgd/i_clustered_3_dgx_sparks_that_nvidia_said_couldnt/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-09T19:27:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9bj5j</id>
+    <title>I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)</title>
+    <updated>2026-01-10T18:28:17+00:00</updated>
+    <author>
+      <name>/u/bullmeza</name>
+      <uri>https://old.reddit.com/user/bullmeza</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt; &lt;img alt="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" src="https://preview.redd.it/yrb4rq69ekcg1.gif?width=640&amp;amp;crop=smart&amp;amp;s=22c6cdbfa015e9f0b501163a5ab174d6aa588f3f" title="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built Screen Vision, an &lt;strong&gt;open source website&lt;/strong&gt; that guides you through any task by screen sharing with AI.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Privacy Focused:&lt;/strong&gt; Your screen data is &lt;strong&gt;never&lt;/strong&gt; stored or used to train models. &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Local LLM Support:&lt;/strong&gt; If you don't trust cloud APIs, the app has a &amp;quot;Local Mode&amp;quot; that connects to local AI models running on your own machine. Your data never leaves your computer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Web-Native:&lt;/strong&gt; No desktop app or extension required. Works directly on your browser.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How it works:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Instruction &amp;amp; Grounding:&lt;/strong&gt; The system uses GPT-5.2 to determine the next logical step based on your goal and current screen state. These instructions are then passed to Qwen 3VL (30B), which identifies the exact screen coordinates for the action.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Visual Verification:&lt;/strong&gt; The app monitors your screen for changes every 200ms using a pixel-comparison loop. Once a change is detected, it compares before and after snapshots using Gemini 3 Flash to confirm the step was completed successfully before automatically moving to the next task.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Source Code:&lt;/strong&gt; &lt;a href="https://github.com/bullmeza/screen.vision"&gt;https://github.com/bullmeza/screen.vision&lt;/a&gt;&lt;br /&gt; &lt;strong&gt;Demo:&lt;/strong&gt; &lt;a href="https://screen.vision/"&gt;https://screen.vision&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’m looking for feedback, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullmeza"&gt; /u/bullmeza &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/yrb4rq69ekcg1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:28:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9bnqc</id>
