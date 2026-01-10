@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-10T18:43:42+00:00</updated>
+  <updated>2026-01-10T18:54:53+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1q97dky</id>
-    <title>Entropy-Adaptive Finetuning</title>
-    <updated>2026-01-10T15:47:29+00:00</updated>
+    <id>t3_1q9by7w</id>
+    <title>Preview logprobs in Open WebUI</title>
+    <updated>2026-01-10T18:44:05+00:00</updated>
     <author>
-      <name>/u/netikas</name>
-      <uri>https://old.reddit.com/user/netikas</uri>
+      <name>/u/Everlier</name>
+      <uri>https://old.reddit.com/user/Everlier</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys! I did a review on a recent paper for my peers and decided it would be cool to post it here too. This is a translation from Russian via opus 4.5, I’ve checked everything, but some mistakes might have slipped. Sorry for that!&lt;/p&gt; &lt;p&gt;___&lt;/p&gt; &lt;p&gt;Fine-tuning models is hard. My master’s thesis advisor once said it’s more alchemy than science — I don’t fully agree, but there’s something to it. Wrong hyperparameters — model diverged. Dataset too small — model diverged. Too many epochs — model diverged. Used a dataset with a distribution too different from pretraining — model forgot everything it learned during previous stages, then diverged.&lt;/p&gt; &lt;p&gt;Naturally, this state of affairs doesn’t sit well with us, so people started devising methods to work around this problem. In GOLD guys from HF used distillation from the model before finetuning to restore the quality of finetuned model on a general domain — but that adds extra complexity to the training recipe, which we’d rather avoid. Today’s paper attempts to solve the problem of catastrophic forgetting during SFT without additional steps — just through a small modification to the loss.&lt;/p&gt; &lt;p&gt;Consider the standard SFT loss — cross-entropy. We train the model to approximate logprobs for the entire target sequence equally for each token, regardless of whether the tokens are “beneficial” or “harmful” for the model. So if a token’s signal happens to be “harmful,” the model will learn from it just like from all others, leading to forgetting.&lt;/p&gt; &lt;p&gt;The authors define token “harmfulness” as follows: low entropy and confidence within top-K means the model is confident about which token it wants to pick (low entropy), but this token doesn’t match the label (low label probability at that position). This creates a confident conflict — the model learned some bias during pretraining, and now during SFT this bias isn’t confirmed, essentially making it OOD. Consequently, training produces large gradients, weights change significantly, and we risk forgetting part of the pretraining knowledge.&lt;/p&gt; &lt;p&gt;As a preliminary experiment, the authors tried training the model while masking 15% of tokens with the lowest confidence and probability — and got significantly less catastrophic forgetting compared to base SFT. However, the model also learned less, so a more precise approach is needed.&lt;/p&gt; &lt;p&gt;As an improvement, the authors decided to modify standard cross-entropy with an adaptive gating mechanism — they simply multiplied the logarithm in the loss by H_t / ln(K), where H_t is the entropy over top-K, and ln(K) is the maximum entropy over top-K. So when entropy is low, the coefficient approaches zero, the loss scales down, and the model changes its weights less. Meanwhile, when entropy is high, the coefficient approaches one, and the model learns as usual. Since this is done per-token, gradients change not in scale (as they would with lower lr in SGD, for example) but in direction (since different tokens have different scales), and the model forgets less. Very elegant.&lt;/p&gt; &lt;p&gt;For experiments, they trained Qwen3-4b-Instruct, Qwen-2.5-32b-Instruct, and GLM4-9b-0414 on math, medical, and function calling, measuring the quality on these domains and some general benchmarks (MMLU, IFEval, etc) to see how much the model learns and forgets. Baselines included vanilla SFT, SFT with KL-divergence (KL was calculated in relevance to the original model), FLOW (per-sequence downweighting of dangerous samples, as I understand it), DFT (scaling loss by token probability instead of entropy), and TALR (scaling per-token loss based on gradient norm). The proposed method turned out to be the best in regards to forgetting-learning ratio among all tested approaches.&lt;/p&gt; &lt;p&gt;Additionally, the authors checked what happens if you use f(H_t) instead of H_t as the coefficient—maybe the scaling is actually nonlinear. They tried H_t^p, Sigmoid(H_t), and the aforementioned Masked SFT, but the vanilla approach proved best.&lt;/p&gt; &lt;p&gt;My thoughts:&lt;/p&gt; &lt;p&gt;- It’s rare that such a simple and elegant idea works. Huge respect to the authors.&lt;/p&gt; &lt;p&gt;- I think there will be problems when using a very different domain — for example, when adapting a model to another language, the model will not train as well since it’ll be OOD for it.&lt;/p&gt; &lt;p&gt;- An even bigger problem will emerge when switching to text that tokenizes worse. For instance, in Russian, English-centric models have many more tokens per word—so the word “выкобениваться” (a longer slang word, which is rarely used so is not really prevalent in the pretraining corpus) will have low entropy with low label probability on all tokens except the first — again, it’s a rare word, and continuing a word is easier than starting it. This means the whole sequence loss will shift, and something nasty might emerge. Word boundaries will also be problematic — as the model expects a different language and different tokens, it won’t learn to start words in the new language.&lt;/p&gt; &lt;p&gt;- Despite all this, it looks like a decent and relatively cheap way to improve robustness for small domain-specific tunes. Something like Gemma really needs this, because that model is fragile and easy to break.&lt;/p&gt; &lt;p&gt;Here’s the link to the paper, if you’re interested: &lt;a href="https://www.arxiv.org/abs/2601.02151"&gt;https://www.arxiv.org/abs/2601.02151&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/netikas"&gt; /u/netikas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt; &lt;img alt="Preview logprobs in Open WebUI" src="https://external-preview.redd.it/dWwycnFtMGJla2NnMaEwWMFVZEhNLMuQhxpftmmu_kTUOseThBPm8C0qkT1T.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=492a7ba88c5b57f4f44c2ee4148af4eadd5bada1" title="Preview logprobs in Open WebUI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;What is this?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A specially crafted HTML artifact that connects back to the custom OpenAI-compatible proxy and listens to the same chunks as displayed in the UI itself, but with the logprobs data. Tokens outside of top 25% bucket are highlighted when chosen.&lt;/p&gt; &lt;p&gt;You can find the source here: &lt;a href="https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py"&gt;https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/pecxh50bekcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T15:47:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q9bs8k</id>
-    <title>Not Sure Where to Start</title>
-    <updated>2026-01-10T18:37:44+00:00</updated>
-    <author>
-      <name>/u/Psychological-Ad5390</name>
-      <uri>https://old.reddit.com/user/Psychological-Ad5390</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently purchased a pretty good laptop for a non-AI project I’m working on. Specs are:&lt;/p&gt; &lt;p&gt;-Processor Intel® Core™ Ultra 9 275HX Processor (E-cores up to 4.60 GHz P-cores up to 5.40 GHz)&lt;/p&gt; &lt;p&gt;-Laptop GPU 24GB GDDR7&lt;/p&gt; &lt;p&gt;-Memory 128 GB DDR5-4000MT/s (SODIMM)(4 x 32 GB)&lt;/p&gt; &lt;p&gt;I’m very familiar with commercial AI products, but have almost bought clue about running local models, or even whether there would be any utility in me doing so. &lt;/p&gt; &lt;p&gt;I am an attorney by trade, so running a local model has some appeal. Otherwise, I’m tied to fairly expensive solutions for security and confidential reasons. &lt;/p&gt; &lt;p&gt;My question is, is it worth looking into local models to help me with my practice—maybe with automating tasks or helping with writing? I honestly have no idea whether and how to best look at a local solution. I do have some small coding experience. &lt;/p&gt; &lt;p&gt;Anyway, I’d love some feedback. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Psychological-Ad5390"&gt; /u/Psychological-Ad5390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:37:44+00:00</published>
+    <published>2026-01-10T18:44:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1q88hdc</id>
@@ -138,17 +125,30 @@
     <published>2026-01-10T12:18:41+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9bgxn</id>
-    <title>Anyone is using AI personal life management?</title>
-    <updated>2026-01-10T18:25:53+00:00</updated>
+    <id>t3_1q9bnqc</id>
+    <title>RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)</title>
+    <updated>2026-01-10T18:33:05+00:00</updated>
     <author>
-      <name>/u/rumboll</name>
-      <uri>https://old.reddit.com/user/rumboll</uri>
+      <name>/u/3090orBust</name>
+      <uri>https://old.reddit.com/user/3090orBust</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There's a concept that attracts me so much: AI can make life a game, that the daily, weekly, quarter, annual goals can be tracked automatically and managed by AI. Basically, I will write daily report to AI, and it will measure where I am, my daily progress, and what should be my priority tomorrow. Most importantly, all my progresses will be counted and quantified. &lt;/p&gt; &lt;p&gt;Is there anyone already using a similar system? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rumboll"&gt; /u/rumboll &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bgxn/anyone_is_using_ai_personal_life_management/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bgxn/anyone_is_using_ai_personal_life_management/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bgxn/anyone_is_using_ai_personal_life_management/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt; &lt;img alt="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" src="https://external-preview.redd.it/o9dwYZagSuAh6lGApyCDxDEoIhgXfz9GzoXhVGYG6FI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb419ac1006074d3e7d893a55075c0de8698965" title="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3090orBust"&gt; /u/3090orBust &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/RTX-50-Super-GPUs-may-be-delayed-indefinitely-as-Nvidia-prioritizes-AI-during-memory-shortage.1199980.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:25:53+00:00</published>
+    <published>2026-01-10T18:33:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9bs8k</id>
+    <title>Not Sure Where to Start</title>
+    <updated>2026-01-10T18:37:44+00:00</updated>
+    <author>
+      <name>/u/Psychological-Ad5390</name>
+      <uri>https://old.reddit.com/user/Psychological-Ad5390</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently purchased a pretty good laptop for a non-AI project I’m working on. Specs are:&lt;/p&gt; &lt;p&gt;-Processor Intel® Core™ Ultra 9 275HX Processor (E-cores up to 4.60 GHz P-cores up to 5.40 GHz)&lt;/p&gt; &lt;p&gt;-Laptop GPU 24GB GDDR7&lt;/p&gt; &lt;p&gt;-Memory 128 GB DDR5-4000MT/s (SODIMM)(4 x 32 GB)&lt;/p&gt; &lt;p&gt;I’m very familiar with commercial AI products, but have almost bought clue about running local models, or even whether there would be any utility in me doing so. &lt;/p&gt; &lt;p&gt;I am an attorney by trade, so running a local model has some appeal. Otherwise, I’m tied to fairly expensive solutions for security and confidential reasons. &lt;/p&gt; &lt;p&gt;My question is, is it worth looking into local models to help me with my practice—maybe with automating tasks or helping with writing? I honestly have no idea whether and how to best look at a local solution. I do have some small coding experience. &lt;/p&gt; &lt;p&gt;Anyway, I’d love some feedback. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Psychological-Ad5390"&gt; /u/Psychological-Ad5390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:37:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9bj5j</id>
@@ -190,19 +190,6 @@
     <published>2026-01-10T06:52:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q97081</id>
-    <title>Quantized KV Cache</title>
-    <updated>2026-01-10T15:32:47+00:00</updated>
-    <author>
-      <name>/u/val_in_tech</name>
-      <uri>https://old.reddit.com/user/val_in_tech</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Have you tried to compare different quantized KV options for your local models? What's considered a sweet spot? Is performance degradation consistent across different models or is it very model specific?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/val_in_tech"&gt; /u/val_in_tech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T15:32:47+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q8tdcz</id>
     <title>Introducing "UITPSDT" a novel approach to runtime efficiency in organic agents</title>
     <updated>2026-01-10T03:30:19+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8tdcz/introducing_uitpsdt_a_novel_approach_to_runtime/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T03:30:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q97081</id>
+    <title>Quantized KV Cache</title>
+    <updated>2026-01-10T15:32:47+00:00</updated>
+    <author>
+      <name>/u/val_in_tech</name>
+      <uri>https://old.reddit.com/user/val_in_tech</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Have you tried to compare different quantized KV options for your local models? What's considered a sweet spot? Is performance degradation consistent across different models or is it very model specific?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/val_in_tech"&gt; /u/val_in_tech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97081/quantized_kv_cache/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T15:32:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1q8hqgd</id>
