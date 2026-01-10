@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-10T09:24:42+00:00</updated>
+  <updated>2026-01-10T09:36:43+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1q8mwqy</id>
-    <title>Fable: Canon + Loop hybrid beats baseline and pure Canon at toy scale (1.1m)</title>
-    <updated>2026-01-09T22:47:11+00:00</updated>
-    <author>
-      <name>/u/Kasidra</name>
-      <uri>https://old.reddit.com/user/Kasidra</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8mwqy/fable_canon_loop_hybrid_beats_baseline_and_pure/"&gt; &lt;img alt="Fable: Canon + Loop hybrid beats baseline and pure Canon at toy scale (1.1m)" src="https://b.thumbs.redditmedia.com/7DBr9vAfHkqoxlrLV5v6UxuEzeJ1kptTcVBJ60H6fhI.jpg" title="Fable: Canon + Loop hybrid beats baseline and pure Canon at toy scale (1.1m)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello! I enjoy playing with toy models. A quick disclaimer: I am a noob that's only been playing with models for a few months. Opus 4.5 wrote all my code, but the ideas were my own. Have mercy.&lt;/p&gt; &lt;p&gt;I present **Fable**, a toy-size language model (128dim, 4 layer, 2 head, ~1.1m parameters) where the first two layers use Canon, and the final two layers loop twice.&lt;/p&gt; &lt;p&gt;I was inspired by these two papers:&lt;/p&gt; &lt;p&gt;*Physics of Language Models: Part 4.1, Architecture Design and the Magic of Canon Layers*&lt;br /&gt; &lt;a href="https://arxiv.org/abs/2512.17351"&gt;https://arxiv.org/abs/2512.17351&lt;/a&gt;&lt;/p&gt; &lt;p&gt;*Scaling Latent Reasoning via Looped Language Models*&lt;br /&gt; &lt;a href="https://arxiv.org/abs/2510.25741"&gt;https://arxiv.org/abs/2510.25741&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I trained 4 models simultaneously with the same hyperparameters:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;A baseline model (1,104,640 params) – just standard transformer architecture.&lt;/li&gt; &lt;li&gt;A loop model (1,104,640 params) - a baseline model that loops through itself once, so it sees layers a total of 8 times instead of 4.&lt;/li&gt; &lt;li&gt;A canon model (1,106,176 params) - all 4 layers have the canon layers, which allow the previous two tokens to influence the current.&lt;/li&gt; &lt;li&gt;My hybrid, Fable (1,105,408 params) - the first two layers utilize canon, and the last two layers loop twice (0 1 2 3 2 3 2 3), so it sees layers 8 times instead of 4.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;While I was playing around with canon layers and loops separately, I made a few observations:&lt;/p&gt; &lt;p&gt;- The early canon layers seemed a lot more important when I was messing with ablating them. This makes sense to me, because by the end it's just trying to make the next token, whereas the canon information is more useful earlier on in the decision-making. With small models the difference between looking back 2 tokens vs 3 was negligible for me, so I left it at 2.&lt;br /&gt; - Loops only beat baseline when the model had to &amp;quot;try&amp;quot;. Like training a big model on TinyStories, the looping was just unneeded and harmed loss. But when the model was very small and struggling with the training data, they seemed to help.&lt;/p&gt; &lt;p&gt;So after these observations I decided to try combining them! Canon layers early on for that extra information, and then looping the final two layers for that extra thinking power.&lt;/p&gt; &lt;p&gt;My final loss numbers were:&lt;br /&gt; Baseline: 2.2027&lt;br /&gt; Loop: 2.1447&lt;br /&gt; Canon: 2.0897&lt;br /&gt; **Fable: 2.0492**&lt;/p&gt; &lt;p&gt;Fable actually won! Not by a lot, but consistently. It always started behind pure canon, but then caught up and never gave up the lead. This also occurred when I originally tried this with 64 dim models.&lt;/p&gt; &lt;p&gt;I have no idea if this scales.&lt;/p&gt; &lt;p&gt;**Training**&lt;/p&gt; &lt;p&gt;I trained the model on modified TinyStories. I wanted to make it into a rudimentary chatbot because it's cooler. An example training line:&lt;/p&gt; &lt;p&gt;`​`​`&lt;br /&gt; {&amp;quot;text&amp;quot;: &amp;quot;&amp;lt;|user|&amp;gt;Will you make a story, please?&amp;lt;|EOT|&amp;gt;&amp;lt;|fable|&amp;gt;Once upon a time…[insert TinyStories line here]&amp;lt;|EOT|&amp;gt;&amp;quot;}&lt;br /&gt; `​`​`&lt;/p&gt; &lt;p&gt;Outside of making stories, it knows its name, its hyperparameters, and how to say hello and goodbye. Its conversational skills are not generalized, so don't expect much. Mostly… just say hello and ask it &amp;quot;Tell me a story.&amp;quot; 😂&lt;/p&gt; &lt;p&gt;An example conversation I had with Fable:&lt;/p&gt; &lt;p&gt;**User:** What's your name?&lt;br /&gt; **Fable:** My name is Fable, I am a small language model trained to write short stories.&lt;br /&gt; **User:** Write me a story, please.&lt;br /&gt; **Fable:** Once upon a time there was a little girl named Lily who loved to play outside in the garden. One day, she found a shiny ship on it and picked it up. It was so big that it started to twist it up.&lt;br /&gt; Lily ran inside her house and saw something wonderful - some other children playing together! She picked it up and showed it to them and thanked him for his fun and decided to go back home. Lily watched as all of her friends played together all day long afternoon, laughing and doing lots of tries to fly.&lt;br /&gt; When they were done the end of their adventure, Lily felt jealous because she had been able to keep the warm blue ship safe. She was very happy she hugged her parents and they both smiled. The moral of the story is that not matter how beautiful you can use things we will get lost or safe again.&lt;br /&gt; **User:** Thanks.&lt;br /&gt; **Fable:** You're welcome.&lt;/p&gt; &lt;p&gt;…She tried her best xD&lt;/p&gt; &lt;p&gt;If you want to mess with this all, you can find the files on GitHub:&lt;br /&gt; &lt;a href="https://github.com/xkasidra/Fable"&gt;https://github.com/xkasidra/Fable&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I've included the python for each model, the training script I used, and the final weights/tokenizer for Fable specifically, along with a simple Gradio interface to chat with it.&lt;/p&gt; &lt;p&gt;Thanks for reading 🖤&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/gtaf9e1rjecg1.png?width=878&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0127412fa549bb247fdc498d8301b386904f903b"&gt;Pretty loss :D&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kasidra"&gt; /u/Kasidra &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8mwqy/fable_canon_loop_hybrid_beats_baseline_and_pure/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8mwqy/fable_canon_loop_hybrid_beats_baseline_and_pure/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8mwqy/fable_canon_loop_hybrid_beats_baseline_and_pure/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-09T22:47:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q8u2gj</id>
-    <title>AMD AI Lemonade Server - Community Mobile App</title>
-    <updated>2026-01-10T04:04:30+00:00</updated>
-    <author>
-      <name>/u/TheOriginalG2</name>
-      <uri>https://old.reddit.com/user/TheOriginalG2</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello all Strix Halo users I am a contributor to lemonade-server and Lemonade Mobile an AMD sponsored local llm server. We have released a mobile app specific for the lemonade-server that is also free. We would like to invite any Android users to send me a message directly to be a tester as it's a requirement from Google before we may submit it for review for release.&lt;/p&gt; &lt;p&gt;Android Test Url: &lt;a href="https://play.google.com/apps/internaltest/4700912028661106414/join?hl=en-US"&gt;https://play.google.com/apps/internaltest/4700912028661106414/join?hl=en-US&lt;/a&gt;&lt;/p&gt; &lt;p&gt;iOS Store Url: &lt;a href="https://apps.apple.com/us/app/lemonade-mobile/id6757372210"&gt;https://apps.apple.com/us/app/lemonade-mobile/id6757372210&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Repository: &lt;a href="https://github.com/lemonade-sdk/lemonade-mobile"&gt;https://github.com/lemonade-sdk/lemonade-mobile&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheOriginalG2"&gt; /u/TheOriginalG2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T04:04:30+00:00</published>
-  </entry>
   <entry>
     <id>t3_1q8wp6f</id>
     <title>GRPO on SFT model: reward hacking with blank / gibberish reasoning — how are you designing robust rewards?</title>
@@ -71,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8t5ie/which_openweights_model_should_i_use_for_health/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T03:19:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q8u2gj</id>
+    <title>AMD AI Lemonade Server - Community Mobile App</title>
+    <updated>2026-01-10T04:04:30+00:00</updated>
+    <author>
+      <name>/u/TheOriginalG2</name>
+      <uri>https://old.reddit.com/user/TheOriginalG2</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello all Strix Halo users I am a contributor to lemonade-server and Lemonade Mobile an AMD sponsored local llm server. We have released a mobile app specific for the lemonade-server that is also free. We would like to invite any Android users to send me a message directly to be a tester as it's a requirement from Google before we may submit it for review for release.&lt;/p&gt; &lt;p&gt;Android Test Url: &lt;a href="https://play.google.com/apps/internaltest/4700912028661106414/join?hl=en-US"&gt;https://play.google.com/apps/internaltest/4700912028661106414/join?hl=en-US&lt;/a&gt;&lt;/p&gt; &lt;p&gt;iOS Store Url: &lt;a href="https://apps.apple.com/us/app/lemonade-mobile/id6757372210"&gt;https://apps.apple.com/us/app/lemonade-mobile/id6757372210&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Repository: &lt;a href="https://github.com/lemonade-sdk/lemonade-mobile"&gt;https://github.com/lemonade-sdk/lemonade-mobile&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheOriginalG2"&gt; /u/TheOriginalG2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8u2gj/amd_ai_lemonade_server_community_mobile_app/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T04:04:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1q8aypi</id>
@@ -123,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8oa60/which_of_the_32b_models_has_the_best_reasoning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-09T23:43:41+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q8zjvw</id>
+    <title>For my RTX 5090 what are the best local image-gen and animation/video AIs right now?</title>
+    <updated>2026-01-10T09:10:28+00:00</updated>
+    <author>
+      <name>/u/TomNaughtyy</name>
+      <uri>https://old.reddit.com/user/TomNaughtyy</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve got a 5090 and I want to run generative AI locally (no cloud).&lt;/p&gt; &lt;p&gt;I’m looking for suggestions on: &lt;/p&gt; &lt;p&gt;Image generation (text-to-image, image-to-image)&lt;br /&gt; Animation / video generation (text-to-video or image-to-video), if feasible locally&lt;/p&gt; &lt;p&gt;What are the best models/tools to run locally right now for quality and for speed?&lt;/p&gt; &lt;p&gt;Thank you&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TomNaughtyy"&gt; /u/TomNaughtyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8zjvw/for_my_rtx_5090_what_are_the_best_local_imagegen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q8zjvw/for_my_rtx_5090_what_are_the_best_local_imagegen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8zjvw/for_my_rtx_5090_what_are_the_best_local_imagegen/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T09:10:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1q8m89n</id>
