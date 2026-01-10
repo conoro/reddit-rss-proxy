@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-10T19:48:46+00:00</updated>
+  <updated>2026-01-10T20:07:35+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1q97dky</id>
-    <title>Entropy-Adaptive Finetuning</title>
-    <updated>2026-01-10T15:47:29+00:00</updated>
-    <author>
-      <name>/u/netikas</name>
-      <uri>https://old.reddit.com/user/netikas</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys! I did a review on a recent paper for my peers and decided it would be cool to post it here too. This is a translation from Russian via opus 4.5, I’ve checked everything, but some mistakes might have slipped. Sorry for that!&lt;/p&gt; &lt;p&gt;___&lt;/p&gt; &lt;p&gt;Fine-tuning models is hard. My master’s thesis advisor once said it’s more alchemy than science — I don’t fully agree, but there’s something to it. Wrong hyperparameters — model diverged. Dataset too small — model diverged. Too many epochs — model diverged. Used a dataset with a distribution too different from pretraining — model forgot everything it learned during previous stages, then diverged.&lt;/p&gt; &lt;p&gt;Naturally, this state of affairs doesn’t sit well with us, so people started devising methods to work around this problem. In GOLD guys from HF used distillation from the model before finetuning to restore the quality of finetuned model on a general domain — but that adds extra complexity to the training recipe, which we’d rather avoid. Today’s paper attempts to solve the problem of catastrophic forgetting during SFT without additional steps — just through a small modification to the loss.&lt;/p&gt; &lt;p&gt;Consider the standard SFT loss — cross-entropy. We train the model to approximate logprobs for the entire target sequence equally for each token, regardless of whether the tokens are “beneficial” or “harmful” for the model. So if a token’s signal happens to be “harmful,” the model will learn from it just like from all others, leading to forgetting.&lt;/p&gt; &lt;p&gt;The authors define token “harmfulness” as follows: low entropy and confidence within top-K means the model is confident about which token it wants to pick (low entropy), but this token doesn’t match the label (low label probability at that position). This creates a confident conflict — the model learned some bias during pretraining, and now during SFT this bias isn’t confirmed, essentially making it OOD. Consequently, training produces large gradients, weights change significantly, and we risk forgetting part of the pretraining knowledge.&lt;/p&gt; &lt;p&gt;As a preliminary experiment, the authors tried training the model while masking 15% of tokens with the lowest confidence and probability — and got significantly less catastrophic forgetting compared to base SFT. However, the model also learned less, so a more precise approach is needed.&lt;/p&gt; &lt;p&gt;As an improvement, the authors decided to modify standard cross-entropy with an adaptive gating mechanism — they simply multiplied the logarithm in the loss by H_t / ln(K), where H_t is the entropy over top-K, and ln(K) is the maximum entropy over top-K. So when entropy is low, the coefficient approaches zero, the loss scales down, and the model changes its weights less. Meanwhile, when entropy is high, the coefficient approaches one, and the model learns as usual. Since this is done per-token, gradients change not in scale (as they would with lower lr in SGD, for example) but in direction (since different tokens have different scales), and the model forgets less. Very elegant.&lt;/p&gt; &lt;p&gt;For experiments, they trained Qwen3-4b-Instruct, Qwen-2.5-32b-Instruct, and GLM4-9b-0414 on math, medical, and function calling, measuring the quality on these domains and some general benchmarks (MMLU, IFEval, etc) to see how much the model learns and forgets. Baselines included vanilla SFT, SFT with KL-divergence (KL was calculated in relevance to the original model), FLOW (per-sequence downweighting of dangerous samples, as I understand it), DFT (scaling loss by token probability instead of entropy), and TALR (scaling per-token loss based on gradient norm). The proposed method turned out to be the best in regards to forgetting-learning ratio among all tested approaches.&lt;/p&gt; &lt;p&gt;Additionally, the authors checked what happens if you use f(H_t) instead of H_t as the coefficient—maybe the scaling is actually nonlinear. They tried H_t^p, Sigmoid(H_t), and the aforementioned Masked SFT, but the vanilla approach proved best.&lt;/p&gt; &lt;p&gt;My thoughts:&lt;/p&gt; &lt;p&gt;- It’s rare that such a simple and elegant idea works. Huge respect to the authors.&lt;/p&gt; &lt;p&gt;- I think there will be problems when using a very different domain — for example, when adapting a model to another language, the model will not train as well since it’ll be OOD for it.&lt;/p&gt; &lt;p&gt;- An even bigger problem will emerge when switching to text that tokenizes worse. For instance, in Russian, English-centric models have many more tokens per word—so the word “выкобениваться” (a longer slang word, which is rarely used so is not really prevalent in the pretraining corpus) will have low entropy with low label probability on all tokens except the first — again, it’s a rare word, and continuing a word is easier than starting it. This means the whole sequence loss will shift, and something nasty might emerge. Word boundaries will also be problematic — as the model expects a different language and different tokens, it won’t learn to start words in the new language.&lt;/p&gt; &lt;p&gt;- Despite all this, it looks like a decent and relatively cheap way to improve robustness for small domain-specific tunes. Something like Gemma really needs this, because that model is fragile and easy to break.&lt;/p&gt; &lt;p&gt;Here’s the link to the paper, if you’re interested: &lt;a href="https://www.arxiv.org/abs/2601.02151"&gt;https://www.arxiv.org/abs/2601.02151&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/netikas"&gt; /u/netikas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T15:47:29+00:00</published>
-  </entry>
   <entry>
     <id>t3_1q89g1i</id>
     <title>DeepSeek V4 Coming</title>
@@ -34,6 +21,19 @@
     <published>2026-01-09T14:18:56+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q9dh54</id>
+    <title>Built a personal knowledge system with nomic-embed-text + LanceDB - 106K vectors, 256ms queries</title>
+    <updated>2026-01-10T19:41:52+00:00</updated>
+    <author>
+      <name>/u/Signal_Usual8630</name>
+      <uri>https://old.reddit.com/user/Signal_Usual8630</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Embedded 3 years of my AI conversations (353K messages) to make them searchable by concept, not just keywords.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;nomic-embed-text-v1.5 (768 dims, runs on Apple Silicon MPS)&lt;/li&gt; &lt;li&gt;LanceDB for vector storage&lt;/li&gt; &lt;li&gt;DuckDB for analytics&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Performance:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;106K vectors in 440MB&lt;/li&gt; &lt;li&gt;256ms semantic search&lt;/li&gt; &lt;li&gt;13-15 msg/sec embedding throughput on M4 Mac&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Key learning:&lt;/strong&gt; Started with DuckDB VSS extension. Accidentally created duplicate HNSW indexes - ended up with 14GB for 300MB of actual data. Migrated to LanceDB, same vectors in 440MB. 32x smaller.&lt;/p&gt; &lt;p&gt;Open source: &lt;a href="https://github.com/mordechaipotash/intellectual-dna"&gt;https://github.com/mordechaipotash/intellectual-dna&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Signal_Usual8630"&gt; /u/Signal_Usual8630 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T19:41:52+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q8uyhj</id>
     <title>I built a 100% local Audio RAG pipeline to index 4-hour city council meetings. Runs on an RTX 2060. (Whisper + Ollama + ChromaDB)</title>
     <updated>2026-01-10T04:48:34+00:00</updated>
@@ -45,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8uyhj/i_built_a_100_local_audio_rag_pipeline_to_index/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T04:48:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9dvkv</id>
+    <title>Workflow: Bypassing 2FA/Captchas for local web agents (Llama 3/Browser Use) by syncing Chrome cookies</title>
+    <updated>2026-01-10T19:57:34+00:00</updated>
+    <author>
+      <name>/u/Bubbly_Gap6378</name>
+      <uri>https://old.reddit.com/user/Bubbly_Gap6378</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building local agents using Llama 3 and &lt;code&gt;browser-use&lt;/code&gt; to automate some tasks on LinkedIn and Gmail.&lt;/p&gt; &lt;p&gt;The biggest headache I hit was that the agents kept getting blocked by login screens or 2FA prompts. I didn't want to use paid APIs, and hardcoding cookies into my &lt;code&gt;.env&lt;/code&gt; file kept breaking because the sessions would expire every few days.&lt;/p&gt; &lt;p&gt;I realized the easiest fix was to just &amp;quot;borrow&amp;quot; the active session from my local Chrome browser.&lt;/p&gt; &lt;p&gt;I wrote a quick Python SDK that:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Grabs the encrypted cookies from your local Chrome profile.&lt;/li&gt; &lt;li&gt;Decrypts them locally.&lt;/li&gt; &lt;li&gt;Injects them into Playwright/Selenium so the agent starts &amp;quot;logged in.&amp;quot;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;It’s working well for my Llama 3 + Playwright setup. It’s open source if anyone else is hitting the same wall with their local agents.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/jacobgadek/agent-auth"&gt;https://github.com/jacobgadek/agent-auth&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Has anyone found a better way to handle session persistence for long-running local agents?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Bubbly_Gap6378"&gt; /u/Bubbly_Gap6378 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dvkv/workflow_bypassing_2facaptchas_for_local_web/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dvkv/workflow_bypassing_2facaptchas_for_local_web/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dvkv/workflow_bypassing_2facaptchas_for_local_web/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T19:57:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1q96x42</id>
@@ -73,30 +86,17 @@
     <published>2026-01-10T12:18:41+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9bs8k</id>
-    <title>Not Sure Where to Start</title>
-    <updated>2026-01-10T18:37:44+00:00</updated>
+    <id>t3_1q97dky</id>
+    <title>Entropy-Adaptive Finetuning</title>
+    <updated>2026-01-10T15:47:29+00:00</updated>
     <author>
-      <name>/u/Psychological-Ad5390</name>
-      <uri>https://old.reddit.com/user/Psychological-Ad5390</uri>
+      <name>/u/netikas</name>
+      <uri>https://old.reddit.com/user/netikas</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently purchased a pretty good laptop for a non-AI project I’m working on. Specs are:&lt;/p&gt; &lt;p&gt;-Processor Intel® Core™ Ultra 9 275HX Processor (E-cores up to 4.60 GHz P-cores up to 5.40 GHz)&lt;/p&gt; &lt;p&gt;-Laptop GPU 24GB GDDR7&lt;/p&gt; &lt;p&gt;-Memory 128 GB DDR5-4000MT/s (SODIMM)(4 x 32 GB)&lt;/p&gt; &lt;p&gt;I’m very familiar with commercial AI products, but have almost bought clue about running local models, or even whether there would be any utility in me doing so. &lt;/p&gt; &lt;p&gt;I am an attorney by trade, so running a local model has some appeal. Otherwise, I’m tied to fairly expensive solutions for security and confidential reasons. &lt;/p&gt; &lt;p&gt;My question is, is it worth looking into local models to help me with my practice—maybe with automating tasks or helping with writing? I honestly have no idea whether and how to best look at a local solution. I do have some small coding experience. &lt;/p&gt; &lt;p&gt;Anyway, I’d love some feedback. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Psychological-Ad5390"&gt; /u/Psychological-Ad5390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bs8k/not_sure_where_to_start/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys! I did a review on a recent paper for my peers and decided it would be cool to post it here too. This is a translation from Russian via opus 4.5, I’ve checked everything, but some mistakes might have slipped. Sorry for that!&lt;/p&gt; &lt;p&gt;___&lt;/p&gt; &lt;p&gt;Fine-tuning models is hard. My master’s thesis advisor once said it’s more alchemy than science — I don’t fully agree, but there’s something to it. Wrong hyperparameters — model diverged. Dataset too small — model diverged. Too many epochs — model diverged. Used a dataset with a distribution too different from pretraining — model forgot everything it learned during previous stages, then diverged.&lt;/p&gt; &lt;p&gt;Naturally, this state of affairs doesn’t sit well with us, so people started devising methods to work around this problem. In GOLD guys from HF used distillation from the model before finetuning to restore the quality of finetuned model on a general domain — but that adds extra complexity to the training recipe, which we’d rather avoid. Today’s paper attempts to solve the problem of catastrophic forgetting during SFT without additional steps — just through a small modification to the loss.&lt;/p&gt; &lt;p&gt;Consider the standard SFT loss — cross-entropy. We train the model to approximate logprobs for the entire target sequence equally for each token, regardless of whether the tokens are “beneficial” or “harmful” for the model. So if a token’s signal happens to be “harmful,” the model will learn from it just like from all others, leading to forgetting.&lt;/p&gt; &lt;p&gt;The authors define token “harmfulness” as follows: low entropy and confidence within top-K means the model is confident about which token it wants to pick (low entropy), but this token doesn’t match the label (low label probability at that position). This creates a confident conflict — the model learned some bias during pretraining, and now during SFT this bias isn’t confirmed, essentially making it OOD. Consequently, training produces large gradients, weights change significantly, and we risk forgetting part of the pretraining knowledge.&lt;/p&gt; &lt;p&gt;As a preliminary experiment, the authors tried training the model while masking 15% of tokens with the lowest confidence and probability — and got significantly less catastrophic forgetting compared to base SFT. However, the model also learned less, so a more precise approach is needed.&lt;/p&gt; &lt;p&gt;As an improvement, the authors decided to modify standard cross-entropy with an adaptive gating mechanism — they simply multiplied the logarithm in the loss by H_t / ln(K), where H_t is the entropy over top-K, and ln(K) is the maximum entropy over top-K. So when entropy is low, the coefficient approaches zero, the loss scales down, and the model changes its weights less. Meanwhile, when entropy is high, the coefficient approaches one, and the model learns as usual. Since this is done per-token, gradients change not in scale (as they would with lower lr in SGD, for example) but in direction (since different tokens have different scales), and the model forgets less. Very elegant.&lt;/p&gt; &lt;p&gt;For experiments, they trained Qwen3-4b-Instruct, Qwen-2.5-32b-Instruct, and GLM4-9b-0414 on math, medical, and function calling, measuring the quality on these domains and some general benchmarks (MMLU, IFEval, etc) to see how much the model learns and forgets. Baselines included vanilla SFT, SFT with KL-divergence (KL was calculated in relevance to the original model), FLOW (per-sequence downweighting of dangerous samples, as I understand it), DFT (scaling loss by token probability instead of entropy), and TALR (scaling per-token loss based on gradient norm). The proposed method turned out to be the best in regards to forgetting-learning ratio among all tested approaches.&lt;/p&gt; &lt;p&gt;Additionally, the authors checked what happens if you use f(H_t) instead of H_t as the coefficient—maybe the scaling is actually nonlinear. They tried H_t^p, Sigmoid(H_t), and the aforementioned Masked SFT, but the vanilla approach proved best.&lt;/p&gt; &lt;p&gt;My thoughts:&lt;/p&gt; &lt;p&gt;- It’s rare that such a simple and elegant idea works. Huge respect to the authors.&lt;/p&gt; &lt;p&gt;- I think there will be problems when using a very different domain — for example, when adapting a model to another language, the model will not train as well since it’ll be OOD for it.&lt;/p&gt; &lt;p&gt;- An even bigger problem will emerge when switching to text that tokenizes worse. For instance, in Russian, English-centric models have many more tokens per word—so the word “выкобениваться” (a longer slang word, which is rarely used so is not really prevalent in the pretraining corpus) will have low entropy with low label probability on all tokens except the first — again, it’s a rare word, and continuing a word is easier than starting it. This means the whole sequence loss will shift, and something nasty might emerge. Word boundaries will also be problematic — as the model expects a different language and different tokens, it won’t learn to start words in the new language.&lt;/p&gt; &lt;p&gt;- Despite all this, it looks like a decent and relatively cheap way to improve robustness for small domain-specific tunes. Something like Gemma really needs this, because that model is fragile and easy to break.&lt;/p&gt; &lt;p&gt;Here’s the link to the paper, if you’re interested: &lt;a href="https://www.arxiv.org/abs/2601.02151"&gt;https://www.arxiv.org/abs/2601.02151&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/netikas"&gt; /u/netikas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q97dky/entropyadaptive_finetuning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:37:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q99qoz</id>
-    <title>[2509.26507] The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain</title>
-    <updated>2026-01-10T17:19:17+00:00</updated>
-    <author>
-      <name>/u/Thrumpwart</name>
-      <uri>https://old.reddit.com/user/Thrumpwart</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Thrumpwart"&gt; /u/Thrumpwart &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://arxiv.org/abs/2509.26507"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q99qoz/250926507_the_dragon_hatchling_the_missing_link/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q99qoz/250926507_the_dragon_hatchling_the_missing_link/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T17:19:17+00:00</published>
+    <published>2026-01-10T15:47:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9abdh</id>
@@ -164,19 +164,6 @@
     <published>2026-01-10T03:30:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9by7w</id>
-    <title>Preview logprobs in Open WebUI</title>
-    <updated>2026-01-10T18:44:05+00:00</updated>
-    <author>
-      <name>/u/Everlier</name>
-      <uri>https://old.reddit.com/user/Everlier</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt; &lt;img alt="Preview logprobs in Open WebUI" src="https://external-preview.redd.it/dWwycnFtMGJla2NnMaEwWMFVZEhNLMuQhxpftmmu_kTUOseThBPm8C0qkT1T.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=492a7ba88c5b57f4f44c2ee4148af4eadd5bada1" title="Preview logprobs in Open WebUI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;What is this?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A specially crafted HTML artifact that connects back to the custom OpenAI-compatible proxy and listens to the same chunks as displayed in the UI itself, but with the logprobs data. Tokens outside of top 25% bucket are highlighted when chosen.&lt;/p&gt; &lt;p&gt;You can find the source here: &lt;a href="https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py"&gt;https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/pecxh50bekcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:44:05+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q97081</id>
     <title>Quantized KV Cache</title>
     <updated>2026-01-10T15:32:47+00:00</updated>
@@ -203,30 +190,17 @@
     <published>2026-01-09T19:27:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9bnqc</id>
-    <title>RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)</title>
-    <updated>2026-01-10T18:33:05+00:00</updated>
+    <id>t3_1q9by7w</id>
+    <title>Preview logprobs in Open WebUI</title>
+    <updated>2026-01-10T18:44:05+00:00</updated>
     <author>
-      <name>/u/3090orBust</name>
-      <uri>https://old.reddit.com/user/3090orBust</uri>
+      <name>/u/Everlier</name>
+      <uri>https://old.reddit.com/user/Everlier</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt; &lt;img alt="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" src="https://external-preview.redd.it/o9dwYZagSuAh6lGApyCDxDEoIhgXfz9GzoXhVGYG6FI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb419ac1006074d3e7d893a55075c0de8698965" title="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3090orBust"&gt; /u/3090orBust &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/RTX-50-Super-GPUs-may-be-delayed-indefinitely-as-Nvidia-prioritizes-AI-during-memory-shortage.1199980.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt; &lt;img alt="Preview logprobs in Open WebUI" src="https://external-preview.redd.it/dWwycnFtMGJla2NnMaEwWMFVZEhNLMuQhxpftmmu_kTUOseThBPm8C0qkT1T.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=492a7ba88c5b57f4f44c2ee4148af4eadd5bada1" title="Preview logprobs in Open WebUI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;What is this?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A specially crafted HTML artifact that connects back to the custom OpenAI-compatible proxy and listens to the same chunks as displayed in the UI itself, but with the logprobs data. Tokens outside of top 25% bucket are highlighted when chosen.&lt;/p&gt; &lt;p&gt;You can find the source here: &lt;a href="https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py"&gt;https://github.com/av/harbor/blob/main/boost/src/modules/logprobs.py&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/pecxh50bekcg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:33:05+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1q9bj5j</id>
-    <title>I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)</title>
-    <updated>2026-01-10T18:28:17+00:00</updated>
-    <author>
-      <name>/u/bullmeza</name>
-      <uri>https://old.reddit.com/user/bullmeza</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt; &lt;img alt="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" src="https://preview.redd.it/yrb4rq69ekcg1.gif?width=640&amp;amp;crop=smart&amp;amp;s=22c6cdbfa015e9f0b501163a5ab174d6aa588f3f" title="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built Screen Vision, an &lt;strong&gt;open source website&lt;/strong&gt; that guides you through any task by screen sharing with AI.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Privacy Focused:&lt;/strong&gt; Your screen data is &lt;strong&gt;never&lt;/strong&gt; stored or used to train models. &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Local LLM Support:&lt;/strong&gt; If you don't trust cloud APIs, the app has a &amp;quot;Local Mode&amp;quot; that connects to local AI models running on your own machine. Your data never leaves your computer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Web-Native:&lt;/strong&gt; No desktop app or extension required. Works directly on your browser.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How it works:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Instruction &amp;amp; Grounding:&lt;/strong&gt; The system uses GPT-5.2 to determine the next logical step based on your goal and current screen state. These instructions are then passed to Qwen 3VL (30B), which identifies the exact screen coordinates for the action.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Visual Verification:&lt;/strong&gt; The app monitors your screen for changes every 200ms using a pixel-comparison loop. Once a change is detected, it compares before and after snapshots using Gemini 3 Flash to confirm the step was completed successfully before automatically moving to the next task.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Source Code:&lt;/strong&gt; &lt;a href="https://github.com/bullmeza/screen.vision"&gt;https://github.com/bullmeza/screen.vision&lt;/a&gt;&lt;br /&gt; &lt;strong&gt;Demo:&lt;/strong&gt; &lt;a href="https://screen.vision/"&gt;https://screen.vision&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’m looking for feedback, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullmeza"&gt; /u/bullmeza &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/yrb4rq69ekcg1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T18:28:17+00:00</published>
+    <published>2026-01-10T18:44:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1q94cbp</id>
@@ -242,6 +216,19 @@
     <published>2026-01-10T13:41:13+00:00</published>
   </entry>
   <entry>
+    <id>t3_1q9bnqc</id>
+    <title>RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)</title>
+    <updated>2026-01-10T18:33:05+00:00</updated>
+    <author>
+      <name>/u/3090orBust</name>
+      <uri>https://old.reddit.com/user/3090orBust</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt; &lt;img alt="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" src="https://external-preview.redd.it/o9dwYZagSuAh6lGApyCDxDEoIhgXfz9GzoXhVGYG6FI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb419ac1006074d3e7d893a55075c0de8698965" title="RTX 50 Super GPUs may be delayed indefinitely, as Nvidia prioritizes AI during memory shortage (rumor, nothing official)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3090orBust"&gt; /u/3090orBust &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/RTX-50-Super-GPUs-may-be-delayed-indefinitely-as-Nvidia-prioritizes-AI-during-memory-shortage.1199980.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bnqc/rtx_50_super_gpus_may_be_delayed_indefinitely_as/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:33:05+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1q8wv24</id>
     <title>GLM 5 Is Being Trained!</title>
     <updated>2026-01-10T06:28:58+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q8wv24/glm_5_is_being_trained/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T06:28:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9bj5j</id>
+    <title>I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)</title>
+    <updated>2026-01-10T18:28:17+00:00</updated>
+    <author>
+      <name>/u/bullmeza</name>
+      <uri>https://old.reddit.com/user/bullmeza</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt; &lt;img alt="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" src="https://preview.redd.it/yrb4rq69ekcg1.gif?width=640&amp;amp;crop=smart&amp;amp;s=22c6cdbfa015e9f0b501163a5ab174d6aa588f3f" title="I made a website to turn any confusing UI into a step-by-step guide via screen sharing (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built Screen Vision, an &lt;strong&gt;open source website&lt;/strong&gt; that guides you through any task by screen sharing with AI.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Privacy Focused:&lt;/strong&gt; Your screen data is &lt;strong&gt;never&lt;/strong&gt; stored or used to train models. &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Local LLM Support:&lt;/strong&gt; If you don't trust cloud APIs, the app has a &amp;quot;Local Mode&amp;quot; that connects to local AI models running on your own machine. Your data never leaves your computer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Web-Native:&lt;/strong&gt; No desktop app or extension required. Works directly on your browser.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How it works:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Instruction &amp;amp; Grounding:&lt;/strong&gt; The system uses GPT-5.2 to determine the next logical step based on your goal and current screen state. These instructions are then passed to Qwen 3VL (30B), which identifies the exact screen coordinates for the action.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Visual Verification:&lt;/strong&gt; The app monitors your screen for changes every 200ms using a pixel-comparison loop. Once a change is detected, it compares before and after snapshots using Gemini 3 Flash to confirm the step was completed successfully before automatically moving to the next task.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Source Code:&lt;/strong&gt; &lt;a href="https://github.com/bullmeza/screen.vision"&gt;https://github.com/bullmeza/screen.vision&lt;/a&gt;&lt;br /&gt; &lt;strong&gt;Demo:&lt;/strong&gt; &lt;a href="https://screen.vision/"&gt;https://screen.vision&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I’m looking for feedback, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bullmeza"&gt; /u/bullmeza &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/yrb4rq69ekcg1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9bj5j/i_made_a_website_to_turn_any_confusing_ui_into_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T18:28:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1q922fv</id>
