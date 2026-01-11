@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-11T05:51:21+00:00</updated>
+  <updated>2026-01-11T06:10:35+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1q9dh54</id>
-    <title>Built a personal knowledge system with nomic-embed-text + LanceDB - 106K vectors, 256ms queries</title>
-    <updated>2026-01-10T19:41:52+00:00</updated>
+    <id>t3_1q9ob19</id>
+    <title>Headroom (OSS): reducing tool-output + prefix drift token costs without breaking tool calling</title>
+    <updated>2026-01-11T03:14:18+00:00</updated>
     <author>
-      <name>/u/Signal_Usual8630</name>
-      <uri>https://old.reddit.com/user/Signal_Usual8630</uri>
+      <name>/u/Ok-Responsibility734</name>
+      <uri>https://old.reddit.com/user/Ok-Responsibility734</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Embedded 3 years of my AI conversations (353K messages) to make them searchable by concept, not just keywords.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;nomic-embed-text-v1.5 (768 dims, runs on Apple Silicon MPS)&lt;/li&gt; &lt;li&gt;LanceDB for vector storage&lt;/li&gt; &lt;li&gt;DuckDB for analytics&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Performance:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;106K vectors in 440MB&lt;/li&gt; &lt;li&gt;256ms semantic search&lt;/li&gt; &lt;li&gt;13-15 msg/sec embedding throughput on M4 Mac&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Key learning:&lt;/strong&gt; Started with DuckDB VSS extension. Accidentally created duplicate HNSW indexes - ended up with 14GB for 300MB of actual data. Migrated to LanceDB, same vectors in 440MB. 32x smaller.&lt;/p&gt; &lt;p&gt;Open source: &lt;a href="https://github.com/mordechaipotash/intellectual-dna"&gt;https://github.com/mordechaipotash/intellectual-dna&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Signal_Usual8630"&gt; /u/Signal_Usual8630 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9dh54/built_a_personal_knowledge_system_with/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi folks &lt;/p&gt; &lt;p&gt;I hit a painful wall building a bunch of small agent-y micro-apps.&lt;/p&gt; &lt;p&gt;When I use Claude Code/sub-agents for in-depth research, the workflow often loses context in the middle of the research (right when it’s finally becoming useful). &lt;/p&gt; &lt;p&gt;I tried the obvious stuff: prompt compression (LLMLingua etc.), prompt trimming, leaning on prefix caching… but I kept running into a practical constraint: a bunch of my MCP tools &lt;strong&gt;expect strict JSON inputs/outputs&lt;/strong&gt;, and “compressing the prompt” would occasionally mangle JSON enough to break tool execution.&lt;/p&gt; &lt;p&gt;So I ended up building an OSS layer called &lt;strong&gt;Headroom&lt;/strong&gt; that tries to engineer context &lt;em&gt;around&lt;/em&gt; tool calling rather than rewriting everything into summaries.&lt;/p&gt; &lt;p&gt;What it does (in 3 parts):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Tool output compression&lt;/strong&gt; that tries to keep the “interesting” stuff (outliers, errors/anomalies, top matches to the user’s query) instead of naïve truncation&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Prefix alignment&lt;/strong&gt; to reduce accidental cache misses (timestamps, reorderings, etc.)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Rolling window&lt;/strong&gt; that trims history while keeping tool-call units intact (so you don’t break function/tool calling)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Some quick numbers from the repo’s perf table (obviously workload-dependent, but gives a feel):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Search results (1000 items): &lt;strong&gt;45k → 4.5k tokens (~90%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;Log analysis (500 entries): &lt;strong&gt;22k → 3.3k (~85%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;Nested API JSON: &lt;strong&gt;15k → 2.25k (~85%)&lt;/strong&gt; Overhead listed is on the order of &lt;strong&gt;~1–3ms&lt;/strong&gt; in those scenarios.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I’d love review from folks who’ve shipped agents:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;What’s the nastiest tool payload you’ve seen (nested arrays, logs, etc.)?&lt;/li&gt; &lt;li&gt;Any gotchas with streaming tool calls that break proxies/wrappers?&lt;/li&gt; &lt;li&gt;If you’ve implemented prompt caching, what caused the most cache misses?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/chopratejas/headroom?utm_source=chatgpt.com"&gt;https://github.com/chopratejas/headroom&lt;/a&gt; &lt;/p&gt; &lt;p&gt;(I’m the author — happy to answer anything, and also happy to be told this is a bad idea.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Responsibility734"&gt; /u/Ok-Responsibility734 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9ob19/headroom_oss_reducing_tooloutput_prefix_drift/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9ob19/headroom_oss_reducing_tooloutput_prefix_drift/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9ob19/headroom_oss_reducing_tooloutput_prefix_drift/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T19:41:52+00:00</published>
+    <published>2026-01-11T03:14:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9ez9j</id>
@@ -99,19 +99,6 @@
     <published>2026-01-11T04:52:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q922fv</id>
-    <title>GPT OSS + Qwen VL</title>
-    <updated>2026-01-10T11:43:44+00:00</updated>
-    <author>
-      <name>/u/Serious_Molasses313</name>
-      <uri>https://old.reddit.com/user/Serious_Molasses313</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"&gt; &lt;img alt="GPT OSS + Qwen VL" src="https://external-preview.redd.it/ZHdvYWFqaG5laWNnMW9SjiD2lW6nDnuEDR_4iEKM_w8YRwqIaLhq7MVR_4-G.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=61c12a19b6a10c13d4077e69539e6e203457e09c" title="GPT OSS + Qwen VL" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Figured out how to squeeze these two model on my system without crashing. Now GPT OSS reaches out to qwen for visual confirmation. &lt;/p&gt; &lt;p&gt;Before you ask what MCP server this is (I made it)&lt;/p&gt; &lt;p&gt;My specs are 6GBVRAM 32GBDDR5 &lt;/p&gt; &lt;h1&gt;PrivacyOverConvenience&lt;/h1&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Serious_Molasses313"&gt; /u/Serious_Molasses313 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/k60z16hneicg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-10T11:43:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q9by7w</id>
     <title>Preview logprobs in Open WebUI</title>
     <updated>2026-01-10T18:44:05+00:00</updated>
@@ -123,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9by7w/preview_logprobs_in_open_webui/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T18:44:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q922fv</id>
+    <title>GPT OSS + Qwen VL</title>
+    <updated>2026-01-10T11:43:44+00:00</updated>
+    <author>
+      <name>/u/Serious_Molasses313</name>
+      <uri>https://old.reddit.com/user/Serious_Molasses313</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"&gt; &lt;img alt="GPT OSS + Qwen VL" src="https://external-preview.redd.it/ZHdvYWFqaG5laWNnMW9SjiD2lW6nDnuEDR_4iEKM_w8YRwqIaLhq7MVR_4-G.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=61c12a19b6a10c13d4077e69539e6e203457e09c" title="GPT OSS + Qwen VL" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Figured out how to squeeze these two model on my system without crashing. Now GPT OSS reaches out to qwen for visual confirmation. &lt;/p&gt; &lt;p&gt;Before you ask what MCP server this is (I made it)&lt;/p&gt; &lt;p&gt;My specs are 6GBVRAM 32GBDDR5 &lt;/p&gt; &lt;h1&gt;PrivacyOverConvenience&lt;/h1&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Serious_Molasses313"&gt; /u/Serious_Molasses313 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/k60z16hneicg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q922fv/gpt_oss_qwen_vl/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-10T11:43:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1q97081</id>
@@ -164,19 +164,6 @@
     <published>2026-01-10T06:28:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9nerk</id>
-    <title>Made an Rick and Morty inspired Interdimensional News site with Ollama and Gemini</title>
-    <updated>2026-01-11T02:32:32+00:00</updated>
-    <author>
-      <name>/u/WahWahWeWah</name>
-      <uri>https://old.reddit.com/user/WahWahWeWah</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So, I love Rick and Morty esp. the interdimensional cable episodes. So, I build &lt;a href="http://greenportal.news"&gt;greenportal.news&lt;/a&gt; using ollama and gemini. &lt;/p&gt; &lt;p&gt;I'm happy to double click on how the site is made. Basically, its a scraper of a lot of news content off of the internet. Then, using ollama + nemotron-3-nano I extract and score the articles. The alternate universes work the same way, with ollama expanding the prompt and creating the rules for the universe. Lastly, I make a few images in Nano Banana--which imho are the funniest part.&lt;/p&gt; &lt;p&gt;I'd like to move off Gemini to something I can run locally. Any recommendations? I'm rolling with a single 4090 over here so I'd love to keep using that.&lt;/p&gt; &lt;p&gt;Lastly, I write enterprise software so I know the UX isn't amazing. Don't be too hard on me :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WahWahWeWah"&gt; /u/WahWahWeWah &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-11T02:32:32+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q9j0r8</id>
     <title>[Project] Running quantized BERT in the browser via WebAssembly (Rust + Candle) for local Semantic Search</title>
     <updated>2026-01-10T23:21:19+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9j0r8/project_running_quantized_bert_in_the_browser_via/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T23:21:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9nerk</id>
+    <title>Made an Rick and Morty inspired Interdimensional News site with Ollama and Gemini</title>
+    <updated>2026-01-11T02:32:32+00:00</updated>
+    <author>
+      <name>/u/WahWahWeWah</name>
+      <uri>https://old.reddit.com/user/WahWahWeWah</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So, I love Rick and Morty esp. the interdimensional cable episodes. So, I build &lt;a href="http://greenportal.news"&gt;greenportal.news&lt;/a&gt; using ollama and gemini. &lt;/p&gt; &lt;p&gt;I'm happy to double click on how the site is made. Basically, its a scraper of a lot of news content off of the internet. Then, using ollama + nemotron-3-nano I extract and score the articles. The alternate universes work the same way, with ollama expanding the prompt and creating the rules for the universe. Lastly, I make a few images in Nano Banana--which imho are the funniest part.&lt;/p&gt; &lt;p&gt;I'd like to move off Gemini to something I can run locally. Any recommendations? I'm rolling with a single 4090 over here so I'd love to keep using that.&lt;/p&gt; &lt;p&gt;Lastly, I write enterprise software so I know the UX isn't amazing. Don't be too hard on me :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WahWahWeWah"&gt; /u/WahWahWeWah &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9nerk/made_an_rick_and_morty_inspired_interdimensional/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-11T02:32:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9pe4l</id>
@@ -229,19 +229,6 @@
     <published>2026-01-10T14:20:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1q9m0uw</id>
-    <title>brain-canvas: Give any local LLM a visual display (191 lines, 0 deps)</title>
-    <updated>2026-01-11T01:30:17+00:00</updated>
-    <author>
-      <name>/u/Signal_Usual8630</name>
-      <uri>https://old.reddit.com/user/Signal_Usual8630</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tired of LLM output being stuck in the terminal?&lt;/p&gt; &lt;p&gt;npx brain-canvas&lt;/p&gt; &lt;p&gt;Starts a local HTML canvas that any LLM can control via POST requests. Send JSON, get interactive UI with clickable choices that flow back to your script.&lt;/p&gt; &lt;p&gt;Works with:&lt;/p&gt; &lt;p&gt;- Ollama&lt;/p&gt; &lt;p&gt;- llama.cpp&lt;/p&gt; &lt;p&gt;- Any local model&lt;/p&gt; &lt;p&gt;- Claude/GPT (if you use those too)&lt;/p&gt; &lt;p&gt;The numbers:&lt;/p&gt; &lt;p&gt;- 191 lines of code&lt;/p&gt; &lt;p&gt;- 0 dependencies&lt;/p&gt; &lt;p&gt;- 6.9 KB package&lt;/p&gt; &lt;p&gt;- 10 section types (stats, timeline, comparison, choices, etc.)&lt;/p&gt; &lt;p&gt;POST JSON like:&lt;/p&gt; &lt;p&gt;{&amp;quot;title&amp;quot;: &amp;quot;Pick one&amp;quot;, &amp;quot;sections&amp;quot;: [{&amp;quot;type&amp;quot;: &amp;quot;choices&amp;quot;, &amp;quot;items&amp;quot;: [{&amp;quot;id&amp;quot;: &amp;quot;a&amp;quot;, &amp;quot;label&amp;quot;: &amp;quot;Option A&amp;quot;}]}]}&lt;/p&gt; &lt;p&gt;GET /choice returns what the user clicked.&lt;/p&gt; &lt;p&gt;Zero config. Works on Mac/Linux/Windows.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/mordechaipotash/brain-canvas"&gt;https://github.com/mordechaipotash/brain-canvas&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Signal_Usual8630"&gt; /u/Signal_Usual8630 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-11T01:30:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1q9hu43</id>
     <title>I built an end-to-end local LLM fine-tuning GUI for M series macs</title>
     <updated>2026-01-10T22:31:40+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q90ye2/jensen_huang_at_ces_on_how_open_models_have/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-10T10:36:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1q9m0uw</id>
+    <title>brain-canvas: Give any local LLM a visual display (191 lines, 0 deps)</title>
+    <updated>2026-01-11T01:30:17+00:00</updated>
+    <author>
+      <name>/u/Signal_Usual8630</name>
+      <uri>https://old.reddit.com/user/Signal_Usual8630</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tired of LLM output being stuck in the terminal?&lt;/p&gt; &lt;p&gt;npx brain-canvas&lt;/p&gt; &lt;p&gt;Starts a local HTML canvas that any LLM can control via POST requests. Send JSON, get interactive UI with clickable choices that flow back to your script.&lt;/p&gt; &lt;p&gt;Works with:&lt;/p&gt; &lt;p&gt;- Ollama&lt;/p&gt; &lt;p&gt;- llama.cpp&lt;/p&gt; &lt;p&gt;- Any local model&lt;/p&gt; &lt;p&gt;- Claude/GPT (if you use those too)&lt;/p&gt; &lt;p&gt;The numbers:&lt;/p&gt; &lt;p&gt;- 191 lines of code&lt;/p&gt; &lt;p&gt;- 0 dependencies&lt;/p&gt; &lt;p&gt;- 6.9 KB package&lt;/p&gt; &lt;p&gt;- 10 section types (stats, timeline, comparison, choices, etc.)&lt;/p&gt; &lt;p&gt;POST JSON like:&lt;/p&gt; &lt;p&gt;{&amp;quot;title&amp;quot;: &amp;quot;Pick one&amp;quot;, &amp;quot;sections&amp;quot;: [{&amp;quot;type&amp;quot;: &amp;quot;choices&amp;quot;, &amp;quot;items&amp;quot;: [{&amp;quot;id&amp;quot;: &amp;quot;a&amp;quot;, &amp;quot;label&amp;quot;: &amp;quot;Option A&amp;quot;}]}]}&lt;/p&gt; &lt;p&gt;GET /choice returns what the user clicked.&lt;/p&gt; &lt;p&gt;Zero config. Works on Mac/Linux/Windows.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/mordechaipotash/brain-canvas"&gt;https://github.com/mordechaipotash/brain-canvas&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Signal_Usual8630"&gt; /u/Signal_Usual8630 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1q9m0uw/braincanvas_give_any_local_llm_a_visual_display/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-11T01:30:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1q9bnqc</id>
