@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-18T17:36:52+00:00</updated>
+  <updated>2026-01-18T17:49:08+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1qg2592</id>
+    <title>Speculative Decoding: Turning Memory-Bound Inference into Compute-Bound Verification (Step-by-Step)</title>
+    <updated>2026-01-18T07:24:22+00:00</updated>
+    <author>
+      <name>/u/No_Ask_1623</name>
+      <uri>https://old.reddit.com/user/No_Ask_1623</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most of us assume LLM inference is slow because &amp;quot;matrix multiplication is hard.&amp;quot; That’s actually false.&lt;/p&gt; &lt;p&gt;For a batch size of 1 (which is standard for local inference/chat), your GPU is almost entirely &lt;strong&gt;Memory Bandwidth Bound&lt;/strong&gt;. The bottleneck isn't doing the math; it's moving the 70GB+ of weights from VRAM to the compute units. The Arithmetic Logic Units (ALUs) are spending most of their time idle, waiting for data.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Speculative Decoding&lt;/strong&gt; exploits this idle time to give us a &amp;quot;free lunch&amp;quot;—2x-3x speedups with &lt;strong&gt;mathematically identical&lt;/strong&gt; outputs.&lt;/p&gt; &lt;p&gt;Here is the core mechanism derived step-by-step:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The Setup: Drafter vs. Target&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;We use a tiny &amp;quot;Drafter&amp;quot; model (e.g., a 100M param model) alongside our massive &amp;quot;Target&amp;quot; model (e.g., Llama-70B).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The Drafter is cheap to run. It quickly spits out a &amp;quot;draft&amp;quot; of 5 tokens: &lt;code&gt;[The, cat, sat, on, the]&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Standard decoding would run the Target model 5 times (serial) to generate this.&lt;/li&gt; &lt;/ul&gt; &lt;ol&gt; &lt;li&gt;The Trick: Parallel Verification&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;We feed all 5 draft tokens into the Target model in a single forward pass.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Because inference is memory-bound, loading the weights for 1 token takes roughly the same time as loading them for 5 tokens.&lt;/li&gt; &lt;li&gt;The Target model outputs the probabilities for all positions simultaneously.&lt;/li&gt; &lt;/ul&gt; &lt;ol&gt; &lt;li&gt;The Rejection Sampling (The Math)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;This isn't an approximation. We use rejection sampling to ensure the distribution matches the Target model exactly.&lt;/p&gt; &lt;p&gt;Let q(x) be the Drafter's probability and p(x) be the Target's probability.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Case A (q(x) &amp;lt; p(x)):&lt;/strong&gt; The Target thinks the token is &lt;em&gt;more&lt;/em&gt; likely than the Drafter did. &lt;strong&gt;ACCEPT.&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Case B (q(x) &amp;gt; p(x)):&lt;/strong&gt; The Drafter was overconfident. We reject the token with probability&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If a token is rejected, we discard it and everything after it, then resample from the adjusted difference distribution. Even if we only accept 3 out of 5 tokens, we generated 3 tokens for the &amp;quot;cost&amp;quot; of 1 Target run.&lt;/p&gt; &lt;p&gt;Why this matters:&lt;/p&gt; &lt;p&gt;This converts a memory-bound operation (waiting for weights) into a compute-bound operation (doing more math on loaded weights), maximizing hardware utilization without retraining.&lt;/p&gt; &lt;p&gt;I wrote a full deep dive with the complete derivation, the logic behind the &amp;quot;Sweet Spot&amp;quot; (gamma), and modern variants like Medusa/EAGLE here: &lt;a href="https://pub.towardsai.net/why-your-llm-should-be-guessing-breaking-the-sequential-curse-50496633f8ff"&gt;https://pub.towardsai.net/why-your-llm-should-be-guessing-breaking-the-sequential-curse-50496633f8ff&lt;/a&gt; if you want the details.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Ask_1623"&gt; /u/No_Ask_1623 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qg2592/speculative_decoding_turning_memorybound/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qg2592/speculative_decoding_turning_memorybound/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qg2592/speculative_decoding_turning_memorybound/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-18T07:24:22+00:00</published>
+  </entry>
   <entry>
     <id>t3_1qfpomi</id>
     <title>[GamersNexus] Creating a 48GB NVIDIA RTX 4090 GPU</title>
@@ -21,19 +34,6 @@
     <published>2026-01-17T21:39:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qgdb1i</id>
-    <title>4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build</title>
-    <updated>2026-01-18T16:39:31+00:00</updated>
-    <author>
-      <name>/u/NunzeCs</name>
-      <uri>https://old.reddit.com/user/NunzeCs</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"&gt; &lt;img alt="4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build" src="https://b.thumbs.redditmedia.com/tH0O7nrjhLN0eZEvYxWWxQfxMWqH9KP_g0wYgBP6sEQ.jpg" title="4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclaimer: I am from Germany and my English is not perfect, so I used an LLM to help me structure and write this post.&lt;/p&gt; &lt;p&gt;Context &amp;amp; Motivation: I built this system for my small company. The main reason for all new hardware is that I received a 50% subsidy/refund from my local municipality for digitalization investments. To qualify for this funding, I had to buy new hardware and build a proper &amp;quot;server-grade&amp;quot; system.&lt;/p&gt; &lt;p&gt;My goal was to run large models (120B+) locally for data privacy. With the subsidy in mind, I had a budget of around 10,000€ (pre-refund). I initially considered NVIDIA, but I wanted to maximize VRAM. I decided to go with 4x AMD RDNA4 cards (ASRock R9700) to get 128GB VRAM total and used the rest of the budget for a solid Threadripper platform.&lt;/p&gt; &lt;p&gt;Hardware Specs:&lt;/p&gt; &lt;p&gt;Total Cost: ~9,800€ (I get ~50% back, so effectively ~4,900€ for me).&lt;/p&gt; &lt;p&gt;CPU: AMD Ryzen Threadripper PRO 9955WX (16 Cores) Mainboard: ASRock WRX90 WS EVO RAM: 128GB DDR5 5600MHz GPU: 4x ASRock Radeon AI PRO R9700 32GB (Total 128GB VRAM) Configuration: All cards running at full PCIe 5.0 x16 bandwidth. Storage: 2x 2TB PCIe 4.0 SSD PSU: Seasonic 2200W Cooling: Alphacool Eisbaer Pro Aurora 360 CPU AIO&lt;/p&gt; &lt;p&gt;Benchmark Results&lt;/p&gt; &lt;p&gt;I tested various models ranging from 8B to 230B parameters.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Llama.cpp (Focus: Single User Latency) Settings: Flash Attention ON, Batch 2048&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Model Size Quant Mode Prompt t/s Gen t/s Meta-Llama-3.1-8B-Instruct 8B Q4_K_M GPU-Full 3169.16 81.01 Qwen2.5-32B-Instruct 32B Q4_K_M GPU-Full 848.68 25.14 Meta-Llama-3.1-70B-Instruct 70B Q4_K_M GPU-Full 399.03 12.66 gpt-oss-120b 120B Q4_K_M GPU-Full 2977.83 97.47 GLM-4.7-REAP-218B 218B Q3_K_M GPU-Full 504.15 17.48 MiniMax-M2.1 ~230B Q4_K_M Hybrid 938.89 32.12&lt;/p&gt; &lt;p&gt;Side note: I found that with PCIe 5.0, standard Pipeline Parallelism (Layer Split) is significantly faster (~97 t/s) than Tensor Parallelism/Row Split (~67 t/s) for a single user on this setup.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;vLLM (Focus: Throughput) Model: GPT-OSS-120B (bfloat16), TP=4, test for 20 requests&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Total Throughput: ~314 tokens/s (Generation) Prompt Processing: ~5339 tokens/s Single user throughput 50 tokens/s&lt;/p&gt; &lt;p&gt;I used rocm 7.1.1 for llama.cpp also testet Vulkan but it was worse&lt;/p&gt; &lt;p&gt;If I could do it again, I would have used the budget to buy a single NVIDIA RTX Pro 6000 Blackwell (96GB). Maybe I will, if local AI is going well for my use case, I swap the R9700 with Pro 6000 in the future.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NunzeCs"&gt; /u/NunzeCs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qgdb1i"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-18T16:39:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qfmc05</id>
     <title>China's AGI-NEXT Conference (Qwen, Kimi, Zhipu, Tencent)</title>
     <updated>2026-01-17T19:25:24+00:00</updated>
@@ -45,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qfmc05/chinas_aginext_conference_qwen_kimi_zhipu_tencent/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-17T19:25:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qgdhm1</id>
-    <title>Local LLM builders: when do you go multi-agent vs tools? 2-page decision sheet + question</title>
-    <updated>2026-01-18T16:46:24+00:00</updated>
-    <author>
-      <name>/u/OnlyProggingForFun</name>
-      <uri>https://old.reddit.com/user/OnlyProggingForFun</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdhm1/local_llm_builders_when_do_you_go_multiagent_vs/"&gt; &lt;img alt="Local LLM builders: when do you go multi-agent vs tools? 2-page decision sheet + question" src="https://b.thumbs.redditmedia.com/I_C9zCLAXzHC96vITgQ7fK0ZLwFL3EKfVahJVXucrgM.jpg" title="Local LLM builders: when do you go multi-agent vs tools? 2-page decision sheet + question" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built a 2-page &lt;em&gt;decision&lt;/em&gt; cheat sheet for choosing &lt;strong&gt;workflow vs single agent+tools vs multi-agent&lt;/strong&gt; (images attached).&lt;/p&gt; &lt;p&gt;My core claim: if you can define steps upfront, start with a workflow; agents add overhead; multi-agent only when constraints force it.&lt;/p&gt; &lt;p&gt;I’d love practitioner feedback on 3 things:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Where do you draw the line between “workflow” and “agent” in production?&lt;/li&gt; &lt;li&gt;Tool overload: at what point does tool selection degrade for you (tool count / schema size)?&lt;/li&gt; &lt;li&gt;What’s the most important reliability rule you wish you’d adopted earlier (evals, tracing, guardrails, HITL gates, etc.)?&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OnlyProggingForFun"&gt; /u/OnlyProggingForFun &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qgdhm1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdhm1/local_llm_builders_when_do_you_go_multiagent_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdhm1/local_llm_builders_when_do_you_go_multiagent_vs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-18T16:46:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1qg64fe</id>
@@ -138,17 +125,17 @@
     <published>2026-01-18T15:47:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qgc15w</id>
-    <title>ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations</title>
-    <updated>2026-01-18T15:51:22+00:00</updated>
+    <id>t3_1qgdb1i</id>
+    <title>4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build</title>
+    <updated>2026-01-18T16:39:31+00:00</updated>
     <author>
-      <name>/u/Intrepid_Rub_3566</name>
-      <uri>https://old.reddit.com/user/Intrepid_Rub_3566</uri>
+      <name>/u/NunzeCs</name>
+      <uri>https://old.reddit.com/user/NunzeCs</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt; &lt;img alt="ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations" src="https://b.thumbs.redditmedia.com/4HB_kRub0ByrHTDKoq1IizVqH5bAkGmUVpks54w-dLU.jpg" title="ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;New video on ROCm+Linux support for AMD Strix Halo, documenting working/stable configurations in January 2026 and what caused the original issues.&lt;/p&gt; &lt;p&gt;&lt;a href="https://youtu.be/Hdg7zL3pcIs"&gt;https://youtu.be/Hdg7zL3pcIs&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Copying the table here for reference (&lt;a href="https://github.com/kyuz0/amd-strix-halo-gfx1151-toolboxes"&gt;https://github.com/kyuz0/amd-strix-halo-gfx1151-toolboxes&lt;/a&gt;):&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ygn7zad4r4eg1.png?width=2538&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5291169682acb6fb54cf25d21118877d926ede3a"&gt;https://preview.redd.it/ygn7zad4r4eg1.png?width=2538&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5291169682acb6fb54cf25d21118877d926ede3a&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Intrepid_Rub_3566"&gt; /u/Intrepid_Rub_3566 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"&gt; &lt;img alt="4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build" src="https://b.thumbs.redditmedia.com/tH0O7nrjhLN0eZEvYxWWxQfxMWqH9KP_g0wYgBP6sEQ.jpg" title="4x AMD R9700 (128GB VRAM) + Threadripper 9955WX Build" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclaimer: I am from Germany and my English is not perfect, so I used an LLM to help me structure and write this post.&lt;/p&gt; &lt;p&gt;Context &amp;amp; Motivation: I built this system for my small company. The main reason for all new hardware is that I received a 50% subsidy/refund from my local municipality for digitalization investments. To qualify for this funding, I had to buy new hardware and build a proper &amp;quot;server-grade&amp;quot; system.&lt;/p&gt; &lt;p&gt;My goal was to run large models (120B+) locally for data privacy. With the subsidy in mind, I had a budget of around 10,000€ (pre-refund). I initially considered NVIDIA, but I wanted to maximize VRAM. I decided to go with 4x AMD RDNA4 cards (ASRock R9700) to get 128GB VRAM total and used the rest of the budget for a solid Threadripper platform.&lt;/p&gt; &lt;p&gt;Hardware Specs:&lt;/p&gt; &lt;p&gt;Total Cost: ~9,800€ (I get ~50% back, so effectively ~4,900€ for me).&lt;/p&gt; &lt;p&gt;CPU: AMD Ryzen Threadripper PRO 9955WX (16 Cores) Mainboard: ASRock WRX90 WS EVO RAM: 128GB DDR5 5600MHz GPU: 4x ASRock Radeon AI PRO R9700 32GB (Total 128GB VRAM) Configuration: All cards running at full PCIe 5.0 x16 bandwidth. Storage: 2x 2TB PCIe 4.0 SSD PSU: Seasonic 2200W Cooling: Alphacool Eisbaer Pro Aurora 360 CPU AIO&lt;/p&gt; &lt;p&gt;Benchmark Results&lt;/p&gt; &lt;p&gt;I tested various models ranging from 8B to 230B parameters.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Llama.cpp (Focus: Single User Latency) Settings: Flash Attention ON, Batch 2048&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Model Size Quant Mode Prompt t/s Gen t/s Meta-Llama-3.1-8B-Instruct 8B Q4_K_M GPU-Full 3169.16 81.01 Qwen2.5-32B-Instruct 32B Q4_K_M GPU-Full 848.68 25.14 Meta-Llama-3.1-70B-Instruct 70B Q4_K_M GPU-Full 399.03 12.66 gpt-oss-120b 120B Q4_K_M GPU-Full 2977.83 97.47 GLM-4.7-REAP-218B 218B Q3_K_M GPU-Full 504.15 17.48 MiniMax-M2.1 ~230B Q4_K_M Hybrid 938.89 32.12&lt;/p&gt; &lt;p&gt;Side note: I found that with PCIe 5.0, standard Pipeline Parallelism (Layer Split) is significantly faster (~97 t/s) than Tensor Parallelism/Row Split (~67 t/s) for a single user on this setup.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;vLLM (Focus: Throughput) Model: GPT-OSS-120B (bfloat16), TP=4, test for 20 requests&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Total Throughput: ~314 tokens/s (Generation) Prompt Processing: ~5339 tokens/s Single user throughput 50 tokens/s&lt;/p&gt; &lt;p&gt;I used rocm 7.1.1 for llama.cpp also testet Vulkan but it was worse&lt;/p&gt; &lt;p&gt;If I could do it again, I would have used the budget to buy a single NVIDIA RTX Pro 6000 Blackwell (96GB). Maybe I will, if local AI is going well for my use case, I swap the R9700 with Pro 6000 in the future.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NunzeCs"&gt; /u/NunzeCs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qgdb1i"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgdb1i/4x_amd_r9700_128gb_vram_threadripper_9955wx_build/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-18T15:51:22+00:00</published>
+    <published>2026-01-18T16:39:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qg5io6</id>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qg5io6/is_it_feasible_for_a_team_to_replace_claude_code/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-18T10:44:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qgc15w</id>
+    <title>ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations</title>
+    <updated>2026-01-18T15:51:22+00:00</updated>
+    <author>
+      <name>/u/Intrepid_Rub_3566</name>
+      <uri>https://old.reddit.com/user/Intrepid_Rub_3566</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt; &lt;img alt="ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations" src="https://b.thumbs.redditmedia.com/4HB_kRub0ByrHTDKoq1IizVqH5bAkGmUVpks54w-dLU.jpg" title="ROCm+Linux on AMD Strix Halo: January 2026 Stable Configurations" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;New video on ROCm+Linux support for AMD Strix Halo, documenting working/stable configurations in January 2026 and what caused the original issues.&lt;/p&gt; &lt;p&gt;&lt;a href="https://youtu.be/Hdg7zL3pcIs"&gt;https://youtu.be/Hdg7zL3pcIs&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Copying the table here for reference (&lt;a href="https://github.com/kyuz0/amd-strix-halo-gfx1151-toolboxes"&gt;https://github.com/kyuz0/amd-strix-halo-gfx1151-toolboxes&lt;/a&gt;):&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ygn7zad4r4eg1.png?width=2538&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5291169682acb6fb54cf25d21118877d926ede3a"&gt;https://preview.redd.it/ygn7zad4r4eg1.png?width=2538&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5291169682acb6fb54cf25d21118877d926ede3a&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Intrepid_Rub_3566"&gt; /u/Intrepid_Rub_3566 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgc15w/rocmlinux_on_amd_strix_halo_january_2026_stable/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-18T15:51:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1qfkn3a</id>
@@ -190,19 +190,6 @@
     <published>2026-01-18T16:10:02+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qgbkcd</id>
-    <title>Running language models where they don't belong</title>
-    <updated>2026-01-18T15:33:03+00:00</updated>
-    <author>
-      <name>/u/Brief_Argument8155</name>
-      <uri>https://old.reddit.com/user/Brief_Argument8155</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We have seen a cool counter-trend recently to the typical scaleup narrative (see Smol/Phi and ZIT most notably). I've been on a mission to push this to the limit (mainly for fun), moving LMs into environments where they have no business existing.&lt;/p&gt; &lt;p&gt;My thesis is that even the most primitive environments can host generative capabilities if you bake them in correctly.&lt;/p&gt; &lt;p&gt;So here goes:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. The NES LM (inference on 1983 hardware)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I started by writing a char-level bigram model in straight 6502 asm for the original Nintendo Entertainment System.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;2KB of RAM and a CPU with no multiplication opcode, let alone float math.&lt;/li&gt; &lt;li&gt;The model compresses a name space of 18 million possibilities into a footprint smaller than a Final Fantasy black mage sprite (729 bytes of weights).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For extra fun I packaged it into a romhack for Final Fantasy I and Dragon Warrior to generate fantasy names at game time, on original hardware.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code:&lt;/strong&gt; &lt;a href="https://github.com/erodola/bigram-nes"&gt;https://github.com/erodola/bigram-nes&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. The Compile-Time LM (inference while compiling, duh)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Then I realized that even the NES was too much runtime. Why even wait for the code to run at all? I built a model that does inference entirely at compile-time using C++ template metaprogramming. &lt;/p&gt; &lt;p&gt;Because the compiler itself is Turing complete you know. You could run Doom in it.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The C++ compiler acts as the inference engine. It performs the multinomial sampling and Markov chain transitions &lt;em&gt;while&lt;/em&gt; you are building the project.&lt;/li&gt; &lt;li&gt;Since compilers are deterministic, I hashed &lt;strong&gt;TIME&lt;/strong&gt; into an FNV-1a seed to power a constexpr Xorshift32 RNG.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;When the binary finally runs, the CPU does zero math. The generated text is already there, baked into the data segment as a constant string.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code:&lt;/strong&gt; &lt;a href="https://github.com/erodola/bigram-metacpp"&gt;https://github.com/erodola/bigram-metacpp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Next up is ofc attempting to scale this toward TinyStories-style models. Or speech synthesis, or OCR. I wont stop until my build logs are more sentient than the code they're actually producing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Brief_Argument8155"&gt; /u/Brief_Argument8155 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-18T15:33:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qfq9ez</id>
     <title>The Search for Uncensored AI (That Isn’t Adult-Oriented)</title>
     <updated>2026-01-17T22:03:23+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qfq9ez/the_search_for_uncensored_ai_that_isnt/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-17T22:03:23+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qgbkcd</id>
+    <title>Running language models where they don't belong</title>
+    <updated>2026-01-18T15:33:03+00:00</updated>
+    <author>
+      <name>/u/Brief_Argument8155</name>
+      <uri>https://old.reddit.com/user/Brief_Argument8155</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We have seen a cool counter-trend recently to the typical scaleup narrative (see Smol/Phi and ZIT most notably). I've been on a mission to push this to the limit (mainly for fun), moving LMs into environments where they have no business existing.&lt;/p&gt; &lt;p&gt;My thesis is that even the most primitive environments can host generative capabilities if you bake them in correctly.&lt;/p&gt; &lt;p&gt;So here goes:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. The NES LM (inference on 1983 hardware)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I started by writing a char-level bigram model in straight 6502 asm for the original Nintendo Entertainment System.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;2KB of RAM and a CPU with no multiplication opcode, let alone float math.&lt;/li&gt; &lt;li&gt;The model compresses a name space of 18 million possibilities into a footprint smaller than a Final Fantasy black mage sprite (729 bytes of weights).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For extra fun I packaged it into a romhack for Final Fantasy I and Dragon Warrior to generate fantasy names at game time, on original hardware.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code:&lt;/strong&gt; &lt;a href="https://github.com/erodola/bigram-nes"&gt;https://github.com/erodola/bigram-nes&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. The Compile-Time LM (inference while compiling, duh)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Then I realized that even the NES was too much runtime. Why even wait for the code to run at all? I built a model that does inference entirely at compile-time using C++ template metaprogramming. &lt;/p&gt; &lt;p&gt;Because the compiler itself is Turing complete you know. You could run Doom in it.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The C++ compiler acts as the inference engine. It performs the multinomial sampling and Markov chain transitions &lt;em&gt;while&lt;/em&gt; you are building the project.&lt;/li&gt; &lt;li&gt;Since compilers are deterministic, I hashed &lt;strong&gt;TIME&lt;/strong&gt; into an FNV-1a seed to power a constexpr Xorshift32 RNG.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;When the binary finally runs, the CPU does zero math. The generated text is already there, baked into the data segment as a constant string.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code:&lt;/strong&gt; &lt;a href="https://github.com/erodola/bigram-metacpp"&gt;https://github.com/erodola/bigram-metacpp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Next up is ofc attempting to scale this toward TinyStories-style models. Or speech synthesis, or OCR. I wont stop until my build logs are more sentient than the code they're actually producing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Brief_Argument8155"&gt; /u/Brief_Argument8155 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qgbkcd/running_language_models_where_they_dont_belong/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-18T15:33:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1qg6dr6</id>
