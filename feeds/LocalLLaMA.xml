@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-21T22:55:43+00:00</updated>
+  <updated>2026-01-21T23:10:13+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1qio9nj</id>
-    <title>I tracked context degradation across 847 agent runs. Here's when performance actually falls off a cliff.</title>
-    <updated>2026-01-21T04:34:43+00:00</updated>
-    <author>
-      <name>/u/Main_Payment_6430</name>
-      <uri>https://old.reddit.com/user/Main_Payment_6430</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been running local agents (mostly Llama 3.1 70B, some Qwen 2.5 72B) for dev automation tasks—things like multi-file refactors, long debugging sessions, iterative code generation.&lt;/p&gt; &lt;p&gt;After months of frustration with agents forgetting instructions mid-task or suddenly ignoring constraints I'd set earlier, I started logging everything to figure out what was actually happening.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The setup:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;847 agent runs tracked&lt;/li&gt; &lt;li&gt;Tasks ranging from 5 to 200+ turns&lt;/li&gt; &lt;li&gt;Measured: instruction adherence, constraint violations, repetition rate, task completion&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;What I found:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The degradation isn't linear. There's a cliff.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Context Fill %&lt;/th&gt; &lt;th align="left"&gt;Instruction Adherence&lt;/th&gt; &lt;th align="left"&gt;Constraint Violations&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;0-25%&lt;/td&gt; &lt;td align="left"&gt;94%&lt;/td&gt; &lt;td align="left"&gt;2.1%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;25-50%&lt;/td&gt; &lt;td align="left"&gt;91%&lt;/td&gt; &lt;td align="left"&gt;4.8%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;50-75%&lt;/td&gt; &lt;td align="left"&gt;73%&lt;/td&gt; &lt;td align="left"&gt;12.4%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;75-100%&lt;/td&gt; &lt;td align="left"&gt;41%&lt;/td&gt; &lt;td align="left"&gt;31.7%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Around 60-70% context utilization, something breaks. The model starts:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Following patterns from early conversation instead of recent instructions&lt;/li&gt; &lt;li&gt;&amp;quot;Forgetting&amp;quot; constraints that were stated 30+ turns ago&lt;/li&gt; &lt;li&gt;Repeating tool calls it already made&lt;/li&gt; &lt;li&gt;Hallucinating state that was true earlier but isn't anymore&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm calling this context rot — the model's attention spreads thin and it defaults to statistical patterns rather than explicit instructions.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What actually helped:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Aggressive compaction&lt;/strong&gt; — Not summarization (loses too much). Actual compaction: if the agent wrote to a file, drop the file contents from context but keep the path. If it searched, drop results but keep the query. Externalize state, keep references.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;State snapshots&lt;/strong&gt; — Before any destructive operation, snapshot the context. When the agent goes off-rails (and it will), revert to last-known-good state instead of trying to &amp;quot;correct&amp;quot; it in-context.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Forking for sub-tasks&lt;/strong&gt; — Instead of one massive context, fork isolated contexts for bounded sub-tasks. Agent gets instruction + minimal relevant context, returns result. Parent context stays clean.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I ended up building a small context management layer to handle this because I was copy-pasting JSON dumps like a caveman. It does versioning (git-style), snapshots, rollback, and forking. Open-sourced the approach, happy to share if anyone's interested.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Questions for the community:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Anyone else tracking this systematically? Would love to compare notes.&lt;/li&gt; &lt;li&gt;Are there models that degrade more gracefully? My (limited) testing suggests Qwen handles high context fill slightly better than Llama, but sample size is small.&lt;/li&gt; &lt;li&gt;How are people handling state for multi-hour agent runs? Curious what janky solutions others have built.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Edit: Since people are asking, the tool I built is called UltraContext (&lt;a href="https://ultracontext.ai"&gt;https://ultracontext.ai&lt;/a&gt;). It's basically a context API with automatic versioning—5 methods, lets you snapshot/rollback/fork contexts. Free tier if you want to mess with it. But honestly the concepts above work even if you just roll your own with SQLite.&lt;/p&gt; &lt;p&gt;here's the repo - &lt;a href="https://github.com/ultracontext/ultracontext-node"&gt;https://github.com/ultracontext/ultracontext-node&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Main_Payment_6430"&gt; /u/Main_Payment_6430 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qio9nj/i_tracked_context_degradation_across_847_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qio9nj/i_tracked_context_degradation_across_847_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qio9nj/i_tracked_context_degradation_across_847_agent/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-21T04:34:43+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qjbupe</id>
-    <title>Can I run gpt-oss-120b somehow?</title>
-    <updated>2026-01-21T22:05:07+00:00</updated>
-    <author>
-      <name>/u/Furacao__Boey</name>
-      <uri>https://old.reddit.com/user/Furacao__Boey</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Single NVIDIA L40S (48 GB VRAM) and 64 GB of RAM&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Furacao__Boey"&gt; /u/Furacao__Boey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbupe/can_i_run_gptoss120b_somehow/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbupe/can_i_run_gptoss120b_somehow/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbupe/can_i_run_gptoss120b_somehow/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-21T22:05:07+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qj71k9</id>
     <title>Where to start.</title>
@@ -71,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qi4uj2/768gb_fully_enclosed_10x_gpu_mobile_ai_build/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-20T15:56:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qjcvzt</id>
+    <title>Parallelism with mismatched GPUs (and how to optimize it)?</title>
+    <updated>2026-01-21T22:45:01+00:00</updated>
+    <author>
+      <name>/u/Infinite100p</name>
+      <uri>https://old.reddit.com/user/Infinite100p</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I see some posts with lots of users using a mix of GPUs.&lt;/p&gt; &lt;p&gt;A simple example is, for example, &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1qi4uj2/768gb_fully_enclosed_10x_gpu_mobile_ai_build/"&gt;this post where OP uses a mix of 3090s and 5090s&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;I've seen people running a mix of 3 NVidia GPUs: an RTX 5090, 5080, and a 5070.&lt;/p&gt; &lt;p&gt;But I've also seen people who claim more complex setups &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1nlyy6n/comment/nfa4a8c/"&gt;like this person here allegedly using a mix of Intel ARC and NVidia GPUs&lt;/a&gt; which are very different beasts with different software stacks. Although, here I'm not sure this person's llama.cpp isn't just running it on 1 GPU with RAM offload without him even realizing it.&lt;/p&gt; &lt;p&gt;My question is: &lt;/p&gt; &lt;p&gt;Suppose we had several Intel Arc Pro cards and 1 or 2 NVidia cards (let's say a 5090 and a 5080), and lets say that the combined VRAM is 196GB between both Arc and NVidia GPUs, would pipeline parallelism be the only feasible solution that utilizes all the cards for running larger models that would only fit in the combined VRAM of 192GB?&lt;/p&gt; &lt;p&gt;Does anyone have experience running Intel and NVidia cards together this way? How would you set it up, given that a 5090 is a far more powerful GPU: what would you offload to the 5090 VS what would you offload to the weaker Arc GPUs?&lt;/p&gt; &lt;p&gt;How would you generally approach designing the setup for a mismatched set: What are your rules of thumb?&lt;/p&gt; &lt;p&gt;Also, I would appreciate if someone could explain what is the the overhead/perf penalty tradeoff for pipeline parallelism compared to tensor parallelism? E.g., if I run a 60GB LLM on 2x RTX 5090 using tensor parallelism VS pipeline parallelism on the same cards, what diff/tradeoff would I witness? Is one type of parallelism always superior over the other (in setups where both are possible, of course)?&lt;/p&gt; &lt;p&gt;Thanks&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Infinite100p"&gt; /u/Infinite100p &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjcvzt/parallelism_with_mismatched_gpus_and_how_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjcvzt/parallelism_with_mismatched_gpus_and_how_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjcvzt/parallelism_with_mismatched_gpus_and_how_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-21T22:45:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1qj2i4q</id>
@@ -112,6 +99,19 @@
     <published>2026-01-21T21:38:19+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qjc8a2</id>
+    <title>Michigan is pushing a Anti Chatbot bill to protect the heckin kiddos</title>
+    <updated>2026-01-21T22:19:31+00:00</updated>
+    <author>
+      <name>/u/PostEasy7183</name>
+      <uri>https://old.reddit.com/user/PostEasy7183</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Senate Democrats Call for Improved Safety Measures to Better Protect Michigan Kids from Digital Dangers - Senator Kevin Hertel &lt;a href="https://share.google/ZwmPjEOVP5AcgZnhT"&gt;https://share.google/ZwmPjEOVP5AcgZnhT&lt;/a&gt;&lt;/p&gt; &lt;p&gt;not much information about this yet but they've talked about making sure kids have a harder time to access chat bots. the bill is vague so far and to my knowledge no real text has been released yet. My question is how can they assess what is a teen and not without a Digital ID? I'm so sick of these bullshit laws in the spirit of &amp;quot;Protecting the children.&amp;quot; Give your thoughts below&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PostEasy7183"&gt; /u/PostEasy7183 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-21T22:19:31+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qim0e9</id>
     <title>vLLM v0.14.0 released</title>
     <updated>2026-01-21T02:50:09+00:00</updated>
@@ -138,6 +138,19 @@
     <published>2026-01-21T19:51:57+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qjd8dp</id>
+    <title>Kimi-Linear-48B-A3B-Instruct-GGUF Support - Any news?</title>
+    <updated>2026-01-21T22:58:38+00:00</updated>
+    <author>
+      <name>/u/Iory1998</name>
+      <uri>https://old.reddit.com/user/Iory1998</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Kimi-Linear seems to handle long context pretty well. Do you have any idea why it's still not implemented in llama.cpp? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Iory1998"&gt; /u/Iory1998 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjd8dp/kimilinear48ba3binstructgguf_support_any_news/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjd8dp/kimilinear48ba3binstructgguf_support_any_news/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjd8dp/kimilinear48ba3binstructgguf_support_any_news/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-21T22:58:38+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qids6a</id>
     <title>You have 64gb ram and 16gb VRAM; internet is permanently shut off: what 3 models are the ones you use?</title>
     <updated>2026-01-20T21:15:23+00:00</updated>
@@ -149,32 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qids6a/you_have_64gb_ram_and_16gb_vram_internet_is/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-20T21:15:23+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qjbufk</id>
-    <title>Anyscale's new data: Most AI clusters run at &lt;50% utilization. Is "Disaggregation" the fix, or just faster cold starts?</title>
-    <updated>2026-01-21T22:04:50+00:00</updated>
-    <author>
-      <name>/u/pmv143</name>
-      <uri>https://old.reddit.com/user/pmv143</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyscale just published a deep dive showing that most production AI clusters average &amp;lt;50% GPU utilization.&lt;/p&gt; &lt;p&gt;The TL;DR: Because AI workloads are bursty (and CPU/GPU scaling needs differ), we end up provisioning massive clusters that sit idle waiting for traffic.&lt;/p&gt; &lt;p&gt;Their Solution (Ray): &amp;quot;Disaggregation.&amp;quot; Split the CPU logic from the GPU logic so you can saturate the GPUs more efficiently.&lt;/p&gt; &lt;p&gt;My Hot Take:&lt;/p&gt; &lt;p&gt;Disaggregation feels like over-engineering to solve a physics problem.&lt;/p&gt; &lt;p&gt;The only reason we keep those GPUs idle (and pay for them) is because cold starts are too slow (30s+).&lt;/p&gt; &lt;p&gt;If we could load a 70B model in &amp;lt;2 seconds (using System RAM tiering/PCIe saturation), we wouldn't need complex schedulers to &amp;quot;keep the GPU busy.&amp;quot; We would just turn it off.&lt;/p&gt; &lt;p&gt;We’ve been testing this &amp;quot;Ephemeral&amp;quot; approach on my local 3090 (hot-swapping models from RAM in ~1.5s), and it feels much cleaner than trying to manage a complex Ray cluster. GitHub Repo: &lt;a href="https://github.com/inferx-net/inferx"&gt;https://github.com/inferx-net/inferx&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love to hear what production engineers here think: Are you optimizing for Utilization (Ray) or Ephemerality (Fast Loading).&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmv143"&gt; /u/pmv143 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-21T22:04:50+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qjc8a2</id>
-    <title>Michigan is pushing a Anti Chatbot bill to protect the heckin kiddos</title>
-    <updated>2026-01-21T22:19:31+00:00</updated>
-    <author>
-      <name>/u/PostEasy7183</name>
-      <uri>https://old.reddit.com/user/PostEasy7183</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Senate Democrats Call for Improved Safety Measures to Better Protect Michigan Kids from Digital Dangers - Senator Kevin Hertel &lt;a href="https://share.google/ZwmPjEOVP5AcgZnhT"&gt;https://share.google/ZwmPjEOVP5AcgZnhT&lt;/a&gt;&lt;/p&gt; &lt;p&gt;not much information about this yet but they've talked about making sure kids have a harder time to access chat bots. the bill is vague so far and to my knowledge no real text has been released yet. My question is how can they assess what is a teen and not without a Digital ID? I'm so sick of these bullshit laws in the spirit of &amp;quot;Protecting the children.&amp;quot; Give your thoughts below&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PostEasy7183"&gt; /u/PostEasy7183 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjc8a2/michigan_is_pushing_a_anti_chatbot_bill_to/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-21T22:19:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qir5eq</id>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qiuxko/local_file_search_engine_that_understands_your/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-21T10:59:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qjbufk</id>
+    <title>Anyscale's new data: Most AI clusters run at &lt;50% utilization. Is "Disaggregation" the fix, or just faster cold starts?</title>
+    <updated>2026-01-21T22:04:50+00:00</updated>
+    <author>
+      <name>/u/pmv143</name>
+      <uri>https://old.reddit.com/user/pmv143</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyscale just published a deep dive showing that most production AI clusters average &amp;lt;50% GPU utilization.&lt;/p&gt; &lt;p&gt;The TL;DR: Because AI workloads are bursty (and CPU/GPU scaling needs differ), we end up provisioning massive clusters that sit idle waiting for traffic.&lt;/p&gt; &lt;p&gt;Their Solution (Ray): &amp;quot;Disaggregation.&amp;quot; Split the CPU logic from the GPU logic so you can saturate the GPUs more efficiently.&lt;/p&gt; &lt;p&gt;My Hot Take:&lt;/p&gt; &lt;p&gt;Disaggregation feels like over-engineering to solve a physics problem.&lt;/p&gt; &lt;p&gt;The only reason we keep those GPUs idle (and pay for them) is because cold starts are too slow (30s+).&lt;/p&gt; &lt;p&gt;If we could load a 70B model in &amp;lt;2 seconds (using System RAM tiering/PCIe saturation), we wouldn't need complex schedulers to &amp;quot;keep the GPU busy.&amp;quot; We would just turn it off.&lt;/p&gt; &lt;p&gt;We’ve been testing this &amp;quot;Ephemeral&amp;quot; approach on my local 3090 (hot-swapping models from RAM in ~1.5s), and it feels much cleaner than trying to manage a complex Ray cluster. GitHub Repo: &lt;a href="https://github.com/inferx-net/inferx"&gt;https://github.com/inferx-net/inferx&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love to hear what production engineers here think: Are you optimizing for Utilization (Ray) or Ephemerality (Fast Loading).&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmv143"&gt; /u/pmv143 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qjbufk/anyscales_new_data_most_ai_clusters_run_at_50/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-21T22:04:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1qiu6jo</id>
