@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-01-24T18:09:44+00:00</updated>
+  <updated>2026-01-24T18:26:04+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1qk1fo8</id>
-    <title>Bring MCP Apps extension into your own app</title>
-    <updated>2026-01-22T17:51:53+00:00</updated>
-    <author>
-      <name>/u/Acrobatic-Pay-279</name>
-      <uri>https://old.reddit.com/user/Acrobatic-Pay-279</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1qk1fo8/bring_mcp_apps_extension_into_your_own_app/"&gt; &lt;img alt="Bring MCP Apps extension into your own app" src="https://external-preview.redd.it/a2s1N2wwNnVyeGVnMS_UQwgBQt9MR7hva3jA1dkZ9KFcmp67OPXYcYuqa7Xh.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=45f098da6bec3c634aae879c79ab3038b9c58181" title="Bring MCP Apps extension into your own app" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey folks, wanted to show something cool we just open-sourced as a middleware to start building with the MCP Apps extension.&lt;/p&gt; &lt;p&gt;To be transparent, I'm a DevRel at CopilotKit and I wanted to share, particularly with this community.&lt;/p&gt; &lt;p&gt;If I could back up though, I’ve seen a lot of hype around MCP Apps so I went through SEP-1865 and some of the examples to understand what’s actually in scope.&lt;/p&gt; &lt;p&gt;After diving in, here’s what I learned.&lt;/p&gt; &lt;p&gt;When a tool only returns JSON, every host ends up rebuilding the same UI logic. MCP Apps standardize a way for MCP servers to ship interactive HTML UIs alongside tool outputs.&lt;/p&gt; &lt;p&gt;What’s actually standardized:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;ui://...&lt;/code&gt; as a first-class resource type&lt;/li&gt; &lt;li&gt;tools referencing UI explicitly through the &lt;code&gt;_meta&lt;/code&gt; field so the host knows what to render&lt;/li&gt; &lt;li&gt;the UI is rendered in sandboxed iframes for isolation&lt;/li&gt; &lt;li&gt;MCP JSON-RPC as the message channel (&lt;code&gt;postMessage&lt;/code&gt;)&lt;/li&gt; &lt;li&gt;hosts can prefetch and review templates before running tools&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;But rendering UI is only step one. Real agentic apps need to fix the messy coordination: tool lifecycle (start/stream/finish), user interactions (submit/click/select) and shared state updates while the agent is mid-run.&lt;/p&gt; &lt;p&gt;MCP Apps defines the UI surface + comms path but not the runtime orchestration patterns. AG‑UI protocol fits here -- defines an event/state contract for keeping agent state, tool progress and UI interactions in sync.&lt;/p&gt; &lt;p&gt;CopilotKit then acts as the runtime that binds MCP Apps and AG-UI together inside a real app -- it saves you from writing a custom sync layer yourself.&lt;/p&gt; &lt;p&gt;If you want to see it working end-to-end quickly:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;npx copilotkit create -f mcp-apps &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This gives you a runnable starter with an MCP server, UI resources and the wiring in place.&lt;/p&gt; &lt;p&gt;If you are integrating manually, the core idea is: create your agent, attach the MCP Apps middleware and expose the runtime.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;// app/api/copilotkit/route.ts import { CopilotRuntime, ExperimentalEmptyAdapter, copilotRuntimeNextJSAppRouterEndpoint, } from &amp;quot;@copilotkit/runtime&amp;quot;; import { BuiltInAgent } from &amp;quot;@copilotkit/runtime/v2&amp;quot;; import { NextRequest } from &amp;quot;next/server&amp;quot;; import { MCPAppsMiddleware } from &amp;quot;@ag-ui/mcp-apps-middleware&amp;quot;; // 1. Create your agent and add the MCP Apps middleware const agent = new BuiltInAgent({ model: &amp;quot;openai/gpt-4o&amp;quot;, prompt: &amp;quot;You are a helpful assistant.&amp;quot;, }).use( new MCPAppsMiddleware({ mcpServers: [ { type: &amp;quot;http&amp;quot;, url: &amp;quot;&amp;lt;http://localhost:3108/mcp&amp;gt;&amp;quot;, serverId: &amp;quot;my-server&amp;quot; // Recommended: stable identifier }, ], }), ) // 2. Create a service adapter, empty if not relevant const serviceAdapter = new ExperimentalEmptyAdapter(); // 3. Create the runtime and add the agent const runtime = new CopilotRuntime({ agents: { default: agent, }, }); // 4. Create the API route export const POST = async (req: NextRequest) =&amp;gt; { const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({ runtime, serviceAdapter, endpoint: &amp;quot;/api/copilotkit&amp;quot;, }); return handleRequest(req); }; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;On the frontend you basically just wrap with the provider + add a chat/sidebar component and then MCP Apps UIs show up automatically whenever a tool returns a &lt;code&gt;ui://...&lt;/code&gt; reference.&lt;/p&gt; &lt;p&gt;For more advanced demo, check out this repo: &lt;a href="https://github.com/CopilotKit/mcp-apps-demo"&gt;https://github.com/CopilotKit/mcp-apps-demo&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acrobatic-Pay-279"&gt; /u/Acrobatic-Pay-279 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/sxk5ru1urxeg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qk1fo8/bring_mcp_apps_extension_into_your_own_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qk1fo8/bring_mcp_apps_extension_into_your_own_app/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-01-22T17:51:53+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qkvrxa</id>
     <title>Best MCP Server?</title>
@@ -86,19 +73,6 @@
     <published>2026-01-23T18:12:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qkloem</id>
-    <title>I built an alternative Jira MCP server for Claude Code — the official one was driving me crazy</title>
-    <updated>2026-01-23T08:45:06+00:00</updated>
-    <author>
-      <name>/u/Open_Variation1438</name>
-      <uri>https://old.reddit.com/user/Open_Variation1438</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm a pretty big fan of custom MCP solutions and I use quite a lot of MCP servers for my work with Claude Code and Codex CLI. For Jira, the official Atlassian Jira MCP just doesn't work for me. Main problems:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Verbose outputs&lt;/strong&gt; — API responses were unnecessarily large and ate up context, sometimes it just gets stuck and the server doesn't respond at all, it's terrible&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Unhelpful tool descriptions&lt;/strong&gt; — the LLM kept picking the wrong tools, often got into loops, burned through my context window, it just sucks&lt;/li&gt; &lt;li&gt;&lt;strong&gt;General bloat&lt;/strong&gt; — feels like it was built for every edge case instead of practical daily use, but I get it, everyone uses Jira differently, it's a complex topic&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So I built my own: &lt;a href="https://github.com/freema/mcp-jira-stdio"&gt;&lt;strong&gt;https://github.com/freema/mcp-jira-stdio&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Specific example of my workflow — creating issues:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every Jira project has different required fields. My MCP has a &lt;code&gt;jira_get_create_meta&lt;/code&gt; tool that first fetches which fields are required for a given project (including custom fields and their allowed values). The model reads this and creates the issue correctly on the first try — no more &amp;quot;Error: field X is required&amp;quot; and repeated attempts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My workflow — linking instead of subtasks:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I don't use subtasks. I prefer creating separate tasks and connecting them via links + Story as an umbrella. This MCP handles that well — create multiple tasks and properly link them to each other and to a Story.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it does:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;15 focused tools: issue CRUD, JQL search, comments, metadata, project info, etc.&lt;/li&gt; &lt;li&gt;Stdio transport (works great with Claude Code, Open Code, Codex CLI) — it's more for local work, you can also integrate it into desktop&lt;/li&gt; &lt;li&gt;Optimized outputs — no unnecessary data bloating your context, though I'm still optimizing further&lt;/li&gt; &lt;li&gt;Quick install: &lt;code&gt;claude mcp add jira npx mcp-jira-stdio@latest --env ...&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; Part of why it works so well for me might be how specifically we use Jira at work. Your experience may vary. But if the official MCP feels unusable or you want something simpler, give it a shot. Feedback and PRs welcome, thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Open_Variation1438"&gt; /u/Open_Variation1438 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-01-23T08:45:06+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qknhxi</id>
     <title>From searxng-mcp to searxNcrawl</title>
     <updated>2026-01-23T10:37:41+00:00</updated>
@@ -123,6 +97,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1qkv293/terminal_mcp_its_like_browser_mcp_for_terminal/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-01-23T16:14:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qkloem</id>
+    <title>I built an alternative Jira MCP server for Claude Code — the official one was driving me crazy</title>
+    <updated>2026-01-23T08:45:06+00:00</updated>
+    <author>
+      <name>/u/Open_Variation1438</name>
+      <uri>https://old.reddit.com/user/Open_Variation1438</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm a pretty big fan of custom MCP solutions and I use quite a lot of MCP servers for my work with Claude Code and Codex CLI. For Jira, the official Atlassian Jira MCP just doesn't work for me. Main problems:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Verbose outputs&lt;/strong&gt; — API responses were unnecessarily large and ate up context, sometimes it just gets stuck and the server doesn't respond at all, it's terrible&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Unhelpful tool descriptions&lt;/strong&gt; — the LLM kept picking the wrong tools, often got into loops, burned through my context window, it just sucks&lt;/li&gt; &lt;li&gt;&lt;strong&gt;General bloat&lt;/strong&gt; — feels like it was built for every edge case instead of practical daily use, but I get it, everyone uses Jira differently, it's a complex topic&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So I built my own: &lt;a href="https://github.com/freema/mcp-jira-stdio"&gt;&lt;strong&gt;https://github.com/freema/mcp-jira-stdio&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Specific example of my workflow — creating issues:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every Jira project has different required fields. My MCP has a &lt;code&gt;jira_get_create_meta&lt;/code&gt; tool that first fetches which fields are required for a given project (including custom fields and their allowed values). The model reads this and creates the issue correctly on the first try — no more &amp;quot;Error: field X is required&amp;quot; and repeated attempts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My workflow — linking instead of subtasks:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I don't use subtasks. I prefer creating separate tasks and connecting them via links + Story as an umbrella. This MCP handles that well — create multiple tasks and properly link them to each other and to a Story.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it does:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;15 focused tools: issue CRUD, JQL search, comments, metadata, project info, etc.&lt;/li&gt; &lt;li&gt;Stdio transport (works great with Claude Code, Open Code, Codex CLI) — it's more for local work, you can also integrate it into desktop&lt;/li&gt; &lt;li&gt;Optimized outputs — no unnecessary data bloating your context, though I'm still optimizing further&lt;/li&gt; &lt;li&gt;Quick install: &lt;code&gt;claude mcp add jira npx mcp-jira-stdio@latest --env ...&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; Part of why it works so well for me might be how specifically we use Jira at work. Your experience may vary. But if the official MCP feels unusable or you want something simpler, give it a shot. Feedback and PRs welcome, thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Open_Variation1438"&gt; /u/Open_Variation1438 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qkloem/i_built_an_alternative_jira_mcp_server_for_claude/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-01-23T08:45:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1qkm1tg</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1qlt17c/why_we_stopped_betting_on_models_and_built_an/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-01-24T17:28:20+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qluhvq</id>
+    <title>Managing MCP servers across Cursor + Claude Desktop is a mess - anyone else?</title>
+    <updated>2026-01-24T18:22:02+00:00</updated>
+    <author>
+      <name>/u/charlymartinson</name>
+      <uri>https://old.reddit.com/user/charlymartinson</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/charlymartinson"&gt; /u/charlymartinson &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ClaudeAI/comments/1qlu977/managing_mcp_servers_across_cursor_claude_desktop/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qluhvq/managing_mcp_servers_across_cursor_claude_desktop/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qluhvq/managing_mcp_servers_across_cursor_claude_desktop/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-01-24T18:22:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1qlocqs</id>
