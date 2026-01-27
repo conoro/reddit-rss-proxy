@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-27T16:10:34+00:00</updated>
+  <updated>2026-01-27T16:26:52+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1qnwjrp</id>
-    <title>Kimi K2.5 seems to have soft released on the web app. Release soon?</title>
-    <updated>2026-01-26T23:18:09+00:00</updated>
-    <author>
-      <name>/u/Dudensen</name>
-      <uri>https://old.reddit.com/user/Dudensen</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnwjrp/kimi_k25_seems_to_have_soft_released_on_the_web/"&gt; &lt;img alt="Kimi K2.5 seems to have soft released on the web app. Release soon?" src="https://preview.redd.it/qsd3byzy0sfg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e14275f305a38ad9e6e0fa233fb7b20affee6509" title="Kimi K2.5 seems to have soft released on the web app. Release soon?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dudensen"&gt; /u/Dudensen &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/qsd3byzy0sfg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnwjrp/kimi_k25_seems_to_have_soft_released_on_the_web/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qnwjrp/kimi_k25_seems_to_have_soft_released_on_the_web/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-26T23:18:09+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qnjsvz</id>
     <title>I tracked GPU prices across 25 cloud providers and the price differences are insane (V100: $0.05/hr vs $3.06/hr)</title>
@@ -47,19 +34,6 @@
     <published>2026-01-27T13:14:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qohhl4</id>
-    <title>I tried to hand-roll observability for local LLM inference… then realized OpenTelemetry solves the “parent span / timestamps / threads” mess</title>
-    <updated>2026-01-27T15:49:00+00:00</updated>
-    <author>
-      <name>/u/Main-Fisherman-2075</name>
-      <uri>https://old.reddit.com/user/Main-Fisherman-2075</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been wiring multiple LLM stacks into our observability platform this month: Vercel AI SDK, Haystack, LiteLLM, and local inference (the LocalLLaMA-ish runtime side is where it got painful fast).&lt;/p&gt; &lt;p&gt;I started with the simple mindset: “I’ll just add timestamps, manually create parent span + child spans, and call it tracing.”&lt;/p&gt; &lt;p&gt;Then I asked our CTO a genuinely dumb question:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;“When do we send the parent span? Especially with streaming + tool calls + background threads… how do we avoid timestamp drift?”&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;That question is dumb because OpenTelemetry is literally designed so you don’t need to do that. If you instrument correctly, span lifecycle + parent/child relationships come from context propagation, not from you deciding when to ‘send’ a parent span. And manually computing timings gets fragile the second you introduce concurrency.&lt;/p&gt; &lt;p&gt;What I learned that actually matters (hardcore bits)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1) Traces aren’t logs with timestamps&lt;/strong&gt;&lt;br /&gt; A trace is a tree of spans. A span includes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;start/end time&lt;/li&gt; &lt;li&gt;attributes (structured key/value)&lt;/li&gt; &lt;li&gt;events (timestamped breadcrumbs)&lt;/li&gt; &lt;li&gt;status (OK/ERROR)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The big win is structure + propagation, not timestamps.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2) Local inference wants “phase spans,” not one giant blob&lt;/strong&gt;&lt;br /&gt; A clean model for local runtimes looks like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;llm.request&lt;/code&gt; (root) &lt;ul&gt; &lt;li&gt;&lt;code&gt;llm.tokenize&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;llm.prefill&lt;/code&gt; (TTFT lives here)&lt;/li&gt; &lt;li&gt;&lt;code&gt;llm.decode&lt;/code&gt; (throughput lives here)&lt;/li&gt; &lt;li&gt;&lt;code&gt;llm.stream_write&lt;/code&gt; (optional)&lt;/li&gt; &lt;li&gt;&lt;code&gt;tool.*&lt;/code&gt; (if you’re doing tools/agents locally)&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Then attach attributes like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;llm.model&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;llm.tokens.prompt&lt;/code&gt;, &lt;code&gt;llm.tokens.completion&lt;/code&gt;, &lt;a href="http://llm.tokens.total"&gt;&lt;code&gt;llm.tokens.total&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;llm.streaming=true&lt;/code&gt;&lt;/li&gt; &lt;li&gt;runtime attrs you actually care about: &lt;code&gt;queue.wait_ms&lt;/code&gt;, &lt;code&gt;batch.size&lt;/code&gt;, &lt;code&gt;device=gpu/cpu&lt;/code&gt;, etc.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;3) Context propagation is the real “magic”&lt;/strong&gt;&lt;br /&gt; Parent/child correctness across async/thread boundaries is the difference between “pretty logs” and real tracing. That’s why hand-rolling it breaks the moment you do background tasks, queues, or streaming callbacks.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4) Sampling strategy is non-negotiable&lt;/strong&gt;&lt;br /&gt; If you trace everything, volume explodes. For local inference, the only sane rules I’ve found:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;keep 100% ERROR traces&lt;/li&gt; &lt;li&gt;keep slow traces (high TTFT)&lt;/li&gt; &lt;li&gt;keep expensive traces (huge prompt/outputs)&lt;/li&gt; &lt;li&gt;sample the rest&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The same tracing model works across all four:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Vercel AI SDK: streaming + tools → spans/events/attributes&lt;/li&gt; &lt;li&gt;Haystack: pipeline nodes → spans per component&lt;/li&gt; &lt;li&gt;LiteLLM: gateway retries/fallbacks → child spans per provider call&lt;/li&gt; &lt;li&gt;Local inference: runtime phases + batching/queue contention&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Once you commit to OTel semantics, exporting becomes “just plumbing” (OTLP exporter/collector), instead of bespoke glue for each framework.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Main-Fisherman-2075"&gt; /u/Main-Fisherman-2075 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qohhl4/i_tried_to_handroll_observability_for_local_llm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qohhl4/i_tried_to_handroll_observability_for_local_llm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qohhl4/i_tried_to_handroll_observability_for_local_llm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T15:49:00+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qnjota</id>
     <title>I built a "hive mind" for Claude Code - 7 agents sharing memory and talking to each other</title>
     <updated>2026-01-26T15:49:13+00:00</updated>
@@ -71,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qnjota/i_built_a_hive_mind_for_claude_code_7_agents/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-26T15:49:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qogkgr</id>
-    <title>I built a local-first AI tool: generate ST character cards via local-first LLM endpoints or openai API + optional image backends — feedback wanted</title>
-    <updated>2026-01-27T15:14:58+00:00</updated>
-    <author>
-      <name>/u/JaxxonAI</name>
-      <uri>https://old.reddit.com/user/JaxxonAI</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built an open-source, local-first Character Card Generator for SillyTavern character cards (JSON + PNG cards). It’s a Vue/Node web app that talks to your local LLM endpoint (KoboldCPP or OpenAI-compatible), and optionally your local image backend (ComfyUI / SDAPI).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it does&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Generates ST fields with structured output (supports “fill missing fields” + regenerate selected fields)&lt;/li&gt; &lt;li&gt;Field detail presets: Short / Detailed / Verbose + per-field overrides&lt;/li&gt; &lt;li&gt;Timeouts + max token controls for long generations&lt;/li&gt; &lt;li&gt;Multi-repo library (CardGen + external folders like SillyTavern) with copy/move + search/sort&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Would love your feedback on the app. &lt;/p&gt; &lt;p&gt;Github Repo: &lt;a href="https://github.com/ewizza/ST-CardGen"&gt;https://github.com/ewizza/ST-CardGen&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Background thread in &lt;a href="/r/SillyTavernAI"&gt;r/SillyTavernAI&lt;/a&gt;: &lt;a href="https://www.reddit.com/r/SillyTavernAI/comments/1qhe1a4/new_character_generator_with_llm_and_image_api/"&gt;https://www.reddit.com/r/SillyTavernAI/comments/1qhe1a4/new_character_generator_with_llm_and_image_api/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JaxxonAI"&gt; /u/JaxxonAI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qogkgr"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qogkgr/i_built_a_localfirst_ai_tool_generate_st/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qogkgr/i_built_a_localfirst_ai_tool_generate_st/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T15:14:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1qni356</id>
@@ -151,6 +112,19 @@
     <published>2026-01-27T12:28:27+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qogkgr</id>
+    <title>I built a local-first AI tool: generate ST character cards via local-first LLM endpoints or openai API + optional image backends — feedback wanted</title>
+    <updated>2026-01-27T15:14:58+00:00</updated>
+    <author>
+      <name>/u/JaxxonAI</name>
+      <uri>https://old.reddit.com/user/JaxxonAI</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built an open-source, local-first Character Card Generator for SillyTavern character cards (JSON + PNG cards). It’s a Vue/Node web app that talks to your local LLM endpoint (KoboldCPP or OpenAI-compatible), and optionally your local image backend (ComfyUI / SDAPI).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it does&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Generates ST fields with structured output (supports “fill missing fields” + regenerate selected fields)&lt;/li&gt; &lt;li&gt;Field detail presets: Short / Detailed / Verbose + per-field overrides&lt;/li&gt; &lt;li&gt;Timeouts + max token controls for long generations&lt;/li&gt; &lt;li&gt;Multi-repo library (CardGen + external folders like SillyTavern) with copy/move + search/sort&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Would love your feedback on the app. &lt;/p&gt; &lt;p&gt;Github Repo: &lt;a href="https://github.com/ewizza/ST-CardGen"&gt;https://github.com/ewizza/ST-CardGen&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Background thread in &lt;a href="/r/SillyTavernAI"&gt;r/SillyTavernAI&lt;/a&gt;: &lt;a href="https://www.reddit.com/r/SillyTavernAI/comments/1qhe1a4/new_character_generator_with_llm_and_image_api/"&gt;https://www.reddit.com/r/SillyTavernAI/comments/1qhe1a4/new_character_generator_with_llm_and_image_api/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JaxxonAI"&gt; /u/JaxxonAI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qogkgr"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qogkgr/i_built_a_localfirst_ai_tool_generate_st/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qogkgr/i_built_a_localfirst_ai_tool_generate_st/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-27T15:14:58+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qo75sj</id>
     <title>Mixture of Lookup Experts are God Tier for the average guy (RAM+Disc Hybrid Inference)</title>
     <updated>2026-01-27T07:24:00+00:00</updated>
@@ -190,17 +164,30 @@
     <published>2026-01-26T23:07:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qoge2t</id>
-    <title>Kimi K2.5 Architecture Dive: 1T Params, 384 Experts, Native INT4 (and it beats GPT-5 on reasoning)</title>
-    <updated>2026-01-27T15:08:29+00:00</updated>
+    <id>t3_1qoi1jc</id>
+    <title>SERA 8B/32B</title>
+    <updated>2026-01-27T16:08:27+00:00</updated>
     <author>
-      <name>/u/comebackch</name>
-      <uri>https://old.reddit.com/user/comebackch</uri>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The specs on the new Moonshot AI model (Kimi K2.5) are actually wild, and I feel like the architectural shift is being overlooked because of the &amp;quot;Agent&amp;quot; hype.&lt;/p&gt; &lt;p&gt;I dug into the technical report/release notes, and this isn't just a Llama clone. It looks like a very aggressive optimization of the MoE (Mixture-of-Experts) architecture specifically for consumer hardware efficiency relative to performance.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Architecture Breakdown:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Total Parameters:&lt;/strong&gt; 1 Trillion.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Active Parameters:&lt;/strong&gt; Only 32B per token.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Expert Granularity:&lt;/strong&gt; 384 specialized experts (vs 256 in DeepSeek V3).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Routing:&lt;/strong&gt; Selects top-8 experts + 1 &amp;quot;shared&amp;quot; expert for common grammar/logic.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Native QAT:&lt;/strong&gt; It was trained with Quantization-Aware Training for INT4 from day one. This explains how they fit it on 4x H100s instead of a massive cluster.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Why the &amp;quot;Shared Expert&amp;quot; matters:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;They seem to have solved the &amp;quot;interference&amp;quot; problem where learning code degrades creative writing. By isolating micro-domains (like &amp;quot;Rust syntax&amp;quot; or &amp;quot;Classical Poetry&amp;quot;) into specific experts and keeping a shared expert for the basics, the model maintains coherence better than dense models.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The &amp;quot;Thinking&amp;quot; Mode:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It's using a System 2 approach similar to recent reasoning models, generating internal &amp;quot;thought tokens&amp;quot; to decompose problems before answering.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Benchmarks (If you trust them):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Humanity's Last Exam:&lt;/strong&gt; 50.2% (vs GPT-5 at 41.7%).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;LiveCodeBench:&lt;/strong&gt; 83.1% (Approaching GPT-5, crushing Claude 3.5 Sonnet).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Has anyone pulled the weights yet to verify the VRAM requirements for local inference? The 32B active param count suggests it might be runnable on dual 3090s/4090s with heavy quantization, but the full MOE routing usually requires keeping more in VRAM.&lt;/p&gt; &lt;p&gt;Thoughts on this &amp;quot;Hyper-MoE&amp;quot; trend?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/comebackch"&gt; /u/comebackch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoi1jc/sera_8b32b/"&gt; &lt;img alt="SERA 8B/32B" src="https://a.thumbs.redditmedia.com/aiyHVH_H-noFKcxtqbQ2Vb5ZhuqTajFG0oLHTJx9LW8.jpg" title="SERA 8B/32B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/of9u5blh1xfg1.png?width=1110&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cf11d0dc7016f0fadeee4eea761c68d7fed48098"&gt;https://preview.redd.it/of9u5blh1xfg1.png?width=1110&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cf11d0dc7016f0fadeee4eea761c68d7fed48098&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/allenai/SERA-32B"&gt;https://huggingface.co/allenai/SERA-32B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/allenai/SERA-32B-GA"&gt;https://huggingface.co/allenai/SERA-32B-GA&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/allenai/SERA-8B-GA"&gt;https://huggingface.co/allenai/SERA-8B-GA&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ykqidl1c1xfg1.png?width=779&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b78c42146c0984889cd81cb6391cf3a03f061a5a"&gt;https://preview.redd.it/ykqidl1c1xfg1.png?width=779&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b78c42146c0984889cd81cb6391cf3a03f061a5a&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoi1jc/sera_8b32b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoi1jc/sera_8b32b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qoi1jc/sera_8b32b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T15:08:29+00:00</published>
+    <published>2026-01-27T16:08:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qoiep6</id>
+    <title>The z-image base is here!</title>
+    <updated>2026-01-27T16:21:29+00:00</updated>
+    <author>
+      <name>/u/bobeeeeeeeee8964</name>
+      <uri>https://old.reddit.com/user/bobeeeeeeeee8964</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/Tongyi-MAI/Z-Image"&gt;https://huggingface.co/Tongyi-MAI/Z-Image&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bobeeeeeeeee8964"&gt; /u/bobeeeeeeeee8964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoiep6/the_zimage_base_is_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoiep6/the_zimage_base_is_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qoiep6/the_zimage_base_is_here/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-27T16:21:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1qo8r8s</id>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-01-27T09:00:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qoge2t</id>
+    <title>Kimi K2.5 Architecture Dive: 1T Params, 384 Experts, Native INT4 (and it beats GPT-5 on reasoning)</title>
+    <updated>2026-01-27T15:08:29+00:00</updated>
+    <author>
+      <name>/u/comebackch</name>
+      <uri>https://old.reddit.com/user/comebackch</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The specs on the new Moonshot AI model (Kimi K2.5) are actually wild, and I feel like the architectural shift is being overlooked because of the &amp;quot;Agent&amp;quot; hype.&lt;/p&gt; &lt;p&gt;I dug into the technical report/release notes, and this isn't just a Llama clone. It looks like a very aggressive optimization of the MoE (Mixture-of-Experts) architecture specifically for consumer hardware efficiency relative to performance.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Architecture Breakdown:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Total Parameters:&lt;/strong&gt; 1 Trillion.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Active Parameters:&lt;/strong&gt; Only 32B per token.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Expert Granularity:&lt;/strong&gt; 384 specialized experts (vs 256 in DeepSeek V3).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Routing:&lt;/strong&gt; Selects top-8 experts + 1 &amp;quot;shared&amp;quot; expert for common grammar/logic.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Native QAT:&lt;/strong&gt; It was trained with Quantization-Aware Training for INT4 from day one. This explains how they fit it on 4x H100s instead of a massive cluster.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Why the &amp;quot;Shared Expert&amp;quot; matters:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;They seem to have solved the &amp;quot;interference&amp;quot; problem where learning code degrades creative writing. By isolating micro-domains (like &amp;quot;Rust syntax&amp;quot; or &amp;quot;Classical Poetry&amp;quot;) into specific experts and keeping a shared expert for the basics, the model maintains coherence better than dense models.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The &amp;quot;Thinking&amp;quot; Mode:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It's using a System 2 approach similar to recent reasoning models, generating internal &amp;quot;thought tokens&amp;quot; to decompose problems before answering.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Benchmarks (If you trust them):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Humanity's Last Exam:&lt;/strong&gt; 50.2% (vs GPT-5 at 41.7%).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;LiveCodeBench:&lt;/strong&gt; 83.1% (Approaching GPT-5, crushing Claude 3.5 Sonnet).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Has anyone pulled the weights yet to verify the VRAM requirements for local inference? The 32B active param count suggests it might be runnable on dual 3090s/4090s with heavy quantization, but the full MOE routing usually requires keeping more in VRAM.&lt;/p&gt; &lt;p&gt;Thoughts on this &amp;quot;Hyper-MoE&amp;quot; trend?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/comebackch"&gt; /u/comebackch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qoge2t/kimi_k25_architecture_dive_1t_params_384_experts/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-27T15:08:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1qofdc3</id>
