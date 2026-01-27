@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-01-27T18:47:04+00:00</updated>
+  <updated>2026-01-27T19:12:08+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1qo0tme</id>
-    <title>4x RTX 6000 PRO Workstation in custom frame</title>
-    <updated>2026-01-27T02:15:56+00:00</updated>
-    <author>
-      <name>/u/Vicar_of_Wibbly</name>
-      <uri>https://old.reddit.com/user/Vicar_of_Wibbly</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo0tme/4x_rtx_6000_pro_workstation_in_custom_frame/"&gt; &lt;img alt="4x RTX 6000 PRO Workstation in custom frame" src="https://b.thumbs.redditmedia.com/zXLS4IKpatHKk459rMoLocQgCSxyzAzC7h_dJSP1swU.jpg" title="4x RTX 6000 PRO Workstation in custom frame" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I put this together over the winter break. More photos at &lt;a href="https://blraaz.net"&gt;https://blraaz.net&lt;/a&gt; (no ads, no trackers, no bullshit, just a vibe-coded photo blog).&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vicar_of_Wibbly"&gt; /u/Vicar_of_Wibbly &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qo0tme"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo0tme/4x_rtx_6000_pro_workstation_in_custom_frame/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qo0tme/4x_rtx_6000_pro_workstation_in_custom_frame/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T02:15:56+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qol3s5</id>
-    <title>[Preliminary] New subquadratic attention: ~20k tok/s prefill / ~100 tok/s decode @ 1M context (single GPU)</title>
-    <updated>2026-01-27T17:54:19+00:00</updated>
-    <author>
-      <name>/u/Sad-Size2723</name>
-      <uri>https://old.reddit.com/user/Sad-Size2723</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone, &lt;/p&gt; &lt;p&gt;Wanted to share some preliminary feasibility results from my work on a new attention mechanism (with custom kernels) on NVIDIA Nemotron Nano v3 30B. I am now able to run 1M context on a single GPU with this setup, and the early throughput numbers look promising. &lt;/p&gt; &lt;p&gt;TL;DR: 30B model + 1M context on a single GPU, with a jump-search-style attention mechanism. (Manuscript link: &lt;a href="https://arxiv.org/abs/2601.18401"&gt;https://arxiv.org/abs/2601.18401&lt;/a&gt;) &lt;/p&gt; &lt;p&gt;Numbers (single batch/sequence; single GPU: NVIDIA B200, similar results on RTX PRO 6000 Blackwell):&lt;br /&gt; - &lt;strong&gt;~20,000 tok/s&lt;/strong&gt; prefill&lt;br /&gt; - &lt;strong&gt;~100 tok/s&lt;/strong&gt; decode at &lt;strong&gt;1M&lt;/strong&gt; context&lt;br /&gt; - &lt;strong&gt;66 GB&lt;/strong&gt; GPU memory (6GB KV cache + 60GB FP16 model)&lt;br /&gt; - perfect NIAH (needle in a haystack) at 256K context (limited training so far) &lt;/p&gt; &lt;p&gt;I have completed an initial feasibility study, and I'm continuing to train the model toward real production use. The plan is to fully open-source the model for local inference, with a target of running a fully filled 1M context for a 30B model locally on ~24GB GPU memory. I'm cleaning up the codebase and plan to release the kernel implementations soon. For the model itself, I'll share it once we feel good about long-context performance/quality. &lt;/p&gt; &lt;p&gt;(Just to be clear: these are early numbers, and quality/evals are still in progress.) &lt;/p&gt; &lt;p&gt;1) What’s the main idea &lt;/p&gt; &lt;p&gt;You can think about the transformer attention mechanism as a search algorithm to find the relevant information to predict the next token. Standard attention is basically O(L) brute-force search. We’re doing an O(L^0.5) jump-search-style approach instead. For example, if you 10x the context length, a sqrt(L) search budget only grows by ~3.2x. &lt;/p&gt; &lt;p&gt;That subquadratic scaling really matters for long context, since the cost still grows with L. The main innovation is keeping that scaling while still making sure every token is reachable (i.e., not a fixed sliding window; think ‘&lt;strong&gt;global random access&lt;/strong&gt;’). Most likely in long context inference, a large fraction of long-context computation is wasted by brute-force scanning, and that if we are smart about it, we can compute it much more efficiently. &lt;/p&gt; &lt;p&gt;2) What's the goal &lt;/p&gt; &lt;p&gt;Targeting high-quality and fast (~100 tok/s) open-source local models at long context: &lt;/p&gt; &lt;p&gt;- 1M context on a 24GB GPU: ~6GB KV cache + ~15GB 4-bit quantized model&lt;br /&gt; - 10M context on a 96GB GPU: ~60GB KV cache + ~30GB 8-bit quantized model &lt;/p&gt; &lt;p&gt;Our initial feasibility results suggest we’re already in the right ballpark on inference speed. The main work now is scaling training and doing broader quality evals on real long-context tasks. I’m sure we’ll hit obstacles as we scale up, but overall we feel this direction is achievable. &lt;/p&gt; &lt;p&gt;3) Questions/feedback &lt;/p&gt; &lt;p&gt;I’m a big fan of running models locally (work + teaching + personal projects). Before COVID I bought 4× 1070 Ti GPUs for some non-LLM stuff, and these days I mostly use an A6000 at home. I’m excited about this because it could make really long-context workflows practical without needing a cluster.&lt;/p&gt; &lt;p&gt;Would love feedback / sanity checks on a few things:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;What would you actually use 1M–10M context for locally? (offline search over docs, codebase-scale assistants, long-form editing, “personal knowledge base”, etc.)&lt;/li&gt; &lt;li&gt;What evals would you trust most for long-context quality (beyond simple needle-in-a-haystack)?&lt;/li&gt; &lt;li&gt;What baselines should I compare against to make the speed/quality tradeoffs clear&lt;/li&gt; &lt;li&gt;What would make an open-source release most useful to you (kernels only vs full inference stack vs training code/configs)?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I kept this post high-level, but happy to go deeper if there’s interest.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sad-Size2723"&gt; /u/Sad-Size2723 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T17:54:19+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qnk7fq</id>
     <title>transformers v5 final is out 🔥</title>
@@ -73,6 +47,19 @@
     <published>2026-01-27T16:59:28+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qnw3z6</id>
+    <title>Kimi K2.5 Released !</title>
+    <updated>2026-01-26T23:01:14+00:00</updated>
+    <author>
+      <name>/u/External_Mood4719</name>
+      <uri>https://old.reddit.com/user/External_Mood4719</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt; &lt;img alt="Kimi K2.5 Released !" src="https://b.thumbs.redditmedia.com/dKkXWHKejfbQU4qoe82oKQb8Ib5mckOcJmAeyPyUh7M.jpg" title="Kimi K2.5 Released !" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since the previous version was open-sourced, I’m sharing the new model. I’m not sure if this one will be open-source yet, and the official website hasn’t mentioned &lt;strong&gt;Kimi K2.5&lt;/strong&gt; at all, so I think they’re still in the testing phase.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;They currently only released on their website&lt;/strong&gt; &lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/7f613rz2yrfg1.png?width=1517&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b10c7206deeb73082b1d0988cddb3601a6ccbcca"&gt;https://preview.redd.it/7f613rz2yrfg1.png?width=1517&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b10c7206deeb73082b1d0988cddb3601a6ccbcca&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/AiBattle_/status/2015902394312253564?s=20"&gt;https://x.com/AiBattle_/status/2015902394312253564?s=20&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.kimi.com/"&gt;https://www.kimi.com/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-26T23:01:14+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qo9kg5</id>
     <title>DeepSeek V4 maybe was a multimodal model?</title>
     <updated>2026-01-27T09:49:18+00:00</updated>
@@ -86,17 +73,17 @@
     <published>2026-01-27T09:49:18+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qnw3z6</id>
-    <title>Kimi K2.5 Released !</title>
-    <updated>2026-01-26T23:01:14+00:00</updated>
+    <id>t3_1qomra4</id>
+    <title>Some initial benchmarks of Kimi-K2.5 on 4xB200</title>
+    <updated>2026-01-27T18:50:51+00:00</updated>
     <author>
-      <name>/u/External_Mood4719</name>
-      <uri>https://old.reddit.com/user/External_Mood4719</uri>
+      <name>/u/benno_1237</name>
+      <uri>https://old.reddit.com/user/benno_1237</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt; &lt;img alt="Kimi K2.5 Released !" src="https://b.thumbs.redditmedia.com/dKkXWHKejfbQU4qoe82oKQb8Ib5mckOcJmAeyPyUh7M.jpg" title="Kimi K2.5 Released !" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since the previous version was open-sourced, I’m sharing the new model. I’m not sure if this one will be open-source yet, and the official website hasn’t mentioned &lt;strong&gt;Kimi K2.5&lt;/strong&gt; at all, so I think they’re still in the testing phase.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;They currently only released on their website&lt;/strong&gt; &lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/7f613rz2yrfg1.png?width=1517&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b10c7206deeb73082b1d0988cddb3601a6ccbcca"&gt;https://preview.redd.it/7f613rz2yrfg1.png?width=1517&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=b10c7206deeb73082b1d0988cddb3601a6ccbcca&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/AiBattle_/status/2015902394312253564?s=20"&gt;https://x.com/AiBattle_/status/2015902394312253564?s=20&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.kimi.com/"&gt;https://www.kimi.com/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qnw3z6/kimi_k25_released/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qomra4/some_initial_benchmarks_of_kimik25_on_4xb200/"&gt; &lt;img alt="Some initial benchmarks of Kimi-K2.5 on 4xB200" src="https://preview.redd.it/zyvu6wcjsxfg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6d94c746acf2b874a21b6387a83bb8da32100ae9" title="Some initial benchmarks of Kimi-K2.5 on 4xB200" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just had some fun and ran a (very crude) benchmark script. Sadly, one GPU is busy so I can only run on 4 instead of 8 (thus limiting me to ~30k context without optimizations).&lt;/p&gt; &lt;p&gt;Command used (with random-input-len changing between sample points):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;vllm bench serve \ --backend openai \ --base-url http://localhost:8000 \ --model /models/huggingface/moonshotai/Kimi-K2.5 \ --dataset-name random \ --random-input-len 24000 \ --random-output-len 512 \ --request-rate 2 \ --num-prompts 20 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;One full data point:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;============ Serving Benchmark Result ============ Successful requests: 20 Failed requests: 0 Request rate configured (RPS): 2.00 Benchmark duration (s): 61.48 Total input tokens: 480000 Total generated tokens: 10240 Request throughput (req/s): 0.33 Output token throughput (tok/s): 166.55 Peak output token throughput (tok/s): 420.00 Peak concurrent requests: 20.00 Total token throughput (tok/s): 7973.52 ---------------Time to First Token---------------- Mean TTFT (ms): 22088.76 Median TTFT (ms): 22193.34 P99 TTFT (ms): 42553.83 -----Time per Output Token (excl. 1st token)------ Mean TPOT (ms): 34.37 Median TPOT (ms): 37.72 P99 TPOT (ms): 39.72 ---------------Inter-token Latency---------------- Mean ITL (ms): 34.37 Median ITL (ms): 17.37 P99 ITL (ms): 613.91 ================================================== &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;As you can see, first token latency is terrible. This is probably due to an unoptimized tokenizer and inefficient chunk prefilling. I wanted to see the model perform with default vllm settings though.&lt;/p&gt; &lt;p&gt;Coding looks okay-ish at the moment but the context is limiting (this is a me problem, not the model).&lt;/p&gt; &lt;p&gt;Let me know if you want to see some benchmarks/have me try some settings.&lt;/p&gt; &lt;p&gt;Edit: &lt;/p&gt; &lt;p&gt;Maybe also interesting to know: first start took about 1.5h (with already downloaded safetensors). This is by far the longest time I ever had to wait for anything to start. Consecutive starts are much faster though&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/benno_1237"&gt; /u/benno_1237 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/zyvu6wcjsxfg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qomra4/some_initial_benchmarks_of_kimik25_on_4xb200/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qomra4/some_initial_benchmarks_of_kimik25_on_4xb200/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-26T23:01:14+00:00</published>
+    <published>2026-01-27T18:50:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1qo75sj</id>
@@ -138,6 +125,19 @@
     <published>2026-01-26T23:07:49+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qo8r8s</id>
+    <title>Kimi K2.5 Launches, Unsloth quantisations coming soon</title>
+    <updated>2026-01-27T09:00:51+00:00</updated>
+    <author>
+      <name>/u/Plastic-Accident862</name>
+      <uri>https://old.reddit.com/user/Plastic-Accident862</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://platform.moonshot.ai/docs/guide/kimi-k2-5-quickstart"&gt;https://platform.moonshot.ai/docs/guide/kimi-k2-5-quickstart&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Plastic-Accident862"&gt; /u/Plastic-Accident862 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-01-27T09:00:51+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qogkgr</id>
     <title>I built a local-first AI tool: generate ST character cards via local-first LLM endpoints or openai API + optional image backends — feedback wanted</title>
     <updated>2026-01-27T15:14:58+00:00</updated>
@@ -151,17 +151,17 @@
     <published>2026-01-27T15:14:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qo8r8s</id>
-    <title>Kimi K2.5 Launches, Unsloth quantisations coming soon</title>
-    <updated>2026-01-27T09:00:51+00:00</updated>
+    <id>t3_1qol3s5</id>
+    <title>[Preliminary] New subquadratic attention: ~20k tok/s prefill / ~100 tok/s decode @ 1M context (single GPU)</title>
+    <updated>2026-01-27T17:54:19+00:00</updated>
     <author>
-      <name>/u/Plastic-Accident862</name>
-      <uri>https://old.reddit.com/user/Plastic-Accident862</uri>
+      <name>/u/Sad-Size2723</name>
+      <uri>https://old.reddit.com/user/Sad-Size2723</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://platform.moonshot.ai/docs/guide/kimi-k2-5-quickstart"&gt;https://platform.moonshot.ai/docs/guide/kimi-k2-5-quickstart&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Plastic-Accident862"&gt; /u/Plastic-Accident862 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qo8r8s/kimi_k25_launches_unsloth_quantisations_coming/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone, &lt;/p&gt; &lt;p&gt;Wanted to share some preliminary feasibility results from my work on a new attention mechanism (with custom kernels) on NVIDIA Nemotron Nano v3 30B. I am now able to run 1M context on a single GPU with this setup, and the early throughput numbers look promising. &lt;/p&gt; &lt;p&gt;TL;DR: 30B model + 1M context on a single GPU, with a jump-search-style attention mechanism. (Manuscript link: &lt;a href="https://arxiv.org/abs/2601.18401"&gt;https://arxiv.org/abs/2601.18401&lt;/a&gt;) &lt;/p&gt; &lt;p&gt;Numbers (single batch/sequence; single GPU: NVIDIA B200, similar results on RTX PRO 6000 Blackwell):&lt;br /&gt; - &lt;strong&gt;~20,000 tok/s&lt;/strong&gt; prefill&lt;br /&gt; - &lt;strong&gt;~100 tok/s&lt;/strong&gt; decode at &lt;strong&gt;1M&lt;/strong&gt; context&lt;br /&gt; - &lt;strong&gt;66 GB&lt;/strong&gt; GPU memory (6GB KV cache + 60GB FP16 model)&lt;br /&gt; - perfect NIAH (needle in a haystack) at 256K context (limited training so far) &lt;/p&gt; &lt;p&gt;I have completed an initial feasibility study, and I'm continuing to train the model toward real production use. The plan is to fully open-source the model for local inference, with a target of running a fully filled 1M context for a 30B model locally on ~24GB GPU memory. I'm cleaning up the codebase and plan to release the kernel implementations soon. For the model itself, I'll share it once we feel good about long-context performance/quality. &lt;/p&gt; &lt;p&gt;(Just to be clear: these are early numbers, and quality/evals are still in progress.) &lt;/p&gt; &lt;p&gt;1) What’s the main idea &lt;/p&gt; &lt;p&gt;You can think about the transformer attention mechanism as a search algorithm to find the relevant information to predict the next token. Standard attention is basically O(L) brute-force search. We’re doing an O(L^0.5) jump-search-style approach instead. For example, if you 10x the context length, a sqrt(L) search budget only grows by ~3.2x. &lt;/p&gt; &lt;p&gt;That subquadratic scaling really matters for long context, since the cost still grows with L. The main innovation is keeping that scaling while still making sure every token is reachable (i.e., not a fixed sliding window; think ‘&lt;strong&gt;global random access&lt;/strong&gt;’). Most likely in long context inference, a large fraction of long-context computation is wasted by brute-force scanning, and that if we are smart about it, we can compute it much more efficiently. &lt;/p&gt; &lt;p&gt;2) What's the goal &lt;/p&gt; &lt;p&gt;Targeting high-quality and fast (~100 tok/s) open-source local models at long context: &lt;/p&gt; &lt;p&gt;- 1M context on a 24GB GPU: ~6GB KV cache + ~15GB 4-bit quantized model&lt;br /&gt; - 10M context on a 96GB GPU: ~60GB KV cache + ~30GB 8-bit quantized model &lt;/p&gt; &lt;p&gt;Our initial feasibility results suggest we’re already in the right ballpark on inference speed. The main work now is scaling training and doing broader quality evals on real long-context tasks. I’m sure we’ll hit obstacles as we scale up, but overall we feel this direction is achievable. &lt;/p&gt; &lt;p&gt;3) Questions/feedback &lt;/p&gt; &lt;p&gt;I’m a big fan of running models locally (work + teaching + personal projects). Before COVID I bought 4× 1070 Ti GPUs for some non-LLM stuff, and these days I mostly use an A6000 at home. I’m excited about this because it could make really long-context workflows practical without needing a cluster.&lt;/p&gt; &lt;p&gt;Would love feedback / sanity checks on a few things:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;What would you actually use 1M–10M context for locally? (offline search over docs, codebase-scale assistants, long-form editing, “personal knowledge base”, etc.)&lt;/li&gt; &lt;li&gt;What evals would you trust most for long-context quality (beyond simple needle-in-a-haystack)?&lt;/li&gt; &lt;li&gt;What baselines should I compare against to make the speed/quality tradeoffs clear&lt;/li&gt; &lt;li&gt;What would make an open-source release most useful to you (kernels only vs full inference stack vs training code/configs)?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I kept this post high-level, but happy to go deeper if there’s interest.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sad-Size2723"&gt; /u/Sad-Size2723 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qol3s5/preliminary_new_subquadratic_attention_20k_toks/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-01-27T09:00:51+00:00</published>
+    <published>2026-01-27T17:54:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1qoge2t</id>
