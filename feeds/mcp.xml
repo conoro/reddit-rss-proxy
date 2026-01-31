@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-01-31T16:26:06+00:00</updated>
+  <updated>2026-01-31T16:44:45+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1qr1e2y</id>
-    <title>I built an MCP server to explore Epstein's emails. Here's what I learned about mcp-use</title>
-    <updated>2026-01-30T10:01:17+00:00</updated>
-    <author>
-      <name>/u/GIOSCOP</name>
-      <uri>https://old.reddit.com/user/GIOSCOP</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When I wanted to test mcp-use (9k+ stars on GitHub), I needed a dataset spicy enough to keep me awake. Enter: 2322 Epstein emails. What followed was an afternoon of hot module reloading, CSP hell, and discovering OpenAI silently requires Plus to use custom apps.&lt;/p&gt; &lt;h1&gt;What I needed&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Basic dependencies (e.g. Node)&lt;/li&gt; &lt;li&gt;A &lt;code&gt;mcp-use&lt;/code&gt; &lt;a href="https://mcp-use.com/signup"&gt;cloud account&lt;/a&gt; to host the server (currently free)&lt;/li&gt; &lt;li&gt;ChatGPT &lt;em&gt;Plus&lt;/em&gt; subscription - more on this later&lt;/li&gt; &lt;li&gt;Epstein's emails: &lt;code&gt;https://www.docetl.org/api/epstein-emails&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Setup&lt;/h1&gt; &lt;p&gt;Getting started was trivial. &lt;code&gt;npx create-mcp-use-app mcp-demo&lt;/code&gt; scaffolds a demo project - I used the &lt;code&gt;mcp-apps&lt;/code&gt; preset to have both OpenAI Apps SDK integration and a standard MCP server.&lt;/p&gt; &lt;p&gt;Then, a &lt;code&gt;npm run dev&lt;/code&gt; is enough to see and debug tools (both classic and UI Widgets) thanks to the inspector. This is bundled and starts automatically: a very convenient way to test.&lt;/p&gt; &lt;h1&gt;Development&lt;/h1&gt; &lt;p&gt;Developing with &lt;code&gt;mcp-use&lt;/code&gt; is very straightforward. The inspector (paired with HMR, aka &amp;quot;hot module reload&amp;quot;) makes iterating VERY fast. However, I had a few minor issues with it:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The setting CSP to &amp;quot;Declared&amp;quot; leads to a violation even in the starter template&lt;/li&gt; &lt;li&gt;&amp;quot;Hover: Disabled&amp;quot; doesn't actually disable hover effects&lt;/li&gt; &lt;li&gt;Sometimes, especially when dealing with UI elements, it glitches out - a reload is usually enough&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The library itself abstracts away all of the boilerplate and makes the code concise, for both tools and UI elements. You're writing only the bare minimum: title, description, schema and logic. It feels like what Stripe did for payments, but for tool definitions.&lt;/p&gt; &lt;p&gt;The best part is that the Model Context Protocol, being very new, hasn't crystallized yet - and you don't have to care. By using a library you're guaranteed to always be compliant and compatible - for example, I imagine Anthropic/Google creating their own variants for UI components.&lt;/p&gt; &lt;p&gt;The only major issue I had with the library was related to CSP (content security policy): it was not whitelisting the server's domain &lt;code&gt;fetch&lt;/code&gt; requests. After a few hours of debugging I was ready to open an issue, only to find it already resolved in a development branch by a maintainer (props to Enrico). To quickly patch the issue I hardcoded the CSP &lt;code&gt;connectDomains&lt;/code&gt; urls and used the PR's canary build: &lt;code&gt;npm i https://pkg.pr.new/mcp-use/mcp-use@911&lt;/code&gt;. However, I'm sure that by the time you read this it will be already merged.&lt;/p&gt; &lt;h1&gt;Deployment&lt;/h1&gt; &lt;p&gt;Deploying using &lt;code&gt;mcp-use&lt;/code&gt;'s cloud offering is super straightforward: &lt;code&gt;npm run deploy&lt;/code&gt; takes care of everything. It guides you through login, GitHub repo access, verifies your commits are pushed and finally shows the stream of remote build logs.&lt;/p&gt; &lt;p&gt;It's also nice that they provide documentation on how to self-host (and even made specific helpers) so vendor lock-in is not an issue. However, I'd still choose their version as it's tailor-made and shows interesting mcp-specific metrics (e.g. client breakdown).&lt;/p&gt; &lt;p&gt;Given the CSP issue I needed a &amp;quot;double deploy&amp;quot; to hardcode the production URL in the widgets code; build environment variables are available but they didn't work consistently for me.&lt;/p&gt; &lt;h1&gt;Testing on ChatGPT&lt;/h1&gt; &lt;p&gt;When it came time to test, I happily headed to ChatGPT to add my server. It should be easy: Account -&amp;gt; Settings -&amp;gt; Apps -&amp;gt; Advanced Settings -&amp;gt; Enable Dev Mode -&amp;gt; Apps -&amp;gt; Create App.&lt;/p&gt; &lt;p&gt;&lt;em&gt;However&lt;/em&gt;, after adding the URL and everything, the app wasn't there. After way too much time I found out that the Free Plan doesn't allow you to add custom apps [&lt;a href="https://community.openai.com/t/chatgpt-apps-sdk-not-creating-a-custom-app-on-my-account/1369338/7"&gt;1&lt;/a&gt;, &lt;a href="https://help.openai.com/en/articles/11487775-apps-in-chatgpt"&gt;2&lt;/a&gt;] (no warnings whatsoever). This might change in the future so before upgrading take a look.&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Disclaimer: This is not the library's fault, but rather a rant against OpenAI&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;So, I had to buy the Plus version (luckily by signing up with a custom domain email I got a month free). While developing, make sure to hit &amp;quot;refresh&amp;quot; in the app's section if you make any changes.&lt;/p&gt; &lt;h1&gt;TL;DR&lt;/h1&gt; &lt;p&gt;&lt;code&gt;mcp-use&lt;/code&gt; = Rails for MCP. You write actual logic, boilerplate is handled. Few bugs, nothing blocking. &lt;em&gt;Use&lt;/em&gt; it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Try it yourself:&lt;/strong&gt; &lt;a href="https://lively-poetry-gt8c1.mcp-use.run/mcp"&gt;https://lively-poetry-gt8c1.mcp-use.run/mcp&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GIOSCOP"&gt; /u/GIOSCOP &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qr1e2y/i_built_an_mcp_server_to_explore_epsteins_emails/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qr1e2y/i_built_an_mcp_server_to_explore_epsteins_emails/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qr1e2y/i_built_an_mcp_server_to_explore_epsteins_emails/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-01-30T10:01:17+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qrhue4</id>
     <title>Anyone have an example Using chatGPT to generate an image and passing to MCP tool?</title>
@@ -255,6 +242,45 @@
     <published>2026-01-31T15:11:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qs0jo2</id>
+    <title>mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform.</title>
+    <updated>2026-01-31T12:00:04+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"&gt; &lt;img alt="mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform." src="https://external-preview.redd.it/VUJ7Akx0IHs-LOXxeY0puRiPeL-2NaOGxyRFRhpszUU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44d002e4b601b86038227e1349f2a2b45a2d8f56" title="mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.explorium/mcp-explorium"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-01-31T12:00:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qs75xa</id>
+    <title>New Guide: Getting Started with FastMCP in TypeScript</title>
+    <updated>2026-01-31T16:41:02+00:00</updated>
+    <author>
+      <name>/u/ialijr</name>
+      <uri>https://old.reddit.com/user/ialijr</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey MCP community&lt;/p&gt; &lt;p&gt;I just published a guide to help folks build MCP servers quickly using &lt;strong&gt;FastMCP for TypeScript,&lt;/strong&gt; inspired by how the Python ecosystem embraced FastMCP, but tailored for Node/TS.&lt;/p&gt; &lt;p&gt;The article walks through:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;What FastMCP brings to the MCP ecosystem&lt;/li&gt; &lt;li&gt;Why it’s easier to use than the official SDK&lt;/li&gt; &lt;li&gt;How to scaffold, define tools/resources/prompts, and test your server&lt;/li&gt; &lt;li&gt;A working example of a calculator MCP server&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Whether you prefer TypeScript or are coming from Python, this should help you get a production-ready MCP server up and running in minutes:&lt;/p&gt; &lt;p&gt;🔗 &lt;a href="https://blog.agentailor.com/posts/getting-started-with-fastmcp?utm_source=reddit&amp;amp;utm_medium=social&amp;amp;utm_campaign=fastmcp_launch&amp;amp;utm_content=r_mcp"&gt;https://blog.agentailor.com/posts/getting-started-with-fastmcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love feedback or questions about FastMCP in typescript. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ialijr"&gt; /u/ialijr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs75xa/new_guide_getting_started_with_fastmcp_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs75xa/new_guide_getting_started_with_fastmcp_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qs75xa/new_guide_getting_started_with_fastmcp_in/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-01-31T16:41:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qs4j9b</id>
+    <title>mcp – Public MCP server for the LLM Search Engine</title>
+    <updated>2026-01-31T15:00:13+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"&gt; &lt;img alt="mcp – Public MCP server for the LLM Search Engine" src="https://external-preview.redd.it/NpEL5V3Sed9hcuGsT4hIwFPmey0fTTDxYiSw-qa0vWQ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=129de64c22fde2530c72ebff1bb03753f51d71f3" title="mcp – Public MCP server for the LLM Search Engine" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.llmse/mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-01-31T15:00:13+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qs5ki7</id>
     <title>Context Transporter</title>
     <updated>2026-01-31T15:40:32+00:00</updated>
@@ -279,32 +305,6 @@
     <link href="https://old.reddit.com/r/mcp/comments/1qs5ogi/mcp_server_business_use_cases_how_ai_apps/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-01-31T15:44:48+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qs0jo2</id>
-    <title>mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform.</title>
-    <updated>2026-01-31T12:00:04+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"&gt; &lt;img alt="mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform." src="https://external-preview.redd.it/VUJ7Akx0IHs-LOXxeY0puRiPeL-2NaOGxyRFRhpszUU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44d002e4b601b86038227e1349f2a2b45a2d8f56" title="mcp-explorium – Access live company and contact data from Explorium's AgentSource B2B platform." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.explorium/mcp-explorium"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qs0jo2/mcpexplorium_access_live_company_and_contact_data/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-01-31T12:00:04+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qs4j9b</id>
-    <title>mcp – Public MCP server for the LLM Search Engine</title>
-    <updated>2026-01-31T15:00:13+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"&gt; &lt;img alt="mcp – Public MCP server for the LLM Search Engine" src="https://external-preview.redd.it/NpEL5V3Sed9hcuGsT4hIwFPmey0fTTDxYiSw-qa0vWQ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=129de64c22fde2530c72ebff1bb03753f51d71f3" title="mcp – Public MCP server for the LLM Search Engine" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.llmse/mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qs4j9b/mcp_public_mcp_server_for_the_llm_search_engine/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-01-31T15:00:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1h7pl2v</id>
