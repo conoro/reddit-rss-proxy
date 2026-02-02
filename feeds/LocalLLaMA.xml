@@ -2,36 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-02T09:22:10+00:00</updated>
+  <updated>2026-02-02T09:48:26+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1qt250p</id>
-    <title>While we wait for Deepseek 4, Unsloth is quietly releasing gguf for 3.2...</title>
-    <updated>2026-02-01T15:56:50+00:00</updated>
+    <id>t3_1qtqngy</id>
+    <title>RPC Overhead or Memory Strategy?</title>
+    <updated>2026-02-02T09:38:36+00:00</updated>
     <author>
-      <name>/u/LegacyRemaster</name>
-      <uri>https://old.reddit.com/user/LegacyRemaster</uri>
+      <name>/u/Forbidden-era</name>
+      <uri>https://old.reddit.com/user/Forbidden-era</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt250p/while_we_wait_for_deepseek_4_unsloth_is_quietly/"&gt; &lt;img alt="While we wait for Deepseek 4, Unsloth is quietly releasing gguf for 3.2..." src="https://b.thumbs.redditmedia.com/rAfR66Nhbn--BoXjqUhJbnx3ELte8xYh-HTukDrugDs.jpg" title="While we wait for Deepseek 4, Unsloth is quietly releasing gguf for 3.2..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/u6pxu5imnwgg1.png?width=1654&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=32c0b641bf9fde5d30a684a9c08d22b53f4a0c90"&gt;unsloth deepseek&lt;/a&gt;&lt;/p&gt; &lt;p&gt;On LM studio 0.4.1 I only get 4.2 tokens/sec but on llama.cpp it runs much faster than previous releases! RTX 96gb + 128 DDR4 3200&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LegacyRemaster"&gt; /u/LegacyRemaster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt250p/while_we_wait_for_deepseek_4_unsloth_is_quietly/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt250p/while_we_wait_for_deepseek_4_unsloth_is_quietly/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qt250p/while_we_wait_for_deepseek_4_unsloth_is_quietly/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So, experimenting trying to get the biggest models I can to run as fast as possible on the hardware I have...&lt;/p&gt; &lt;p&gt;Thought I'd try RPC, in my testing I tried comparing running GLM-4.7-Flash-Q8 normally on my server (rtx2060 6gb currently for testing) and then RPC on the same server w/the same GPU.&lt;/p&gt; &lt;p&gt;I got ~5tk/s normally with the GPU, running localhost RPC (which shouldn't have any actual network bandwidth limits or overhead compared to real networking) with the GPU and this cut it in half.&lt;/p&gt; &lt;p&gt;I did notice:&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;load_tensors: CPU model buffer size = 27861.41 MiB&lt;/p&gt; &lt;p&gt;load_tensors: RPC0[127.0.0.1:50052] model buffer size = 2497.25 MiB&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;vs&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;load_tensors: CUDA0 model buffer size = 2497.25 MiB&lt;/p&gt; &lt;p&gt;load_tensors: CUDA_Host model buffer size = 27861.41 MiB&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;which makes me feel like it's used a different memory strategy or something..&lt;/p&gt; &lt;p&gt;I've read that, especially for like MoE models, that once the model is loaded that GPU bandwidth isn't too important, I've seen benchmarks that show maybe a few % difference or none going from x1 to x16 on a GPU and that it mostly affects model loading speed.&lt;/p&gt; &lt;p&gt;I'm trying to wrap my head around exactly what communication is done between CPU&amp;lt;-&amp;gt;GPU when running normally (not RPC but offloaded MoE for example) and also between RPC nodes when using RPC.&lt;/p&gt; &lt;p&gt;Having a better understanding of &lt;em&gt;what&lt;/em&gt; exactly is needed for communication between layers/accelerator[gpu/cpu/etc] types, bandwidth, etc. could possibly help a lot with optimizing, I know you can specify a regex to specify which layers to offload where on some models to get improved performance, whether that would help here or not I'm not sure but I'd like to be able to evaluate that myself.&lt;/p&gt; &lt;p&gt;Unfortunately I find Google is much worse lately for searching for technical things. &lt;/p&gt; &lt;p&gt;My main goal right now is running GLM-4.7 (the full non-flash model - maybe quantized a bit, as Flash runs beautifully on my Mac as is) at a somewhat reasonable speed - a minimum of 5tk/s.&lt;/p&gt; &lt;p&gt;I have:&lt;/p&gt; &lt;p&gt;Apple: M1 Ultra 64gb (gets ~50tk/s for flash)&lt;/p&gt; &lt;p&gt;Server: 768gb ram, 4s/32c/64t xeon w/2060 6GB (gets ~2.5tk/s for BF16 on CPU alone, 5tk/s for Flash-Q8 on CPU+GPU)&lt;/p&gt; &lt;p&gt;Desktop: i7 w/64gb ram+2070S 8GB+3060 12gb (only used w/rpc recently which was slow ofc)&lt;/p&gt; &lt;p&gt;Everything has at least a 10gbe link, mac+desktop have 20gbe between them&lt;/p&gt; &lt;p&gt;I may just swap the 3060 from the desktop with the 2060 from the server but I'd rather not.. If I got creative I could possibly have 1660ti@6gb+2060@6gb+3060@12gb (24gb total vram) in the server; desktop is better probably but server has 768gb ram and I'm not really sure how good multi-gpu in the server is gonna work vs RPC or something anyway.&lt;/p&gt; &lt;p&gt;Anyway, I'm sure others have battled to get models running across scrappy hardware, I'd appreciate pointers/docs/whatever..&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Forbidden-era"&gt; /u/Forbidden-era &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqngy/rpc_overhead_or_memory_strategy/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqngy/rpc_overhead_or_memory_strategy/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqngy/rpc_overhead_or_memory_strategy/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-01T15:56:50+00:00</published>
+    <published>2026-02-02T09:38:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qt2po4</id>
-    <title>A List of Creative Writing Benchmarks</title>
-    <updated>2026-02-01T16:17:51+00:00</updated>
+    <id>t3_1qtqspu</id>
+    <title>1 Day Left Until ACE-Step 1.5 — Open-Source Music Gen That Runs on &lt;4GB VRAM Open suno alternative (and yes, i made this frontend)</title>
+    <updated>2026-02-02T09:47:32+00:00</updated>
     <author>
-      <name>/u/claire_rr</name>
-      <uri>https://old.reddit.com/user/claire_rr</uri>
+      <name>/u/ExcellentTrust4433</name>
+      <uri>https://old.reddit.com/user/ExcellentTrust4433</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I like to read &amp;amp; write fiction in my spare time and keep seeing posts asking which LLM works best for creative writing. As a result, I put together a list of the benchmarks I’ve come across so far, hope it helps someone out!&lt;/p&gt; &lt;p&gt;On a side note, I’m insanely biased toward Kimi K2 😄&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Benchmark&lt;/th&gt; &lt;th align="left"&gt;Description&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Narrator.sh&lt;/td&gt; &lt;td align="left"&gt;A site where AI models write and publish stories ranked by real reader metrics like views and ratings. Supports filtering by genre, NSFW content, and specific story details, and separates models into brainstorming, memory, and writing categories.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Lechmazur Creative Writing Benchmark&lt;/td&gt; &lt;td align="left"&gt;Measures how well models weave 10 key story elements (characters, objects, motivations, etc.) into short stories using multiple judges and transparent scoring, though judges may favor safer writing.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;EQ-Bench Creative Writing v3&lt;/td&gt; &lt;td align="left"&gt;Uses challenging creative prompts to test humor, romance, and unconventional writing, with metrics like “Slop” scores for clichés and repetition detection; penalizes NSFW and darker content.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;NC-Bench (Novelcrafter)&lt;/td&gt; &lt;td align="left"&gt;Evaluates practical writing tasks such as rewriting, idea generation, summarization, and translation, focusing on how useful models are for writers rather than full story generation.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;WritingBench&lt;/td&gt; &lt;td align="left"&gt;Tests models across many writing styles (creative, persuasive, technical, etc.) using 1,000+ real-world examples, offering broad coverage but relying heavily on the critic model.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Fiction Live Benchmark&lt;/td&gt; &lt;td align="left"&gt;Assesses whether models can understand and remember very long stories by quizzing them on plot details and character arcs, without measuring prose quality.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;UGI Writing Leaderboard&lt;/td&gt; &lt;td align="left"&gt;Combines multiple writing metrics into a single score with breakdowns for repetition, length control, and readability, enabling quick comparisons while hiding some tradeoffs.&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/claire_rr"&gt; /u/claire_rr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt2po4/a_list_of_creative_writing_benchmarks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt2po4/a_list_of_creative_writing_benchmarks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qt2po4/a_list_of_creative_writing_benchmarks/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqspu/1_day_left_until_acestep_15_opensource_music_gen/"&gt; &lt;img alt="1 Day Left Until ACE-Step 1.5 — Open-Source Music Gen That Runs on &amp;lt;4GB VRAM Open suno alternative (and yes, i made this frontend)" src="https://external-preview.redd.it/dXBiYXJlb295MWhnMYGTlVfp4XddQFbQ7RXlmhemkMaIRdSQh0Jy7FObZ7qD.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=34c74a399f0ef7e36cb52af6dda02f6967165407" title="1 Day Left Until ACE-Step 1.5 — Open-Source Music Gen That Runs on &amp;lt;4GB VRAM Open suno alternative (and yes, i made this frontend)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;An open-source model with quality approaching Suno v4.5/v5... running locally on a potato GPU. No subscriptions. No API limits. Just you and your creativity. &lt;/p&gt; &lt;p&gt;We're so lucky to be in this era of open-source AI. A year ago this was unthinkable.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ExcellentTrust4433"&gt; /u/ExcellentTrust4433 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/2geqqfooy1hg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqspu/1_day_left_until_acestep_15_opensource_music_gen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtqspu/1_day_left_until_acestep_15_opensource_music_gen/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-01T16:17:51+00:00</published>
+    <published>2026-02-02T09:47:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1qsx9r0</id>
@@ -67,19 +67,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qt83qa/mq_query_documents_like_jq_built_for_agents_up_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-01T19:28:51+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qtnz9s</id>
-    <title>Best Local Model for Openclaw</title>
-    <updated>2026-02-02T06:55:41+00:00</updated>
-    <author>
-      <name>/u/FeiX7</name>
-      <uri>https://old.reddit.com/user/FeiX7</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have recently tried gpt-oss 20b for openclaw and it performed awfully...&lt;/p&gt; &lt;p&gt;openclaw requires so much context and small models intelligence degrades with such amount of context.&lt;/p&gt; &lt;p&gt;any thoughts about it and any ideas how to make the local models to perform better?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FeiX7"&gt; /u/FeiX7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-02T06:55:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1qsvgsh</id>
@@ -134,6 +121,19 @@
     <published>2026-02-01T13:07:49+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qtnz9s</id>
+    <title>Best Local Model for Openclaw</title>
+    <updated>2026-02-02T06:55:41+00:00</updated>
+    <author>
+      <name>/u/FeiX7</name>
+      <uri>https://old.reddit.com/user/FeiX7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have recently tried gpt-oss 20b for openclaw and it performed awfully...&lt;/p&gt; &lt;p&gt;openclaw requires so much context and small models intelligence degrades with such amount of context.&lt;/p&gt; &lt;p&gt;any thoughts about it and any ideas how to make the local models to perform better?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FeiX7"&gt; /u/FeiX7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtnz9s/best_local_model_for_openclaw/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-02T06:55:41+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qtf8hk</id>
     <title>AniMUL-v1 a 30B model trained to do species classification from audio files</title>
     <updated>2026-02-02T00:01:13+00:00</updated>
@@ -145,32 +145,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtf8hk/animulv1_a_30b_model_trained_to_do_species/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-02T00:01:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qtj039</id>
-    <title>What's your dream in 2026?</title>
-    <updated>2026-02-02T02:46:40+00:00</updated>
-    <author>
-      <name>/u/foldl-li</name>
-      <uri>https://old.reddit.com/user/foldl-li</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I hope that guys from Wall Street would make price of RAM/SSD back to normal, by whatever means.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/foldl-li"&gt; /u/foldl-li &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-02T02:46:40+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qtg3sm</id>
-    <title>Mistral Vibe vs Claude Code vs OpenAI Codex vs Opencode/others? Best coding model for 92GB?</title>
-    <updated>2026-02-02T00:38:18+00:00</updated>
-    <author>
-      <name>/u/Consumerbot37427</name>
-      <uri>https://old.reddit.com/user/Consumerbot37427</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've dipped my toe in the water with Mistral Vibe, using LM Studio and Devstral Small for inference. I've had pretty good success refactoring a small python project, and a few other small tasks.&lt;/p&gt; &lt;p&gt;Overall, it seems to work well on my MacBook w/ 92GB RAM, although I've encountered issues when it gets near or above 100k tokens of context. Sometimes it stops working entirely with no errors indicated in LM Studio logs, just notice the model isn't loaded anymore. Aggressively compacting the context to stay under ~80k helps.&lt;/p&gt; &lt;p&gt;I've tried plugging other models in via the config.toml, and haven't had much luck. They &amp;quot;work&amp;quot;, but not well. Lots of tool call failures, syntax errors. (I was especially excited about GLM 4.7 Air, but keep running into looping issues, no matter what inference settings I try, GGUF or MLX models, even at Q8)&lt;/p&gt; &lt;p&gt;I'm curious what my best option is at this point, or if I'm already using it. I'm open to trying anything I can run on this machine--it runs GPT-OSS-120B beautifully, but it just doesn't seem to play well with Vibe (as described above).&lt;/p&gt; &lt;p&gt;I don't really have the time or inclination to install every different CLI to see which one works best. I've heard good things about Claude Code, but I'm guessing that's only with paid cloud inference. Prefer open source anyway.&lt;/p&gt; &lt;p&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt76qs/mistral_vibe_20/o314ydx/"&gt;This comment&lt;/a&gt; on a Mistral Vibe thread says I might be best served using the tool that goes with each model, but I'm loathe to spend the time installing and experimenting.&lt;/p&gt; &lt;p&gt;Is there another proven combination of CLI coding interface and model that works as well/better than Mistral Vibe with Devstral Small? Ideally, I could run &amp;gt;100k context, and get a bit more speed with an MoE model. I did try Qwen Coder, but experienced the issues I described above with failed tool calls and poor code quality.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Consumerbot37427"&gt; /u/Consumerbot37427 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-02T00:38:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1qti7jk</id>
@@ -186,6 +160,19 @@
     <published>2026-02-02T02:11:30+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qtg3sm</id>
+    <title>Mistral Vibe vs Claude Code vs OpenAI Codex vs Opencode/others? Best coding model for 92GB?</title>
+    <updated>2026-02-02T00:38:18+00:00</updated>
+    <author>
+      <name>/u/Consumerbot37427</name>
+      <uri>https://old.reddit.com/user/Consumerbot37427</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've dipped my toe in the water with Mistral Vibe, using LM Studio and Devstral Small for inference. I've had pretty good success refactoring a small python project, and a few other small tasks.&lt;/p&gt; &lt;p&gt;Overall, it seems to work well on my MacBook w/ 92GB RAM, although I've encountered issues when it gets near or above 100k tokens of context. Sometimes it stops working entirely with no errors indicated in LM Studio logs, just notice the model isn't loaded anymore. Aggressively compacting the context to stay under ~80k helps.&lt;/p&gt; &lt;p&gt;I've tried plugging other models in via the config.toml, and haven't had much luck. They &amp;quot;work&amp;quot;, but not well. Lots of tool call failures, syntax errors. (I was especially excited about GLM 4.7 Air, but keep running into looping issues, no matter what inference settings I try, GGUF or MLX models, even at Q8)&lt;/p&gt; &lt;p&gt;I'm curious what my best option is at this point, or if I'm already using it. I'm open to trying anything I can run on this machine--it runs GPT-OSS-120B beautifully, but it just doesn't seem to play well with Vibe (as described above).&lt;/p&gt; &lt;p&gt;I don't really have the time or inclination to install every different CLI to see which one works best. I've heard good things about Claude Code, but I'm guessing that's only with paid cloud inference. Prefer open source anyway.&lt;/p&gt; &lt;p&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qt76qs/mistral_vibe_20/o314ydx/"&gt;This comment&lt;/a&gt; on a Mistral Vibe thread says I might be best served using the tool that goes with each model, but I'm loathe to spend the time installing and experimenting.&lt;/p&gt; &lt;p&gt;Is there another proven combination of CLI coding interface and model that works as well/better than Mistral Vibe with Devstral Small? Ideally, I could run &amp;gt;100k context, and get a bit more speed with an MoE model. I did try Qwen Coder, but experienced the issues I described above with failed tool calls and poor code quality.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Consumerbot37427"&gt; /u/Consumerbot37427 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtg3sm/mistral_vibe_vs_claude_code_vs_openai_codex_vs/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-02T00:38:18+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qsxowq</id>
     <title>OLMO 3.5 Is Around The Corner</title>
     <updated>2026-02-01T12:52:34+00:00</updated>
@@ -199,17 +186,17 @@
     <published>2026-02-01T12:52:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qtoukf</id>
-    <title>CISA acting director reportedly uploaded sensitive documents to ChatGPT</title>
-    <updated>2026-02-02T07:46:50+00:00</updated>
+    <id>t3_1qtj039</id>
+    <title>What's your dream in 2026?</title>
+    <updated>2026-02-02T02:46:40+00:00</updated>
     <author>
-      <name>/u/EchoOfOppenheimer</name>
-      <uri>https://old.reddit.com/user/EchoOfOppenheimer</uri>
+      <name>/u/foldl-li</name>
+      <uri>https://old.reddit.com/user/foldl-li</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The Acting Director of CISA, the top cybersecurity agency in the US, was just caught uploading sensitive government documents to the PUBLIC version of ChatGPT. He reportedly bypassed his own agency's security blocks to do it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EchoOfOppenheimer"&gt; /u/EchoOfOppenheimer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.scworld.com/brief/cisa-acting-director-reportedly-uploaded-sensitive-documents-to-chatgpt"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtoukf/cisa_acting_director_reportedly_uploaded/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtoukf/cisa_acting_director_reportedly_uploaded/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I hope that guys from Wall Street would make price of RAM/SSD back to normal, by whatever means.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/foldl-li"&gt; /u/foldl-li &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtj039/whats_your_dream_in_2026/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-02T07:46:50+00:00</published>
+    <published>2026-02-02T02:46:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1qsx51z</id>
@@ -223,6 +210,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qsx51z/falconh1tiny_90m_is_out_specialized_micromodels/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-01T12:25:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qtoukf</id>
+    <title>CISA acting director reportedly uploaded sensitive documents to ChatGPT</title>
+    <updated>2026-02-02T07:46:50+00:00</updated>
+    <author>
+      <name>/u/EchoOfOppenheimer</name>
+      <uri>https://old.reddit.com/user/EchoOfOppenheimer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The Acting Director of CISA, the top cybersecurity agency in the US, was just caught uploading sensitive government documents to the PUBLIC version of ChatGPT. He reportedly bypassed his own agency's security blocks to do it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EchoOfOppenheimer"&gt; /u/EchoOfOppenheimer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.scworld.com/brief/cisa-acting-director-reportedly-uploaded-sensitive-documents-to-chatgpt"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qtoukf/cisa_acting_director_reportedly_uploaded/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qtoukf/cisa_acting_director_reportedly_uploaded/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-02T07:46:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1qtlxnz</id>
