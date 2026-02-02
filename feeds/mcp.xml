@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-02-02T07:59:28+00:00</updated>
+  <updated>2026-02-02T08:23:01+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1qsw524</id>
-    <title>Built an MCP Server That Automatically Generates Release Notes from SVN Logs</title>
-    <updated>2026-02-01T11:32:16+00:00</updated>
-    <author>
-      <name>/u/InvestmentFun3602</name>
-      <uri>https://old.reddit.com/user/InvestmentFun3602</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;I Built an MCP Server That Automatically Generates Release Notes from SVN Logs&lt;/h1&gt; &lt;h2&gt;Background&lt;/h2&gt; &lt;p&gt;Writing release notes is surprisingly tedious.&lt;/p&gt; &lt;p&gt;Typically, I had to:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Check SVN commit logs&lt;/li&gt; &lt;li&gt;Filter out irrelevant commits&lt;/li&gt; &lt;li&gt;Summarize changes&lt;/li&gt; &lt;li&gt;Format everything in Markdown&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Doing this manually for every release is inefficient and error-prone.&lt;/p&gt; &lt;p&gt;So I decided to build an &lt;strong&gt;MCP (Model Context Protocol) server&lt;/strong&gt; that automatically generates release notes from SVN logs using LLMs.&lt;/p&gt; &lt;p&gt;The server fetches SVN logs and summarizes them using a user-defined template format.&lt;br /&gt; Being able to control the output format in advance turned out to be quite useful in real development workflows.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;What is MCP (Model Context Protocol)?&lt;/h2&gt; &lt;p&gt;MCP is a protocol that allows LLMs to safely interact with external tools and data.&lt;/p&gt; &lt;p&gt;Instead of letting an LLM directly execute commands, MCP separates responsibilities into:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Tools&lt;/strong&gt; (actions)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Resources&lt;/strong&gt; (data)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Prompts&lt;/strong&gt; (reasoning templates)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In this project, I implemented the following pipeline:&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;SVN logs → LLM summarization → Release notes (Markdown)&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;System Architecture&lt;/h2&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;Cline (MCP Host) ↓ MCP Server (Python) ↓ SVN Repository ↓ LLM (Cline or External API) ↓ Release Notes (Markdown)&lt;/p&gt; &lt;p&gt;````&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Implemented MCP Tools&lt;/h2&gt; &lt;p&gt;I implemented four MCP tools.&lt;/p&gt; &lt;h3&gt;1. get_svn_logs&lt;/h3&gt; &lt;p&gt;Fetches SVN logs for a specified revision range.&lt;/p&gt; &lt;p&gt;&lt;code&gt;python @mcp.tool() async def get_svn_logs(repository_path: str, revision_range: str) -&amp;gt; str: &lt;/code&gt;`&lt;/p&gt; &lt;p&gt;Features:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Checks whether SVN is installed&lt;/li&gt; &lt;li&gt;Supports both repositories and working copies&lt;/li&gt; &lt;li&gt;Safely executes &lt;code&gt;svn log -r&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h3&gt;2. summarize_logs_with_llm&lt;/h3&gt; &lt;p&gt;Summarizes SVN logs using an LLM.&lt;/p&gt; &lt;p&gt;&lt;code&gt;python @mcp.tool() async def summarize_logs_with_llm( svn_logs: str, llm_provider: str = &amp;quot;&amp;quot;, use_host_llm: bool = True ) -&amp;gt; str: &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Features:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Uses the host LLM (Cline) by default via MCP Prompts&lt;/li&gt; &lt;li&gt;Supports Claude and Gemini APIs&lt;/li&gt; &lt;li&gt;Automatically detects the LLM provider&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h3&gt;3. generate_release_note&lt;/h3&gt; &lt;p&gt;Runs the full pipeline: SVN logs → LLM summarization → Markdown formatting.&lt;/p&gt; &lt;p&gt;&lt;code&gt;python @mcp.tool() async def generate_release_note( repository_path: str, revision_range: str, output_file: str = &amp;quot;&amp;quot;, append_mode: bool = False, ) -&amp;gt; str: &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Example output:&lt;/p&gt; &lt;p&gt;```markdown&lt;/p&gt; &lt;h1&gt;Release Notes&lt;/h1&gt; &lt;p&gt;Generated: 2026-02-01 18:30:00 Revision Range: 1200:1250&lt;/p&gt; &lt;h2&gt;New Features&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Added user authentication (r1210)&lt;/li&gt; &lt;/ul&gt; &lt;h2&gt;Bug Fixes&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;Fixed memory leak in parser (r1223)&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;p&gt;```&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;4. append_to_release_note&lt;/h3&gt; &lt;p&gt;Appends content to an existing release note.&lt;/p&gt; &lt;p&gt;&lt;code&gt;python @mcp.tool() async def append_to_release_note(file_path: str, content: str) -&amp;gt; str: &lt;/code&gt;&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Prompt Design in MCP&lt;/h2&gt; &lt;p&gt;Prompt design was one of the most important aspects of this project.&lt;/p&gt; &lt;p&gt;For example, I defined a dedicated prompt template for Japanese release notes:&lt;/p&gt; &lt;p&gt;&lt;code&gt;python @mcp.prompt() def summarize_svn_logs_japanese_2_prompt(svn_logs: str) -&amp;gt; str: &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Typical rules in the template:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Categorize changes&lt;/li&gt; &lt;li&gt;Remove irrelevant commits&lt;/li&gt; &lt;li&gt;Summarize each change in one line&lt;/li&gt; &lt;li&gt;Output in Markdown&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The key advantage of MCP here is that prompts can be managed independently from tools.&lt;/p&gt; &lt;p&gt;In theory, I could use a generic SVN MCP server and manually instruct the LLM to follow a specific template every time. However, in real projects, release note formats vary significantly across companies and teams.&lt;/p&gt; &lt;p&gt;By embedding the format into the MCP server itself, I eliminated repetitive instructions and made the workflow much more practical—especially for local development environments.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Usage Example (with Cline)&lt;/h2&gt; &lt;p&gt;From Cline, I can simply write:&lt;/p&gt; &lt;p&gt;&lt;code&gt; Summarize changes from r1200 to r1250 in this branch as release notes. &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Then Cline automatically:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Calls &lt;code&gt;get_svn_logs&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Applies the MCP prompt&lt;/li&gt; &lt;li&gt;Generates the release notes&lt;/li&gt; &lt;/ol&gt; &lt;hr /&gt; &lt;h2&gt;Why This Matters&lt;/h2&gt; &lt;h3&gt;1. Reduced Manual Work&lt;/h3&gt; &lt;ul&gt; &lt;li&gt;Manual release notes → Automated&lt;/li&gt; &lt;li&gt;Individual knowledge → Reproducible process&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h3&gt;2. A Practical MCP Use Case&lt;/h3&gt; &lt;p&gt;Most MCP examples today focus on:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Database queries&lt;/li&gt; &lt;li&gt;File operations&lt;/li&gt; &lt;li&gt;API integrations&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;But I believe &lt;strong&gt;version control × LLM&lt;/strong&gt; is a very practical and underrated use case.&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;3. LLM Adoption in SVN-Based Environments&lt;/h3&gt; &lt;p&gt;SVN is still widely used in:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Embedded systems&lt;/li&gt; &lt;li&gt;Legacy enterprise environments&lt;/li&gt; &lt;li&gt;Internal corporate projects&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This project shows that LLM-driven automation is possible even in such environments.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Future Work&lt;/h2&gt; &lt;p&gt;Ideas I’m considering:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GitHub / Git support (PR-based summarization)&lt;/li&gt; &lt;li&gt;Better commit classification using embeddings&lt;/li&gt; &lt;li&gt;Diff-based code summarization&lt;/li&gt; &lt;li&gt;Integration with Jira / Redmine&lt;/li&gt; &lt;li&gt;Automatic categorization of release notes&lt;/li&gt; &lt;li&gt;Using MCP Resources for history management&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;h2&gt;Source Code&lt;/h2&gt; &lt;p&gt;GitHub repository:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/jdpask21/create-releasenote-svn-mcp"&gt;https://github.com/jdpask21/create-releasenote-svn-mcp&lt;/a&gt;&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Conclusion&lt;/h2&gt; &lt;p&gt;Using MCP, LLMs can become more than just “chatbots”. They can be integrated directly into real development workflows.&lt;/p&gt; &lt;p&gt;Building this MCP server helped me understand both MCP and practical LLM automation much better.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/InvestmentFun3602"&gt; /u/InvestmentFun3602 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qsw524/built_an_mcp_server_that_automatically_generates/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qsw524/built_an_mcp_server_that_automatically_generates/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qsw524/built_an_mcp_server_that_automatically_generates/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-02-01T11:32:16+00:00</published>
-  </entry>
   <entry>
     <id>t3_1qss8k4</id>
     <title>[OASR v0.4.0] Execute skills as CLI tools from anywhere on your system.</title>
@@ -242,19 +229,6 @@
     <published>2026-02-02T04:00:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qtchhn</id>
-    <title>Let your Agent Do More Than Code Let Them Design</title>
-    <updated>2026-02-01T22:10:59+00:00</updated>
-    <author>
-      <name>/u/Dependent_Fig8513</name>
-      <uri>https://old.reddit.com/user/Dependent_Fig8513</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;FigMCP — Let Your Agents Be Your Designer&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I’m building an MCP for Figma that allows AI agents to act as real designers inside your workflow.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Key Features&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Completely free&lt;/strong&gt; — unlimited AI/MCP requests per minute&lt;/li&gt; &lt;li&gt;&lt;strong&gt;No rate limits or timeouts&lt;/strong&gt; (unlike most MCPs)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;600+ tools&lt;/strong&gt;, &lt;strong&gt;100+ resources&lt;/strong&gt;, and &lt;strong&gt;25+ curated prompts&lt;/strong&gt; to help your agent get productive fast&lt;/li&gt; &lt;li&gt;Designed to remove friction and bottlenecks in AI-driven design workflows&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Tested on &lt;strong&gt;Claude Code&lt;/strong&gt; and &lt;strong&gt;Cursor&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Windows only (for now)&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;🔗 GitHub: &lt;a href="https://github.com/bubskqq4/FigMCP"&gt;https://github.com/bubskqq4/FigMCP&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dependent_Fig8513"&gt; /u/Dependent_Fig8513 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-02-01T22:10:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qtl2ur</id>
     <title>MCPlexor to reduce context bloating by tools</title>
     <updated>2026-02-02T04:22:44+00:00</updated>
@@ -266,6 +240,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1qtl2ur/mcplexor_to_reduce_context_bloating_by_tools/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-02-02T04:22:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qtchhn</id>
+    <title>Let your Agent Do More Than Code Let Them Design</title>
+    <updated>2026-02-01T22:10:59+00:00</updated>
+    <author>
+      <name>/u/Dependent_Fig8513</name>
+      <uri>https://old.reddit.com/user/Dependent_Fig8513</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;FigMCP — Let Your Agents Be Your Designer&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I’m building an MCP for Figma that allows AI agents to act as real designers inside your workflow.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Key Features&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Completely free&lt;/strong&gt; — unlimited AI/MCP requests per minute&lt;/li&gt; &lt;li&gt;&lt;strong&gt;No rate limits or timeouts&lt;/strong&gt; (unlike most MCPs)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;600+ tools&lt;/strong&gt;, &lt;strong&gt;100+ resources&lt;/strong&gt;, and &lt;strong&gt;25+ curated prompts&lt;/strong&gt; to help your agent get productive fast&lt;/li&gt; &lt;li&gt;Designed to remove friction and bottlenecks in AI-driven design workflows&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Tested on &lt;strong&gt;Claude Code&lt;/strong&gt; and &lt;strong&gt;Cursor&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Windows only (for now)&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;🔗 GitHub: &lt;a href="https://github.com/bubskqq4/FigMCP"&gt;https://github.com/bubskqq4/FigMCP&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dependent_Fig8513"&gt; /u/Dependent_Fig8513 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qtchhn/let_your_agent_do_more_than_code_let_them_design/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-02-01T22:10:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1qtmuc4</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1qtmzdh/1stdibs_mcp_server_for_browsing_and_searching/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-02-02T06:00:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qtpf2v</id>
+    <title>From Intent to Streaming Apps: MCP in Practice with Kafka As AI assistants begin interacting with real infrastructure, a key challenge is ensuring those interactions are safe, reliable, and constrained by clear rules.</title>
+    <updated>2026-02-02T08:21:03+00:00</updated>
+    <author>
+      <name>/u/observability_geek</name>
+      <uri>https://old.reddit.com/user/observability_geek</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The Model Context Protocol (MCP) addresses this by defining a structured way for AI systems to discover capabilities, understand context, and invoke external tools through explicit contracts.&lt;br /&gt; This talk presents MCP through a practical Kafka-focused case study. Using MCP server, Abhinav will demonstrate how high-level intent expressed in natural language can be translated into governed Kafka operations such as topic management, access control, and application deployment. The session will also show how MCP can be combined with declarative technologies like KSML, a YAML-based DSL for Kafka Streams, to generate and deploy streaming applications without writing Java code.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.youtube.com/watch?v=6PFeEGmZn7g"&gt;https://www.youtube.com/watch?v=6PFeEGmZn7g&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/observability_geek"&gt; /u/observability_geek &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtpf2v/from_intent_to_streaming_apps_mcp_in_practice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1qtpf2v/from_intent_to_streaming_apps_mcp_in_practice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1qtpf2v/from_intent_to_streaming_apps_mcp_in_practice/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-02-02T08:21:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1qt81d1</id>
