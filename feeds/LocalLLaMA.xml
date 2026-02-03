@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-03T11:45:03+00:00</updated>
+  <updated>2026-02-03T11:59:13+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -41,23 +41,10 @@
       <name>/u/Holiday_Purpose_3166</name>
       <uri>https://old.reddit.com/user/Holiday_Purpose_3166</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all,&lt;/p&gt; &lt;p&gt;Leaving here a quick fix just in case someone finds it useful.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Produced Stack:&lt;/strong&gt;&lt;br /&gt; llama.cpp b7907&lt;br /&gt; Devstral Small 2 Unsloth Q8_0 or LM Studio Q8_0&lt;/p&gt; &lt;p&gt;Jinja seems to break apart when attempting to use agentic tools like Kilocode (e.g. compaction, subtask return, etc) or failing to work in OpenClaw. &lt;em&gt;This has not been exclusive to b7907.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Error output:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;srv operator(): got exception: {&amp;quot;error&amp;quot;:{&amp;quot;code&amp;quot;:500,&amp;quot;message&amp;quot;:&amp;quot;\n------------\nWhile executing CallExpression at line 12, column 27 in source:\n...assistant' %}↵ {{ raise_exception('Expected assistant role') }}↵ {%- e...\n \^\nError: Jinja Exception: Expected assistant role&amp;quot;,&amp;quot;type&amp;quot;:&amp;quot;server_error&amp;quot;}} srv log_server_r: done request: POST /v1/chat/completions [172.18.0.1](http://172.18.0.1) 500 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The solution was to disable --jinja and create an alternative jinja template with --chat-template-file (e.g. devstral-fix.jinja) with the following content:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{{- bos_token }} {%- for message in messages %} {%- if message['role'] == 'system' %} {{ message['content'] }} {%- elif message['role'] == 'user' %} {{ '[INST] ' + message['content'] + ' [/INST]' }} {%- elif message['role'] == 'assistant' %} {{ message['content'] + eos_token }} {%- endif %} {%- endfor %} {%- if add_generation_prompt %} {{ '' }} {%- endif %} &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;It has been working so far, and will refer this.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;&lt;strong&gt;UPDATE 1&lt;/strong&gt;&lt;br /&gt; Tool call has not been reliable. So this doesn't become a full fix. However the model responds without breaking template.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Holiday_Purpose_3166"&gt; /u/Holiday_Purpose_3166 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quotpr/devstral_small_2_jinja_template_runtime/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quotpr/devstral_small_2_jinja_template_runtime/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all,&lt;/p&gt; &lt;p&gt;Leaving here a quick fix just in case someone finds it useful.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Produced Stack:&lt;/strong&gt;&lt;br /&gt; llama.cpp b7907&lt;br /&gt; Devstral Small 2 Unsloth Q8_0 or LM Studio Q8_0&lt;/p&gt; &lt;p&gt;Jinja seems to break apart when attempting to use agentic tools like Kilocode (e.g. compaction, subtask return, etc) or failing to work in openclaw. &lt;em&gt;This has not been exclusive to b7907.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Error output:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;srv operator(): got exception: {&amp;quot;error&amp;quot;:{&amp;quot;code&amp;quot;:500,&amp;quot;message&amp;quot;:&amp;quot;\n------------\nWhile executing CallExpression at line 12, column 27 in source:\n...assistant' %}↵ {{ raise_exception('Expected assistant role') }}↵ {%- e...\n \^\nError: Jinja Exception: Expected assistant role&amp;quot;,&amp;quot;type&amp;quot;:&amp;quot;server_error&amp;quot;}} srv log_server_r: done request: POST /v1/chat/completions [172.18.0.1](http://172.18.0.1) 500 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The solution was to disable --jinja and create an alternative jinja template with --chat-template-file (e.g. devstral-fix.jinja) with the following content:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{% for message in messages %} {% if message.role == 'system' %} {{ '&amp;lt;|im_start|&amp;gt;system\n' + message.content + '&amp;lt;|im_end|&amp;gt;\n' }} {% elif message.role == 'user' %} {{ '&amp;lt;|im_start|&amp;gt;user\n' + message.content + '&amp;lt;|im_end|&amp;gt;\n' }} {% elif message.role == 'assistant' %} {{ '&amp;lt;|im_start|&amp;gt;assistant\n' + message.content + '&amp;lt;|im_end|&amp;gt;\n' }} {% elif message.role == 'tool' %} {{ '&amp;lt;|im_start|&amp;gt;tool\n' + message.content + '&amp;lt;|im_end|&amp;gt;\n' }} {% else %} {{ raise_exception('Unsupported role: ' + message.role) }} {% endif %} {% endfor %} {% if add_generation_prompt %} {{ '&amp;lt;|im_start|&amp;gt;assistant\n' }} {% endif %} &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;It has been working so far, and will refer this.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;&lt;strong&gt;UPDATE 2&lt;/strong&gt;&lt;br /&gt; Updated solution. Tool call works so far. Bugs yet to report. &lt;/p&gt; &lt;p&gt;Devstral Small 2 refuses to believe it has access to environment, so &lt;a href="http://TOOLS.md"&gt;TOOLS.md&lt;/a&gt; needs to refer `You have access to file system and environment.` in order to work. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Holiday_Purpose_3166"&gt; /u/Holiday_Purpose_3166 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quotpr/devstral_small_2_jinja_template_runtime/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quotpr/devstral_small_2_jinja_template_runtime/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1quotpr/devstral_small_2_jinja_template_runtime/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-03T10:50:10+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qui1ir</id>
-    <title>What settings are best for stepfun-ai/Step-3.5-Flash-Int4 on llama.cpp ???</title>
-    <updated>2026-02-03T04:17:18+00:00</updated>
-    <author>
-      <name>/u/johnnyApplePRNG</name>
-      <uri>https://old.reddit.com/user/johnnyApplePRNG</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm getting a LOT of repetition in the thinking with llama-server and:&lt;/p&gt; &lt;p&gt;--ctx-size 80000 \&lt;/p&gt; &lt;p&gt;--batch-size 4096 \&lt;/p&gt; &lt;p&gt;--ubatch-size 2048 \&lt;/p&gt; &lt;p&gt;--fit on \&lt;/p&gt; &lt;p&gt;--flash-attn on \&lt;/p&gt; &lt;p&gt;--cache-type-k q8_0 \&lt;/p&gt; &lt;p&gt;--cache-type-v q8_0 \&lt;/p&gt; &lt;p&gt;--cont-batching \&lt;/p&gt; &lt;p&gt;--kv-unified \&lt;/p&gt; &lt;p&gt;--jinja \&lt;/p&gt; &lt;p&gt;--mlock \&lt;/p&gt; &lt;p&gt;--no-mmap \&lt;/p&gt; &lt;p&gt;--numa distribute \&lt;/p&gt; &lt;p&gt;--op-offload \&lt;/p&gt; &lt;p&gt;--repack \&lt;/p&gt; &lt;p&gt;--slots \&lt;/p&gt; &lt;p&gt;--parallel 1 \&lt;/p&gt; &lt;p&gt;--threads 16 \&lt;/p&gt; &lt;p&gt;--threads-batch 16 \&lt;/p&gt; &lt;p&gt;--temp 1.0 \&lt;/p&gt; &lt;p&gt;--top-k 40 \&lt;/p&gt; &lt;p&gt;--top-p 0.95 \&lt;/p&gt; &lt;p&gt;--min-p 0.0 \&lt;/p&gt; &lt;p&gt;--warmup&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-03T04:17:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1qttq5w</id>
@@ -99,17 +86,17 @@
     <published>2026-02-02T17:30:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qudqul</id>
-    <title>How to prevent MacOS annoying RAM compression behavior</title>
-    <updated>2026-02-03T01:04:36+00:00</updated>
+    <id>t3_1qui1ir</id>
+    <title>What settings are best for stepfun-ai/Step-3.5-Flash-Int4 on llama.cpp ???</title>
+    <updated>2026-02-03T04:17:18+00:00</updated>
     <author>
-      <name>/u/Sea_Smoke_7626</name>
-      <uri>https://old.reddit.com/user/Sea_Smoke_7626</uri>
+      <name>/u/johnnyApplePRNG</name>
+      <uri>https://old.reddit.com/user/johnnyApplePRNG</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys. I recently bought a MacBook M4 Pro 48GB. And I currently running a Qwen coder 30B in LM Studio all time. It works pretty well, never hit swap. &lt;/p&gt; &lt;p&gt;But what annoying me is that MacOS always tries to compress this llm when llm goes into inactive status, and it seems like this compression process never goes to end so that RAM load indicator is always yellow until I trigger the llm to response my request.&lt;/p&gt; &lt;p&gt;Does this behavior cause any significant problems in long time? or is there any solution to prevent macOS from trying to compress this LLM? &lt;/p&gt; &lt;p&gt;Thanks.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/zd3i4xl8h6hg1.png?width=2480&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14eed75559eb851f5396a0d696d3d4b028ba042e"&gt;https://preview.redd.it/zd3i4xl8h6hg1.png?width=2480&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14eed75559eb851f5396a0d696d3d4b028ba042e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea_Smoke_7626"&gt; /u/Sea_Smoke_7626 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm getting a LOT of repetition in the thinking with llama-server and:&lt;/p&gt; &lt;p&gt;--ctx-size 80000 \&lt;/p&gt; &lt;p&gt;--batch-size 4096 \&lt;/p&gt; &lt;p&gt;--ubatch-size 2048 \&lt;/p&gt; &lt;p&gt;--fit on \&lt;/p&gt; &lt;p&gt;--flash-attn on \&lt;/p&gt; &lt;p&gt;--cache-type-k q8_0 \&lt;/p&gt; &lt;p&gt;--cache-type-v q8_0 \&lt;/p&gt; &lt;p&gt;--cont-batching \&lt;/p&gt; &lt;p&gt;--kv-unified \&lt;/p&gt; &lt;p&gt;--jinja \&lt;/p&gt; &lt;p&gt;--mlock \&lt;/p&gt; &lt;p&gt;--no-mmap \&lt;/p&gt; &lt;p&gt;--numa distribute \&lt;/p&gt; &lt;p&gt;--op-offload \&lt;/p&gt; &lt;p&gt;--repack \&lt;/p&gt; &lt;p&gt;--slots \&lt;/p&gt; &lt;p&gt;--parallel 1 \&lt;/p&gt; &lt;p&gt;--threads 16 \&lt;/p&gt; &lt;p&gt;--threads-batch 16 \&lt;/p&gt; &lt;p&gt;--temp 1.0 \&lt;/p&gt; &lt;p&gt;--top-k 40 \&lt;/p&gt; &lt;p&gt;--top-p 0.95 \&lt;/p&gt; &lt;p&gt;--min-p 0.0 \&lt;/p&gt; &lt;p&gt;--warmup&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qui1ir/what_settings_are_best_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-03T01:04:36+00:00</published>
+    <published>2026-02-03T04:17:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1qum6kz</id>
@@ -125,30 +112,17 @@
     <published>2026-02-03T08:04:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qup4p1</id>
-    <title>What do we consider low end here?</title>
-    <updated>2026-02-03T11:07:57+00:00</updated>
+    <id>t3_1qudqul</id>
+    <title>How to prevent MacOS annoying RAM compression behavior</title>
+    <updated>2026-02-03T01:04:36+00:00</updated>
     <author>
-      <name>/u/Acceptable_Home_</name>
-      <uri>https://old.reddit.com/user/Acceptable_Home_</uri>
+      <name>/u/Sea_Smoke_7626</name>
+      <uri>https://old.reddit.com/user/Sea_Smoke_7626</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i would say 8-12gb vram with 32gb ram seems low end for usable quality of local LLMs or ai in general, &lt;/p&gt; &lt;p&gt;Im rocking a 4060 and 24gb of ddr5, how bout y'all low end rig enjoyers!&lt;/p&gt; &lt;p&gt;I can easily use glm 4.7 flash or oss 20B, z img, flux klein, and a lot of other small but useful models so im not really unhappy with it!&lt;/p&gt; &lt;p&gt;Lemme know about the setup y'all got and if y'all enjoy it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable_Home_"&gt; /u/Acceptable_Home_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys. I recently bought a MacBook M4 Pro 48GB. And I currently running a Qwen coder 30B in LM Studio all time. It works pretty well, never hit swap. &lt;/p&gt; &lt;p&gt;But what annoying me is that MacOS always tries to compress this llm when llm goes into inactive status, and it seems like this compression process never goes to end so that RAM load indicator is always yellow until I trigger the llm to response my request.&lt;/p&gt; &lt;p&gt;Does this behavior cause any significant problems in long time? or is there any solution to prevent macOS from trying to compress this LLM? &lt;/p&gt; &lt;p&gt;Thanks.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/zd3i4xl8h6hg1.png?width=2480&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14eed75559eb851f5396a0d696d3d4b028ba042e"&gt;https://preview.redd.it/zd3i4xl8h6hg1.png?width=2480&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14eed75559eb851f5396a0d696d3d4b028ba042e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea_Smoke_7626"&gt; /u/Sea_Smoke_7626 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qudqul/how_to_prevent_macos_annoying_ram_compression/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-03T11:07:57+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qu8pqw</id>
-    <title>Anyone else down the "data sovereignty" rabbit hole or am I going crazy?</title>
-    <updated>2026-02-02T21:43:48+00:00</updated>
-    <author>
-      <name>/u/itsnotKelsey</name>
-      <uri>https://old.reddit.com/user/itsnotKelsey</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;it started with just wanting to run models locally so my stuff doesn't get scraped. Now I'm like 3 weeks deep reading about self-sovereign Identity, network state stuff and wondering if there's a way to actually prove your data isn't being touched vs just hoping it isn't. Local models help I guess.. but it still feels like we're just trusting that nothing's phoning home. &lt;/p&gt; &lt;p&gt;Is there anything out there that gives you like actual cryptographic proof your queries aren't being logged? Or am I seriously overthinking this lol&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/itsnotKelsey"&gt; /u/itsnotKelsey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-02T21:43:48+00:00</published>
+    <published>2026-02-03T01:04:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1qu337m</id>
@@ -164,6 +138,19 @@
     <published>2026-02-02T18:24:12+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qu8pqw</id>
+    <title>Anyone else down the "data sovereignty" rabbit hole or am I going crazy?</title>
+    <updated>2026-02-02T21:43:48+00:00</updated>
+    <author>
+      <name>/u/itsnotKelsey</name>
+      <uri>https://old.reddit.com/user/itsnotKelsey</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;it started with just wanting to run models locally so my stuff doesn't get scraped. Now I'm like 3 weeks deep reading about self-sovereign Identity, network state stuff and wondering if there's a way to actually prove your data isn't being touched vs just hoping it isn't. Local models help I guess.. but it still feels like we're just trusting that nothing's phoning home. &lt;/p&gt; &lt;p&gt;Is there anything out there that gives you like actual cryptographic proof your queries aren't being logged? Or am I seriously overthinking this lol&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/itsnotKelsey"&gt; /u/itsnotKelsey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qu8pqw/anyone_else_down_the_data_sovereignty_rabbit_hole/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-02T21:43:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qu2z21</id>
     <title>GLM-OCR</title>
     <updated>2026-02-02T18:20:07+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qu2z21/glmocr/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-02T18:20:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qup4p1</id>
+    <title>What do we consider low end here?</title>
+    <updated>2026-02-03T11:07:57+00:00</updated>
+    <author>
+      <name>/u/Acceptable_Home_</name>
+      <uri>https://old.reddit.com/user/Acceptable_Home_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i would say 8-12gb vram with 32gb ram seems low end for usable quality of local LLMs or ai in general, &lt;/p&gt; &lt;p&gt;Im rocking a 4060 and 24gb of ddr5, how bout y'all low end rig enjoyers!&lt;/p&gt; &lt;p&gt;I can easily use glm 4.7 flash or oss 20B, z img, flux klein, and a lot of other small but useful models so im not really unhappy with it!&lt;/p&gt; &lt;p&gt;Lemme know about the setup y'all got and if y'all enjoy it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable_Home_"&gt; /u/Acceptable_Home_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qup4p1/what_do_we_consider_low_end_here/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-03T11:07:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1qucoid</id>
@@ -242,19 +242,6 @@
     <published>2026-02-02T13:56:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1quo398</id>
-    <title>Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp; More Cores/$ Than Threadripper 9000</title>
-    <updated>2026-02-03T10:05:52+00:00</updated>
-    <author>
-      <name>/u/hainesk</name>
-      <uri>https://old.reddit.com/user/hainesk</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"&gt; &lt;img alt="Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp;amp; More Cores/$ Than Threadripper 9000" src="https://external-preview.redd.it/qRGFi5W1MKKifxdKWjq-Z9EvJoJICK6GlGjx6E2rLX8.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=edf818262e4a121198fd637c574afc8cfd4e984d" title="Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp;amp; More Cores/$ Than Threadripper 9000" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hainesk"&gt; /u/hainesk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://wccftech.com/intel-xeon-600-cpus-launched-up-to-86-cores-better-value-than-threadripper/amp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-03T10:05:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qu7jqi</id>
     <title>GLM releases OCR model</title>
     <updated>2026-02-02T21:01:12+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qu7jqi/glm_releases_ocr_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-02T21:01:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1quo398</id>
+    <title>Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp; More Cores/$ Than Threadripper 9000</title>
+    <updated>2026-02-03T10:05:52+00:00</updated>
+    <author>
+      <name>/u/hainesk</name>
+      <uri>https://old.reddit.com/user/hainesk</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"&gt; &lt;img alt="Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp;amp; More Cores/$ Than Threadripper 9000" src="https://external-preview.redd.it/qRGFi5W1MKKifxdKWjq-Z9EvJoJICK6GlGjx6E2rLX8.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=edf818262e4a121198fd637c574afc8cfd4e984d" title="Intel Xeon 600 Workstation CPUs Launched: Up To 86 Cores, 8000 MT/s Memory, 128 Gen5 Lanes, 350W TDP With OC Support, &amp;amp; More Cores/$ Than Threadripper 9000" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hainesk"&gt; /u/hainesk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://wccftech.com/intel-xeon-600-cpus-launched-up-to-86-cores-better-value-than-threadripper/amp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1quo398/intel_xeon_600_workstation_cpus_launched_up_to_86/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-03T10:05:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1quo9ue</id>
