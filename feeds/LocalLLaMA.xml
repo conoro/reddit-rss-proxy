@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-06T07:48:12+00:00</updated>
+  <updated>2026-02-06T08:18:07+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1qwbmct</id>
-    <title>Qwen3-Coder-Next on RTX 5060 Ti 16 GB - Some numbers</title>
-    <updated>2026-02-05T04:33:49+00:00</updated>
+    <id>t3_1qx1nab</id>
+    <title>We’ve got an XDNA2 NPU lemonade recipe for Whisper transcription now</title>
+    <updated>2026-02-05T23:43:25+00:00</updated>
     <author>
-      <name>/u/bobaburger</name>
-      <uri>https://old.reddit.com/user/bobaburger</uri>
+      <name>/u/jfowers_amd</name>
+      <uri>https://old.reddit.com/user/jfowers_amd</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;About 2 weeks ago, I posted about running GLM-4.7-Flash on 16 GB of VRAM here &lt;a href="http://www.reddit.com/r/LocalLLaMA/comments/1qlanzn/glm47flashreap_on_rtx_5060_ti_16_gb_200k_context/"&gt;www.reddit.com/r/LocalLLaMA/comments/1qlanzn/glm47flashreap_on_rtx_5060_ti_16_gb_200k_context/&lt;/a&gt;. And here we go, today, let's squeeze an even bigger model into the poor rig.&lt;/p&gt; &lt;p&gt;Hardware: - AMD Ryzen 7 7700X - RAM 32 GB DDR5-6000 - RTX 5060 Ti 16 GB&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/unsloth/Qwen3-Coder-Next-GGUF?show_file_info=Qwen3-Coder-Next-Q3_K_M.gguf"&gt;unsloth/Qwen3-Coder-Next-GGUF Q3_K_M&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Llama.cpp version: &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b7940"&gt;llama.cpp@b7940&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The llamap.cpp command:&lt;/p&gt; &lt;p&gt;&lt;code&gt; llama-server -m ./Qwen3-Coder-Next-Q3_K_M.gguf -c 32768 -np 1 -t 8 --temp 1.0 --top-p 0.95 --top-k 40 --min-p 0.01 --jinja --fit on -fa 1 &lt;/code&gt;&lt;/p&gt; &lt;p&gt;When I started, I didn't expect much, given that my best result for GLM-4.7-Flash was something ~300 t/s pp and 14 t/s gen. Maybe I'll end up with a lot of OOM and crash.&lt;/p&gt; &lt;p&gt;But, to my surprise, the card was able to pull it well!&lt;/p&gt; &lt;p&gt;When llama.cpp is fully loaded, it takes &lt;strong&gt;15.1 GB&lt;/strong&gt; GPU memory, and &lt;strong&gt;30.2 GB&lt;/strong&gt; RAM. The rig is almost at its memory limit.&lt;/p&gt; &lt;p&gt;During prompt processing, GPU usage was about &lt;strong&gt;35%&lt;/strong&gt;, and CPU usage was about &lt;strong&gt;15%&lt;/strong&gt;. During token generation, that's &lt;strong&gt;45%&lt;/strong&gt; for the GPU, and &lt;strong&gt;25%-45%&lt;/strong&gt; CPU. So perhaps there are some room to squeeze in some tuning here.&lt;/p&gt; &lt;p&gt;Does it run? Yes, and it's quite fast for a 5060!&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Metric&lt;/th&gt; &lt;th&gt;Task 2 (Large Context)&lt;/th&gt; &lt;th&gt;Task 190 (Med Context)&lt;/th&gt; &lt;th&gt;Task 327 (Small Context)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Prompt Eval (Prefill)&lt;/td&gt; &lt;td&gt;154.08 t/s&lt;/td&gt; &lt;td&gt;225.14 t/s&lt;/td&gt; &lt;td&gt;118.98 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Generation (Decode)&lt;/td&gt; &lt;td&gt;16.90 t/s&lt;/td&gt; &lt;td&gt;16.82 t/s&lt;/td&gt; &lt;td&gt;18.46 t/s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The above run was with a 32k context size. Later on, I tried again with a 64k context size, the speed did not change much.&lt;/p&gt; &lt;p&gt;Is it usable? I'd say yes, not Opus 4.5 or Gemini Flash usable, but I think it's pretty close to my experience when Claude Sonnet 3.7 or 4 was still a thing.&lt;/p&gt; &lt;p&gt;One thing that sticks out is, this model uses way less tool calls than Opus, so it feels fast. It seems to read the whole file all at once when needed, rather than grepping every 200 lines like the Claude brothers.&lt;/p&gt; &lt;p&gt;One-shot something seems to work pretty well, until it runs into bugs. In my example, I asked the model to create a web-based chess game with a Python backend, connected via WebSocket. The model showed that it can debug the problem by jumping back and forth between frontend and backend code very well.&lt;/p&gt; &lt;p&gt;When facing a problem, it will first hypothesize a cause, then work its way through the code to verify that. Then there will be a lot of &amp;quot;But wait&amp;quot;, &amp;quot;Hold on&amp;quot;, followed by a tool call to read some files, and then changing directions. Sometimes it works. Sometimes, it was just burning through the tokens and ended up reaching the context limit. Maybe because I was using Q3_K_M, and higher quants will have better quality here.&lt;/p&gt; &lt;p&gt;Some screenshots:&lt;/p&gt; &lt;p&gt;&lt;a href="https://gist.github.com/user-attachments/assets/8d074a76-c441-42df-b146-0ae291af17df"&gt;https://gist.github.com/user-attachments/assets/8d074a76-c441-42df-b146-0ae291af17df&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://gist.github.com/user-attachments/assets/3aa3a845-96cd-4b23-b6d9-1255036106db"&gt;https://gist.github.com/user-attachments/assets/3aa3a845-96cd-4b23-b6d9-1255036106db&lt;/a&gt;&lt;/p&gt; &lt;p&gt;You can see the Claude session logs and llama.cpp logs of the run here &lt;a href="https://gist.github.com/huytd/6b1e9f2271dd677346430c1b92893b57"&gt;https://gist.github.com/huytd/6b1e9f2271dd677346430c1b92893b57&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bobaburger"&gt; /u/bobaburger &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwbmct/qwen3codernext_on_rtx_5060_ti_16_gb_some_numbers/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwbmct/qwen3codernext_on_rtx_5060_ti_16_gb_some_numbers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwbmct/qwen3codernext_on_rtx_5060_ti_16_gb_some_numbers/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;3-5x performance vs. 4 CPU threads on the same AMD Ryzen AI 300/400 PCs. I’m really glad to have turnkey availability of another model class since we’ve just had LLMs on NPU for a while. &lt;/p&gt; &lt;p&gt;@iswaryaalex did some great work here integrating the NPU into a fork of whisper.cpp and then automating all setup via Lemonade. The plan is to upstream the fork ASAP.&lt;/p&gt; &lt;p&gt;To try it, just install today’s &lt;a href="https://github.com/lemonade-sdk/lemonade/releases/tag/v9.3.0"&gt;Lemonade release&lt;/a&gt; and load a Whisper model. NPU is default on supported PCs. Try it in the app or &lt;code&gt;/audio/transcriptions&lt;/code&gt; endpoint.&lt;/p&gt; &lt;p&gt;Requirements:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Windows 11 (I know! I know…)&lt;/li&gt; &lt;li&gt;XDNA2 NPU, aka Ryzen AI 300-, 400-series, or Z2 Extreme, aka Strix Halo, Strix Point, Krackan Point, Gorgon Point, or ROG Ally X.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This release has a lot of other cool stuff, including Kokoro speech generation from @bitgamme on CPU via the &lt;code&gt;/audio/speech&lt;/code&gt; endpoint. Linux supported. Check it out!&lt;/p&gt; &lt;p&gt;Linux NPU update: thanks to the community’s feedback this has become a top priority. However, it takes a considerable amount of time to organize teams across the full stack to deliver this with quality. Stay tuned.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jfowers_amd"&gt; /u/jfowers_amd &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx1nab/weve_got_an_xdna2_npu_lemonade_recipe_for_whisper/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx1nab/weve_got_an_xdna2_npu_lemonade_recipe_for_whisper/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx1nab/weve_got_an_xdna2_npu_lemonade_recipe_for_whisper/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-05T04:33:49+00:00</published>
+    <published>2026-02-05T23:43:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1qxaam4</id>
@@ -47,19 +47,6 @@
     <published>2026-02-05T16:03:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qwy1ca</id>
-    <title>sim.ai is no longer fully open-source</title>
-    <updated>2026-02-05T21:20:53+00:00</updated>
-    <author>
-      <name>/u/freehuntx</name>
-      <uri>https://old.reddit.com/user/freehuntx</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just a heads up for anyone currently using or tracking sim.ai. &lt;/p&gt; &lt;p&gt;It looks like they’ve pivoted away from being fully open source. &lt;/p&gt; &lt;p&gt;I spotted a recent commit that significantly changes the licensing and code availability. If you're building on top of this or planning to, you should definitely check the diffs and the new terms before committing more time to it. &lt;/p&gt; &lt;p&gt;Here’s the commit in question:&lt;br /&gt; &lt;a href="https://github.com/simstudioai/sim/commit/46822e91f327c591a6f537275a0fd83fb83ff504#diff-1091f99ae5606ec884abb378eb612ea29534be2044a8dfce6d52bbb918f4f6ac"&gt;https://github.com/simstudioai/sim/commit/46822e91f327c591a6f537275a0fd83fb83ff504#diff-1091f99ae5606ec884abb378eb612ea29534be2044a8dfce6d52bbb918f4f6ac&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freehuntx"&gt; /u/freehuntx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-05T21:20:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qwgyrn</id>
     <title>Best "Deep research" for local LLM in 2026 - platforms/tools/interface/setups</title>
     <updated>2026-02-05T09:39:18+00:00</updated>
@@ -84,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwo5ig/unofficial_ik_llamacpp_release_builds_available/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-05T15:24:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qwy1ca</id>
+    <title>sim.ai is no longer fully open-source</title>
+    <updated>2026-02-05T21:20:53+00:00</updated>
+    <author>
+      <name>/u/freehuntx</name>
+      <uri>https://old.reddit.com/user/freehuntx</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just a heads up for anyone currently using or tracking sim.ai. &lt;/p&gt; &lt;p&gt;It looks like they’ve pivoted away from being fully open source. &lt;/p&gt; &lt;p&gt;I spotted a recent commit that significantly changes the licensing and code availability. If you're building on top of this or planning to, you should definitely check the diffs and the new terms before committing more time to it. &lt;/p&gt; &lt;p&gt;Here’s the commit in question:&lt;br /&gt; &lt;a href="https://github.com/simstudioai/sim/commit/46822e91f327c591a6f537275a0fd83fb83ff504#diff-1091f99ae5606ec884abb378eb612ea29534be2044a8dfce6d52bbb918f4f6ac"&gt;https://github.com/simstudioai/sim/commit/46822e91f327c591a6f537275a0fd83fb83ff504#diff-1091f99ae5606ec884abb378eb612ea29534be2044a8dfce6d52bbb918f4f6ac&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freehuntx"&gt; /u/freehuntx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwy1ca/simai_is_no_longer_fully_opensource/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-05T21:20:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1qwngbv</id>
@@ -125,19 +125,6 @@
     <published>2026-02-05T18:27:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qwz0x6</id>
-    <title>Any feedback on step-3.5-flash ?</title>
-    <updated>2026-02-05T21:58:09+00:00</updated>
-    <author>
-      <name>/u/Jealous-Astronaut457</name>
-      <uri>https://old.reddit.com/user/Jealous-Astronaut457</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It was overshadowed by qwen3-next-coder and was not supported by llamacpp at launch, but it looks like a very promising model for local inference. My first impression of stepfun's chat is that the model is a thinker, but what are your impressions few days after the release ?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Jealous-Astronaut457"&gt; /u/Jealous-Astronaut457 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-05T21:58:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qwboqn</id>
     <title>Google Research announces Sequential Attention: Making AI models leaner and faster without sacrificing accuracy</title>
     <updated>2026-02-05T04:37:05+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwboqn/google_research_announces_sequential_attention/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-05T04:37:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qwz0x6</id>
+    <title>Any feedback on step-3.5-flash ?</title>
+    <updated>2026-02-05T21:58:09+00:00</updated>
+    <author>
+      <name>/u/Jealous-Astronaut457</name>
+      <uri>https://old.reddit.com/user/Jealous-Astronaut457</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It was overshadowed by qwen3-next-coder and was not supported by llamacpp at launch, but it looks like a very promising model for local inference. My first impression of stepfun's chat is that the model is a thinker, but what are your impressions few days after the release ?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Jealous-Astronaut457"&gt; /u/Jealous-Astronaut457 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qwz0x6/any_feedback_on_step35flash/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-05T21:58:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1qwobcc</id>
@@ -216,19 +216,6 @@
     <published>2026-02-06T01:40:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qx9u62</id>
-    <title>Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028</title>
-    <updated>2026-02-06T06:10:08+00:00</updated>
-    <author>
-      <name>/u/HumanDrone8721</name>
-      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"&gt; &lt;img alt="Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028" src="https://external-preview.redd.it/Vhe0E1hknQdCzPfipp4a4FDDTKpsoaiucv4xmdoIbE4.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=05bef7b7b638f0b1de9b82e717df9072f9485b20" title="Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.tomshardware.com/pc-components/gpus/report-claims-nvidia-will-not-be-releasing-any-new-rtx-gaming-gpus-in-2026-rtx-60-series-likely-debuting-in-2028"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-06T06:10:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qwo9j0</id>
     <title>We built an 8B world model that beats 402B Llama 4 by generating web code instead of pixels — open weights on HF</title>
     <updated>2026-02-05T15:28:27+00:00</updated>
@@ -268,17 +255,17 @@
     <published>2026-02-05T22:54:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qx95kh</id>
-    <title>Deep what do you think?</title>
-    <updated>2026-02-06T05:33:40+00:00</updated>
+    <id>t3_1qx9u62</id>
+    <title>Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028</title>
+    <updated>2026-02-06T06:10:08+00:00</updated>
     <author>
-      <name>/u/fais-1669</name>
-      <uri>https://old.reddit.com/user/fais-1669</uri>
+      <name>/u/HumanDrone8721</name>
+      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"&gt; &lt;img alt="Deep what do you think?" src="https://preview.redd.it/xn34gdcd9thg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=26b7c44cef48d1ee6d337de27cabf4346beab450" title="Deep what do you think?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fais-1669"&gt; /u/fais-1669 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xn34gdcd9thg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"&gt; &lt;img alt="Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028" src="https://external-preview.redd.it/Vhe0E1hknQdCzPfipp4a4FDDTKpsoaiucv4xmdoIbE4.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=05bef7b7b638f0b1de9b82e717df9072f9485b20" title="Report claims Nvidia will not be releasing any new RTX gaming GPUs in 2026, RTX 60 series likely debuting in 2028" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.tomshardware.com/pc-components/gpus/report-claims-nvidia-will-not-be-releasing-any-new-rtx-gaming-gpus-in-2026-rtx-60-series-likely-debuting-in-2028"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx9u62/report_claims_nvidia_will_not_be_releasing_any/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-06T05:33:40+00:00</published>
+    <published>2026-02-06T06:10:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1qx0kzb</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx0kzb/pr_to_implemt_tensor_parallelism_in_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-05T22:59:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qx95kh</id>
+    <title>Deep what do you think?</title>
+    <updated>2026-02-06T05:33:40+00:00</updated>
+    <author>
+      <name>/u/fais-1669</name>
+      <uri>https://old.reddit.com/user/fais-1669</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"&gt; &lt;img alt="Deep what do you think?" src="https://preview.redd.it/xn34gdcd9thg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=26b7c44cef48d1ee6d337de27cabf4346beab450" title="Deep what do you think?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fais-1669"&gt; /u/fais-1669 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xn34gdcd9thg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qx95kh/deep_what_do_you_think/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-06T05:33:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1qx77xm</id>
