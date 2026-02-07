@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-07T14:56:44+00:00</updated>
+  <updated>2026-02-07T15:10:55+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1qyfibm</id>
-    <title>I have a problem with LM Studio</title>
-    <updated>2026-02-07T14:42:19+00:00</updated>
+    <id>t3_1qyg10z</id>
+    <title>I tested 11 small LLMs on tool-calling judgment — on CPU, no GPU.</title>
+    <updated>2026-02-07T15:03:14+00:00</updated>
     <author>
-      <name>/u/Organic_Lecture1666</name>
-      <uri>https://old.reddit.com/user/Organic_Lecture1666</uri>
+      <name>/u/MikeNonect</name>
+      <uri>https://old.reddit.com/user/MikeNonect</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, I downloaded the LM Studio app today, and when I tried to use the model I downloaded, I kept getting this error:&lt;/p&gt; &lt;p&gt;Failed to load the model Attempt to pull a snapshot of system resources failed. Error: ‘Cannot read properties of undefined (reading pullReport)’&lt;/p&gt; &lt;p&gt;Does anyone know how to fix this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Organic_Lecture1666"&gt; /u/Organic_Lecture1666 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qyfibm/i_have_a_problem_with_lm_studio/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qyfibm/i_have_a_problem_with_lm_studio/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qyfibm/i_have_a_problem_with_lm_studio/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Friday night experiment that got out of hand. I wanted to know: how small can a model be and still reliably do tool-calling on a laptop CPU?&lt;/p&gt; &lt;p&gt;So I benchmarked 11 models (0.5B to 3.8B) across 12 prompts. No GPU, no cloud API. Just Ollama and bitnet.cpp.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The models:&lt;/strong&gt; Qwen 2.5 (0.5B, 1.5B, 3B), LLaMA 3.2:3B, SmolLM2:1.7B, Ministral-3:3B, DeepSeek-R1:1.5B, Gemma3:1B, Phi4-mini:3.8B, BitNet 3B (base), BitNet 2B-4T (instruction-tuned)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The interesting part isn't whether they can call tools — they all can.&lt;/strong&gt; The interesting part is whether they know when NOT to.&lt;/p&gt; &lt;p&gt;I designed trick prompts like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot;Don't check the weather in Antwerp, just find me the quarterly report.&amp;quot; → 3 of 8 models called get_weather anyway&lt;/li&gt; &lt;li&gt;&amp;quot;The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?&amp;quot; → 5 of 8 models called get_weather to look up weather that was already in the prompt&lt;/li&gt; &lt;li&gt;&amp;quot;Can you write a Python script that checks the weather using an API?&amp;quot; → Multiple models called get_weather instead of writing code&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Some things that really surprised me:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;qwen2.5:1.5b beat qwen2.5:3b.&lt;/strong&gt; The smaller model won by being more conservative — it declined prompts it wasn't sure about instead of guessing wrong. The 3B model called get_weather when asked to write a Python script about weather APIs. The 1.5B didn't.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;LLaMA 3.2 calls a tool on literally everything.&lt;/strong&gt; 9/10 action score, 0/2 restraint. Asked &amp;quot;what tools do you have?&amp;quot; — it called search_files. Asked to write code — it called search_files. It's a hammer that sees every prompt as a nail. But interesting: it actually picked the &lt;em&gt;right&lt;/em&gt; tool more often than most models on the hard prompts. Its problem is restraint, not selection.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;BitNet 2B-4T gave the unexpected result.&lt;/strong&gt; I threw BitNet in as a wildcard, expecting it to fail. The base BitNet 3B model produces word salad — completely incoherent output. The instruction-tuned 2B-4T, however, produces perfect JSON tool calls at 2.3s on CPU. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Practical takeaway:&lt;/strong&gt; Simple tool routing is solved at 1.5B on CPU. But if your agent needs to decide &lt;em&gt;whether&lt;/em&gt; to act — not just &lt;em&gt;how&lt;/em&gt; — sub-4B models will confidently take the wrong action when keyword triggers are present. &lt;/p&gt; &lt;p&gt;Full benchmark code, detailed report with per-run data: &lt;a href="https://github.com/MikeVeerman/tool-calling-benchmark"&gt;https://github.com/MikeVeerman/tool-calling-benchmark&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The benchmark is a single Python file — easy to add your own models and prompts. Would love to see what happens with different hardware, different models, or different context window settings (I ran everything at Ollama's default 4K context).&lt;/p&gt; &lt;p&gt;Early attempt at a tool-calling-on-consumer-hardware benchmark. Polite feedback and ideas are very welcome.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MikeNonect"&gt; /u/MikeNonect &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qyg10z/i_tested_11_small_llms_on_toolcalling_judgment_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qyg10z/i_tested_11_small_llms_on_toolcalling_judgment_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qyg10z/i_tested_11_small_llms_on_toolcalling_judgment_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T14:42:19+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qy54sh</id>
-    <title>Agentic debugging with OpenCode and term-cli: driving lldb interactively to chase an ffmpeg/x264 crash (patches submitted)</title>
-    <updated>2026-02-07T05:17:03+00:00</updated>
-    <author>
-      <name>/u/EliasOenal</name>
-      <uri>https://old.reddit.com/user/EliasOenal</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy54sh/agentic_debugging_with_opencode_and_termcli/"&gt; &lt;img alt="Agentic debugging with OpenCode and term-cli: driving lldb interactively to chase an ffmpeg/x264 crash (patches submitted)" src="https://preview.redd.it/77fe4nw070ig1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f904fb4e2d2027b383664a2fca910b5c62fdc714" title="Agentic debugging with OpenCode and term-cli: driving lldb interactively to chase an ffmpeg/x264 crash (patches submitted)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Last weekend I built &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt;, a small tool that gives agents a real terminal (not just a shell). It supports interactive programs like lldb/gdb/pdb, SSH sessions, TUIs, and editors. Anything that would otherwise block an agent. (BSD licensed)&lt;/p&gt; &lt;p&gt;Yesterday I hit a segfault while transcoding with ffmpeg two-pass on macOS. I normally avoid diving into ffmpeg/x264-sized codebases unless I have to. But it is 2026, so I used OpenCode and enlisted Claude Opus (my local defaults are GLM-4.7-Flash and Qwen3-Coder-Next).&lt;/p&gt; &lt;p&gt;First, I asked for a minimal reproducer so the crash was fast and deterministic. I cloned the ffmpeg repository and then had OpenCode use term-cli to run lldb (without term-cli, the agent just hangs on interactive tools like lldb/vim/htop and eventually times out).&lt;/p&gt; &lt;p&gt;What happened next was amazing to watch: the agent configured lldb, reproduced the crash, pulled a backtrace, inspected registers/frames, and continued to read several functions in bare ARM64 disassembly to reason about the fault. It mapped the trace back to ffmpeg's x264 integration and concluded: ffmpeg triggers the condition, but x264 actually crashes.&lt;/p&gt; &lt;p&gt;So I cloned x264 as well and OpenCode provided me with two patches it had verified, one for each project. That was about 20 minutes in, I had only prompted 3 or 4 times.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ffmpeg was effectively passing mismatched frame counts between pass1 and pass2. &lt;ul&gt; &lt;li&gt;&lt;a href="https://lists.ffmpeg.org/archives/list/ffmpeg-devel@ffmpeg.org/thread/D6RGD3LYCQ6WZGPRLCIYY74I6KVPGLKX/"&gt;https://lists.ffmpeg.org/archives/list/ffmpeg-devel@ffmpeg.org/thread/D6RGD3LYCQ6WZGPRLCIYY74I6KVPGLKX/&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;x264 had a fallback path for this, but one value wasn't initialized correctly, leading to an overflow/NULL deref and the crash. &lt;ul&gt; &lt;li&gt;&lt;a href="https://code.videolan.org/videolan/x264/-/merge_requests/195"&gt;https://code.videolan.org/videolan/x264/-/merge_requests/195&lt;/a&gt; (Have a look at this one for a detailed technical description)&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I've also had good results doing the same with local models. I used term-cli (plus the companion for humans: term-assist) to share interactive SSH sessions to servers with Qwen3-Coder-Next. And Python's pdb (debugger) just worked as well. My takeaway is that the models already know these interactive workflows. &lt;a href="https://www.youtube.com/watch?v=A70tZEVqSOQ"&gt;They even know how to escape Vim&lt;/a&gt;. It is just that they can't access these tools with the agent harnesses available today - something I hope to have solved.&lt;/p&gt; &lt;p&gt;I'll keep this short to avoid too much self-promo, but happy to share more in the comments if people are interested. I truly feel like giving agents interactive tooling unlocks abilities LLMs have known all along.&lt;/p&gt; &lt;p&gt;This was made possible in part thanks to the GitHub Copilot grant for Open Source Maintainers.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EliasOenal"&gt; /u/EliasOenal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/77fe4nw070ig1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy54sh/agentic_debugging_with_opencode_and_termcli/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy54sh/agentic_debugging_with_opencode_and_termcli/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T05:17:03+00:00</published>
+    <published>2026-02-07T15:03:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1qxu6l8</id>
@@ -60,19 +47,6 @@
     <published>2026-02-07T03:05:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qy9xip</id>
-    <title>New version of MLX and RDMA are really cutting back time on TTFT!</title>
-    <updated>2026-02-07T09:55:32+00:00</updated>
-    <author>
-      <name>/u/Careless_Garlic1438</name>
-      <uri>https://old.reddit.com/user/Careless_Garlic1438</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The title says it all, since macOS 26.2 there is the option to run models over distributed Macs that have TB5. Latest optimization has serious impact, lowering the TTFT drastically... even for MoE's. &lt;/p&gt; &lt;p&gt;Kudos to the MLX team!&lt;br /&gt; &lt;a href="https://x.com/angeloskath/status/2019968198322577821?s=20"&gt;https://x.com/angeloskath/status/2019968198322577821?s=20&lt;/a&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Careless_Garlic1438"&gt; /u/Careless_Garlic1438 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T09:55:32+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qxxd6v</id>
     <title>Built a “poor man’s RTX 6000”, quad 3090, all air-cooled</title>
     <updated>2026-02-06T23:21:34+00:00</updated>
@@ -99,6 +73,19 @@
     <published>2026-02-06T22:40:20+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qy9xip</id>
+    <title>New version of MLX and RDMA are really cutting back time on TTFT!</title>
+    <updated>2026-02-07T09:55:32+00:00</updated>
+    <author>
+      <name>/u/Careless_Garlic1438</name>
+      <uri>https://old.reddit.com/user/Careless_Garlic1438</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The title says it all, since macOS 26.2 there is the option to run models over distributed Macs that have TB5. Latest optimization has serious impact, lowering the TTFT drastically... even for MoE's. &lt;/p&gt; &lt;p&gt;Kudos to the MLX team!&lt;br /&gt; &lt;a href="https://x.com/angeloskath/status/2019968198322577821?s=20"&gt;https://x.com/angeloskath/status/2019968198322577821?s=20&lt;/a&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Careless_Garlic1438"&gt; /u/Careless_Garlic1438 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy9xip/new_version_of_mlx_and_rdma_are_really_cutting/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-07T09:55:32+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qxstk4</id>
     <title>Support Step3.5-Flash has been merged into llama.cpp</title>
     <updated>2026-02-06T20:24:23+00:00</updated>
@@ -110,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qxstk4/support_step35flash_has_been_merged_into_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-06T20:24:23+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qydx7z</id>
+    <title>Successfully built an Autonomous Research Agent to handle 10k PDFs locally (32GB RAM / AnythingLLM)</title>
+    <updated>2026-02-07T13:33:36+00:00</updated>
+    <author>
+      <name>/u/NGU-FREEFIRE</name>
+      <uri>https://old.reddit.com/user/NGU-FREEFIRE</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Wanted to share a quick win. I’ve been experimenting with Agentic RAG to handle a massive local dataset (10,000+ PDFs).&lt;/p&gt; &lt;p&gt;Most standard RAG setups were failing or hallucinating at this scale, so I moved to an &lt;strong&gt;Autonomous Agent&lt;/strong&gt; workflow using AnythingLLM and Llama 3.2. The agent now performs recursive searches and cross-references data points before giving me a final report.&lt;/p&gt; &lt;p&gt;Running it on 32GB RAM was the sweet spot for handling the context window without crashing.&lt;/p&gt; &lt;p&gt;If you're looking for a way to turn a &amp;quot;dumb&amp;quot; archive into a searchable, intelligent local database without sending data to the cloud, this is definitely the way to go.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NGU-FREEFIRE"&gt; /u/NGU-FREEFIRE &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydx7z/successfully_built_an_autonomous_research_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydx7z/successfully_built_an_autonomous_research_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qydx7z/successfully_built_an_autonomous_research_agent/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-07T13:33:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1qxcm5g</id>
@@ -138,19 +138,6 @@
     <published>2026-02-06T12:41:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qy5jm3</id>
-    <title>Open-sourced exact attention kernel - 1M tokens in 1GB VRAM</title>
-    <updated>2026-02-07T05:38:31+00:00</updated>
-    <author>
-      <name>/u/sevinsixtwo</name>
-      <uri>https://old.reddit.com/user/sevinsixtwo</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;GAE (Geodesic Attention Engine) - AGPL-3.0 Results: - 1M tokens: 1.09 GB (standard needs 4.4 TB) - 65K tokens: 99.6% memory reduction - Bit-exact (not approximate, not sparse) - 75%+ energy savings at 8K+ context How: Fused kernel reduces HBM round-trips from 12 to 2. Everything stays in registers. https://github.com/RegularJoe-CEO/Geodesic-Attention-Engine-GAE- DOI: 10.5281/zenodo.18512336 &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sevinsixtwo"&gt; /u/sevinsixtwo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T05:38:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qxq3xs</id>
     <title>anthropic literally thinks claude is the messiah (and it’s getting weird)</title>
     <updated>2026-02-06T18:43:55+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy1gc7/distillied_gemini_3_pro_opus45_and_kimi_k25_here/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-07T02:19:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qy5jm3</id>
+    <title>Open-sourced exact attention kernel - 1M tokens in 1GB VRAM</title>
+    <updated>2026-02-07T05:38:31+00:00</updated>
+    <author>
+      <name>/u/sevinsixtwo</name>
+      <uri>https://old.reddit.com/user/sevinsixtwo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;GAE (Geodesic Attention Engine) - AGPL-3.0 Results: - 1M tokens: 1.09 GB (standard needs 4.4 TB) - 65K tokens: 99.6% memory reduction - Bit-exact (not approximate, not sparse) - 75%+ energy savings at 8K+ context How: Fused kernel reduces HBM round-trips from 12 to 2. Everything stays in registers. https://github.com/RegularJoe-CEO/Geodesic-Attention-Engine-GAE- DOI: 10.5281/zenodo.18512336 &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sevinsixtwo"&gt; /u/sevinsixtwo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy5jm3/opensourced_exact_attention_kernel_1m_tokens_in/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-07T05:38:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qxuqhe</id>
@@ -203,19 +203,6 @@
     <published>2026-02-07T12:00:38+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qydwox</id>
-    <title>DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)</title>
-    <updated>2026-02-07T13:32:57+00:00</updated>
-    <author>
-      <name>/u/poppear</name>
-      <uri>https://old.reddit.com/user/poppear</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"&gt; &lt;img alt="DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)" src="https://external-preview.redd.it/amhoMTMxeGttMmlnMX8NGHmEIKR1Shq8PrhwLMOPZOE4F_KOxFoLbBMbU6CW.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3ac0e57675428604f2828fe09bc5da475e14962c" title="DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am ready for the apocalypse.&lt;/p&gt; &lt;p&gt;Repo here: &lt;a href="https://github.com/cartesia-one/doomsday-os"&gt;https://github.com/cartesia-one/doomsday-os&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/poppear"&gt; /u/poppear &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/lhz2yavkm2ig1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T13:32:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qxrogr</id>
     <title>A top-downloaded OpenClaw skill is actually a staged malware delivery chain</title>
     <updated>2026-02-06T19:41:34+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qxrogr/a_topdownloaded_openclaw_skill_is_actually_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-06T19:41:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qydwox</id>
+    <title>DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)</title>
+    <updated>2026-02-07T13:32:57+00:00</updated>
+    <author>
+      <name>/u/poppear</name>
+      <uri>https://old.reddit.com/user/poppear</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"&gt; &lt;img alt="DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)" src="https://external-preview.redd.it/amhoMTMxeGttMmlnMX8NGHmEIKR1Shq8PrhwLMOPZOE4F_KOxFoLbBMbU6CW.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3ac0e57675428604f2828fe09bc5da475e14962c" title="DoomsdayOS running on my Thinkpad T14s live from a USB stick! (all-in-one ISO: LLMs, Wikipedia, Runtime, etc...)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am ready for the apocalypse.&lt;/p&gt; &lt;p&gt;Repo here: &lt;a href="https://github.com/cartesia-one/doomsday-os"&gt;https://github.com/cartesia-one/doomsday-os&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/poppear"&gt; /u/poppear &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/lhz2yavkm2ig1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qydwox/doomsdayos_running_on_my_thinkpad_t14s_live_from/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-07T13:32:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1qy3tr8</id>
@@ -281,19 +281,6 @@
     <published>2026-02-07T12:32:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qydlwi</id>
-    <title>Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models.</title>
-    <updated>2026-02-07T13:19:21+00:00</updated>
-    <author>
-      <name>/u/Nunki08</name>
-      <uri>https://old.reddit.com/user/Nunki08</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"&gt; &lt;img alt="Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models." src="https://preview.redd.it/rtrygqo1p2ig1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9704e4c75927f5669c01b711e9c25a0d47ce44bb" title="Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rtrygqo1p2ig1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-07T13:19:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qy5xnn</id>
     <title>Kimi-Linear-48B-A3B &amp; Step3.5-Flash are ready - llama.cpp</title>
     <updated>2026-02-07T05:59:11+00:00</updated>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qy0l26/nemo_30b_is_insane_1m_token_ctx_on_one_3090/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-07T01:39:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qydlwi</id>
+    <title>Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models.</title>
+    <updated>2026-02-07T13:19:21+00:00</updated>
+    <author>
+      <name>/u/Nunki08</name>
+      <uri>https://old.reddit.com/user/Nunki08</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"&gt; &lt;img alt="Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models." src="https://preview.redd.it/rtrygqo1p2ig1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9704e4c75927f5669c01b711e9c25a0d47ce44bb" title="Potential new Qwen and ByteDance Seed models are being tested on the Arena. The “Karp-001” and “Karp-002” models claim to be Qwen-3.5 models. The “Pisces-llm-0206a” and “Pisces-llm-0206b” models claim to be ByteDance models." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rtrygqo1p2ig1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qydlwi/potential_new_qwen_and_bytedance_seed_models_are/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-07T13:19:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpk2va</id>
