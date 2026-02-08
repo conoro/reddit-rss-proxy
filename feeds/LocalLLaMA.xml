@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-08T20:08:37+00:00</updated>
+  <updated>2026-02-08T20:25:51+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -60,17 +60,17 @@
     <published>2026-02-08T13:12:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qz2fra</id>
-    <title>I benchmarked 672 "Return JSON only" calls. Strict parsing failed 67% of the time. Here's why.</title>
-    <updated>2026-02-08T07:16:26+00:00</updated>
+    <id>t3_1qzfu6t</id>
+    <title>Newb seeking help on hardware</title>
+    <updated>2026-02-08T18:00:31+00:00</updated>
     <author>
-      <name>/u/rozetyp</name>
-      <uri>https://old.reddit.com/user/rozetyp</uri>
+      <name>/u/chickensoup2day</name>
+      <uri>https://old.reddit.com/user/chickensoup2day</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been building several LLM apps that rely on streaming JSON. The idea seemed quite simple: tell the model to &amp;quot;Return JSON only&amp;quot; and pipe it into my app.&lt;/p&gt; &lt;p&gt;But I kept breaking my parsers. The models would give me perfect logic, but wrapped in markdown fences (&lt;code&gt;\&lt;/code&gt;``json`) or preceded by conversational filler like &amp;quot;Here is the data.&amp;quot;&lt;/p&gt; &lt;p&gt;Out of curiosity, I decided to stop guessing and actually measure the gap between &amp;quot;Model generated valid JSON&amp;quot; and &amp;quot;API returned parseable JSON.&amp;quot;&lt;/p&gt; &lt;p&gt;Sharing what I learned because the results were way more drastic than I expected.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. The &amp;quot;Strict vs. Extractable&amp;quot; Gap is Massive&lt;/strong&gt; I tested 8 models (including 2026 releases like Kimi-k2.5, Mistral-small, and GPT-4o-mini) with plain prompts (no &lt;code&gt;response_format&lt;/code&gt;).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Strict Parse (&lt;/strong&gt;&lt;code&gt;json.loads(response)&lt;/code&gt;&lt;strong&gt;):&lt;/strong&gt; Only &lt;strong&gt;33.3%&lt;/strong&gt; succeeded.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Extractable JSON:&lt;/strong&gt; &lt;strong&gt;99.5%&lt;/strong&gt; of responses contained valid JSON buried in the text.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Basically, the models are smart enough to generate the data, but too &amp;quot;chatty&amp;quot; to be used as an API without a cleaning layer.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Mistral is a &amp;quot;Helpful Saboteur&amp;quot;&lt;/strong&gt; I found a distinct personality quirk with the Mistral-family models. In my raw lane, they scored &lt;strong&gt;0%&lt;/strong&gt; on strict parsing.&lt;/p&gt; &lt;p&gt;But they weren't hallucinating. They were just aggressively helpful. They wrapped &lt;em&gt;every single response&lt;/em&gt; in markdown fences, even when the prompt explicitly forbade it. Once I stripped the fences, their accuracy jumped to 100%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. &amp;quot;Reasoning Models&amp;quot; leak their thoughts&lt;/strong&gt; This was the most interesting failure mode. I tested Moonshot Kimi-k2.5, and it sometimes failed because it &amp;quot;thought out loud&amp;quot; in the final response.&lt;/p&gt; &lt;p&gt;Ironically, it would output text like &lt;em&gt;&amp;quot;The user wants JSON only, so I must not use markdown&amp;quot;&lt;/em&gt;... and then that sentence itself would break the parser. As we move toward reasoning models, &amp;quot;thought leakage&amp;quot; is going to be a new headache for JSON reliability.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. &amp;quot;Flash&amp;quot; doesn't mean &amp;quot;Timeout Proof&amp;quot;&lt;/strong&gt; I caught one outlier where &lt;code&gt;glm-4.7-flash&lt;/code&gt; (usually fast) hung for &lt;strong&gt;5.7 minutes&lt;/strong&gt; before returning. It’s a good reminder that even &amp;quot;fast&amp;quot; models need strict client-side timeouts, or one ghost request can hang your worker threads forever.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Solution&lt;/strong&gt; Since I didn't want to use regex hacks in every project, I built a tiny &lt;a href="https://streamfix.up.railway.app"&gt;StreamFix&lt;/a&gt; middleware (not an ad). It’s a proxy that strips markdown fences and &amp;quot;thinking&amp;quot; text on the fly, so the client only ever sees clean JSON.&lt;/p&gt; &lt;p&gt;It bumped my success rate from 33% to 98% without changing the prompts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Caveats!&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;I tested with &lt;code&gt;temperature=0&lt;/code&gt; to keep it scientific.&lt;/li&gt; &lt;li&gt;My &amp;quot;markdown fence&amp;quot; classifier is simple (it flags &lt;code&gt;\&lt;/code&gt;``` anywhere), so it might catch some edge cases where the model is quoting code.&lt;/li&gt; &lt;li&gt;I didn't use &lt;code&gt;response_format&lt;/code&gt; because it's not supported strictly everywhere and I wanted to test the &amp;quot;plain prompt&amp;quot; baseline.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Questions for you:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Are you guys mostly relying on &lt;code&gt;response_format&lt;/code&gt; now, or do you still use regex cleaning?&lt;/li&gt; &lt;li&gt;Has anyone else noticed &amp;quot;reasoning leakage&amp;quot; breaking their structured outputs with newer models?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Models are great at JSON logic (99% success) but terrible at JSON formatting (33% success). The failures are mostly markdown wrappers and conversational filler. Does anyone else face this? How do you deal with it?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;EDIT (clarifications based on comments):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Yes, GBNF are the standard for llama.cpp. This post/benchmark focuses on the plain-prompt baseline for API aggregators where constrained decoding isn't always available or adds latency. &lt;/p&gt; &lt;p&gt;- &amp;quot;Streaming JSON&amp;quot; in my case = incremental object extraction. I'm not running json.loads() on a partial array string. I am extracting completed {...} objects from the buffer as they close to render them immediately (Item 1 renders while Item 10 generates).&lt;/p&gt; &lt;p&gt;- The Failure Mode really wasn't &amp;quot;bad logic&amp;quot;. it was mostly wrappers (markdown, &amp;lt;think&amp;gt; leakage) breaking the stream&lt;/p&gt; &lt;p&gt;Thanks everyone for the healthy discussion!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rozetyp"&gt; /u/rozetyp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ladies and gents,&lt;/p&gt; &lt;p&gt;Thanks for the informative nuggets so far. Though I have to say my use case is not the typical image and video generation. I need to build a local LLM to process a large number of documents that are sensitive (think contracts). Also need the model to go and do research online. However, I would love to still be able to generate videos and images here and there.&lt;/p&gt; &lt;p&gt;I also understand that lighter weight models like Qwen 3 8B can be already quite effective and efficient.&lt;/p&gt; &lt;p&gt;What would be your suggestion for a local setup? A M5 MacBook? A “gaming” pc with a nice 24gb video card? .. any insights would be greatly appreciated. Cheers.&lt;/p&gt; &lt;p&gt;Edit: as requested, budget max 5000$, less the better of course.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chickensoup2day"&gt; /u/chickensoup2day &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-08T07:16:26+00:00</published>
+    <published>2026-02-08T18:00:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qz5jp2</id>
@@ -84,6 +84,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qz5jp2/i_have_no_idea_what_all_these_quants_are/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-08T10:25:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qz2fra</id>
+    <title>I benchmarked 672 "Return JSON only" calls. Strict parsing failed 67% of the time. Here's why.</title>
+    <updated>2026-02-08T07:16:26+00:00</updated>
+    <author>
+      <name>/u/rozetyp</name>
+      <uri>https://old.reddit.com/user/rozetyp</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been building several LLM apps that rely on streaming JSON. The idea seemed quite simple: tell the model to &amp;quot;Return JSON only&amp;quot; and pipe it into my app.&lt;/p&gt; &lt;p&gt;But I kept breaking my parsers. The models would give me perfect logic, but wrapped in markdown fences (&lt;code&gt;\&lt;/code&gt;``json`) or preceded by conversational filler like &amp;quot;Here is the data.&amp;quot;&lt;/p&gt; &lt;p&gt;Out of curiosity, I decided to stop guessing and actually measure the gap between &amp;quot;Model generated valid JSON&amp;quot; and &amp;quot;API returned parseable JSON.&amp;quot;&lt;/p&gt; &lt;p&gt;Sharing what I learned because the results were way more drastic than I expected.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. The &amp;quot;Strict vs. Extractable&amp;quot; Gap is Massive&lt;/strong&gt; I tested 8 models (including 2026 releases like Kimi-k2.5, Mistral-small, and GPT-4o-mini) with plain prompts (no &lt;code&gt;response_format&lt;/code&gt;).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Strict Parse (&lt;/strong&gt;&lt;code&gt;json.loads(response)&lt;/code&gt;&lt;strong&gt;):&lt;/strong&gt; Only &lt;strong&gt;33.3%&lt;/strong&gt; succeeded.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Extractable JSON:&lt;/strong&gt; &lt;strong&gt;99.5%&lt;/strong&gt; of responses contained valid JSON buried in the text.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Basically, the models are smart enough to generate the data, but too &amp;quot;chatty&amp;quot; to be used as an API without a cleaning layer.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Mistral is a &amp;quot;Helpful Saboteur&amp;quot;&lt;/strong&gt; I found a distinct personality quirk with the Mistral-family models. In my raw lane, they scored &lt;strong&gt;0%&lt;/strong&gt; on strict parsing.&lt;/p&gt; &lt;p&gt;But they weren't hallucinating. They were just aggressively helpful. They wrapped &lt;em&gt;every single response&lt;/em&gt; in markdown fences, even when the prompt explicitly forbade it. Once I stripped the fences, their accuracy jumped to 100%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. &amp;quot;Reasoning Models&amp;quot; leak their thoughts&lt;/strong&gt; This was the most interesting failure mode. I tested Moonshot Kimi-k2.5, and it sometimes failed because it &amp;quot;thought out loud&amp;quot; in the final response.&lt;/p&gt; &lt;p&gt;Ironically, it would output text like &lt;em&gt;&amp;quot;The user wants JSON only, so I must not use markdown&amp;quot;&lt;/em&gt;... and then that sentence itself would break the parser. As we move toward reasoning models, &amp;quot;thought leakage&amp;quot; is going to be a new headache for JSON reliability.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. &amp;quot;Flash&amp;quot; doesn't mean &amp;quot;Timeout Proof&amp;quot;&lt;/strong&gt; I caught one outlier where &lt;code&gt;glm-4.7-flash&lt;/code&gt; (usually fast) hung for &lt;strong&gt;5.7 minutes&lt;/strong&gt; before returning. It’s a good reminder that even &amp;quot;fast&amp;quot; models need strict client-side timeouts, or one ghost request can hang your worker threads forever.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Solution&lt;/strong&gt; Since I didn't want to use regex hacks in every project, I built a tiny &lt;a href="https://streamfix.up.railway.app"&gt;StreamFix&lt;/a&gt; middleware (not an ad). It’s a proxy that strips markdown fences and &amp;quot;thinking&amp;quot; text on the fly, so the client only ever sees clean JSON.&lt;/p&gt; &lt;p&gt;It bumped my success rate from 33% to 98% without changing the prompts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Caveats!&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;I tested with &lt;code&gt;temperature=0&lt;/code&gt; to keep it scientific.&lt;/li&gt; &lt;li&gt;My &amp;quot;markdown fence&amp;quot; classifier is simple (it flags &lt;code&gt;\&lt;/code&gt;``` anywhere), so it might catch some edge cases where the model is quoting code.&lt;/li&gt; &lt;li&gt;I didn't use &lt;code&gt;response_format&lt;/code&gt; because it's not supported strictly everywhere and I wanted to test the &amp;quot;plain prompt&amp;quot; baseline.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Questions for you:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Are you guys mostly relying on &lt;code&gt;response_format&lt;/code&gt; now, or do you still use regex cleaning?&lt;/li&gt; &lt;li&gt;Has anyone else noticed &amp;quot;reasoning leakage&amp;quot; breaking their structured outputs with newer models?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Models are great at JSON logic (99% success) but terrible at JSON formatting (33% success). The failures are mostly markdown wrappers and conversational filler. Does anyone else face this? How do you deal with it?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;EDIT (clarifications based on comments):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Yes, GBNF are the standard for llama.cpp. This post/benchmark focuses on the plain-prompt baseline for API aggregators where constrained decoding isn't always available or adds latency. &lt;/p&gt; &lt;p&gt;- &amp;quot;Streaming JSON&amp;quot; in my case = incremental object extraction. I'm not running json.loads() on a partial array string. I am extracting completed {...} objects from the buffer as they close to render them immediately (Item 1 renders while Item 10 generates).&lt;/p&gt; &lt;p&gt;- The Failure Mode really wasn't &amp;quot;bad logic&amp;quot;. it was mostly wrappers (markdown, &amp;lt;think&amp;gt; leakage) breaking the stream&lt;/p&gt; &lt;p&gt;Thanks everyone for the healthy discussion!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rozetyp"&gt; /u/rozetyp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qz2fra/i_benchmarked_672_return_json_only_calls_strict/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-08T07:16:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1qyljr0</id>
@@ -110,32 +123,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfke4/i_built_a_site_that_shows_what_models_your_gpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-08T17:50:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qzic3t</id>
-    <title>My model is better than yours</title>
-    <updated>2026-02-08T19:31:25+00:00</updated>
-    <author>
-      <name>/u/perfect-finetune</name>
-      <uri>https://old.reddit.com/user/perfect-finetune</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yeah,you probably read the title and you thought that I'm trying to hype some model but it's not about this.&lt;/p&gt; &lt;p&gt;Lately,I found that some comments hypes the models so much that it doesn't lead to actual beneficial discussions.&lt;/p&gt; &lt;p&gt;Yes we know GPT-OSS has a lot of false positives of identifying what are you actually asking,but if you use it and it works,then it's fine! It's a great model,it just needs specific instructions to follow your query properly.&lt;/p&gt; &lt;p&gt;Yes, Qwen is more likely to complete what you are asking with minimal input,but why? Because Qwen always discover all paths before final answer which triples it's reasoning tokens compared to GPT-OSS which is a trade-off between your input time and your waiting time.&lt;/p&gt; &lt;p&gt;Yes, Step 3.5 flash is a great model,but it's not as optimized as other models,it uses a lot of reasoning tokens,is it a bad model? No, it's a great model, no model is bad if it works for your use case,if you have only 128GB of ram and decent memory bandwidth then it's fine to have a model that you can depend on and leave it for 2 hours completing a production-grade project that you will take a lot less time to edit because the model reasoning will catch most mistakes before starting.&lt;/p&gt; &lt;p&gt;We should be aware to the fact that Local LLMs are great tools to use in the right direction, express why do you like a model, but please don't try to call someone names because he/she sees another model as better.&lt;/p&gt; &lt;p&gt;you can use Nanbeige for writing,GPT-OSS for knowledge or GLM for coding or you can use a mix of any of those models for anything you want to build.&lt;/p&gt; &lt;p&gt;it's completely fine, and it leads to much healthier community.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/perfect-finetune"&gt; /u/perfect-finetune &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzic3t/my_model_is_better_than_yours/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzic3t/my_model_is_better_than_yours/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzic3t/my_model_is_better_than_yours/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-08T19:31:25+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1qzfu6t</id>
-    <title>Newb seeking help on hardware</title>
-    <updated>2026-02-08T18:00:31+00:00</updated>
-    <author>
-      <name>/u/chickensoup2day</name>
-      <uri>https://old.reddit.com/user/chickensoup2day</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ladies and gents,&lt;/p&gt; &lt;p&gt;Thanks for the informative nuggets so far. Though I have to say my use case is not the typical image and video generation. I need to build a local LLM to process a large number of documents that are sensitive (think contracts). Also need the model to go and do research online. However, I would love to still be able to generate videos and images here and there.&lt;/p&gt; &lt;p&gt;I also understand that lighter weight models like Qwen 3 8B can be already quite effective and efficient.&lt;/p&gt; &lt;p&gt;What would be your suggestion for a local setup? A M5 MacBook? A “gaming” pc with a nice 24gb video card? .. any insights would be greatly appreciated. Cheers.&lt;/p&gt; &lt;p&gt;Edit: as requested, budget max 5000$, less the better of course.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chickensoup2day"&gt; /u/chickensoup2day &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzfu6t/newb_seeking_help_on_hardware/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-08T18:00:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qz6w36</id>
@@ -190,19 +177,6 @@
     <published>2026-02-07T18:57:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1qzgf7x</id>
-    <title>Mamba precision loss after quantization</title>
-    <updated>2026-02-08T18:21:40+00:00</updated>
-    <author>
-      <name>/u/perfect-finetune</name>
-      <uri>https://old.reddit.com/user/perfect-finetune</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed that almost all models that uses Mamba layers (which are hybrid models,some layers are transformers and most are mamba) especially Mamba-2 suffer from severe degradation of accuracy even at Q8 which is actually strange, are mamba layers more sensitive to quantizations or our current techniques for quantization aren't compatible with Mamba? I don't know if the recently released Mamba-3 is going to solve it but I couldn't find a proper quant of any Mamba models yet.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/perfect-finetune"&gt; /u/perfect-finetune &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-08T18:21:40+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1qz11n9</id>
     <title>What are some things you guys are using Local LLMs for?</title>
     <updated>2026-02-08T05:57:47+00:00</updated>
@@ -216,6 +190,19 @@
     <published>2026-02-08T05:57:47+00:00</published>
   </entry>
   <entry>
+    <id>t3_1qzgf7x</id>
+    <title>Mamba precision loss after quantization</title>
+    <updated>2026-02-08T18:21:40+00:00</updated>
+    <author>
+      <name>/u/perfect-finetune</name>
+      <uri>https://old.reddit.com/user/perfect-finetune</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed that almost all models that uses Mamba layers (which are hybrid models,some layers are transformers and most are mamba) especially Mamba-2 suffer from severe degradation of accuracy even at Q8 which is actually strange, are mamba layers more sensitive to quantizations or our current techniques for quantization aren't compatible with Mamba? I don't know if the recently released Mamba-3 is going to solve it but I couldn't find a proper quant of any Mamba models yet.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/perfect-finetune"&gt; /u/perfect-finetune &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzgf7x/mamba_precision_loss_after_quantization/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-08T18:21:40+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1qzi83b</id>
     <title>Open vs closed on hard neuroscience/BCI eval: LLaMA-70B ≈ frontier; Qwen MoE pulls ahead</title>
     <updated>2026-02-08T19:27:14+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzi83b/open_vs_closed_on_hard_neurosciencebci_eval/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-08T19:27:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1qzjbw2</id>
+    <title>I built a rough .gguf LLM visualizer</title>
+    <updated>2026-02-08T20:08:31+00:00</updated>
+    <author>
+      <name>/u/sultan_papagani</name>
+      <uri>https://old.reddit.com/user/sultan_papagani</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzjbw2/i_built_a_rough_gguf_llm_visualizer/"&gt; &lt;img alt="I built a rough .gguf LLM visualizer" src="https://b.thumbs.redditmedia.com/kcxBxykQQ15O2Oz4xDuJc0i9OygqR7aRSLKKBTm5a5E.jpg" title="I built a rough .gguf LLM visualizer" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I hacked together a small tool that lets you upload a .gguf file and visualize its internals in a 3D-ish way (layers / neurons / connections). The original goal was just to see what’s inside these models instead of treating them like a black box. &lt;/p&gt; &lt;p&gt;That said, my version is pretty rough, and I’m very aware that someone who actually knows what they’re doing could’ve built something way better :p &lt;/p&gt; &lt;p&gt;So I figured I’d ask here: Does something like this already exist, but done properly? If yes, I’d much rather use that For reference, this is really good: &lt;a href="https://bbycroft.net/llm"&gt;https://bbycroft.net/llm&lt;/a&gt;&lt;/p&gt; &lt;p&gt;…but you can’t upload new LLMs.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sultan_papagani"&gt; /u/sultan_papagani &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1qzjbw2"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1qzjbw2/i_built_a_rough_gguf_llm_visualizer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1qzjbw2/i_built_a_rough_gguf_llm_visualizer/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-08T20:08:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1qzhxd0</id>
