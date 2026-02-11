@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-11T22:46:03+00:00</updated>
+  <updated>2026-02-11T23:12:59+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1r1lkfw</id>
-    <title>My NAS runs an 80B LLM at 18 tok/s on its iGPU. No discrete GPU. Still optimizing.</title>
-    <updated>2026-02-11T02:52:10+00:00</updated>
-    <author>
-      <name>/u/BetaOp9</name>
-      <uri>https://old.reddit.com/user/BetaOp9</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I didn't want to buy two systems. That was the whole thing.&lt;/p&gt; &lt;p&gt;I needed a NAS. I also wanted to mess around with local LLMs. And I really didn't want to explain to my wife why I needed a second box just to talk to a chatbot that sometimes hallucinates, I have my father-in-law for that. So when I was specing out my NAS build, I went a little heavier than most people would and crossed my fingers that the system could pull double duty down the road.&lt;/p&gt; &lt;p&gt;Honestly? I was prepared to be wrong. Worst case I'd have an overpowered NAS that never breaks a sweat. I could live with that.&lt;/p&gt; &lt;p&gt;But it actually worked. And way better than I expected.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Build&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://store.minisforum.com/products/minisforum-n5-pro"&gt;Minisforum N5 Pro&lt;/a&gt;&lt;/li&gt; &lt;li&gt;AMD Ryzen AI 9 HX PRO 370 (12c/24t, 16 RDNA 3.5 CUs)&lt;/li&gt; &lt;li&gt;96GB DDR5-5600 (2x 48GB SO-DIMMs)&lt;/li&gt; &lt;li&gt;5x 26TB Seagate Exos in RAIDZ2 (~70TB usable)&lt;/li&gt; &lt;li&gt;2x 1.92TB Samsung PM983 NVMe (ZFS metadata mirror)&lt;/li&gt; &lt;li&gt;TrueNAS SCALE&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Day to day it runs Jellyfin with VAAPI hardware transcoding, Sonarr, Radarr, Prowlarr, qBittorrent, FlareSolverr, Tailscale, and Dockge. It was already earning its keep before I ever touched LLM inference.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Experiment&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The model is Qwen3-Coder-Next, 80 billion parameters, Mixture of Experts architecture with 3B active per token. I'm running the Q4_K_M quantization through llama.cpp with the Vulkan backend. Here's how it actually went:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3 tok/s&lt;/strong&gt; - First successful run. Vanilla llama.cpp and Qwen3-Coder-Next Q8 quantization, CPU-only inference. Technically working. Almost physically painful to watch. But it proved the model could run.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5 tok/s&lt;/strong&gt; - Moved to Q4_K_M quantization and started tuning. Okay. Nearly double the speed and still slow as hell...but maybe usable for an overnight code review job. Started to think maybe this hardware just won't cut it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;10 tok/s&lt;/strong&gt; - Ran across a note in a subreddit that someone got Vulkan offloading and doing 11 tok/s on similar hardware but when I tried it...I couldn't load the full model into VRAM despite having plenty of RAM. Interesting. I tried partial offload, 30 out of 49 layers to the iGPU. It worked. Now it actually felt usable but it didn't make sense that I had all this RAM and it wouldn't load all of the expert layers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;15 tok/s&lt;/strong&gt; - Then the dumb breakthrough. I discovered that &lt;code&gt;--no-mmap&lt;/code&gt; was quietly destroying everything. On UMA architecture, where the CPU and GPU share the same physical RAM, that flag forces the model to be allocated twice into the same space. Once for the CPU, once for GPU-mapped memory, both pulling from the same DDR5 pool. I couldn't even load all 49 layers without OOM errors with that flag set. Dropped it. All 49 layers loaded cleanly. 46GB Vulkan buffer. No discrete GPU.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;18 tok/s&lt;/strong&gt; - Still I wanted more. I enabled flash attention. An extra 3 tok/s, cut KV cache memory in half, and significantly boosted the context window.&lt;/p&gt; &lt;p&gt;3 → 5 → 10 → 15 → 18. Each step was one discovery away from quitting. Glad I didn't.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Results (Flash Attention Enabled)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Up to 18 tok/s text generation&lt;/li&gt; &lt;li&gt;53.8 tok/s prompt processing&lt;/li&gt; &lt;li&gt;50% less KV cache memory&lt;/li&gt; &lt;li&gt;Fully coherent output at any context length&lt;/li&gt; &lt;li&gt;All while Jellyfin was streaming to the living room for the kids&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Couldn't I just have bought a box purpose built for this? Yep. For reference, a Mac Mini M4 Pro with 64GB runs $2,299 and gets roughly 20-25 tok/s on the same model. Apple's soldered LPDDR5x gives it a real bandwidth advantage. But then it wouldn't run my media stack, store 70TB of data in RAIDZ2. I'm not trying to dunk on the Mac at all. Just saying I didn't have to buy one AND a NAS.&lt;/p&gt; &lt;p&gt;Which was the whole point.&lt;/p&gt; &lt;p&gt;No exotic kernel flags. No custom drivers. No ritual sacrifices. Vulkan just works on RDNA 3.5 under TrueNAS.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Still On the Table&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I've barely scratched the surface on optimization, which is either exciting or dangerous depending on your relationship with optimizing. Speculative decoding could 2-3x effective speed. EXPO memory profiles might not even be enabled, meaning I could be leaving free bandwidth sitting at JEDEC defaults. Thread tuning, KV cache quantization, newer Vulkan backends with RDNA 3.5 optimizations landing regularly, UMA buffer experimentation, different quant formats.&lt;/p&gt; &lt;p&gt;On top of all that, the model wasn't even designed to run on standard transformer attention. It was built for DeltaNet, a linear attention mechanism that scales way better at long context. There's an active PR implementing it and we've been helping test and debug it. The fused kernel already hits 16 tok/s on a single CPU thread with perfect output, but there's a threading bug that breaks it at multiple cores. When that gets fixed and it can use all 12 cores plus Vulkan offloading, the headroom is significant. Especially for longer conversations where standard attention starts to choke.&lt;/p&gt; &lt;p&gt;18 tok/s is where I am but I'm hopeful it's not where this tops out.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Takeaway&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I'm not saying everyone should overbuild their NAS for an LLM machine or that this was even a good idea. But if you're like me, enjoy tinkering and learning, and are already shopping for a NAS and you're curious about local LLMs, it might be worth considering specing a little higher if you can afford it and giving yourself the option. I didn't know if this would work when I bought the hardware, a lot of people said it wasn't worth the effort. I just didn't want to buy two systems if I didn't have to.&lt;/p&gt; &lt;p&gt;Turns out I didn't have to. If you enjoyed the journey with me, leave a comment. If you think I'm an idiot, leave a comment. If you've already figured out what I'm doing wrong to get more tokens, definitely leave a comment.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/BetaOp9"&gt; /u/BetaOp9 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r1lkfw/my_nas_runs_an_80b_llm_at_18_toks_on_its_igpu_no/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r1lkfw/my_nas_runs_an_80b_llm_at_18_toks_on_its_igpu_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r1lkfw/my_nas_runs_an_80b_llm_at_18_toks_on_its_igpu_no/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-11T02:52:10+00:00</published>
-  </entry>
   <entry>
     <id>t3_1r1smw0</id>
     <title>Step-3.5-Flash AIME 2026 Results</title>
@@ -164,19 +151,6 @@
     <published>2026-02-11T09:15:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r2a3yq</id>
-    <title>GLM5.0 says drive the car to the car wash</title>
-    <updated>2026-02-11T21:24:24+00:00</updated>
-    <author>
-      <name>/u/segmond</name>
-      <uri>https://old.reddit.com/user/segmond</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt; &lt;img alt="GLM5.0 says drive the car to the car wash" src="https://preview.redd.it/49o3zdjhnxig1.png?width=140&amp;amp;height=120&amp;amp;auto=webp&amp;amp;s=acfc313237e4fc30b1bce725ef229dff535bac2d" title="GLM5.0 says drive the car to the car wash" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/49o3zdjhnxig1.png?width=839&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=04b1bb16a14a5dfacb9b30df64991d2f85b4cb85"&gt;https://preview.redd.it/49o3zdjhnxig1.png?width=839&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=04b1bb16a14a5dfacb9b30df64991d2f85b4cb85&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-11T21:24:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r20uwk</id>
     <title>Releasing MioTTS: A family of lightweight, fast LLM-based TTS models (0.1B - 2.6B) with Zero-shot Voice Cloning</title>
     <updated>2026-02-11T15:46:56+00:00</updated>
@@ -203,6 +177,19 @@
     <published>2026-02-11T13:06:41+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r2c34d</id>
+    <title>Qwen Coder Next is an odd model</title>
+    <updated>2026-02-11T22:39:46+00:00</updated>
+    <author>
+      <name>/u/TokenRingAI</name>
+      <uri>https://old.reddit.com/user/TokenRingAI</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My experience with Qwen Coder Next: - Not particularly good at generating code, not terrible either - Good at planning - Good at technical writing - Excellent at general agent work - Excellent and thorough at doing research, gathering and summarizing information, it punches way above it's weight in that category. - The model is very aggressive about completing tasks, which is probably what makes it good at research and agent use. - The &amp;quot;context loss&amp;quot; at longer context I observed with the original Qwen Next and assumed was related to the hybrid attention mechanism appears to be significantly improved. - The model has a more dry and factual writing style vs the original Qwen Next, good for technical or academic writing, probably a negative for other types of writing. - The high benchmark scores on things like SWE Bench are probably more related to it's aggressive agentic behavior vs it being an amazing coder&lt;/p&gt; &lt;p&gt;This model is great, but should have been named something other than &amp;quot;Coder&amp;quot;, as this is an A+ model for running small agents in a business environment. Dry, thorough, factual, fast.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TokenRingAI"&gt; /u/TokenRingAI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2c34d/qwen_coder_next_is_an_odd_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2c34d/qwen_coder_next_is_an_odd_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r2c34d/qwen_coder_next_is_an_odd_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-11T22:39:46+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r1tuh1</id>
     <title>Just finished building this bad boy</title>
     <updated>2026-02-11T10:28:00+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r20wki/add_kimik25_support/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-11T15:48:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r2a3yq</id>
+    <title>GLM5.0 says drive the car to the car wash</title>
+    <updated>2026-02-11T21:24:24+00:00</updated>
+    <author>
+      <name>/u/segmond</name>
+      <uri>https://old.reddit.com/user/segmond</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt; &lt;img alt="GLM5.0 says drive the car to the car wash" src="https://preview.redd.it/49o3zdjhnxig1.png?width=140&amp;amp;height=120&amp;amp;auto=webp&amp;amp;s=acfc313237e4fc30b1bce725ef229dff535bac2d" title="GLM5.0 says drive the car to the car wash" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/49o3zdjhnxig1.png?width=839&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=04b1bb16a14a5dfacb9b30df64991d2f85b4cb85"&gt;https://preview.redd.it/49o3zdjhnxig1.png?width=839&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=04b1bb16a14a5dfacb9b30df64991d2f85b4cb85&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r2a3yq/glm50_says_drive_the_car_to_the_car_wash/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-11T21:24:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1r1x0qi</id>
