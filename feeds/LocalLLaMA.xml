@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-14T13:32:29+00:00</updated>
+  <updated>2026-02-14T13:57:18+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1r3uj0h</id>
-    <title>MiniMax-M2.5 (230B MoE) GGUF is here - First impressions on M3 Max 128GB</title>
-    <updated>2026-02-13T16:56:58+00:00</updated>
-    <author>
-      <name>/u/Remarkable_Jicama775</name>
-      <uri>https://old.reddit.com/user/Remarkable_Jicama775</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;🔥 UPDATE 2: Strict Perplexity Benchmark &amp;amp; Trade-off Analysis&lt;/p&gt; &lt;p&gt;Thanks to &lt;a href="/u/ubergarm"&gt;u/ubergarm&lt;/a&gt; and the community for pointing out the context discrepancy in my initial PPL run (I used -c 4096, which inflated the score).&lt;/p&gt; &lt;p&gt;I just re-ran the benchmark on the M3 Max using standard comparison parameters (-c 512, -b 2048, --seed 1337) to get an apples-to-apples comparison with SOTA custom mixes (like IQ4_XS).&lt;/p&gt; &lt;p&gt;The Real Numbers:&lt;/p&gt; &lt;p&gt;My Q3_K_L (Standard): 8.7948 PPL (+/- 0.07)&lt;/p&gt; &lt;p&gt;Custom IQ4_XS Mix (ubergarm): ~8.57 PPL&lt;/p&gt; &lt;p&gt;The Verdict / Why use this Q3_K_L? While the custom mix wins on pure reasoning density (~0.22 PPL delta), this Q3_K_L remains the &amp;quot;bandwidth king&amp;quot; for Mac users.&lt;/p&gt; &lt;p&gt;RAM Headroom: It fits comfortably in 128GB with room for context (unlike Q4 which hits swap).&lt;/p&gt; &lt;p&gt;Speed: Because the attn.* tensors are smaller (Q3 vs Q8 in custom mixes), we are seeing 28.7 t/s generation speed due to lower memory bandwidth pressure.&lt;/p&gt; &lt;p&gt;TL;DR: Use this Q3_K_L if you are strictly limited to 128GB RAM and prioritize speed/compatibility. Use an IQ4_XS mix if you have 192GB+ or prioritize absolute maximum reasoning over speed. &lt;strong&gt;Update: Q3_K_L is officially LIVE on Hugging Face! Link. Tested and verified at 28.7 t/s on M3 Max. Enjoy the native RAM performance!&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;🔬 &lt;strong&gt;Perplexity Validation (WikiText-2)&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Final PPL: 8.2213 +/- 0.09&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Context: 4096 / 32 chunks&lt;/p&gt; &lt;p&gt;Outcome: The Q3_K_L quantization maintains high logical coherence while boosting speed to 28.7 t/s. Minimal degradation for a ~20GB size reduction vs Q4. Just ran PPL on my Q3_K_L (110.22 GiB). Got a Final PPL of 8.2213 (+/- 0.09) on WikiText-2. It seems that going the FP8 -&amp;gt; F16 Master -&amp;gt; Q3_K_L route really paid off compared to standard quants. It beats the IQ4_XS efficiency curve while fitting perfectly in 128GB RAM at 28.7 t/s&lt;/p&gt; &lt;p&gt;The new MiniMax-M2.5 is a beast, but running a 230B MoE locally isn't easy. I’ve finished the quantization process using llama.cpp (b8022) and optimized it specifically for high-RAM Apple Silicon.&lt;/p&gt; &lt;p&gt;🚀 The &amp;quot;Sweet Spot&amp;quot; for 128GB RAM: Q3_K_L After initial testing with Q4_K_M (132GB), it was clear that hitting the swap was killing performance. I went back to the F16 Master (457GB) to cook a high-quality Q3_K_L (~110GB).&lt;/p&gt; &lt;p&gt;Benchmarks (M3 Max 128GB):&lt;/p&gt; &lt;p&gt;Prompt Processing: &lt;strong&gt;99.2 t/s&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Generation: &lt;strong&gt;28.7 t/s 🚀&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;RAM Behavior: 100% native RAM usage. Zero swap lag.&lt;/p&gt; &lt;p&gt;🛠 Technical Details To ensure maximum reasoning fidelity, I avoided direct FP8-to-Quant conversion. The workflow was: Original FP8 -&amp;gt; F16 GGUF Master -&amp;gt; K-Quants (Q4_K_M &amp;amp; Q3_K_L).&lt;/p&gt; &lt;p&gt;Architecture: 230B Mixture of Experts (MiniMax-M2).&lt;/p&gt; &lt;p&gt;Logic: The Jinja chat template is working perfectly; &amp;lt;think&amp;gt; tags are isolated as intended.&lt;/p&gt; &lt;p&gt;Context: Native 196k support.&lt;/p&gt; &lt;p&gt;📥 Links &amp;amp; Resources GGUF Repo: &lt;a href="https://huggingface.co/ox-ox/MiniMax-M2.5-GGUF"&gt;https://huggingface.co/ox-ox/MiniMax-M2.5-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Usage: ./llama-cli -m minimax-m2.5-Q3_K_L.gguf -n -1 \ -c 262000 \ -ngl 99 -fa on -ctk q4_0 -ctv q4_0 -b 2048 -ub 1024 --port 8080 --jinja --verbose -sm none --draft 16 -ncmoe 0 --cache-reuse 1024 --draft-p-min 0.5&lt;/p&gt; &lt;p&gt;For those with 64GB or 96GB setups, let me know if there's interest in IQ2_XXS or IQ3_XS versions. I'm happy to cook more if the demand is there!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Remarkable_Jicama775"&gt; /u/Remarkable_Jicama775 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3uj0h/minimaxm25_230b_moe_gguf_is_here_first/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3uj0h/minimaxm25_230b_moe_gguf_is_here_first/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r3uj0h/minimaxm25_230b_moe_gguf_is_here_first/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-13T16:56:58+00:00</published>
-  </entry>
   <entry>
     <id>t3_1r4jjky</id>
     <title>Calling all Juniors: What’s your experience building with AI agents?</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4jjky/calling_all_juniors_whats_your_experience/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-14T12:34:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r4k44s</id>
+    <title>I’m building a fully local AI app for real-time transcription and live insights on mobile. No cloud, 100% private. What do you think?</title>
+    <updated>2026-02-14T13:03:44+00:00</updated>
+    <author>
+      <name>/u/dai_app</name>
+      <uri>https://old.reddit.com/user/dai_app</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4k44s/im_building_a_fully_local_ai_app_for_realtime/"&gt; &lt;img alt="I’m building a fully local AI app for real-time transcription and live insights on mobile. No cloud, 100% private. What do you think?" src="https://external-preview.redd.it/MXEyaHRzMnhrZ2pnMcGrKMCyk2n0QkLqJERNIljwJDFxjUKxjmIcWSX7mXTW.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a2e79b508e56b0745a2c25e2928048b67f917e93" title="I’m building a fully local AI app for real-time transcription and live insights on mobile. No cloud, 100% private. What do you think?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I’ve been working on a mobile app that runs both Speech-to-Text and an LLM entirely on-device. The goal is to have a meeting/lecture assistant that gives you real-time transcriptions and generates AI insights/summaries on the fly, without sending a single byte of data to the cloud.&lt;/p&gt; &lt;p&gt;The Tech:&lt;/p&gt; &lt;p&gt;Runs completely offline.&lt;/p&gt; &lt;p&gt;Local STT for transcription.&lt;/p&gt; &lt;p&gt;Local LLM for analyzing the context and providing insights (as seen in the video).&lt;/p&gt; &lt;p&gt;I'm focusing on privacy and latency. In the video, you can see it transcribing a script and the AI jumping in with relevant context (&amp;quot;AI Insights&amp;quot; tab) while the audio is still recording.&lt;/p&gt; &lt;p&gt;I’d love your feedback on the UI and the concept. Is on-device processing a &amp;quot;must-have&amp;quot; feature for you for voice notes?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dai_app"&gt; /u/dai_app &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/01ioro2xkgjg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4k44s/im_building_a_fully_local_ai_app_for_realtime/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4k44s/im_building_a_fully_local_ai_app_for_realtime/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-14T13:03:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1r4k5af</id>
@@ -164,19 +164,6 @@
     <published>2026-02-13T21:00:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r3yuyd</id>
-    <title>has it begun?</title>
-    <updated>2026-02-13T19:38:01+00:00</updated>
-    <author>
-      <name>/u/Acceptable_Home_</name>
-      <uri>https://old.reddit.com/user/Acceptable_Home_</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"&gt; &lt;img alt="has it begun?" src="https://preview.redd.it/ei9lt0u4ebjg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36034757efbb832ba75f43ed04c4dc8c7bb34675" title="has it begun?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.bloomberg.com/news/articles/2026-02-13/us-to-put-alibaba-on-list-for-aiding-china-s-military-reuters"&gt;https://www.bloomberg.com/news/articles/2026-02-13/us-to-put-alibaba-on-list-for-aiding-china-s-military-reuters&lt;/a&gt;&lt;/p&gt; &lt;p&gt;They were about to present the name of alibaba and Baidu as a potential threat or issue for helping chinese military in the Pentagon, but ultimately took their names off the list&lt;/p&gt; &lt;p&gt;Would love to hear what y'all think about this!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable_Home_"&gt; /u/Acceptable_Home_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ei9lt0u4ebjg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-13T19:38:01+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r4e3w3</id>
     <title>KaniTTS2, our text-to-speech model with frame-level position encodings, optimized for real-time conversational AI.</title>
     <updated>2026-02-14T07:10:30+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4e3w3/kanitts2_our_texttospeech_model_with_framelevel/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-14T07:10:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r3yuyd</id>
+    <title>has it begun?</title>
+    <updated>2026-02-13T19:38:01+00:00</updated>
+    <author>
+      <name>/u/Acceptable_Home_</name>
+      <uri>https://old.reddit.com/user/Acceptable_Home_</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"&gt; &lt;img alt="has it begun?" src="https://preview.redd.it/ei9lt0u4ebjg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36034757efbb832ba75f43ed04c4dc8c7bb34675" title="has it begun?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.bloomberg.com/news/articles/2026-02-13/us-to-put-alibaba-on-list-for-aiding-china-s-military-reuters"&gt;https://www.bloomberg.com/news/articles/2026-02-13/us-to-put-alibaba-on-list-for-aiding-china-s-military-reuters&lt;/a&gt;&lt;/p&gt; &lt;p&gt;They were about to present the name of alibaba and Baidu as a potential threat or issue for helping chinese military in the Pentagon, but ultimately took their names off the list&lt;/p&gt; &lt;p&gt;Would love to hear what y'all think about this!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable_Home_"&gt; /u/Acceptable_Home_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ei9lt0u4ebjg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r3yuyd/has_it_begun/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-13T19:38:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1r47fz0</id>
@@ -281,19 +281,6 @@
     <published>2026-02-14T10:37:37+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r4hx24</id>
-    <title>models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp</title>
-    <updated>2026-02-14T11:03:27+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"&gt; &lt;img alt="models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp" src="https://external-preview.redd.it/VVE5ljhhmuVj3S3mZp6__yfxBNtIYwLxEpi1hRwGGjU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95716ff4da82d5b8eaae30528e020e4dd291b4ab" title="models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Faster (t/s) Qwen Next models.&lt;/p&gt; &lt;p&gt;There are still some in-progress PRs to fix/improve Qwen Next in llama.cpp. Let's hope this model will be awesome soon :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/19375"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-14T11:03:27+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r44fzk</id>
     <title>The gap between open-weight and proprietary model intelligence is as small as it has ever been, with Claude Opus 4.6 and GLM-5'</title>
     <updated>2026-02-13T23:20:10+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r44fzk/the_gap_between_openweight_and_proprietary_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-13T23:20:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r4hx24</id>
+    <title>models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp</title>
+    <updated>2026-02-14T11:03:27+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"&gt; &lt;img alt="models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp" src="https://external-preview.redd.it/VVE5ljhhmuVj3S3mZp6__yfxBNtIYwLxEpi1hRwGGjU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=95716ff4da82d5b8eaae30528e020e4dd291b4ab" title="models : optimizing qwen3next graph by ggerganov · Pull Request #19375 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Faster (t/s) Qwen Next models.&lt;/p&gt; &lt;p&gt;There are still some in-progress PRs to fix/improve Qwen Next in llama.cpp. Let's hope this model will be awesome soon :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/19375"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4hx24/models_optimizing_qwen3next_graph_by_ggerganov/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-14T11:03:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpk2va</id>
