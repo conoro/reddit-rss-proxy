@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-14T22:54:29+00:00</updated>
+  <updated>2026-02-14T23:08:32+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
+  <entry>
+    <id>t3_1r4yg6p</id>
+    <title>[Release] AdaLLM: NVFP4-first inference on RTX 4090 (FP8 KV cache + custom FP8 decode)</title>
+    <updated>2026-02-14T22:53:06+00:00</updated>
+    <author>
+      <name>/u/Educational_Cry_7951</name>
+      <uri>https://old.reddit.com/user/Educational_Cry_7951</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey folks, I have been working on &lt;strong&gt;AdaLLM&lt;/strong&gt; (repo: &lt;a href="https://github.com/BenChaliah/NVFP4-on-4090-vLLM"&gt;https://github.com/BenChaliah/NVFP4-on-4090-vLLM&lt;/a&gt;) to make NVFP4 weights actually usable on Ada Lovelace GPUs (sm_89). The focus is a pure NVFP4 fast path: FP8 KV cache, custom FP8 decode kernel, no silent FP16 fallback. It currently targets Qwen3 (dense + MoE) and Gemma3 (including sliding-window layers), I'll be adding support to other models soon.&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;Please think of giving the Github repo a STAR if you like it :)&lt;/strong&gt; &lt;/p&gt; &lt;/blockquote&gt; &lt;h1&gt;Why this is interesting&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;NVFP4-first runtime for Ada GPUs (tested on RTX 4090) with FP8 KV cache end-to-end.&lt;/li&gt; &lt;li&gt;Custom Triton FP8 decode kernel; prefill uses FlashAttention (varlen).&lt;/li&gt; &lt;li&gt;No FP16 fallback for decode. If FP8 kernel fails, it errors out instead of silently switching.&lt;/li&gt; &lt;li&gt;Tensor-parallel (NCCL) + CUDA graphs for decode (also support eager mode)&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Benchmarks (RTX 4090)&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Qwen3-8B-NVFP4&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;batch&lt;/th&gt; &lt;th align="left"&gt;total tokens&lt;/th&gt; &lt;th align="left"&gt;seconds&lt;/th&gt; &lt;th align="left"&gt;tok/s&lt;/th&gt; &lt;th align="left"&gt;peak GB&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;1&lt;/td&gt; &lt;td align="left"&gt;128&lt;/td&gt; &lt;td align="left"&gt;3.3867&lt;/td&gt; &lt;td align="left"&gt;37.79&lt;/td&gt; &lt;td align="left"&gt;7.55&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;2&lt;/td&gt; &lt;td align="left"&gt;256&lt;/td&gt; &lt;td align="left"&gt;3.5471&lt;/td&gt; &lt;td align="left"&gt;72.17&lt;/td&gt; &lt;td align="left"&gt;7.55&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;4&lt;/td&gt; &lt;td align="left"&gt;512&lt;/td&gt; &lt;td align="left"&gt;3.4392&lt;/td&gt; &lt;td align="left"&gt;148.87&lt;/td&gt; &lt;td align="left"&gt;7.55&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;8&lt;/td&gt; &lt;td align="left"&gt;1024&lt;/td&gt; &lt;td align="left"&gt;3.4459&lt;/td&gt; &lt;td align="left"&gt;297.16&lt;/td&gt; &lt;td align="left"&gt;7.56&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;16&lt;/td&gt; &lt;td align="left"&gt;2048&lt;/td&gt; &lt;td align="left"&gt;4.3636&lt;/td&gt; &lt;td align="left"&gt;469.34&lt;/td&gt; &lt;td align="left"&gt;7.56&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Gemma3-27B-it-NVFP4&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;batch&lt;/th&gt; &lt;th align="left"&gt;total tokens&lt;/th&gt; &lt;th align="left"&gt;seconds&lt;/th&gt; &lt;th align="left"&gt;tok/s&lt;/th&gt; &lt;th align="left"&gt;peak GB&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;1&lt;/td&gt; &lt;td align="left"&gt;128&lt;/td&gt; &lt;td align="left"&gt;9.3982&lt;/td&gt; &lt;td align="left"&gt;13.62&lt;/td&gt; &lt;td align="left"&gt;19.83&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;2&lt;/td&gt; &lt;td align="left"&gt;256&lt;/td&gt; &lt;td align="left"&gt;9.5545&lt;/td&gt; &lt;td align="left"&gt;26.79&lt;/td&gt; &lt;td align="left"&gt;19.83&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;4&lt;/td&gt; &lt;td align="left"&gt;512&lt;/td&gt; &lt;td align="left"&gt;9.5344&lt;/td&gt; &lt;td align="left"&gt;53.70&lt;/td&gt; &lt;td align="left"&gt;19.84&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;for Qwen3-8B-NVFP4 I observed ~2.4x lower peak VRAM vs Qwen3-8B FP16 baselines (with ~20-25% throughput loss).&lt;/p&gt; &lt;h1&gt;Quickstart&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;pip install git+https://github.com/BenChaliah/NVFP4-on-4090-vLLM.git adallm serve nvidia/Qwen3-8B-NVFP4 &lt;/code&gt;&lt;/pre&gt; &lt;blockquote&gt; &lt;p&gt;`export NVFP4_FP8=1` is optional and enables FP8 GEMM path (NVFP4_FP8=0: the difference is in compute precision not VRAM, FP8 KV cache + the FP8 decode kernel are still used. &lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;&lt;strong&gt;Supported models (so far)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;nvidia/Qwen3-8B-NVFP4&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;BenChaliah/Gemma3-27B-it-NVFP4&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Qwen3 MoE variants are supported, but still slow (see README for MoE notes).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Limitations&lt;/strong&gt; &lt;/p&gt; &lt;ul&gt; &lt;li&gt;MoE routing and offload paths are not fully optimized yet (working on it currently)&lt;/li&gt; &lt;li&gt;Only NVFP4 weights, no FP16 fallback for decode by design.&lt;/li&gt; &lt;li&gt;Targeted at Ada Lovelace (sm_89). Needs validation on other Ada cards.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Repo&lt;/h1&gt; &lt;p&gt;&lt;a href="https://github.com/BenChaliah/NVFP4-on-4090-vLLM"&gt;https://github.com/BenChaliah/NVFP4-on-4090-vLLM&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you have a RTX 4000 series GPU, I would love to hear results or issues. Also looking for help on MoE CPU-Offloading optimization, extra model support, and kernel tuning.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Educational_Cry_7951"&gt; /u/Educational_Cry_7951 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4yg6p/release_adallm_nvfp4first_inference_on_rtx_4090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4yg6p/release_adallm_nvfp4first_inference_on_rtx_4090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4yg6p/release_adallm_nvfp4first_inference_on_rtx_4090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-14T22:53:06+00:00</published>
+  </entry>
   <entry>
     <id>t3_1r4m4it</id>
     <title>512GB people, what's the output quality difference between GLM 5 q3.6 and q8 or full size?</title>
@@ -19,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4m4it/512gb_people_whats_the_output_quality_difference/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-14T14:33:50+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r4ipgm</id>
-    <title>Kyutai Releases Hibiki-Zero</title>
-    <updated>2026-02-14T11:49:27+00:00</updated>
-    <author>
-      <name>/u/techlatest_net</name>
-      <uri>https://old.reddit.com/user/techlatest_net</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Kyutai Releases Hibiki-Zero: A3B Parameter Simultaneous Speech-to-Speech Translation Model Using GRPO Reinforcement Learning Without Any Word-Level Aligned Data&lt;/h1&gt; &lt;p&gt;Link: &lt;a href="https://github.com/kyutai-labs/hibiki-zero"&gt;https://github.com/kyutai-labs/hibiki-zero&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/techlatest_net"&gt; /u/techlatest_net &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4ipgm/kyutai_releases_hibikizero/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4ipgm/kyutai_releases_hibikizero/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4ipgm/kyutai_releases_hibikizero/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-14T11:49:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1r4mbu7</id>
@@ -138,19 +138,6 @@
     <published>2026-02-14T14:00:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r4vnzn</id>
-    <title>MiniMax M2.5 Performance Testing on dual RTX 6000 Pros</title>
-    <updated>2026-02-14T20:55:23+00:00</updated>
-    <author>
-      <name>/u/itsjustmarky</name>
-      <uri>https://old.reddit.com/user/itsjustmarky</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt; &lt;img alt="MiniMax M2.5 Performance Testing on dual RTX 6000 Pros" src="https://preview.redd.it/e1mi4932xijg1.png?width=140&amp;amp;height=79&amp;amp;auto=webp&amp;amp;s=e4a85fbffddb53bc2243d8e9d692d571d18ac435" title="MiniMax M2.5 Performance Testing on dual RTX 6000 Pros" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/e1mi4932xijg1.png?width=680&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5a0f0bf2c9ff785e5ad1c0040cbb1f97aba34705"&gt;https://preview.redd.it/e1mi4932xijg1.png?width=680&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5a0f0bf2c9ff785e5ad1c0040cbb1f97aba34705&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/itsjustmarky"&gt; /u/itsjustmarky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-14T20:55:23+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r4m3uw</id>
     <title>MiniMax M2.5 - 4-Bit GGUF Options</title>
     <updated>2026-02-14T14:33:03+00:00</updated>
@@ -164,17 +151,17 @@
     <published>2026-02-14T14:33:03+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r4pnsv</id>
-    <title>MiniMax M2.5 has been very patient with my dumb ass</title>
-    <updated>2026-02-14T16:57:02+00:00</updated>
+    <id>t3_1r4vnzn</id>
+    <title>MiniMax M2.5 Performance Testing on dual RTX 6000 Pros</title>
+    <updated>2026-02-14T20:55:23+00:00</updated>
     <author>
-      <name>/u/dengar69</name>
-      <uri>https://old.reddit.com/user/dengar69</uri>
+      <name>/u/itsjustmarky</name>
+      <uri>https://old.reddit.com/user/itsjustmarky</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt; &lt;img alt="MiniMax M2.5 has been very patient with my dumb ass" src="https://preview.redd.it/ofxvod0fqhjg1.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=4739c4a9bca710ce6eee98008612eeed4376819c" title="MiniMax M2.5 has been very patient with my dumb ass" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I kept trying to make a change to a simple HTML file but forgot I was in plan mode lol.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ofxvod0fqhjg1.png?width=991&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4e45f65af3a65d10ba9e46466de20083fd298bfe"&gt;https://preview.redd.it/ofxvod0fqhjg1.png?width=991&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4e45f65af3a65d10ba9e46466de20083fd298bfe&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dengar69"&gt; /u/dengar69 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt; &lt;img alt="MiniMax M2.5 Performance Testing on dual RTX 6000 Pros" src="https://preview.redd.it/e1mi4932xijg1.png?width=140&amp;amp;height=79&amp;amp;auto=webp&amp;amp;s=e4a85fbffddb53bc2243d8e9d692d571d18ac435" title="MiniMax M2.5 Performance Testing on dual RTX 6000 Pros" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/e1mi4932xijg1.png?width=680&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5a0f0bf2c9ff785e5ad1c0040cbb1f97aba34705"&gt;https://preview.redd.it/e1mi4932xijg1.png?width=680&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=5a0f0bf2c9ff785e5ad1c0040cbb1f97aba34705&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/itsjustmarky"&gt; /u/itsjustmarky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4vnzn/minimax_m25_performance_testing_on_dual_rtx_6000/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-14T16:57:02+00:00</published>
+    <published>2026-02-14T20:55:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1r44fzk</id>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r44fzk/the_gap_between_openweight_and_proprietary_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-13T23:20:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r4pnsv</id>
+    <title>MiniMax M2.5 has been very patient with my dumb ass</title>
+    <updated>2026-02-14T16:57:02+00:00</updated>
+    <author>
+      <name>/u/dengar69</name>
+      <uri>https://old.reddit.com/user/dengar69</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt; &lt;img alt="MiniMax M2.5 has been very patient with my dumb ass" src="https://preview.redd.it/ofxvod0fqhjg1.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=4739c4a9bca710ce6eee98008612eeed4376819c" title="MiniMax M2.5 has been very patient with my dumb ass" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I kept trying to make a change to a simple HTML file but forgot I was in plan mode lol.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ofxvod0fqhjg1.png?width=991&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4e45f65af3a65d10ba9e46466de20083fd298bfe"&gt;https://preview.redd.it/ofxvod0fqhjg1.png?width=991&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=4e45f65af3a65d10ba9e46466de20083fd298bfe&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dengar69"&gt; /u/dengar69 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r4pnsv/minimax_m25_has_been_very_patient_with_my_dumb_ass/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-14T16:57:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1r4tu48</id>
