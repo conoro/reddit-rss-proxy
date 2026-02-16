@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-16T23:27:07+00:00</updated>
+  <updated>2026-02-16T23:43:50+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -21,19 +21,6 @@
     <published>2026-02-16T10:52:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r69w5y</id>
-    <title>RAG failure in production: our vector store served a 3-year-old resume and the LLM hallucinated a candidate recommendation</title>
-    <updated>2026-02-16T13:40:39+00:00</updated>
-    <author>
-      <name>/u/tdeliev</name>
-      <uri>https://old.reddit.com/user/tdeliev</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So we had a pretty embarrassing RAG failure in production last week and I figured this sub would appreciate the post-mortem. I’ve been calling it the “Split Truth” problem internally because that’s basically what happened — our vector store and SQL database gave the agent two different versions of reality, and the agent picked the wrong one.&lt;/p&gt; &lt;p&gt;Quick context on the stack:&lt;/p&gt; &lt;p&gt;We built a recruiting agent that processes around 800 candidates a week using RAG. Pinecone for the vector store (resumes, interview notes, that kind of semantic stuff) and Postgres for structured state — current job status, contact info, availability, etc. Pretty standard setup. Nothing exotic.&lt;/p&gt; &lt;p&gt;What went wrong:&lt;/p&gt; &lt;p&gt;Agent flags a candidate for a Senior Python role. The reasoning it gave looked solid on paper — “Candidate has 5 years of Python experience, strong backend background, relevant projects.” All technically true. Three years ago.&lt;/p&gt; &lt;p&gt;What actually happened is the candidate had updated their profile yesterday to reflect that they’d pivoted to Project Management two years back. They weren’t even looking for dev roles anymore.&lt;/p&gt; &lt;p&gt;Postgres knew this. The vector store — which still had the old resume chunks embedded — had no idea.&lt;/p&gt; &lt;p&gt;Why the LLM hallucinated:&lt;/p&gt; &lt;p&gt;Here’s the part that frustrated me the most. The LLM saw both signals in the context window. But the vector chunks were way more “descriptive” — paragraphs about Python projects, technical skills, specific frameworks. The SQL data was just a couple of flat fields. So the model weighted the richer, more detailed (and completely outdated) context over the sparse but accurate structured data.&lt;/p&gt; &lt;p&gt;It basically hallucinated a hybrid version of this person. Someone who was both an experienced Python dev AND currently available. Neither was true anymore.&lt;/p&gt; &lt;p&gt;How we fixed it:&lt;/p&gt; &lt;p&gt;We stopped treating the vector store as a source of truth for anything time-sensitive.&lt;/p&gt; &lt;p&gt;The actual fix is a deterministic middleware layer that sits between retrieval and the LLM. Before any context reaches the model, the middleware pulls the latest state from Postgres and injects it as a hard constraint in the system prompt. Something like: “Current Status: NOT LOOKING FOR DEV ROLES. Last profile update: [yesterday’s date].”&lt;/p&gt; &lt;p&gt;That constraint overrides whatever the vector search dragged in. The LLM can still use the semantic data for background context, but it can’t contradict the structured state.&lt;/p&gt; &lt;p&gt;I wrote up the full Python implementation with the actual code if anyone wants to dig into the middleware pattern — how we handle TTL on vector chunks, the sanitization logic, all of it: &lt;a href="https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split"&gt;https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has run into this kind of vector drift in a RAG pipeline. We’re now seeing it as a fundamental architectural issue with any system where the underlying data changes faster than your embedding pipeline can keep up. How are you handling the sync?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tdeliev"&gt; /u/tdeliev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T13:40:39+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r6h7g4</id>
     <title>Qwen3 Coder Next Looping and OpenCode</title>
     <updated>2026-02-16T18:14:27+00:00</updated>
@@ -45,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6h7g4/qwen3_coder_next_looping_and_opencode/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T18:14:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r69w5y</id>
+    <title>RAG failure in production: our vector store served a 3-year-old resume and the LLM hallucinated a candidate recommendation</title>
+    <updated>2026-02-16T13:40:39+00:00</updated>
+    <author>
+      <name>/u/tdeliev</name>
+      <uri>https://old.reddit.com/user/tdeliev</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So we had a pretty embarrassing RAG failure in production last week and I figured this sub would appreciate the post-mortem. I’ve been calling it the “Split Truth” problem internally because that’s basically what happened — our vector store and SQL database gave the agent two different versions of reality, and the agent picked the wrong one.&lt;/p&gt; &lt;p&gt;Quick context on the stack:&lt;/p&gt; &lt;p&gt;We built a recruiting agent that processes around 800 candidates a week using RAG. Pinecone for the vector store (resumes, interview notes, that kind of semantic stuff) and Postgres for structured state — current job status, contact info, availability, etc. Pretty standard setup. Nothing exotic.&lt;/p&gt; &lt;p&gt;What went wrong:&lt;/p&gt; &lt;p&gt;Agent flags a candidate for a Senior Python role. The reasoning it gave looked solid on paper — “Candidate has 5 years of Python experience, strong backend background, relevant projects.” All technically true. Three years ago.&lt;/p&gt; &lt;p&gt;What actually happened is the candidate had updated their profile yesterday to reflect that they’d pivoted to Project Management two years back. They weren’t even looking for dev roles anymore.&lt;/p&gt; &lt;p&gt;Postgres knew this. The vector store — which still had the old resume chunks embedded — had no idea.&lt;/p&gt; &lt;p&gt;Why the LLM hallucinated:&lt;/p&gt; &lt;p&gt;Here’s the part that frustrated me the most. The LLM saw both signals in the context window. But the vector chunks were way more “descriptive” — paragraphs about Python projects, technical skills, specific frameworks. The SQL data was just a couple of flat fields. So the model weighted the richer, more detailed (and completely outdated) context over the sparse but accurate structured data.&lt;/p&gt; &lt;p&gt;It basically hallucinated a hybrid version of this person. Someone who was both an experienced Python dev AND currently available. Neither was true anymore.&lt;/p&gt; &lt;p&gt;How we fixed it:&lt;/p&gt; &lt;p&gt;We stopped treating the vector store as a source of truth for anything time-sensitive.&lt;/p&gt; &lt;p&gt;The actual fix is a deterministic middleware layer that sits between retrieval and the LLM. Before any context reaches the model, the middleware pulls the latest state from Postgres and injects it as a hard constraint in the system prompt. Something like: “Current Status: NOT LOOKING FOR DEV ROLES. Last profile update: [yesterday’s date].”&lt;/p&gt; &lt;p&gt;That constraint overrides whatever the vector search dragged in. The LLM can still use the semantic data for background context, but it can’t contradict the structured state.&lt;/p&gt; &lt;p&gt;I wrote up the full Python implementation with the actual code if anyone wants to dig into the middleware pattern — how we handle TTL on vector chunks, the sanitization logic, all of it: &lt;a href="https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split"&gt;https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has run into this kind of vector drift in a RAG pipeline. We’re now seeing it as a fundamental architectural issue with any system where the underlying data changes faster than your embedding pipeline can keep up. How are you handling the sync?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tdeliev"&gt; /u/tdeliev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T13:40:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6hobq</id>
@@ -86,19 +86,6 @@
     <published>2026-02-16T22:05:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r6mwsd</id>
-    <title>Running Qwen3-Coder-30B-A3B with llama.ccp poor-man cluster</title>
-    <updated>2026-02-16T21:42:54+00:00</updated>
-    <author>
-      <name>/u/ZioRob2410</name>
-      <uri>https://old.reddit.com/user/ZioRob2410</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Despite I havea production dual RTX 5090 setup where I run my private inference, I love to experiments with poor-man's setups.&lt;/p&gt; &lt;p&gt;I've been running Qwen3-Coder-30B-A3B-Instruct (Q4_K_S) via llama.cpp across multiple GPUs using RPC, and I'm curious what you all think about my current setup. Always looking to optimize.&lt;/p&gt; &lt;p&gt;My config:&lt;/p&gt; &lt;p&gt;./llama-server \ -m ~/models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf \ -ngl 99 \ -b 512 \ -ub 512 \ -np 4 \ -t 8 \ --flash-attn on \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --kv-unified \ --mmap \ --mlock \ --rpc 172.16.1.102:50052,172.16.1.102:50053 \ --tensor-split 6,5,15 \ --host 0.0.0.0 \ --port 8081 \ --cont-batching \ --top-p 0.95 \ --min-p 0.05 \ --temp 0.1 \ --alias qwen3-coder-30b-a3b-instruct \ --context-shift \ --jinja&lt;/p&gt; &lt;p&gt;It run pretty decent with 30t/s. 3 GPUs - 1 5080 / 1 3060 / 1 1660 super&lt;/p&gt; &lt;p&gt;What would you change?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZioRob2410"&gt; /u/ZioRob2410 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T21:42:54+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r6m13c</id>
     <title>Qwen-Coder-Next fp8 chat template for llama.cpp - seems to be better for roo</title>
     <updated>2026-02-16T21:09:29+00:00</updated>
@@ -110,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6m13c/qwencodernext_fp8_chat_template_for_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T21:09:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r6mwsd</id>
+    <title>Running Qwen3-Coder-30B-A3B with llama.ccp poor-man cluster</title>
+    <updated>2026-02-16T21:42:54+00:00</updated>
+    <author>
+      <name>/u/ZioRob2410</name>
+      <uri>https://old.reddit.com/user/ZioRob2410</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Despite I havea production dual RTX 5090 setup where I run my private inference, I love to experiments with poor-man's setups.&lt;/p&gt; &lt;p&gt;I've been running Qwen3-Coder-30B-A3B-Instruct (Q4_K_S) via llama.cpp across multiple GPUs using RPC, and I'm curious what you all think about my current setup. Always looking to optimize.&lt;/p&gt; &lt;p&gt;My config:&lt;/p&gt; &lt;p&gt;./llama-server \ -m ~/models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf \ -ngl 99 \ -b 512 \ -ub 512 \ -np 4 \ -t 8 \ --flash-attn on \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --kv-unified \ --mmap \ --mlock \ --rpc 172.16.1.102:50052,172.16.1.102:50053 \ --tensor-split 6,5,15 \ --host 0.0.0.0 \ --port 8081 \ --cont-batching \ --top-p 0.95 \ --min-p 0.05 \ --temp 0.1 \ --alias qwen3-coder-30b-a3b-instruct \ --context-shift \ --jinja&lt;/p&gt; &lt;p&gt;It run pretty decent with 30t/s. 3 GPUs - 1 5080 / 1 3060 / 1 1660 super&lt;/p&gt; &lt;p&gt;What would you change?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZioRob2410"&gt; /u/ZioRob2410 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T21:42:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6jklq</id>
@@ -125,19 +125,6 @@
     <published>2026-02-16T19:38:32+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r657w5</id>
-    <title>Qwen3.5 Release Blog Post</title>
-    <updated>2026-02-16T09:31:44+00:00</updated>
-    <author>
-      <name>/u/Stunning_Energy_7028</name>
-      <uri>https://old.reddit.com/user/Stunning_Energy_7028</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Weights: &lt;a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B"&gt;https://huggingface.co/Qwen/Qwen3.5-397B-A17B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Stunning_Energy_7028"&gt; /u/Stunning_Energy_7028 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://qwen.ai/blog?id=qwen3.5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r657w5/qwen35_release_blog_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r657w5/qwen35_release_blog_post/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T09:31:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r6d9w5</id>
     <title>Local running Qwen3:14b helped fix my internet on Linux while offline</title>
     <updated>2026-02-16T15:53:46+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T15:53:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r657w5</id>
+    <title>Qwen3.5 Release Blog Post</title>
+    <updated>2026-02-16T09:31:44+00:00</updated>
+    <author>
+      <name>/u/Stunning_Energy_7028</name>
+      <uri>https://old.reddit.com/user/Stunning_Energy_7028</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Weights: &lt;a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B"&gt;https://huggingface.co/Qwen/Qwen3.5-397B-A17B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Stunning_Energy_7028"&gt; /u/Stunning_Energy_7028 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://qwen.ai/blog?id=qwen3.5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r657w5/qwen35_release_blog_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r657w5/qwen35_release_blog_post/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T09:31:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1r63fhu</id>
@@ -177,19 +177,6 @@
     <published>2026-02-16T00:36:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r6gg04</id>
-    <title>Hey, it's lunar new year, and this is not a post about local LLM</title>
-    <updated>2026-02-16T17:47:31+00:00</updated>
-    <author>
-      <name>/u/Vozer_bros</name>
-      <uri>https://old.reddit.com/user/Vozer_bros</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am writing this between sounds of fireworks.&lt;/p&gt; &lt;p&gt;I learned everything about LLM, RAG and others stuff related to AI for a longg time here.&lt;/p&gt; &lt;p&gt;May your year be filled with perfect timing, rich flavors, and the joy of creating something truly special.&lt;/p&gt; &lt;p&gt;Happy lunar new year, here’s to a masterpiece of a year ahead!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vozer_bros"&gt; /u/Vozer_bros &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T17:47:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r68z93</id>
     <title>llama-cpp ROCm Prompt Processing speed on Strix Halo / Ryzen AI Max +50-100%</title>
     <updated>2026-02-16T12:59:54+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r68z93/llamacpp_rocm_prompt_processing_speed_on_strix/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T12:59:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r6gg04</id>
+    <title>Hey, it's lunar new year, and this is not a post about local LLM</title>
+    <updated>2026-02-16T17:47:31+00:00</updated>
+    <author>
+      <name>/u/Vozer_bros</name>
+      <uri>https://old.reddit.com/user/Vozer_bros</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am writing this between sounds of fireworks.&lt;/p&gt; &lt;p&gt;I learned everything about LLM, RAG and others stuff related to AI for a longg time here.&lt;/p&gt; &lt;p&gt;May your year be filled with perfect timing, rich flavors, and the joy of creating something truly special.&lt;/p&gt; &lt;p&gt;Happy lunar new year, here’s to a masterpiece of a year ahead!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vozer_bros"&gt; /u/Vozer_bros &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T17:47:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1r60ety</id>
