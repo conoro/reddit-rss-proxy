@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-17T00:47:35+00:00</updated>
+  <updated>2026-02-17T01:38:39+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1r66jyp</id>
-    <title>vLLM MAXIMUM performance on multi-3090</title>
-    <updated>2026-02-16T10:52:53+00:00</updated>
+    <id>t3_1r69w5y</id>
+    <title>RAG failure in production: our vector store served a 3-year-old resume and the LLM hallucinated a candidate recommendation</title>
+    <updated>2026-02-16T13:40:39+00:00</updated>
     <author>
-      <name>/u/Nepherpitu</name>
-      <uri>https://old.reddit.com/user/Nepherpitu</uri>
+      <name>/u/tdeliev</name>
+      <uri>https://old.reddit.com/user/tdeliev</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r66jyp/vllm_maximum_performance_on_multi3090/"&gt; &lt;img alt="vLLM MAXIMUM performance on multi-3090" src="https://preview.redd.it/w72h1xab7ujg1.png?width=140&amp;amp;height=110&amp;amp;auto=webp&amp;amp;s=49132adde3816a5139ccab9cae67486cc9fec858" title="vLLM MAXIMUM performance on multi-3090" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TLDR: install patched p2p driver, patch vllm platform and skip p2p check. You'll get +50% performance on 4x3090 with Qwen3 Coder Next FP8. Free performance, free tokens, very nice :)&lt;/p&gt; &lt;p&gt;So, YOU (yes, YOU) managed to setup vLLM on your multi gpu platform with consumer cards. It's nice, running fast and doesn't lose a lot of performance on long contexts. But there are HIDDEN and FREE performance laying here just for you.&lt;/p&gt; &lt;p&gt;Let's go into the deep.&lt;/p&gt; &lt;h2&gt;Prerequisite&lt;/h2&gt; &lt;p&gt;I assume you have something like cheap RTX 3090 and running vLLM with tensor parallelism on linux without docker. Otherwise I cannot guarantee results. As if I could guarantee anything otherwise, lol.&lt;/p&gt; &lt;h3&gt;Resizable bar&lt;/h3&gt; &lt;p&gt;You need to enable resizable bar. Check it with &lt;code&gt;sudo lspci -vvv | grep -i -A40 'VGA compatible controller'&lt;/code&gt;, look for &lt;code&gt;Region 1: Memory at 17800000000 (64-bit, prefetchable) [size=32G]&lt;/code&gt;. If it's &lt;code&gt;32M&lt;/code&gt;, then you need to flash new BIOS. &lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://www.techpowerup.com/download/nvidia-nvflash/"&gt;https://www.techpowerup.com/download/nvidia-nvflash/&lt;/a&gt; - nvflash&lt;/li&gt; &lt;li&gt;&lt;a href="https://www.techpowerup.com/vgabios/231650/msi-rtx3090-24576-210310-1"&gt;https://www.techpowerup.com/vgabios/231650/msi-rtx3090-24576-210310-1&lt;/a&gt; - example where to find updated bios&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Just reboot in safe mode and follow intuitive &lt;code&gt;./nvflash help&lt;/code&gt; output. It's that simple. &lt;/p&gt; &lt;h3&gt;PCIe lanes&lt;/h3&gt; &lt;p&gt;GPUs must be connected with enough PCIe lanes to achieve desired bandwidth. How many lanes? Well... I've didn't seen more than 4GB/s IN + 4GB/s OUT, so PCIe 3.0 X8 OR PCIe 4.0 X4 must be ok enough. Maybe not, who knows. Try it yourself. But PCIe 3.0 X1 is not ok anyway.&lt;/p&gt; &lt;h3&gt;Similar cards in parallel.&lt;/h3&gt; &lt;p&gt;This is tricky, you can't mix 3090 + 4090. I mean, technically you can, and it will be BLAZING FAST. But completely incorrect and incoherent. Maybe. Maybe 30B FP16 models will be good. &lt;/p&gt; &lt;p&gt;Check bug here - &lt;a href="https://github.com/vllm-project/vllm/issues/34437#issuecomment-3903773323"&gt;https://github.com/vllm-project/vllm/issues/34437#issuecomment-3903773323&lt;/a&gt;.&lt;/p&gt; &lt;h2&gt;Setup instructions&lt;/h2&gt; &lt;h3&gt;Install patched P2P driver&lt;/h3&gt; &lt;p&gt;&lt;a href="https://github.com/aikitoria/open-gpu-kernel-modules"&gt;https://github.com/aikitoria/open-gpu-kernel-modules&lt;/a&gt; - follow instruction here. Don't forget to reboot. Maybe you will need to compile CUDA samples (I don't remember where I get them) with p2pBandwidthTest to verify it works.&lt;/p&gt; &lt;p&gt;You must get similar output:&lt;/p&gt; &lt;p&gt;&lt;code&gt; ~# nvidia-smi topo -p2p r GPU0 GPU1 GPU2 GPU3 GPU0 X OK OK OK GPU1 OK X OK OK GPU2 OK OK X OK GPU3 OK OK OK X &lt;/code&gt;&lt;/p&gt; &lt;p&gt;And if your p2p bandwidth test shows you 0.02GB/s transfer rates, go check and resizable bar support.&lt;/p&gt; &lt;h3&gt;Patch vLLM&lt;/h3&gt; &lt;p&gt;For unknown incomprehensible reason, vLLM tests p2p availability only for NVLink. Yep, you have patched driver and ik_llama.cpp now is blazing fast (probably), but vLLM still show you &amp;quot;Custom all-reduce is disabled, you moron! ~nya&amp;quot;. Time to fix it.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Go to &lt;code&gt;env/lib/blablabla/site-packages/vllm&lt;/code&gt;. Now you can EDIT anything in vllm sources. Well, cuda kernels are compiled, but we are stupid and don't know how to edit them. Otherwise 3090+4090 issue would be already fixed.&lt;/li&gt; &lt;li&gt;You need to do &lt;code&gt;vi env_vllm/lib/python3.13/site-packages/vllm/platforms/cuda.py&lt;/code&gt;. There is line 597 &lt;a href="https://github.com/vllm-project/vllm/blob/main/vllm/platforms/cuda.py#L597"&gt;https://github.com/vllm-project/vllm/blob/main/vllm/platforms/cuda.py#L597&lt;/a&gt; . Make it just &lt;code&gt;return True&lt;/code&gt;. &lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That's all. We're telling vLLM &amp;quot;Trust me bro, I have my GPUs fully connected AND I DON'T KNOW HOW IT WILL AFFECT MY SYSTEM&amp;quot;.&lt;/p&gt; &lt;h2&gt;Profit!&lt;/h2&gt; &lt;p&gt;And load you're favorite Qwen3 Coder Next FP8 with -tp 4 and look at numbers. Single request will go up from ~100 tps to ~150 tps. Or maybe not, because I'm lucky and you are not lucky.&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;(APIServer pid=1689046) INFO 02-16 13:51:25 [loggers.py:259] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 144.6 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.2%, Prefix cache hit rate: 0.3%&lt;/p&gt; &lt;/blockquote&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nepherpitu"&gt; /u/Nepherpitu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1r66jyp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r66jyp/vllm_maximum_performance_on_multi3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r66jyp/vllm_maximum_performance_on_multi3090/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So we had a pretty embarrassing RAG failure in production last week and I figured this sub would appreciate the post-mortem. I’ve been calling it the “Split Truth” problem internally because that’s basically what happened — our vector store and SQL database gave the agent two different versions of reality, and the agent picked the wrong one.&lt;/p&gt; &lt;p&gt;Quick context on the stack:&lt;/p&gt; &lt;p&gt;We built a recruiting agent that processes around 800 candidates a week using RAG. Pinecone for the vector store (resumes, interview notes, that kind of semantic stuff) and Postgres for structured state — current job status, contact info, availability, etc. Pretty standard setup. Nothing exotic.&lt;/p&gt; &lt;p&gt;What went wrong:&lt;/p&gt; &lt;p&gt;Agent flags a candidate for a Senior Python role. The reasoning it gave looked solid on paper — “Candidate has 5 years of Python experience, strong backend background, relevant projects.” All technically true. Three years ago.&lt;/p&gt; &lt;p&gt;What actually happened is the candidate had updated their profile yesterday to reflect that they’d pivoted to Project Management two years back. They weren’t even looking for dev roles anymore.&lt;/p&gt; &lt;p&gt;Postgres knew this. The vector store — which still had the old resume chunks embedded — had no idea.&lt;/p&gt; &lt;p&gt;Why the LLM hallucinated:&lt;/p&gt; &lt;p&gt;Here’s the part that frustrated me the most. The LLM saw both signals in the context window. But the vector chunks were way more “descriptive” — paragraphs about Python projects, technical skills, specific frameworks. The SQL data was just a couple of flat fields. So the model weighted the richer, more detailed (and completely outdated) context over the sparse but accurate structured data.&lt;/p&gt; &lt;p&gt;It basically hallucinated a hybrid version of this person. Someone who was both an experienced Python dev AND currently available. Neither was true anymore.&lt;/p&gt; &lt;p&gt;How we fixed it:&lt;/p&gt; &lt;p&gt;We stopped treating the vector store as a source of truth for anything time-sensitive.&lt;/p&gt; &lt;p&gt;The actual fix is a deterministic middleware layer that sits between retrieval and the LLM. Before any context reaches the model, the middleware pulls the latest state from Postgres and injects it as a hard constraint in the system prompt. Something like: “Current Status: NOT LOOKING FOR DEV ROLES. Last profile update: [yesterday’s date].”&lt;/p&gt; &lt;p&gt;That constraint overrides whatever the vector search dragged in. The LLM can still use the semantic data for background context, but it can’t contradict the structured state.&lt;/p&gt; &lt;p&gt;I wrote up the full Python implementation with the actual code if anyone wants to dig into the middleware pattern — how we handle TTL on vector chunks, the sanitization logic, all of it: &lt;a href="https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split"&gt;https://aimakelab.substack.com/p/anatomy-of-an-agent-failure-the-split&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has run into this kind of vector drift in a RAG pipeline. We’re now seeing it as a fundamental architectural issue with any system where the underlying data changes faster than your embedding pipeline can keep up. How are you handling the sync?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tdeliev"&gt; /u/tdeliev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r69w5y/rag_failure_in_production_our_vector_store_served/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T10:52:53+00:00</published>
+    <published>2026-02-16T13:40:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6h7g4</id>
@@ -47,17 +47,17 @@
     <published>2026-02-16T19:35:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r6qy55</id>
-    <title>Qwen3.5-397B up to 1 million context length</title>
-    <updated>2026-02-17T00:22:53+00:00</updated>
+    <id>t3_1r6mwsd</id>
+    <title>Running Qwen3-Coder-30B-A3B with llama.ccp poor-man cluster</title>
+    <updated>2026-02-16T21:42:54+00:00</updated>
     <author>
-      <name>/u/segmond</name>
-      <uri>https://old.reddit.com/user/segmond</uri>
+      <name>/u/ZioRob2410</name>
+      <uri>https://old.reddit.com/user/ZioRob2410</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;quot;262k natively, extensible up to 1M tokens&amp;quot;&lt;/p&gt; &lt;p&gt;Okay, who has tried this? How coherent is it at even 500k tokens? Throw a big code repo in and see if the agent can do work, solve an issue. I know some of you big boys got big rigs. If anyone ever uses past 500k, please don't forget to share with us how performant it was!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Despite I havea production dual RTX 5090 setup where I run my private inference, I love to experiments with poor-man's setups.&lt;/p&gt; &lt;p&gt;I've been running Qwen3-Coder-30B-A3B-Instruct (Q4_K_S) via llama.cpp across multiple GPUs using RPC, and I'm curious what you all think about my current setup. Always looking to optimize.&lt;/p&gt; &lt;p&gt;My config:&lt;/p&gt; &lt;p&gt;./llama-server \ -m ~/models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf \ -ngl 99 \ -b 512 \ -ub 512 \ -np 4 \ -t 8 \ --flash-attn on \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --kv-unified \ --mmap \ --mlock \ --rpc 172.16.1.102:50052,172.16.1.102:50053 \ --tensor-split 6,5,15 \ --host 0.0.0.0 \ --port 8081 \ --cont-batching \ --top-p 0.95 \ --min-p 0.05 \ --temp 0.1 \ --alias qwen3-coder-30b-a3b-instruct \ --context-shift \ --jinja&lt;/p&gt; &lt;p&gt;It run pretty decent with 30t/s. 3 GPUs - 1 5080 / 1 3060 / 1 1660 super&lt;/p&gt; &lt;p&gt;What would you change?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZioRob2410"&gt; /u/ZioRob2410 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-17T00:22:53+00:00</published>
+    <published>2026-02-16T21:42:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6hobq</id>
@@ -71,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6hobq/tiny_aya_is_coming/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T18:30:58+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r6mwsd</id>
-    <title>Running Qwen3-Coder-30B-A3B with llama.ccp poor-man cluster</title>
-    <updated>2026-02-16T21:42:54+00:00</updated>
-    <author>
-      <name>/u/ZioRob2410</name>
-      <uri>https://old.reddit.com/user/ZioRob2410</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Despite I havea production dual RTX 5090 setup where I run my private inference, I love to experiments with poor-man's setups.&lt;/p&gt; &lt;p&gt;I've been running Qwen3-Coder-30B-A3B-Instruct (Q4_K_S) via llama.cpp across multiple GPUs using RPC, and I'm curious what you all think about my current setup. Always looking to optimize.&lt;/p&gt; &lt;p&gt;My config:&lt;/p&gt; &lt;p&gt;./llama-server \ -m ~/models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf \ -ngl 99 \ -b 512 \ -ub 512 \ -np 4 \ -t 8 \ --flash-attn on \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --kv-unified \ --mmap \ --mlock \ --rpc 172.16.1.102:50052,172.16.1.102:50053 \ --tensor-split 6,5,15 \ --host 0.0.0.0 \ --port 8081 \ --cont-batching \ --top-p 0.95 \ --min-p 0.05 \ --temp 0.1 \ --alias qwen3-coder-30b-a3b-instruct \ --context-shift \ --jinja&lt;/p&gt; &lt;p&gt;It run pretty decent with 30t/s. 3 GPUs - 1 5080 / 1 3060 / 1 1660 super&lt;/p&gt; &lt;p&gt;What would you change?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZioRob2410"&gt; /u/ZioRob2410 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6mwsd/running_qwen3coder30ba3b_with_llamaccp_poorman/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T21:42:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6m13c</id>
@@ -112,19 +99,6 @@
     <published>2026-02-16T22:05:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r6d9w5</id>
-    <title>Local running Qwen3:14b helped fix my internet on Linux while offline</title>
-    <updated>2026-02-16T15:53:46+00:00</updated>
-    <author>
-      <name>/u/iqraatheman</name>
-      <uri>https://old.reddit.com/user/iqraatheman</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt; &lt;img alt="Local running Qwen3:14b helped fix my internet on Linux while offline" src="https://preview.redd.it/3ck7uzopovjg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=b5119a92733a97601f85e77852bc0d95aaae98f1" title="Local running Qwen3:14b helped fix my internet on Linux while offline" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/3ck7uzopovjg1.png?width=2566&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=fe75c88681a864d2962b00d5dff5222ded2cbf0e"&gt;Conversation with Qwen3:14b over Opencode in which it runs a command and correctly diagnoses network problem.&lt;/a&gt;&lt;/p&gt; &lt;p&gt;One of the first things I did after recently installation Arch Linux on my PC was set up Opencode with Ollama just in case my internet went out and I couldn't figure out what commands to run to fix it. I installed the 14B parameter version because I figured it was the best model I could fit in my 16 GB of VRAM on my AMD Radeon RX 7800 XT and it's really fast. I am super grateful that I did this because my internet did get disconnected and luckily in this case it was just because I accidentally unplugged the Ethernet cable as it was laying across the middle of my room but it would've taken me so long to figure out what caused this had I not set this up. I would've had to either google it or ask an AI model running in the cloud from another device, neither of which would be possible had my internet truly been out and it not just being a problem with this device's Ethernet only. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/iqraatheman"&gt; /u/iqraatheman &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T15:53:46+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r657w5</id>
     <title>Qwen3.5 Release Blog Post</title>
     <updated>2026-02-16T09:31:44+00:00</updated>
@@ -151,6 +125,19 @@
     <published>2026-02-16T00:36:08+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r6d9w5</id>
+    <title>Local running Qwen3:14b helped fix my internet on Linux while offline</title>
+    <updated>2026-02-16T15:53:46+00:00</updated>
+    <author>
+      <name>/u/iqraatheman</name>
+      <uri>https://old.reddit.com/user/iqraatheman</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt; &lt;img alt="Local running Qwen3:14b helped fix my internet on Linux while offline" src="https://preview.redd.it/3ck7uzopovjg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=b5119a92733a97601f85e77852bc0d95aaae98f1" title="Local running Qwen3:14b helped fix my internet on Linux while offline" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/3ck7uzopovjg1.png?width=2566&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=fe75c88681a864d2962b00d5dff5222ded2cbf0e"&gt;Conversation with Qwen3:14b over Opencode in which it runs a command and correctly diagnoses network problem.&lt;/a&gt;&lt;/p&gt; &lt;p&gt;One of the first things I did after recently installation Arch Linux on my PC was set up Opencode with Ollama just in case my internet went out and I couldn't figure out what commands to run to fix it. I installed the 14B parameter version because I figured it was the best model I could fit in my 16 GB of VRAM on my AMD Radeon RX 7800 XT and it's really fast. I am super grateful that I did this because my internet did get disconnected and luckily in this case it was just because I accidentally unplugged the Ethernet cable as it was laying across the middle of my room but it would've taken me so long to figure out what caused this had I not set this up. I would've had to either google it or ask an AI model running in the cloud from another device, neither of which would be possible had my internet truly been out and it not just being a problem with this device's Ethernet only. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/iqraatheman"&gt; /u/iqraatheman &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6d9w5/local_running_qwen314b_helped_fix_my_internet_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T15:53:46+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r63fhu</id>
     <title>Why is everything about code now?</title>
     <updated>2026-02-16T07:41:24+00:00</updated>
@@ -162,19 +149,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r63fhu/why_is_everything_about_code_now/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T07:41:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r6jklq</id>
-    <title>Are 20-100B models enough for Good Coding?</title>
-    <updated>2026-02-16T19:38:32+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The reason I'm asking this question because some folks(including me) are in self-doubt little bit. Maybe because after seeing threads about comparison with Online models(More than Trillions of parameters).&lt;/p&gt; &lt;p&gt;Of course, we can't expect same coding performance &amp;amp; output from these 20-100B models.&lt;/p&gt; &lt;p&gt;Some didn't even utilize full potential of these local models. I think only 1/3 of folks hit the turbo with these models.&lt;/p&gt; &lt;p&gt;Personally I never tried Agentic coding as my current laptop(just 8GB VRAM + 32GB RAM) is useless for that.&lt;/p&gt; &lt;p&gt;Lets say I have enough VRAM to run Q6/Q8 of these 20-100B models with 128K-256K context. &lt;/p&gt; &lt;p&gt;But are these models enough to do good level coding? Like Agentic Coding .... Solving Leetcode issues, Code analysis, Code reviews, Optimizations, Automations, etc., Of course include Vibe coding at last.&lt;/p&gt; &lt;p&gt;Please share your thoughts. Thanks.&lt;/p&gt; &lt;p&gt;I'm not gonna create(though I can't) Billion dollar company, I just want to create basic level Websites, Apps, Games. That's it. Majority of those creations gonna be Freeware/Opensource.&lt;/p&gt; &lt;p&gt;What models am I talking about? Here below:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GPT-OSS-20B&lt;/li&gt; &lt;li&gt;Devstral-Small-2-24B-Instruct-2512&lt;/li&gt; &lt;li&gt;Qwen3-30B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-30B-Coder&lt;/li&gt; &lt;li&gt;Nemotron-3-Nano-30B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-32B&lt;/li&gt; &lt;li&gt;GLM-4.7-Flash&lt;/li&gt; &lt;li&gt;Seed-OSS-36B&lt;/li&gt; &lt;li&gt;Kimi-Linear-48B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-Next-80B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-Coder-Next&lt;/li&gt; &lt;li&gt;GLM-4.5-Air&lt;/li&gt; &lt;li&gt;GPT-OSS-120B&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In Future, I'll go up to 200B models after getting additional GPUs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-16T19:38:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1r68z93</id>
@@ -203,6 +177,19 @@
     <published>2026-02-16T04:54:20+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r6jklq</id>
+    <title>Are 20-100B models enough for Good Coding?</title>
+    <updated>2026-02-16T19:38:32+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The reason I'm asking this question because some folks(including me) are in self-doubt little bit. Maybe because after seeing threads about comparison with Online models(More than Trillions of parameters).&lt;/p&gt; &lt;p&gt;Of course, we can't expect same coding performance &amp;amp; output from these 20-100B models.&lt;/p&gt; &lt;p&gt;Some didn't even utilize full potential of these local models. I think only 1/3 of folks hit the turbo with these models.&lt;/p&gt; &lt;p&gt;Personally I never tried Agentic coding as my current laptop(just 8GB VRAM + 32GB RAM) is useless for that.&lt;/p&gt; &lt;p&gt;Lets say I have enough VRAM to run Q6/Q8 of these 20-100B models with 128K-256K context. &lt;/p&gt; &lt;p&gt;But are these models enough to do good level coding? Like Agentic Coding .... Solving Leetcode issues, Code analysis, Code reviews, Optimizations, Automations, etc., Of course include Vibe coding at last.&lt;/p&gt; &lt;p&gt;Please share your thoughts. Thanks.&lt;/p&gt; &lt;p&gt;I'm not gonna create(though I can't) Billion dollar company, I just want to create basic level Websites, Apps, Games. That's it. Majority of those creations gonna be Freeware/Opensource.&lt;/p&gt; &lt;p&gt;What models am I talking about? Here below:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GPT-OSS-20B&lt;/li&gt; &lt;li&gt;Devstral-Small-2-24B-Instruct-2512&lt;/li&gt; &lt;li&gt;Qwen3-30B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-30B-Coder&lt;/li&gt; &lt;li&gt;Nemotron-3-Nano-30B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-32B&lt;/li&gt; &lt;li&gt;GLM-4.7-Flash&lt;/li&gt; &lt;li&gt;Seed-OSS-36B&lt;/li&gt; &lt;li&gt;Kimi-Linear-48B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-Next-80B-A3B&lt;/li&gt; &lt;li&gt;Qwen3-Coder-Next&lt;/li&gt; &lt;li&gt;GLM-4.5-Air&lt;/li&gt; &lt;li&gt;GPT-OSS-120B&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In Future, I'll go up to 200B models after getting additional GPUs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6jklq/are_20100b_models_enough_for_good_coding/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-16T19:38:32+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r6gg04</id>
     <title>Hey, it's lunar new year, and this is not a post about local LLM</title>
     <updated>2026-02-16T17:47:31+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6gg04/hey_its_lunar_new_year_and_this_is_not_a_post/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-16T17:47:31+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r6qy55</id>
+    <title>Qwen3.5-397B up to 1 million context length</title>
+    <updated>2026-02-17T00:22:53+00:00</updated>
+    <author>
+      <name>/u/segmond</name>
+      <uri>https://old.reddit.com/user/segmond</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;quot;262k natively, extensible up to 1M tokens&amp;quot;&lt;/p&gt; &lt;p&gt;Okay, who has tried this? How coherent is it at even 500k tokens? Throw a big code repo in and see if the agent can do work, solve an issue. I know some of you big boys got big rigs. If anyone ever uses past 500k, please don't forget to share with us how performant it was!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/segmond"&gt; /u/segmond &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6qy55/qwen35397b_up_to_1_million_context_length/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-17T00:22:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1r6599e</id>
