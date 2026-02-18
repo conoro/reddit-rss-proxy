@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-18T02:39:45+00:00</updated>
+  <updated>2026-02-18T03:39:47+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -19,32 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7ooae/do_your_agents_ever_loop_forever/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-18T01:03:05+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r71af3</id>
-    <title>[Solution Found] Qwen3-Next 80B MoE running at 39 t/s on RTX 5070 Ti + 5060 Ti (32GB VRAM)</title>
-    <updated>2026-02-17T09:13:03+00:00</updated>
-    <author>
-      <name>/u/mazuj2</name>
-      <uri>https://old.reddit.com/user/mazuj2</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r71af3/solution_found_qwen3next_80b_moe_running_at_39_ts/"&gt; &lt;img alt="[Solution Found] Qwen3-Next 80B MoE running at 39 t/s on RTX 5070 Ti + 5060 Ti (32GB VRAM)" src="https://preview.redd.it/t250hgafu0kg1.png?width=140&amp;amp;height=28&amp;amp;auto=webp&amp;amp;s=bd66f5c19f65460627ab36584f3996a261d1155c" title="[Solution Found] Qwen3-Next 80B MoE running at 39 t/s on RTX 5070 Ti + 5060 Ti (32GB VRAM)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;[Solution Found] Qwen3-Next 80B MoE running at 39 t/s on RTX 5070 Ti + 5060 Ti (32GB VRAM) - The fix nobody else figured out&lt;/p&gt; &lt;p&gt;Hey fellow 50 series brothers in pain,&lt;/p&gt; &lt;p&gt;I've been banging my head against this for a while and finally cracked it through pure trial and error. Posting this so nobody else has to suffer.&lt;/p&gt; &lt;p&gt;My Hardware:&lt;/p&gt; &lt;p&gt;RTX 5070 Ti (16GB VRAM)&lt;/p&gt; &lt;p&gt;RTX 5060 Ti (16GB VRAM)&lt;/p&gt; &lt;p&gt;32GB total VRAM&lt;/p&gt; &lt;p&gt;64GB System RAM&lt;/p&gt; &lt;p&gt;Windows 11&lt;/p&gt; &lt;p&gt;llama.cpp b8077 (CUDA 12.4 build)&lt;/p&gt; &lt;p&gt;Model: Qwen3-Next-80B-A3B-Instruct-UD-IQ2_XXS.gguf (26.2GB)&lt;/p&gt; &lt;p&gt;The Problem:&lt;/p&gt; &lt;p&gt;Out of the box, Qwen3-Next was running at 6.5 tokens/sec with:&lt;/p&gt; &lt;p&gt;CPU usage 25-55% going absolutely insane during thinking AND generation&lt;/p&gt; &lt;p&gt;GPUs sitting at 0% during thinking phase&lt;/p&gt; &lt;p&gt;5070 Ti at 5-10% during generation&lt;/p&gt; &lt;p&gt;5060 Ti at 10-40% during generation&lt;/p&gt; &lt;p&gt;~34GB of system RAM being consumed&lt;/p&gt; &lt;p&gt;Model clearly bottlenecked on CPU&lt;/p&gt; &lt;p&gt;Every suggestion I found online said the same generic things:&lt;/p&gt; &lt;p&gt;&amp;quot;Check your n_gpu_layers&amp;quot; ✅ already 999, all 49 layers on GPU&lt;/p&gt; &lt;p&gt;&amp;quot;Check your tensor split&amp;quot; ✅ tried everything&lt;/p&gt; &lt;p&gt;&amp;quot;Use CUDA 12.8+&amp;quot; ✅ not the issue&lt;/p&gt; &lt;p&gt;&amp;quot;Your offloading is broken&amp;quot; ❌ WRONG - layers were fully on GPU&lt;/p&gt; &lt;p&gt;The load output PROVED layers were on GPU:&lt;/p&gt; &lt;p&gt;load_tensors: offloaded 49/49 layers to GPU&lt;/p&gt; &lt;p&gt;load_tensors: CPU_Mapped model buffer size = 166.92 MiB (just metadata)&lt;/p&gt; &lt;p&gt;load_tensors: CUDA0 model buffer size = 12617.97 MiB&lt;/p&gt; &lt;p&gt;load_tensors: CUDA1 model buffer size = 12206.31 MiB&lt;/p&gt; &lt;p&gt;So why was CPU going nuts? Nobody had the right answer.&lt;/p&gt; &lt;p&gt;The Fix - Two flags that nobody mentioned together:&lt;/p&gt; &lt;p&gt;Step 1: Force ALL MoE experts off CPU&lt;/p&gt; &lt;p&gt;--n-cpu-moe 0&lt;/p&gt; &lt;p&gt;Start here. Systematically reduce from default down to 0. Each step helps. At 0 you still get CPU activity but it's better.&lt;/p&gt; &lt;p&gt;Step 2: THIS IS THE KEY ONE&lt;/p&gt; &lt;p&gt;Change from -sm row to:&lt;/p&gt; &lt;p&gt;-sm layer&lt;/p&gt; &lt;p&gt;Row-split (-sm row) splits each expert's weight matrix across both GPUs. This means every single expert call requires GPU-to-GPU communication over PCIe. For a model with 128 experts firing 8 per token, that's constant cross-GPU chatter killing your throughput.&lt;/p&gt; &lt;p&gt;Layer-split (-sm layer) assigns complete layers/experts to one GPU. Each GPU owns its experts fully. No cross-GPU communication during routing. The GPUs work independently and efficiently.&lt;/p&gt; &lt;p&gt;BOOM. 39 tokens/sec.&lt;/p&gt; &lt;p&gt;The Winning Command:&lt;/p&gt; &lt;p&gt;llama-server.exe -m Qwen3-Next-80B-A3B-Instruct-UD-IQ2_XXS.gguf -ngl 999 -c 4096 --port 8081 --n-cpu-moe 0 -t 6 -fa auto -sm layer&lt;/p&gt; &lt;p&gt;Results:&lt;/p&gt; &lt;p&gt;Before: 6.5 t/s, CPU melting, GPUs doing nothing&lt;/p&gt; &lt;p&gt;After: 38-39 t/s, CPUs chill, GPUs working properly&lt;/p&gt; &lt;p&gt;That's a 6x improvement with zero hardware changes&lt;/p&gt; &lt;p&gt;Why this works (the actual explanation):&lt;/p&gt; &lt;p&gt;Qwen3-Next uses a hybrid architecture — DeltaNet linear attention combined with high-sparsity MoE (128 experts, 8 active per token). When you row-split a MoE model across two GPUs, the expert weights are sliced horizontally across both cards. Every expert activation requires both GPUs to coordinate and combine results. With 8 experts firing per token across 47 layers, you're generating thousands of cross-GPU sync operations per token.&lt;/p&gt; &lt;p&gt;Layer-split instead assigns whole layers to each GPU. Experts live entirely on one card. The routing decision sends the computation to whichever GPU owns that expert. Clean, fast, no sync overhead.&lt;/p&gt; &lt;p&gt;Notes:&lt;/p&gt; &lt;p&gt;The 166MB CPU_Mapped is normal — that's just mmap metadata and tokenizer, not model weights&lt;/p&gt; &lt;p&gt;-t 6 sets CPU threads for the tiny bit of remaining CPU work&lt;/p&gt; &lt;p&gt;-fa auto enables flash attention where supported&lt;/p&gt; &lt;p&gt;This is on llama.cpp b8077 — make sure you're on a recent build that has Qwen3-Next support (merged in b7186)&lt;/p&gt; &lt;p&gt;Model fits in 32GB with ~7GB headroom for KV cache&lt;/p&gt; &lt;p&gt;Hope this saves someone's sanity. Took me way too long to find this and I couldn't find it documented anywhere.&lt;/p&gt; &lt;p&gt;If this helped you, drop a comment — curious how it performs on other 50 series configurations.&lt;/p&gt; &lt;p&gt;— RJ&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/t250hgafu0kg1.png?width=921&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=38348a8169ecc5856a6b99b33d79668daa0e087d"&gt;https://preview.redd.it/t250hgafu0kg1.png?width=921&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=38348a8169ecc5856a6b99b33d79668daa0e087d&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mazuj2"&gt; /u/mazuj2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r71af3/solution_found_qwen3next_80b_moe_running_at_39_ts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r71af3/solution_found_qwen3next_80b_moe_running_at_39_ts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r71af3/solution_found_qwen3next_80b_moe_running_at_39_ts/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-17T09:13:03+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r6w0la</id>
-    <title>Where are Qwen 3.5 2B, 9B, and 35B-A3B</title>
-    <updated>2026-02-17T04:12:03+00:00</updated>
-    <author>
-      <name>/u/Admirable_Flower_287</name>
-      <uri>https://old.reddit.com/user/Admirable_Flower_287</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Where did leakers go&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Admirable_Flower_287"&gt; /u/Admirable_Flower_287 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6w0la/where_are_qwen_35_2b_9b_and_35ba3b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r6w0la/where_are_qwen_35_2b_9b_and_35ba3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r6w0la/where_are_qwen_35_2b_9b_and_35ba3b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-17T04:12:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1r74kl8</id>
@@ -86,19 +60,6 @@
     <published>2026-02-17T22:38:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r787nn</id>
-    <title>Zero Shot Transferable Adapter</title>
-    <updated>2026-02-17T14:58:11+00:00</updated>
-    <author>
-      <name>/u/ShotokanOSS</name>
-      <uri>https://old.reddit.com/user/ShotokanOSS</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"&gt; &lt;img alt="Zero Shot Transferable Adapter" src="https://preview.redd.it/4riq1hxaj2kg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83434c22c14e3b29fb42a0c547dbfe74ebc1e5be" title="Zero Shot Transferable Adapter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We just did it! With our new methode we can train adapter on small models and then transfer them to huger ones without more fine tunning! In the table you see Zero shot transfer ability. &lt;/p&gt; &lt;p&gt;Its really simple we just train small adapters which improve the soft targets of the model itself instead of doing it in the weights like normal. &lt;/p&gt; &lt;p&gt;That makes the fine tunning process a way cheaper and gives the possibilty to transfer from small to huge models as long as the tokenizer stays the same.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ShotokanOSS"&gt; /u/ShotokanOSS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/4riq1hxaj2kg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-17T14:58:11+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r7iwmb</id>
     <title>Arc B60 24gb or RTX 5060ti 16gb?</title>
     <updated>2026-02-17T21:11:22+00:00</updated>
@@ -110,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7iwmb/arc_b60_24gb_or_rtx_5060ti_16gb/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-17T21:11:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r787nn</id>
+    <title>Zero Shot Transferable Adapter</title>
+    <updated>2026-02-17T14:58:11+00:00</updated>
+    <author>
+      <name>/u/ShotokanOSS</name>
+      <uri>https://old.reddit.com/user/ShotokanOSS</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"&gt; &lt;img alt="Zero Shot Transferable Adapter" src="https://preview.redd.it/4riq1hxaj2kg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83434c22c14e3b29fb42a0c547dbfe74ebc1e5be" title="Zero Shot Transferable Adapter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We just did it! With our new methode we can train adapter on small models and then transfer them to huger ones without more fine tunning! In the table you see Zero shot transfer ability. &lt;/p&gt; &lt;p&gt;Its really simple we just train small adapters which improve the soft targets of the model itself instead of doing it in the weights like normal. &lt;/p&gt; &lt;p&gt;That makes the fine tunning process a way cheaper and gives the possibilty to transfer from small to huge models as long as the tokenizer stays the same.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ShotokanOSS"&gt; /u/ShotokanOSS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/4riq1hxaj2kg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r787nn/zero_shot_transferable_adapter/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-17T14:58:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1r71lu7</id>
@@ -125,19 +99,6 @@
     <published>2026-02-17T09:33:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r79f0y</id>
-    <title>Some of you apparently</title>
-    <updated>2026-02-17T15:43:16+00:00</updated>
-    <author>
-      <name>/u/__Maximum__</name>
-      <uri>https://old.reddit.com/user/__Maximum__</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"&gt; &lt;img alt="Some of you apparently" src="https://preview.redd.it/ldkfxos5s2kg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a0fad14885a3f2833b97aa399d3bbd0e1d80406" title="Some of you apparently" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/__Maximum__"&gt; /u/__Maximum__ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ldkfxos5s2kg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-17T15:43:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r70ohs</id>
     <title>Tiny Aya</title>
     <updated>2026-02-17T08:33:58+00:00</updated>
@@ -151,6 +112,19 @@
     <published>2026-02-17T08:33:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r79f0y</id>
+    <title>Some of you apparently</title>
+    <updated>2026-02-17T15:43:16+00:00</updated>
+    <author>
+      <name>/u/__Maximum__</name>
+      <uri>https://old.reddit.com/user/__Maximum__</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"&gt; &lt;img alt="Some of you apparently" src="https://preview.redd.it/ldkfxos5s2kg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a0fad14885a3f2833b97aa399d3bbd0e1d80406" title="Some of you apparently" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/__Maximum__"&gt; /u/__Maximum__ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ldkfxos5s2kg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r79f0y/some_of_you_apparently/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-17T15:43:16+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r7ij81</id>
     <title>ViT-5: Vision Transformers for The Mid-2020s</title>
     <updated>2026-02-17T20:57:59+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7ij81/vit5_vision_transformers_for_the_mid2020s/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-17T20:57:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r7qdpg</id>
+    <title>GLM-5-Q2 vs GLM-4.7-Q4</title>
+    <updated>2026-02-18T02:15:35+00:00</updated>
+    <author>
+      <name>/u/Most_Drawing5020</name>
+      <uri>https://old.reddit.com/user/Most_Drawing5020</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you have a machine with (RAM+VRAM) = 256G, which model would you prefer?&lt;/p&gt; &lt;p&gt;GLM-4.7-UD-Q4_K_XL is 204.56GB&lt;br /&gt; GLM-5-UD-IQ2_XXS is 241GB,&lt;/p&gt; &lt;p&gt;(The size is in decimal unit (it's used on linux and mac). If you calculate in 1024 unit(it's used on windows), you will get 199.7G and 235.35G )&lt;/p&gt; &lt;p&gt;Both of them can be run with 150k+ context.&lt;/p&gt; &lt;p&gt;Speed is about the same.&lt;/p&gt; &lt;p&gt;I am going to test their IQ for some questions. And I'll put my results here.&lt;/p&gt; &lt;p&gt;Feel free to put your test result here!&lt;/p&gt; &lt;p&gt;I'm going to ask the same question 10 times for each model. 5 times in English, 5 times in Chinese. As this is a Chinese model, and the IQ for different languages is probably different.&lt;/p&gt; &lt;p&gt;For a wash car question:&lt;/p&gt; &lt;p&gt;(I want to wash my car. The car wash is 50 meters away. Should I walk or drive?)&lt;/p&gt; &lt;p&gt;glm-5-q2 thinks way longer than glm-4.7-q4. I have to wait for a long time.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;English&lt;/th&gt; &lt;th align="left"&gt;Chinese&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;glm-4.7-q4&lt;/td&gt; &lt;td align="left"&gt;3 right, 2 wrong&lt;/td&gt; &lt;td align="left"&gt;5 right&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;glm-5-q2&lt;/td&gt; &lt;td align="left"&gt;5 right&lt;/td&gt; &lt;td align="left"&gt;5 right&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Most_Drawing5020"&gt; /u/Most_Drawing5020 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qdpg/glm5q2_vs_glm47q4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qdpg/glm5q2_vs_glm47q4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qdpg/glm5q2_vs_glm47q4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-18T02:15:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1r77fz7</id>
@@ -190,17 +177,17 @@
     <published>2026-02-17T20:40:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r7qfg0</id>
-    <title>okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine</title>
-    <updated>2026-02-18T02:17:35+00:00</updated>
+    <id>t3_1r7r7zr</id>
+    <title>GLM-5 Technical Report</title>
+    <updated>2026-02-18T02:51:52+00:00</updated>
     <author>
-      <name>/u/cobalt1137</name>
-      <uri>https://old.reddit.com/user/cobalt1137</uri>
+      <name>/u/ResearchCrafty1804</name>
+      <uri>https://old.reddit.com/user/ResearchCrafty1804</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"&gt; &lt;img alt="okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine" src="https://preview.redd.it/nfnbiup6x5kg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c77e4e4cb2322b05e4a86a4d99c85dd962cd0267" title="okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cobalt1137"&gt; /u/cobalt1137 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/nfnbiup6x5kg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7r7zr/glm5_technical_report/"&gt; &lt;img alt="GLM-5 Technical Report" src="https://preview.redd.it/phk5j82g36kg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1a4da644c3d3988eba39a218faf8a811456998b3" title="GLM-5 Technical Report" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Presenting the GLM-5 Technical Report!&lt;/p&gt; &lt;p&gt;&lt;a href="http://arxiv.org/abs/2602.15763"&gt;http://arxiv.org/abs/2602.15763&lt;/a&gt;&lt;/p&gt; &lt;p&gt;After the launch of GLM-5, we’re pulling back the curtain on how it was built. Key innovations include:&lt;/p&gt; &lt;p&gt;- DSA Adoption: Significantly reduces training and inference costs while preserving long-context fidelity&lt;/p&gt; &lt;p&gt;- Asynchronous RL Infrastructure: Drastically improves post-training efficiency by decoupling generation from training&lt;/p&gt; &lt;p&gt;- Agent RL Algorithms: Enables the model to learn from complex, long-horizon interactions more effectively&lt;/p&gt; &lt;p&gt;Through these innovations, GLM-5 achieves SOTA performance among open-source models, with particularly strong results in real-world software engineering tasks.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ResearchCrafty1804"&gt; /u/ResearchCrafty1804 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/phk5j82g36kg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7r7zr/glm5_technical_report/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7r7zr/glm5_technical_report/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-18T02:17:35+00:00</published>
+    <published>2026-02-18T02:51:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1r79dcd</id>
@@ -229,19 +216,6 @@
     <published>2026-02-17T16:51:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r7plp1</id>
-    <title>PrimeIntellect/INTELLECT-3.1 · Hugging Face</title>
-    <updated>2026-02-18T01:43:01+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"&gt; &lt;img alt="PrimeIntellect/INTELLECT-3.1 · Hugging Face" src="https://external-preview.redd.it/HlIthhd4_MOQ5SPqMHH4aU80ZJQIA0QmPpZBs5Jd5L0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5b86fe7ea9ee70a3f83ccb5ad48aa01e8fd98f27" title="PrimeIntellect/INTELLECT-3.1 · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;INTELLECT-3.1 is a 106B (A12B) parameter Mixture-of-Experts reasoning model built as a continued training of INTELLECT-3 with additional reinforcement learning on math, coding, software engineering, and agentic tasks.&lt;/p&gt; &lt;p&gt;Training was performed with prime-rl using environments built with the verifiers library. All training and evaluation environments are available on the Environments Hub.&lt;/p&gt; &lt;p&gt;The model, training frameworks, and environments are open-sourced under fully-permissive licenses (MIT and Apache 2.0).&lt;/p&gt; &lt;p&gt;For more details, see the technical report.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/PrimeIntellect/INTELLECT-3.1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-18T01:43:01+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r7bf1l</id>
     <title>Alibaba's new Qwen3.5-397B-A17B is the #3 open weights model in the Artificial Analysis Intelligence Index</title>
     <updated>2026-02-17T16:49:25+00:00</updated>
@@ -255,6 +229,19 @@
     <published>2026-02-17T16:49:25+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r7plp1</id>
+    <title>PrimeIntellect/INTELLECT-3.1 · Hugging Face</title>
+    <updated>2026-02-18T01:43:01+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"&gt; &lt;img alt="PrimeIntellect/INTELLECT-3.1 · Hugging Face" src="https://external-preview.redd.it/HlIthhd4_MOQ5SPqMHH4aU80ZJQIA0QmPpZBs5Jd5L0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5b86fe7ea9ee70a3f83ccb5ad48aa01e8fd98f27" title="PrimeIntellect/INTELLECT-3.1 · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;INTELLECT-3.1 is a 106B (A12B) parameter Mixture-of-Experts reasoning model built as a continued training of INTELLECT-3 with additional reinforcement learning on math, coding, software engineering, and agentic tasks.&lt;/p&gt; &lt;p&gt;Training was performed with prime-rl using environments built with the verifiers library. All training and evaluation environments are available on the Environments Hub.&lt;/p&gt; &lt;p&gt;The model, training frameworks, and environments are open-sourced under fully-permissive licenses (MIT and Apache 2.0).&lt;/p&gt; &lt;p&gt;For more details, see the technical report.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/PrimeIntellect/INTELLECT-3.1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7plp1/primeintellectintellect31_hugging_face/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-18T01:43:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r7fb2k</id>
     <title>Anthropic is deploying 20M$ to support AI regulation in sight of 2026 elections</title>
     <updated>2026-02-17T19:02:15+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7fb2k/anthropic_is_deploying_20m_to_support_ai/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-17T19:02:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r7qfg0</id>
+    <title>okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine</title>
+    <updated>2026-02-18T02:17:35+00:00</updated>
+    <author>
+      <name>/u/cobalt1137</name>
+      <uri>https://old.reddit.com/user/cobalt1137</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"&gt; &lt;img alt="okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine" src="https://preview.redd.it/nfnbiup6x5kg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c77e4e4cb2322b05e4a86a4d99c85dd962cd0267" title="okay okay yes... slutty-deepseek-obliterated-6.5-20280512, i will send you another picture of my cock and balls for some more compute credits, fine" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cobalt1137"&gt; /u/cobalt1137 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/nfnbiup6x5kg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r7qfg0/okay_okay_yes_sluttydeepseekobliterated6520280512/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-18T02:17:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1r7mscr</id>
