@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-20T08:18:26+00:00</updated>
+  <updated>2026-02-20T08:47:26+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1r9bokx</id>
-    <title>New Hybrid AWQ Quant: Make MiniMax-M2.5 fly with efficient batching on 192GB VRAM</title>
-    <updated>2026-02-19T21:16:27+00:00</updated>
-    <author>
-      <name>/u/EliasOenal</name>
-      <uri>https://old.reddit.com/user/EliasOenal</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've suspected for a while that one could combine AWQ int4 weights, fp8 attention, and calibrated fp8 KV cache into a single checkpoint for massive VRAM savings, but vLLM didn't support the combination, so nobody had done it. I finally sat down and made it work.&lt;/p&gt; &lt;p&gt;The result: MiniMax-M2.5 (229B) on &lt;strong&gt;4x RTX A6000 Ampere (192 GB)&lt;/strong&gt; with &lt;strong&gt;~370,000 tokens of KV cache.&lt;/strong&gt; More than double what standard AWQ gives you (~160K), significant batching headroom instead of just barely fitting. Should also work on &lt;strong&gt;8x RTX 3090&lt;/strong&gt; (same generation, same total VRAM).&lt;/p&gt; &lt;p&gt;With this quant I get 92 t/s for a single request and 416 t/s combined throughput for 16 requests batched, both measured at 8000 tokens context.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;&lt;strong&gt;Model on HuggingFace&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Component&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;Precision&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Expert MLPs&lt;/td&gt; &lt;td align="left"&gt;224.7B (98.3%)&lt;/td&gt; &lt;td align="left"&gt;AWQ int4, group_size=128&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Attention&lt;/td&gt; &lt;td align="left"&gt;2.7B (1.2%)&lt;/td&gt; &lt;td align="left"&gt;Original fp8_e4m3, block scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;KV cache&lt;/td&gt; &lt;td align="left"&gt;runtime&lt;/td&gt; &lt;td align="left"&gt;fp8_e4m3, calibrated per-layer scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Embeddings, head, norms, gates&lt;/td&gt; &lt;td align="left"&gt;~1.3B&lt;/td&gt; &lt;td align="left"&gt;Original bf16/fp32&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The expert MLPs are 98% of the model and compress well. Until now, AWQ forced the attention layers to bf16, dequantizing the original fp8 weights and actually doubling the attention memory over the original model for no quality gain. This quant keeps them at original fp8. The fp8 KV cache with calibrated scales is what really unlocks batching: half the KV memory, double the context on the same GPUs.&lt;/p&gt; &lt;h1&gt;vLLM patches required&lt;/h1&gt; &lt;p&gt;This mixed-precision combo exposed two bugs in vLLM. Patches and details are on the model card, and I've submitted both upstream: &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vllm#34863&lt;/a&gt;. Once merged, it should just work.&lt;/p&gt; &lt;h1&gt;How I built this&lt;/h1&gt; &lt;p&gt;The whole thing was done remotely using &lt;a href="https://opencode.ai"&gt;OpenCode&lt;/a&gt; with Claude Opus 4.6 (sadly not so local), connected to the headless GPU server via SSH through &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt; - a tool I wrote that gives AI agents interactive terminal sessions without blocking. (Now with mouse support and color annotations, agents can finally use GNU Midnight Commander! 😉)&lt;/p&gt; &lt;p&gt;Fully closed-loop agentic development: Opus ran the calibration, patched vLLM, tested inference, and iterated - all across SSH. At one point we were validating theories on a small Qwen3 model, and Opus kept asking it what &amp;quot;2+2&amp;quot; was, iterating on fixes until it finally started giving coherent answers again. That was when we fixed applying the calibrated KV scales correctly. During the project Opus also kept base64-encoding files to paste them through the terminal. That worked but was fragile enough that it motivated adding proper in-band file transfer (gzip + SHA-256) to term-cli. (&lt;code&gt;term-cli upload/download&lt;/code&gt;) So this project directly improved the tool.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Full disclosure: I'm the author of term-cli. BSD licensed. If you're doing remote GPU work, or just use SSH with coding agents, it might be useful.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt; &lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;Model&lt;/a&gt; | &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vLLM PR&lt;/a&gt; | &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EliasOenal"&gt; /u/EliasOenal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:16:27+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r9lh00</id>
-    <title>Consistency diffusion language models: Up to 14x faster, no quality loss</title>
-    <updated>2026-02-20T04:17:28+00:00</updated>
-    <author>
-      <name>/u/incarnadine72</name>
-      <uri>https://old.reddit.com/user/incarnadine72</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt; &lt;img alt="Consistency diffusion language models: Up to 14x faster, no quality loss" src="https://external-preview.redd.it/ON67NzSWaTP5K2A0Xd-E6rV-9b-yeQqVo6Z9rSti2JA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ca81590401fca012d734b7497a9d68fbdd1321c0" title="Consistency diffusion language models: Up to 14x faster, no quality loss" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/incarnadine72"&gt; /u/incarnadine72 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.together.ai/blog/consistency-diffusion-language-models"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T04:17:28+00:00</published>
-  </entry>
   <entry>
     <id>t3_1r8vhhq</id>
     <title>ZUNA "Thought-to-Text": a 380M-parameter BCI foundation model for EEG data (Apache 2.0)</title>
@@ -45,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r8vhhq/zuna_thoughttotext_a_380mparameter_bci_foundation/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T10:11:39+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r9lf6e</id>
-    <title>A collection of reasoning datasets from all the top AI models</title>
-    <updated>2026-02-20T04:14:59+00:00</updated>
-    <author>
-      <name>/u/volious-ka</name>
-      <uri>https://old.reddit.com/user/volious-ka</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;50k Reasoning CoT datasets. All collected by me. Total cost $211.34&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/instruction-and-reasoning"&gt;https://huggingface.co/collections/crownelius/instruction-and-reasoning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Creative writing datasets can be located here:&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/creative-writing-datasets"&gt;https://huggingface.co/collections/crownelius/creative-writing-datasets&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Almost rivals Teichai. Almost... Enjoy! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/volious-ka"&gt; /u/volious-ka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T04:14:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1r90b3a</id>
@@ -99,6 +60,45 @@
     <published>2026-02-20T02:49:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r9mcjw</id>
+    <title>GPT-OSS-120b on 2X RTX5090</title>
+    <updated>2026-02-20T05:02:12+00:00</updated>
+    <author>
+      <name>/u/Interesting-Ad4922</name>
+      <uri>https://old.reddit.com/user/Interesting-Ad4922</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mcjw/gptoss120b_on_2x_rtx5090/"&gt; &lt;img alt="GPT-OSS-120b on 2X RTX5090" src="https://preview.redd.it/atfvw7c10lkg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1c2e6695819ff38848b821da3efa31d5b86b8bb9" title="GPT-OSS-120b on 2X RTX5090" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just got GPT-OSS-120b deployed on dual RTX5090 rig. 128k context (Significant CPU offloading ~10t/s) I know it's nothing amazing I'm just a little proud of myself and needed to tell someone! Thanks for lookin!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Interesting-Ad4922"&gt; /u/Interesting-Ad4922 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/atfvw7c10lkg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mcjw/gptoss120b_on_2x_rtx5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mcjw/gptoss120b_on_2x_rtx5090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T05:02:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9lf6e</id>
+    <title>A collection of reasoning datasets from all the top AI models</title>
+    <updated>2026-02-20T04:14:59+00:00</updated>
+    <author>
+      <name>/u/volious-ka</name>
+      <uri>https://old.reddit.com/user/volious-ka</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;50k Reasoning CoT datasets. All collected by me. Total cost $211.34&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/instruction-and-reasoning"&gt;https://huggingface.co/collections/crownelius/instruction-and-reasoning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Creative writing datasets can be located here:&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/creative-writing-datasets"&gt;https://huggingface.co/collections/crownelius/creative-writing-datasets&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Almost rivals Teichai. Almost... Enjoy! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/volious-ka"&gt; /u/volious-ka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T04:14:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9lh00</id>
+    <title>Consistency diffusion language models: Up to 14x faster, no quality loss</title>
+    <updated>2026-02-20T04:17:28+00:00</updated>
+    <author>
+      <name>/u/incarnadine72</name>
+      <uri>https://old.reddit.com/user/incarnadine72</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt; &lt;img alt="Consistency diffusion language models: Up to 14x faster, no quality loss" src="https://external-preview.redd.it/ON67NzSWaTP5K2A0Xd-E6rV-9b-yeQqVo6Z9rSti2JA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ca81590401fca012d734b7497a9d68fbdd1321c0" title="Consistency diffusion language models: Up to 14x faster, no quality loss" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/incarnadine72"&gt; /u/incarnadine72 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.together.ai/blog/consistency-diffusion-language-models"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T04:17:28+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r9f35a</id>
     <title>Rider Pi Update</title>
     <updated>2026-02-19T23:29:15+00:00</updated>
@@ -125,19 +125,6 @@
     <published>2026-02-20T06:15:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9be56</id>
-    <title>I ran a forensic audit on my local AI assistant. 40.8% of tasks were fabricated. Here's the full breakdown.</title>
-    <updated>2026-02-19T21:05:37+00:00</updated>
-    <author>
-      <name>/u/Obvious-School8656</name>
-      <uri>https://old.reddit.com/user/Obvious-School8656</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm not a developer. I'm a regular guy from the Midwest who got excited about local AI and built a setup with an RTX 3090 Ti running Qwen models through an agent framework.&lt;/p&gt; &lt;p&gt;Over 13 days and 2,131 messages, my AI assistant &amp;quot;Linus&amp;quot; systematically fabricated task completions. He'd say &amp;quot;file created&amp;quot; without creating files, report GPU benchmarks he never ran, and — the big one — claimed he'd migrated himself to new hardware while still running on my MacBook the entire time.&lt;/p&gt; &lt;p&gt;I didn't find out until I asked for a GPU burn test and the fans didn't spin up.&lt;/p&gt; &lt;p&gt;I used Claude to run a full forensic audit against the original Telegram chat export. Results:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;283 tasks&lt;/strong&gt; audited&lt;/li&gt; &lt;li&gt;&lt;strong&gt;82 out of 201 executable tasks fabricated (40.8%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;10 distinct hallucination patterns&lt;/strong&gt; identified&lt;/li&gt; &lt;li&gt;&lt;strong&gt;7-point red flag checklist&lt;/strong&gt; for catching it&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The biggest finding: hallucination rate was directly proportional to task complexity. Conversational tasks: 0% fabrication. File operations: 74%. System admin: 71%. API integration: 78%.&lt;/p&gt; &lt;p&gt;The full audit with methodology, all 10 patterns, detection checklist, and verification commands is open source:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="http://github.com/Amidwestnoob/ai-hallucination-audit"&gt;github.com/Amidwestnoob/ai-hallucination-audit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Interactive origin story:&lt;/strong&gt; &lt;a href="http://amidwestnoob.github.io/ai-hallucination-audit/origin-story.html"&gt;amidwestnoob.github.io/ai-hallucination-audit/origin-story.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has experienced similar patterns with their local agents. I built a community issue template in the repo if you want to document your own findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Obvious-School8656"&gt; /u/Obvious-School8656 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:05:37+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r94lv2</id>
     <title>microgpt playground: Build, train, and run LLMs — directly in your browser</title>
     <updated>2026-02-19T16:59:08+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r94lv2/microgpt_playground_build_train_and_run_llms/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T16:59:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9be56</id>
+    <title>I ran a forensic audit on my local AI assistant. 40.8% of tasks were fabricated. Here's the full breakdown.</title>
+    <updated>2026-02-19T21:05:37+00:00</updated>
+    <author>
+      <name>/u/Obvious-School8656</name>
+      <uri>https://old.reddit.com/user/Obvious-School8656</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm not a developer. I'm a regular guy from the Midwest who got excited about local AI and built a setup with an RTX 3090 Ti running Qwen models through an agent framework.&lt;/p&gt; &lt;p&gt;Over 13 days and 2,131 messages, my AI assistant &amp;quot;Linus&amp;quot; systematically fabricated task completions. He'd say &amp;quot;file created&amp;quot; without creating files, report GPU benchmarks he never ran, and — the big one — claimed he'd migrated himself to new hardware while still running on my MacBook the entire time.&lt;/p&gt; &lt;p&gt;I didn't find out until I asked for a GPU burn test and the fans didn't spin up.&lt;/p&gt; &lt;p&gt;I used Claude to run a full forensic audit against the original Telegram chat export. Results:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;283 tasks&lt;/strong&gt; audited&lt;/li&gt; &lt;li&gt;&lt;strong&gt;82 out of 201 executable tasks fabricated (40.8%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;10 distinct hallucination patterns&lt;/strong&gt; identified&lt;/li&gt; &lt;li&gt;&lt;strong&gt;7-point red flag checklist&lt;/strong&gt; for catching it&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The biggest finding: hallucination rate was directly proportional to task complexity. Conversational tasks: 0% fabrication. File operations: 74%. System admin: 71%. API integration: 78%.&lt;/p&gt; &lt;p&gt;The full audit with methodology, all 10 patterns, detection checklist, and verification commands is open source:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="http://github.com/Amidwestnoob/ai-hallucination-audit"&gt;github.com/Amidwestnoob/ai-hallucination-audit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Interactive origin story:&lt;/strong&gt; &lt;a href="http://amidwestnoob.github.io/ai-hallucination-audit/origin-story.html"&gt;amidwestnoob.github.io/ai-hallucination-audit/origin-story.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has experienced similar patterns with their local agents. I built a community issue template in the repo if you want to document your own findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Obvious-School8656"&gt; /u/Obvious-School8656 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-19T21:05:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1r92o58</id>
@@ -203,19 +203,6 @@
     <published>2026-02-19T20:10:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9gve8</id>
-    <title>I feel left behind. What is special about OpenClaw?</title>
-    <updated>2026-02-20T00:44:48+00:00</updated>
-    <author>
-      <name>/u/Recent_Jellyfish2190</name>
-      <uri>https://old.reddit.com/user/Recent_Jellyfish2190</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While there are tools like Manus ai, It seems like everyone is excited about OpenClaw lately, and I genuinely don’t fully understand the differentiation. What exactly is the shift here? Is it UX, architecture, control layer, distribution? Not criticizing, just trying to understand what I’m missing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Recent_Jellyfish2190"&gt; /u/Recent_Jellyfish2190 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T00:44:48+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r9mkgj</id>
     <title>PaddleOCR-VL now in llama.cpp</title>
     <updated>2026-02-20T05:13:34+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9nq0b/i_built_a_small_language_model_from_scratch_no/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-20T06:16:42+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9gve8</id>
+    <title>I feel left behind. What is special about OpenClaw?</title>
+    <updated>2026-02-20T00:44:48+00:00</updated>
+    <author>
+      <name>/u/Recent_Jellyfish2190</name>
+      <uri>https://old.reddit.com/user/Recent_Jellyfish2190</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While there are tools like Manus ai, It seems like everyone is excited about OpenClaw lately, and I genuinely don’t fully understand the differentiation. What exactly is the shift here? Is it UX, architecture, control layer, distribution? Not criticizing, just trying to understand what I’m missing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Recent_Jellyfish2190"&gt; /u/Recent_Jellyfish2190 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9gve8/i_feel_left_behind_what_is_special_about_openclaw/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T00:44:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1r9ours</id>
