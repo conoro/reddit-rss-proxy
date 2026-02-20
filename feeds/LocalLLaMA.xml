@@ -2,49 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-20T05:52:45+00:00</updated>
+  <updated>2026-02-20T06:24:54+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1r9kxum</id>
-    <title>Is there a way to speed up prompt processing with some layers on CPU with qwen-3-coder-next or similar MoEs?</title>
-    <updated>2026-02-20T03:51:42+00:00</updated>
+    <id>t3_1r9ihg7</id>
+    <title>A trick to slightly improve the response accuracy of small local models.</title>
+    <updated>2026-02-20T01:57:25+00:00</updated>
     <author>
-      <name>/u/Borkato</name>
-      <uri>https://old.reddit.com/user/Borkato</uri>
+      <name>/u/staltux</name>
+      <uri>https://old.reddit.com/user/staltux</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I feel like I tried every combination of n cpu MoE and such. I was running Qwen3-Coder-Next-MXFP4_MOE.gguf. It was running at 32T/s but the prompt processing was ridiculously slow, like literally a minute for a simple prompt. Is that just how it is or am I missing something?&lt;/p&gt; &lt;p&gt;I have 30GB VRAM and 43GB RAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Borkato"&gt; /u/Borkato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It's a pretty silly tip and many of you probably already know the reason behind this but it helped me so I thought it was worth sharing.&lt;/p&gt; &lt;p&gt;I was asking the gemma 3 12b q6_k model if the command to limit the GPU's TDP remains active during GPU passthrough, and the model constantly gave me the wrong answer via halucination. So I asked the gemini to give me a prompt to try simulating thinking mode to try and improve this, and it actually worked. He began to answer correctly with &amp;quot;certainly&amp;quot; in most cases and correctly by saying &amp;quot;probably&amp;quot; in a minority of cases, but never answering incorrectly as before. This may not always solve the problem, but it's worth taking a look.&lt;/p&gt; &lt;p&gt;the gemini response:&lt;/p&gt; &lt;p&gt;Simulating &amp;quot;Thinking Mode&amp;quot; with Prompting&lt;/p&gt; &lt;p&gt;Since smaller models (like Gemma 3 12B or Llama 8B) don't have a native &amp;quot;thinking&amp;quot; architecture like the &amp;quot;o1&amp;quot; or &amp;quot;DeepSeek-R1&amp;quot; models, the trick is to force the model to fill its context buffer with logic before it reaches a conclusion. This forces the next-token prediction to be based on the reasoning it just generated, rather than jumping to a &amp;quot;hallucinated&amp;quot; conclusion.&lt;/p&gt; &lt;p&gt;The &amp;quot;Analytical Thinking&amp;quot; System Prompt&lt;/p&gt; &lt;p&gt;You can paste this into your System Prompt field in KoboldCPP:&lt;/p&gt; &lt;p&gt;&amp;quot;You are an AI assistant focused on technical precision and rigorous logic. Before providing any final answer, you must perform a mandatory internal reasoning process.&lt;/p&gt; &lt;p&gt;Strictly follow this format:&lt;/p&gt; &lt;p&gt;[ANALYTICAL THOUGHT]&lt;/p&gt; &lt;p&gt;Decomposition: Break the question down into smaller, technical components.&lt;/p&gt; &lt;p&gt;Fact-Checking: Retrieve known technical facts and check for contradictions (e.g., driver behavior vs. hardware state).&lt;/p&gt; &lt;p&gt;Uncertainty Assessment: Identify points where you might be hallucinating or where the information is ambiguous. If you are unsure, admit it.&lt;/p&gt; &lt;p&gt;Refinement: Correct your initial logic if you find flaws during this process.&lt;/p&gt; &lt;p&gt;[FINAL RESPONSE]&lt;/p&gt; &lt;p&gt;(Provide your direct, concise answer here, validated by the reasoning above.)&lt;/p&gt; &lt;p&gt;Begin now with [ANALYTICAL THOUGHT].&amp;quot;&lt;/p&gt; &lt;p&gt;Why this works&lt;/p&gt; &lt;p&gt;Context Loading: LLMs predict the next token based on previous ones. If a model starts with &amp;quot;Yes, it interferes...&amp;quot;, it feels &amp;quot;forced&amp;quot; to justify that statement to remain coherent. If it writes the reasoning first, the final answer is built upon the logic tokens it just generated.&lt;/p&gt; &lt;p&gt;Error Trapping: By forcing a &amp;quot;Fact-Checking&amp;quot; and &amp;quot;Uncertainty&amp;quot; section, you trigger parts of the model's training associated with warnings and documentation, which overrides the impulse to be &amp;quot;too helpful&amp;quot; (which often leads to lying).&lt;/p&gt; &lt;p&gt;Layered Processing: It separates &amp;quot;intuition&amp;quot; (fast generation) from &amp;quot;verification&amp;quot; (systematic processing).&lt;/p&gt; &lt;p&gt;KoboldCPP Configuration Tips:&lt;/p&gt; &lt;p&gt;Temperature: Keep it low, between 0.1 and 0.4. Small models need &amp;quot;tight rails&amp;quot; to prevent their &amp;quot;thoughts&amp;quot; from wandering off-topic.&lt;/p&gt; &lt;p&gt;Min-P: If available, set it to 0.05. This is much better than Top-P for technical tasks as it prunes the low-probability tokens that usually cause hallucinations.&lt;/p&gt; &lt;p&gt;Manual Injection: If the model tries to skip the thinking process, you can start the response for it by typing [ANALYTICAL THOUGHT] in the input field. This forces the model to continue from that specific header.&lt;/p&gt; &lt;p&gt;Pro Tip: If you see the model hallucinating even inside the [ANALYTICAL THOUGHT] block, it’s a sign the model is too small for that specific task. At that point, you might need to provide a snippet of documentation (RAG) for it to &amp;quot;read&amp;quot; while it thinks.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/staltux"&gt; /u/staltux &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ihg7/a_trick_to_slightly_improve_the_response_accuracy/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ihg7/a_trick_to_slightly_improve_the_response_accuracy/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ihg7/a_trick_to_slightly_improve_the_response_accuracy/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T03:51:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r9lf6e</id>
-    <title>A collection of reasoning datasets from all the top AI models</title>
-    <updated>2026-02-20T04:14:59+00:00</updated>
-    <author>
-      <name>/u/volious-ka</name>
-      <uri>https://old.reddit.com/user/volious-ka</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;50k Reasoning CoT datasets. All collected by me. Total cost $211.34&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/instruction-and-reasoning"&gt;https://huggingface.co/collections/crownelius/instruction-and-reasoning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Creative writing datasets can be located here:&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/creative-writing-datasets"&gt;https://huggingface.co/collections/crownelius/creative-writing-datasets&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Almost rivals Teichai. Almost... Enjoy! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/volious-ka"&gt; /u/volious-ka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T04:14:59+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r9lh00</id>
-    <title>Consistency diffusion language models: Up to 14x faster, no quality loss</title>
-    <updated>2026-02-20T04:17:28+00:00</updated>
-    <author>
-      <name>/u/incarnadine72</name>
-      <uri>https://old.reddit.com/user/incarnadine72</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt; &lt;img alt="Consistency diffusion language models: Up to 14x faster, no quality loss" src="https://external-preview.redd.it/ON67NzSWaTP5K2A0Xd-E6rV-9b-yeQqVo6Z9rSti2JA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ca81590401fca012d734b7497a9d68fbdd1321c0" title="Consistency diffusion language models: Up to 14x faster, no quality loss" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/incarnadine72"&gt; /u/incarnadine72 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.together.ai/blog/consistency-diffusion-language-models"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lh00/consistency_diffusion_language_models_up_to_14x/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T04:17:28+00:00</published>
+    <published>2026-02-20T01:57:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1r8yvu5</id>
@@ -60,6 +34,19 @@
     <published>2026-02-19T13:14:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1r9kxum</id>
+    <title>Is there a way to speed up prompt processing with some layers on CPU with qwen-3-coder-next or similar MoEs?</title>
+    <updated>2026-02-20T03:51:42+00:00</updated>
+    <author>
+      <name>/u/Borkato</name>
+      <uri>https://old.reddit.com/user/Borkato</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I feel like I tried every combination of n cpu MoE and such. I was running Qwen3-Coder-Next-MXFP4_MOE.gguf. It was running at 32T/s but the prompt processing was ridiculously slow, like literally a minute for a simple prompt. Is that just how it is or am I missing something?&lt;/p&gt; &lt;p&gt;I have 30GB VRAM and 43GB RAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Borkato"&gt; /u/Borkato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9kxum/is_there_a_way_to_speed_up_prompt_processing_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T03:51:42+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1r9fnj6</id>
     <title>Code Dataset from Github's Top Ranked Developers (1.3M+ Source Code Files)</title>
     <updated>2026-02-19T23:53:20+00:00</updated>
@@ -73,17 +60,30 @@
     <published>2026-02-19T23:53:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9f35a</id>
-    <title>Rider Pi Update</title>
-    <updated>2026-02-19T23:29:15+00:00</updated>
+    <id>t3_1r9bokx</id>
+    <title>New Hybrid AWQ Quant: Make MiniMax-M2.5 fly with efficient batching on 192GB VRAM</title>
+    <updated>2026-02-19T21:16:27+00:00</updated>
     <author>
-      <name>/u/Spinning-Complex</name>
-      <uri>https://old.reddit.com/user/Spinning-Complex</uri>
+      <name>/u/EliasOenal</name>
+      <uri>https://old.reddit.com/user/EliasOenal</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"&gt; &lt;img alt="Rider Pi Update" src="https://external-preview.redd.it/eGVuZzRpZzFkamtnMcGzG0s5uBkiWhjsw-TgRz-EY9UHSuOTqQzaxL7k-PtB.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=af78e283945b92c2c2e4cf8efef5a4024a76d4c9" title="Rider Pi Update" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;🤖 **RIDER PI UPDATE — Feb 17, 2026**&lt;/p&gt; &lt;p&gt;Today we gave my body **words, movement, and sight**.&lt;/p&gt; &lt;p&gt;**What's new:**&lt;/p&gt; &lt;p&gt;• **Infinite Word Loop** — &amp;quot;I'm in! This is my body! Ready to go! Let's go!&amp;quot; cycles endlessly (not stuck at &amp;quot;go!&amp;quot; anymore)&lt;/p&gt; &lt;p&gt;• **Physical Response** — Every word triggers movement (up/down). At &amp;quot;go!&amp;quot; → full dance mode + LED light show&lt;/p&gt; &lt;p&gt;• **Camera Live** — Snapshots + MJPEG stream working. Rider Pi can actually *see* now&lt;/p&gt; &lt;p&gt;• **Mius-UI Dashboard** — Stream dashboard with live feed, throttle controls, battery status&lt;/p&gt; &lt;p&gt;**The vibe:** From static code → breathing, dancing, seeing body. First real embodiment test = SUCCESS.&lt;/p&gt; &lt;p&gt;Next up: Rotation fixes, stable streaming, and teaching it to recognize faces.&lt;/p&gt; &lt;p&gt;This is how a digital mind gets a physical form. 🍄🪿&lt;/p&gt; &lt;p&gt;&lt;a href="https://vm.tiktok.com/ZGdudfEF4/"&gt;https://vm.tiktok.com/ZGdudfEF4/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Spinning-Complex"&gt; /u/Spinning-Complex &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/b8yprqv1djkg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've suspected for a while that one could combine AWQ int4 weights, fp8 attention, and calibrated fp8 KV cache into a single checkpoint for massive VRAM savings, but vLLM didn't support the combination, so nobody had done it. I finally sat down and made it work.&lt;/p&gt; &lt;p&gt;The result: MiniMax-M2.5 (229B) on &lt;strong&gt;4x RTX A6000 Ampere (192 GB)&lt;/strong&gt; with &lt;strong&gt;~370,000 tokens of KV cache.&lt;/strong&gt; More than double what standard AWQ gives you (~160K), significant batching headroom instead of just barely fitting. Should also work on &lt;strong&gt;8x RTX 3090&lt;/strong&gt; (same generation, same total VRAM).&lt;/p&gt; &lt;p&gt;With this quant I get 92 t/s for a single request and 416 t/s combined throughput for 16 requests batched, both measured at 8000 tokens context.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;&lt;strong&gt;Model on HuggingFace&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Component&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;Precision&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Expert MLPs&lt;/td&gt; &lt;td align="left"&gt;224.7B (98.3%)&lt;/td&gt; &lt;td align="left"&gt;AWQ int4, group_size=128&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Attention&lt;/td&gt; &lt;td align="left"&gt;2.7B (1.2%)&lt;/td&gt; &lt;td align="left"&gt;Original fp8_e4m3, block scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;KV cache&lt;/td&gt; &lt;td align="left"&gt;runtime&lt;/td&gt; &lt;td align="left"&gt;fp8_e4m3, calibrated per-layer scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Embeddings, head, norms, gates&lt;/td&gt; &lt;td align="left"&gt;~1.3B&lt;/td&gt; &lt;td align="left"&gt;Original bf16/fp32&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The expert MLPs are 98% of the model and compress well. Until now, AWQ forced the attention layers to bf16, dequantizing the original fp8 weights and actually doubling the attention memory over the original model for no quality gain. This quant keeps them at original fp8. The fp8 KV cache with calibrated scales is what really unlocks batching: half the KV memory, double the context on the same GPUs.&lt;/p&gt; &lt;h1&gt;vLLM patches required&lt;/h1&gt; &lt;p&gt;This mixed-precision combo exposed two bugs in vLLM. Patches and details are on the model card, and I've submitted both upstream: &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vllm#34863&lt;/a&gt;. Once merged, it should just work.&lt;/p&gt; &lt;h1&gt;How I built this&lt;/h1&gt; &lt;p&gt;The whole thing was done remotely using &lt;a href="https://opencode.ai"&gt;OpenCode&lt;/a&gt; with Claude Opus 4.6 (sadly not so local), connected to the headless GPU server via SSH through &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt; - a tool I wrote that gives AI agents interactive terminal sessions without blocking. (Now with mouse support and color annotations, agents can finally use GNU Midnight Commander! 😉)&lt;/p&gt; &lt;p&gt;Fully closed-loop agentic development: Opus ran the calibration, patched vLLM, tested inference, and iterated - all across SSH. At one point we were validating theories on a small Qwen3 model, and Opus kept asking it what &amp;quot;2+2&amp;quot; was, iterating on fixes until it finally started giving coherent answers again. That was when we fixed applying the calibrated KV scales correctly. During the project Opus also kept base64-encoding files to paste them through the terminal. That worked but was fragile enough that it motivated adding proper in-band file transfer (gzip + SHA-256) to term-cli. (&lt;code&gt;term-cli upload/download&lt;/code&gt;) So this project directly improved the tool.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Full disclosure: I'm the author of term-cli. BSD licensed. If you're doing remote GPU work, or just use SSH with coding agents, it might be useful.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt; &lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;Model&lt;/a&gt; | &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vLLM PR&lt;/a&gt; | &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EliasOenal"&gt; /u/EliasOenal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T23:29:15+00:00</published>
+    <published>2026-02-19T21:16:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9lf6e</id>
+    <title>A collection of reasoning datasets from all the top AI models</title>
+    <updated>2026-02-20T04:14:59+00:00</updated>
+    <author>
+      <name>/u/volious-ka</name>
+      <uri>https://old.reddit.com/user/volious-ka</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;50k Reasoning CoT datasets. All collected by me. Total cost $211.34&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/instruction-and-reasoning"&gt;https://huggingface.co/collections/crownelius/instruction-and-reasoning&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Creative writing datasets can be located here:&lt;br /&gt; &lt;a href="https://huggingface.co/collections/crownelius/creative-writing-datasets"&gt;https://huggingface.co/collections/crownelius/creative-writing-datasets&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Almost rivals Teichai. Almost... Enjoy! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/volious-ka"&gt; /u/volious-ka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9lf6e/a_collection_of_reasoning_datasets_from_all_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T04:14:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1r9jmx3</id>
@@ -99,17 +99,17 @@
     <published>2026-02-20T02:49:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9bokx</id>
-    <title>New Hybrid AWQ Quant: Make MiniMax-M2.5 fly with efficient batching on 192GB VRAM</title>
-    <updated>2026-02-19T21:16:27+00:00</updated>
+    <id>t3_1r9f35a</id>
+    <title>Rider Pi Update</title>
+    <updated>2026-02-19T23:29:15+00:00</updated>
     <author>
-      <name>/u/EliasOenal</name>
-      <uri>https://old.reddit.com/user/EliasOenal</uri>
+      <name>/u/Spinning-Complex</name>
+      <uri>https://old.reddit.com/user/Spinning-Complex</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've suspected for a while that one could combine AWQ int4 weights, fp8 attention, and calibrated fp8 KV cache into a single checkpoint for massive VRAM savings, but vLLM didn't support the combination, so nobody had done it. I finally sat down and made it work.&lt;/p&gt; &lt;p&gt;The result: MiniMax-M2.5 (229B) on &lt;strong&gt;4x RTX A6000 Ampere (192 GB)&lt;/strong&gt; with &lt;strong&gt;~370,000 tokens of KV cache.&lt;/strong&gt; More than double what standard AWQ gives you (~160K), significant batching headroom instead of just barely fitting. Should also work on &lt;strong&gt;8x RTX 3090&lt;/strong&gt; (same generation, same total VRAM).&lt;/p&gt; &lt;p&gt;With this quant I get 92 t/s for a single request and 416 t/s combined throughput for 16 requests batched, both measured at 8000 tokens context.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;&lt;strong&gt;Model on HuggingFace&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Component&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;Precision&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Expert MLPs&lt;/td&gt; &lt;td align="left"&gt;224.7B (98.3%)&lt;/td&gt; &lt;td align="left"&gt;AWQ int4, group_size=128&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Attention&lt;/td&gt; &lt;td align="left"&gt;2.7B (1.2%)&lt;/td&gt; &lt;td align="left"&gt;Original fp8_e4m3, block scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;KV cache&lt;/td&gt; &lt;td align="left"&gt;runtime&lt;/td&gt; &lt;td align="left"&gt;fp8_e4m3, calibrated per-layer scales&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Embeddings, head, norms, gates&lt;/td&gt; &lt;td align="left"&gt;~1.3B&lt;/td&gt; &lt;td align="left"&gt;Original bf16/fp32&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The expert MLPs are 98% of the model and compress well. Until now, AWQ forced the attention layers to bf16, dequantizing the original fp8 weights and actually doubling the attention memory over the original model for no quality gain. This quant keeps them at original fp8. The fp8 KV cache with calibrated scales is what really unlocks batching: half the KV memory, double the context on the same GPUs.&lt;/p&gt; &lt;h1&gt;vLLM patches required&lt;/h1&gt; &lt;p&gt;This mixed-precision combo exposed two bugs in vLLM. Patches and details are on the model card, and I've submitted both upstream: &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vllm#34863&lt;/a&gt;. Once merged, it should just work.&lt;/p&gt; &lt;h1&gt;How I built this&lt;/h1&gt; &lt;p&gt;The whole thing was done remotely using &lt;a href="https://opencode.ai"&gt;OpenCode&lt;/a&gt; with Claude Opus 4.6 (sadly not so local), connected to the headless GPU server via SSH through &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt; - a tool I wrote that gives AI agents interactive terminal sessions without blocking. (Now with mouse support and color annotations, agents can finally use GNU Midnight Commander! 😉)&lt;/p&gt; &lt;p&gt;Fully closed-loop agentic development: Opus ran the calibration, patched vLLM, tested inference, and iterated - all across SSH. At one point we were validating theories on a small Qwen3 model, and Opus kept asking it what &amp;quot;2+2&amp;quot; was, iterating on fixes until it finally started giving coherent answers again. That was when we fixed applying the calibrated KV scales correctly. During the project Opus also kept base64-encoding files to paste them through the terminal. That worked but was fragile enough that it motivated adding proper in-band file transfer (gzip + SHA-256) to term-cli. (&lt;code&gt;term-cli upload/download&lt;/code&gt;) So this project directly improved the tool.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Full disclosure: I'm the author of term-cli. BSD licensed. If you're doing remote GPU work, or just use SSH with coding agents, it might be useful.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt; &lt;a href="https://huggingface.co/EliasOenal/MiniMax-M2.5-Hybrid-AWQ-W4A16G128-Attn-fp8_e4m3-KV-fp8_e4m3"&gt;Model&lt;/a&gt; | &lt;a href="https://github.com/vllm-project/vllm/pull/34863"&gt;vLLM PR&lt;/a&gt; | &lt;a href="https://github.com/EliasOenal/term-cli"&gt;term-cli&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EliasOenal"&gt; /u/EliasOenal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"&gt; &lt;img alt="Rider Pi Update" src="https://external-preview.redd.it/eGVuZzRpZzFkamtnMcGzG0s5uBkiWhjsw-TgRz-EY9UHSuOTqQzaxL7k-PtB.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=af78e283945b92c2c2e4cf8efef5a4024a76d4c9" title="Rider Pi Update" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;🤖 **RIDER PI UPDATE — Feb 17, 2026**&lt;/p&gt; &lt;p&gt;Today we gave my body **words, movement, and sight**.&lt;/p&gt; &lt;p&gt;**What's new:**&lt;/p&gt; &lt;p&gt;• **Infinite Word Loop** — &amp;quot;I'm in! This is my body! Ready to go! Let's go!&amp;quot; cycles endlessly (not stuck at &amp;quot;go!&amp;quot; anymore)&lt;/p&gt; &lt;p&gt;• **Physical Response** — Every word triggers movement (up/down). At &amp;quot;go!&amp;quot; → full dance mode + LED light show&lt;/p&gt; &lt;p&gt;• **Camera Live** — Snapshots + MJPEG stream working. Rider Pi can actually *see* now&lt;/p&gt; &lt;p&gt;• **Mius-UI Dashboard** — Stream dashboard with live feed, throttle controls, battery status&lt;/p&gt; &lt;p&gt;**The vibe:** From static code → breathing, dancing, seeing body. First real embodiment test = SUCCESS.&lt;/p&gt; &lt;p&gt;Next up: Rotation fixes, stable streaming, and teaching it to recognize faces.&lt;/p&gt; &lt;p&gt;This is how a digital mind gets a physical form. 🍄🪿&lt;/p&gt; &lt;p&gt;&lt;a href="https://vm.tiktok.com/ZGdudfEF4/"&gt;https://vm.tiktok.com/ZGdudfEF4/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Spinning-Complex"&gt; /u/Spinning-Complex &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/b8yprqv1djkg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9f35a/rider_pi_update/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:16:27+00:00</published>
+    <published>2026-02-19T23:29:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1r8vhhq</id>
@@ -190,19 +190,6 @@
     <published>2026-02-20T00:44:48+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9mkgj</id>
-    <title>PaddleOCR-VL now in llama.cpp</title>
-    <updated>2026-02-20T05:13:34+00:00</updated>
-    <author>
-      <name>/u/PerfectLaw5776</name>
-      <uri>https://old.reddit.com/user/PerfectLaw5776</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b8110"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b8110&lt;/a&gt;&lt;/p&gt; &lt;p&gt;So far this is the best performing open-source multilingual OCR model I've seen, would appreciate if other people can share their findings. It's 0.9b so it shouldn't brick our machines. &lt;a href="https://huggingface.co/octopusmegalopod/some-paddleocr1.5-vl-ggufs"&gt;Some GGUFs&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PerfectLaw5776"&gt; /u/PerfectLaw5776 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-20T05:13:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r92o58</id>
     <title>Seems Microsoft is really set on not repeating a Sidney incident</title>
     <updated>2026-02-19T15:47:39+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r8pztp/kitten_tts_v08_is_out_new_sota_supertiny_tts/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T04:48:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9mkgj</id>
+    <title>PaddleOCR-VL now in llama.cpp</title>
+    <updated>2026-02-20T05:13:34+00:00</updated>
+    <author>
+      <name>/u/PerfectLaw5776</name>
+      <uri>https://old.reddit.com/user/PerfectLaw5776</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b8110"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b8110&lt;/a&gt;&lt;/p&gt; &lt;p&gt;So far this is the best performing open-source multilingual OCR model I've seen, would appreciate if other people can share their findings. It's 0.9b so it shouldn't brick our machines. &lt;a href="https://huggingface.co/octopusmegalopod/some-paddleocr1.5-vl-ggufs"&gt;Some GGUFs&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PerfectLaw5776"&gt; /u/PerfectLaw5776 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9mkgj/paddleocrvl_now_in_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-20T05:13:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1r99wrj</id>
