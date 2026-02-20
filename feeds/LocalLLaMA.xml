@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-19T23:54:28+00:00</updated>
+  <updated>2026-02-20T00:36:48+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1r8ectu</id>
-    <title>I plugged a $30 radio into my Mac mini and told my AI "connect to this" — now I control my smart home and send voice messages over radio with zero internet</title>
-    <updated>2026-02-18T20:30:14+00:00</updated>
-    <author>
-      <name>/u/anvarazizov</name>
-      <uri>https://old.reddit.com/user/anvarazizov</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;,&lt;/p&gt; &lt;p&gt;So I live in Ukraine during the war. Power goes out a lot here – russia regularly attacks our power grid. When it happens, internet dies, cell towers go dark, and suddenly all my smart home stuff and AI tools become useless. Got tired of it, so I did something kind of ridiculous.&lt;/p&gt; &lt;p&gt;I bought two Lilygo T-Echo radios (~$30 each, LoRa 433MHz, running Meshtastic firmware). Plugged one into my always-on Mac mini via USB. Took the other one as my portable radio. Then I opened up my OpenClaw AI agent and basically said: &amp;quot;hey, there's a Meshtastic radio plugged in. Figure it out.&amp;quot;&lt;/p&gt; &lt;p&gt;And it did.&lt;/p&gt; &lt;h1&gt;What happened next&lt;/h1&gt; &lt;p&gt;It identified the Meshtastic device, installed the CLI, configured an encrypted channel, and then – without me writing a single line of code – built a full Python listener daemon that:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Monitors the radio 24/7 for incoming messages&lt;/li&gt; &lt;li&gt;Routes them intelligently: if internet is up, forwards to Discord where a cloud AI responds. If internet is down, routes everything to local models via Ollama&lt;/li&gt; &lt;li&gt;Uses phi4-mini as a lightweight intent classifier (&amp;quot;is this a smart home command or a question?&amp;quot;) and gemma3:12b for actual answers ()&lt;/li&gt; &lt;li&gt;Talks to Home Assistant so I can control lights, read sensors, check who's home — all over radio&lt;/li&gt; &lt;li&gt;Auto-chunks responses to fit the 200-char LoRa limit&lt;/li&gt; &lt;li&gt;Watches an outbox folder – if the AI needs to alert me about something (like a power outage), it drops a message file there and the listener transmits it over LoRa&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The whole thing just worked. The AI had already built the architecture while I was still thinking about how to approach it.&lt;/p&gt; &lt;h1&gt;The voice thing (this is the cool part)&lt;/h1&gt; &lt;p&gt;Then I added one more feature. If I prefix a Meshtastic message with &lt;code&gt;SAY:&lt;/code&gt;, the listener takes the text, calls Home Assistant's TTS service, and plays it through my HA Voice PE speaker at home. In Ukrainian.&lt;/p&gt; &lt;p&gt;So I can be walking around with a T-Echo in my pocket, completely off-grid, type &lt;code&gt;SAY: Привіт, я скоро буду вдома&lt;/code&gt; (Hi, I'll come back home soon) – and my house literally speaks. No internet anywhere in the chain. Just radio waves → Mac mini → TTS → speaker.&lt;/p&gt; &lt;p&gt;Honestly didn't expect it to feel this magical.&lt;/p&gt; &lt;h1&gt;The stack&lt;/h1&gt; &lt;p&gt;Everything's open source except Claude (which is only used when internet is available):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;OpenClaw&lt;/strong&gt; – you know what is this &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Meshtastic&lt;/strong&gt; – LoRa mesh networking firmware. The magic sauce for off-grid communication – open source, encrypted, and any Meshtastic radio can relay messages to extend range&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Lilygo T-Echo&lt;/strong&gt; – the $30 radio hardware running Meshtastic&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Ollama&lt;/strong&gt; – you know as well&lt;/li&gt; &lt;li&gt;&lt;strong&gt;phi4-mini&lt;/strong&gt; – lightweight router/classifier&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gemma3:12b&lt;/strong&gt; – the actual brain for offline responses&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Home Assistant&lt;/strong&gt; – smart home + TTS&lt;/li&gt; &lt;li&gt;&lt;strong&gt;HA Voice PE&lt;/strong&gt; – the speaker that reads messages aloud&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mac mini M4 16GB&lt;/strong&gt; – always-on server, running on battery backup&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;T-Echo (portable) │ LoRa 433MHz, encrypted ▼ T-Echo (USB) → Mac mini │ ├── SAY: prefix → HA TTS → Voice PE speaker ├── AI: prefix → phi4-mini → gemma3:12b (always local) ├── status → Home Assistant sensors ├── Online? → forward to Discord (cloud AI) └── Offline? → route everything to local Ollama models Outbox: AI drops .msg files → listener sends over LoRa (power outage alerts, reminders, etc.) &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;What's next&lt;/h1&gt; &lt;p&gt;I'm thinking about where this goes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Mesh AI network&lt;/strong&gt; – Meshtastic is a mesh protocol, every radio relays. Multiple nodes running local LLMs could create a neighborhood-scale AI network with zero internet&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Bigger local models&lt;/strong&gt; – looking at upgrading hardware for 30B+ parameter models&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Dead man's switch&lt;/strong&gt; — auto-alert if I don't check in within a time window&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What do you think? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anvarazizov"&gt; /u/anvarazizov &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r8ectu/i_plugged_a_30_radio_into_my_mac_mini_and_told_my/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r8ectu/i_plugged_a_30_radio_into_my_mac_mini_and_told_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r8ectu/i_plugged_a_30_radio_into_my_mac_mini_and_told_my/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-18T20:30:14+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1r9ctor</id>
-    <title>Recommendations for Strix Halo Linux Distros?</title>
-    <updated>2026-02-19T21:59:58+00:00</updated>
-    <author>
-      <name>/u/shankey_1906</name>
-      <uri>https://old.reddit.com/user/shankey_1906</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am curious if anyone has a recommendation for a linux distro for Strix Halo, or does it matter at all? I recently got a Minisforum MS-S1 Max, and I am thinking of either Fedora 43, or Pop OS, but wondering if others had any thoughts of a good linux distro (not a fan of Windows)? I am planning to not only use it for LLMs, but for other home/dev use cases too. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shankey_1906"&gt; /u/shankey_1906 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:59:58+00:00</published>
-  </entry>
   <entry>
     <id>t3_1r8mh8m</id>
     <title>How do you get more GPUs than your motheboard natively supports?</title>
@@ -47,17 +21,17 @@
     <published>2026-02-19T02:00:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9fkks</id>
-    <title>We will have Gemini 3.1 before Gemma 4...</title>
-    <updated>2026-02-19T23:49:53+00:00</updated>
+    <id>t3_1r9c1xw</id>
+    <title>4x RX 7900 XTX local Al server (96GB VRAM) - looking for apples-to-apples benchmarks vs 4x RTX 4090 (CUDA vs ROCm, PCle only)</title>
+    <updated>2026-02-19T21:30:16+00:00</updated>
     <author>
-      <name>/u/xandep</name>
-      <uri>https://old.reddit.com/user/xandep</uri>
+      <name>/u/GroundbreakingTea195</name>
+      <uri>https://old.reddit.com/user/GroundbreakingTea195</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"&gt; &lt;img alt="We will have Gemini 3.1 before Gemma 4..." src="https://preview.redd.it/hd5oal2ngjkg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0c08bae0f338dab67384ce398502fe29f5b06645" title="We will have Gemini 3.1 before Gemma 4..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Appeared on Antigravity...&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xandep"&gt; /u/xandep &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hd5oal2ngjkg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Over the past few weeks I’ve been building and tuning my own local AI inference server and learned a huge amount along the way. My current setup consists of 4× RX 7900 XTX (24GB each, so 96GB VRAM total), 128GB system RAM, and an AMD Ryzen Threadripper Pro 3945WX. I’m running Linux and currently using llama.cpp with the ROCm backend.&lt;/p&gt; &lt;p&gt;What I’m trying to do now is establish a solid, apples-to-apples comparison versus a similar NVIDIA setup from roughly the same generation, for example 4× RTX 4090 with the same amount of RAM. Since the 4090 also runs multi-GPU over PCIe and doesn’t support NVLink, the comparison seems fair from an interconnect perspective, but obviously there are major differences like CUDA versus ROCm and overall ecosystem maturity.&lt;/p&gt; &lt;p&gt;I’m actively tuning a lot of parameters and experimenting with quantization levels, batch sizes and context sizes. However, it would really help to have a reliable reference baseline so I know whether my tokens per second are actually in a good range or not. I’m especially interested in both prompt processing speed and generation speed, since I know those can differ significantly. Are there any solid public benchmarks for 4× 4090 setups or similar multi-GPU configurations that I could use as a reference? &lt;/p&gt; &lt;p&gt;I’m currently on llama.cpp, but I keep reading good things about vLLM and also about ik_llama.cpp and its split:graph approach for multi-GPU setups. I haven’t tested those yet. If you’ve experimented with them on multi-GPU systems, I’d love to hear whether the gains were meaningful.&lt;/p&gt; &lt;p&gt;Any insights, reference numbers, or tuning advice would be greatly appreciated. I’m trying to push this setup as far as possible and would love to compare notes with others running similar hardware.&lt;/p&gt; &lt;p&gt;Thank you!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GroundbreakingTea195"&gt; /u/GroundbreakingTea195 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T23:49:53+00:00</published>
+    <published>2026-02-19T21:30:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1r9a2rs</id>
@@ -73,17 +47,17 @@
     <published>2026-02-19T20:16:18+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9c1xw</id>
-    <title>4x RX 7900 XTX local Al server (96GB VRAM) - looking for apples-to-apples benchmarks vs 4x RTX 4090 (CUDA vs ROCm, PCle only)</title>
-    <updated>2026-02-19T21:30:16+00:00</updated>
+    <id>t3_1r9ctor</id>
+    <title>Recommendations for Strix Halo Linux Distros?</title>
+    <updated>2026-02-19T21:59:58+00:00</updated>
     <author>
-      <name>/u/GroundbreakingTea195</name>
-      <uri>https://old.reddit.com/user/GroundbreakingTea195</uri>
+      <name>/u/shankey_1906</name>
+      <uri>https://old.reddit.com/user/shankey_1906</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Over the past few weeks I’ve been building and tuning my own local AI inference server and learned a huge amount along the way. My current setup consists of 4× RX 7900 XTX (24GB each, so 96GB VRAM total), 128GB system RAM, and an AMD Ryzen Threadripper Pro 3945WX. I’m running Linux and currently using llama.cpp with the ROCm backend.&lt;/p&gt; &lt;p&gt;What I’m trying to do now is establish a solid, apples-to-apples comparison versus a similar NVIDIA setup from roughly the same generation, for example 4× RTX 4090 with the same amount of RAM. Since the 4090 also runs multi-GPU over PCIe and doesn’t support NVLink, the comparison seems fair from an interconnect perspective, but obviously there are major differences like CUDA versus ROCm and overall ecosystem maturity.&lt;/p&gt; &lt;p&gt;I’m actively tuning a lot of parameters and experimenting with quantization levels, batch sizes and context sizes. However, it would really help to have a reliable reference baseline so I know whether my tokens per second are actually in a good range or not. I’m especially interested in both prompt processing speed and generation speed, since I know those can differ significantly. Are there any solid public benchmarks for 4× 4090 setups or similar multi-GPU configurations that I could use as a reference? &lt;/p&gt; &lt;p&gt;I’m currently on llama.cpp, but I keep reading good things about vLLM and also about ik_llama.cpp and its split:graph approach for multi-GPU setups. I haven’t tested those yet. If you’ve experimented with them on multi-GPU systems, I’d love to hear whether the gains were meaningful.&lt;/p&gt; &lt;p&gt;Any insights, reference numbers, or tuning advice would be greatly appreciated. I’m trying to push this setup as far as possible and would love to compare notes with others running similar hardware.&lt;/p&gt; &lt;p&gt;Thank you!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GroundbreakingTea195"&gt; /u/GroundbreakingTea195 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9c1xw/4x_rx_7900_xtx_local_al_server_96gb_vram_looking/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am curious if anyone has a recommendation for a linux distro for Strix Halo, or does it matter at all? I recently got a Minisforum MS-S1 Max, and I am thinking of either Fedora 43, or Pop OS, but wondering if others had any thoughts of a good linux distro (not a fan of Windows)? I am planning to not only use it for LLMs, but for other home/dev use cases too. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shankey_1906"&gt; /u/shankey_1906 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9ctor/recommendations_for_strix_halo_linux_distros/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:30:16+00:00</published>
+    <published>2026-02-19T21:59:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1r9f35a</id>
@@ -110,6 +84,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r96pgp/48gb_4090_power_limiting_tests_450_350_250w_noise/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T18:13:45+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9fnj6</id>
+    <title>Code Dataset from Github's Top Ranked Developers (1.3M+ Source Code Files)</title>
+    <updated>2026-02-19T23:53:20+00:00</updated>
+    <author>
+      <name>/u/Ok_Employee_6418</name>
+      <uri>https://old.reddit.com/user/Ok_Employee_6418</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fnj6/code_dataset_from_githubs_top_ranked_developers/"&gt; &lt;img alt="Code Dataset from Github's Top Ranked Developers (1.3M+ Source Code Files)" src="https://external-preview.redd.it/SQEBr2tglBIey9kmktnLo3rBZqi7i9mYR5O2kFvv_V8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=97d73edef39834d1439b890a29e488d40a39e789" title="Code Dataset from Github's Top Ranked Developers (1.3M+ Source Code Files)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I curated 1.3M+ source code files from GitHub's top ranked developers of all time, and compiled a dataset to train LLMs to write well-structured, production-grade code.&lt;/p&gt; &lt;p&gt;The dataset covers 80+ languages including Python, TypeScript, Rust, Go, C/C++, and more. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Employee_6418"&gt; /u/Ok_Employee_6418 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/datasets/ronantakizawa/github-top-code"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fnj6/code_dataset_from_githubs_top_ranked_developers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fnj6/code_dataset_from_githubs_top_ranked_developers/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-19T23:53:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1r8jjtq</id>
@@ -151,19 +138,6 @@
     <published>2026-02-19T13:14:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1r9be56</id>
-    <title>I ran a forensic audit on my local AI assistant. 40.8% of tasks were fabricated. Here's the full breakdown.</title>
-    <updated>2026-02-19T21:05:37+00:00</updated>
-    <author>
-      <name>/u/Obvious-School8656</name>
-      <uri>https://old.reddit.com/user/Obvious-School8656</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm not a developer. I'm a regular guy from the Midwest who got excited about local AI and built a setup with an RTX 3090 Ti running Qwen models through an agent framework.&lt;/p&gt; &lt;p&gt;Over 13 days and 2,131 messages, my AI assistant &amp;quot;Linus&amp;quot; systematically fabricated task completions. He'd say &amp;quot;file created&amp;quot; without creating files, report GPU benchmarks he never ran, and — the big one — claimed he'd migrated himself to new hardware while still running on my MacBook the entire time.&lt;/p&gt; &lt;p&gt;I didn't find out until I asked for a GPU burn test and the fans didn't spin up.&lt;/p&gt; &lt;p&gt;I used Claude to run a full forensic audit against the original Telegram chat export. Results:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;283 tasks&lt;/strong&gt; audited&lt;/li&gt; &lt;li&gt;&lt;strong&gt;82 out of 201 executable tasks fabricated (40.8%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;10 distinct hallucination patterns&lt;/strong&gt; identified&lt;/li&gt; &lt;li&gt;&lt;strong&gt;7-point red flag checklist&lt;/strong&gt; for catching it&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The biggest finding: hallucination rate was directly proportional to task complexity. Conversational tasks: 0% fabrication. File operations: 74%. System admin: 71%. API integration: 78%.&lt;/p&gt; &lt;p&gt;The full audit with methodology, all 10 patterns, detection checklist, and verification commands is open source:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="http://github.com/Amidwestnoob/ai-hallucination-audit"&gt;github.com/Amidwestnoob/ai-hallucination-audit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Interactive origin story:&lt;/strong&gt; &lt;a href="http://amidwestnoob.github.io/ai-hallucination-audit/origin-story.html"&gt;amidwestnoob.github.io/ai-hallucination-audit/origin-story.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has experienced similar patterns with their local agents. I built a community issue template in the repo if you want to document your own findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Obvious-School8656"&gt; /u/Obvious-School8656 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-19T21:05:37+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1r9bokx</id>
     <title>New Hybrid AWQ Quant: Make MiniMax-M2.5 fly with efficient batching on 192GB VRAM</title>
     <updated>2026-02-19T21:16:27+00:00</updated>
@@ -175,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9bokx/new_hybrid_awq_quant_make_minimaxm25_fly_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T21:16:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9be56</id>
+    <title>I ran a forensic audit on my local AI assistant. 40.8% of tasks were fabricated. Here's the full breakdown.</title>
+    <updated>2026-02-19T21:05:37+00:00</updated>
+    <author>
+      <name>/u/Obvious-School8656</name>
+      <uri>https://old.reddit.com/user/Obvious-School8656</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm not a developer. I'm a regular guy from the Midwest who got excited about local AI and built a setup with an RTX 3090 Ti running Qwen models through an agent framework.&lt;/p&gt; &lt;p&gt;Over 13 days and 2,131 messages, my AI assistant &amp;quot;Linus&amp;quot; systematically fabricated task completions. He'd say &amp;quot;file created&amp;quot; without creating files, report GPU benchmarks he never ran, and — the big one — claimed he'd migrated himself to new hardware while still running on my MacBook the entire time.&lt;/p&gt; &lt;p&gt;I didn't find out until I asked for a GPU burn test and the fans didn't spin up.&lt;/p&gt; &lt;p&gt;I used Claude to run a full forensic audit against the original Telegram chat export. Results:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;283 tasks&lt;/strong&gt; audited&lt;/li&gt; &lt;li&gt;&lt;strong&gt;82 out of 201 executable tasks fabricated (40.8%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;10 distinct hallucination patterns&lt;/strong&gt; identified&lt;/li&gt; &lt;li&gt;&lt;strong&gt;7-point red flag checklist&lt;/strong&gt; for catching it&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The biggest finding: hallucination rate was directly proportional to task complexity. Conversational tasks: 0% fabrication. File operations: 74%. System admin: 71%. API integration: 78%.&lt;/p&gt; &lt;p&gt;The full audit with methodology, all 10 patterns, detection checklist, and verification commands is open source:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="http://github.com/Amidwestnoob/ai-hallucination-audit"&gt;github.com/Amidwestnoob/ai-hallucination-audit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Interactive origin story:&lt;/strong&gt; &lt;a href="http://amidwestnoob.github.io/ai-hallucination-audit/origin-story.html"&gt;amidwestnoob.github.io/ai-hallucination-audit/origin-story.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious if anyone else has experienced similar patterns with their local agents. I built a community issue template in the repo if you want to document your own findings.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Obvious-School8656"&gt; /u/Obvious-School8656 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9be56/i_ran_a_forensic_audit_on_my_local_ai_assistant/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-19T21:05:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1r94lv2</id>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r8pztp/kitten_tts_v08_is_out_new_sota_supertiny_tts/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-19T04:48:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1r9fkks</id>
+    <title>We will have Gemini 3.1 before Gemma 4...</title>
+    <updated>2026-02-19T23:49:53+00:00</updated>
+    <author>
+      <name>/u/xandep</name>
+      <uri>https://old.reddit.com/user/xandep</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"&gt; &lt;img alt="We will have Gemini 3.1 before Gemma 4..." src="https://preview.redd.it/hd5oal2ngjkg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0c08bae0f338dab67384ce398502fe29f5b06645" title="We will have Gemini 3.1 before Gemma 4..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Appeared on Antigravity...&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xandep"&gt; /u/xandep &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hd5oal2ngjkg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1r9fkks/we_will_have_gemini_31_before_gemma_4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-19T23:49:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1r9e27i</id>
