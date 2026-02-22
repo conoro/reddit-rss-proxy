@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-22T06:48:08+00:00</updated>
+  <updated>2026-02-22T07:19:16+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1rbdsds</id>
-    <title>Best Model for single 3090 in 2026?</title>
-    <updated>2026-02-22T05:47:26+00:00</updated>
-    <author>
-      <name>/u/myusuf3</name>
-      <uri>https://old.reddit.com/user/myusuf3</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Running a single RTX 3090 (24GB VRAM) and looking for the best overall model in 2026 for coding + reasoning.&lt;/p&gt; &lt;p&gt;Main priorities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Strong code generation (Go/TypeScript)&lt;/li&gt; &lt;li&gt;Good reasoning depth&lt;/li&gt; &lt;li&gt;Runs comfortably in 24GB (quantized is fine)&lt;/li&gt; &lt;li&gt;Decent latency on local inference&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What are you all running on a single 3090 right now? Qwen? DeepSeek? Something else? Would love specific model names + quant setups.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/myusuf3"&gt; /u/myusuf3 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T05:47:26+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ram2ov</id>
     <title>How I mapped every High Court of Australia case and their citations (1901-2025)</title>
@@ -60,6 +47,19 @@
     <published>2026-02-22T06:23:55+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rbettn</id>
+    <title>Working Dual-Backend Setup: Strix Halo iGPU (Vulkan) + NVIDIA eGPU (CUDA) — Vision work around. When we got it figured out Claude thought this was a good place where it might help someone.</title>
+    <updated>2026-02-22T06:45:56+00:00</updated>
+    <author>
+      <name>/u/yourbutthurtstoo</name>
+      <uri>https://old.reddit.com/user/yourbutthurtstoo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; If you have a Ryzen AI Max+ (Strix Halo, gfx1151) with an NVIDIA eGPU, you can run big MoE text models on the iGPU via Vulkan AND working vision/OCR models on the NVIDIA GPU via CUDA — simultaneously, fully isolated. The trick is two separate backends (Ollama + llama.cpp via llama-swap) with specific environment variables. This was worked out through trial and error by Claude (Anthropic's AI) and a very patient human over many hours of testing.&lt;/p&gt; &lt;h1&gt;The Problem&lt;/h1&gt; &lt;p&gt;The AMD Radeon 8060S iGPU (gfx1151) in Strix Halo systems has well-documented compute corruption issues:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;ROCm:&lt;/strong&gt; Produces garbage characters on text models, known bugs (ROCm/ROCm#5499, #5534, #5824, #5853)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Vulkan on iGPU:&lt;/strong&gt; Text models work. Vision/multimodal models crash or hallucinate.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What's NOT well-documented is that &lt;strong&gt;Vulkan also breaks vision models on NVIDIA GPUs.&lt;/strong&gt; We discovered this with an RTX 3090 Ti connected via OCuLink:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;qwen2.5vl:7b&lt;/code&gt; on the 3090 Ti via &lt;strong&gt;Vulkan&lt;/strong&gt; → Read a Home Depot receipt as a &amp;quot;Merrill Lynch check,&amp;quot; invented dollar amounts, routing numbers, and dates that don't exist on the receipt. Coherent English, completely wrong content.&lt;/li&gt; &lt;li&gt;&lt;code&gt;qwen2.5vl:7b&lt;/code&gt; on the 3090 Ti via &lt;strong&gt;CUDA&lt;/strong&gt; → Correctly read every field: store name, items, prices, tax, total. Perfect.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Same GPU, same model, same image. Vulkan corrupts the image data before it reaches the vision encoder. The language model works fine (produces coherent text), but it's &amp;quot;seeing&amp;quot; garbage pixels. &lt;strong&gt;CUDA is the only backend that correctly handles vision model image input.&lt;/strong&gt;&lt;/p&gt; &lt;h1&gt;The Core Conflict&lt;/h1&gt; &lt;p&gt;Ollama can't mix CUDA and Vulkan in one instance:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Config&lt;/th&gt; &lt;th align="left"&gt;What Happens&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;OLLAMA_VULKAN=1&lt;/code&gt;, CUDA visible&lt;/td&gt; &lt;td align="left"&gt;Both GPUs become Vulkan devices. 3090 = Vulkan1, iGPU = Vulkan0. No CUDA at all.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;OLLAMA_VULKAN=0&lt;/code&gt; (default)&lt;/td&gt; &lt;td align="left"&gt;3090 = CUDA0, iGPU = ROCm0. ROCm produces garbage.&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;OLLAMA_VULKAN=1&lt;/code&gt;, &lt;code&gt;CUDA_VISIBLE_DEVICES=-1&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;iGPU = Vulkan0 only. But 3090 still shows as Vulkan1 unless you also set &lt;code&gt;GGML_VK_VISIBLE_DEVICES=0&lt;/code&gt;.&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;There's no way to get CUDA on the NVIDIA GPU and Vulkan on the iGPU in a single Ollama process.&lt;/p&gt; &lt;h1&gt;The Solution: Two Backends&lt;/h1&gt; &lt;p&gt;Run two completely separate processes with different environment variables:&lt;/p&gt; &lt;h1&gt;Backend 1: Ollama (iGPU only, Vulkan, text models)&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Port 11434&lt;/li&gt; &lt;li&gt;Big MoE models that need 96GB+ (GPT-OSS 120B, Llama 4 Scout text, etc.)&lt;/li&gt; &lt;li&gt;Env vars isolate it to iGPU only&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Backend 2: llama.cpp server via llama-swap (3090 only, CUDA, vision models)&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Port 11435&lt;/li&gt; &lt;li&gt;Vision/OCR models that need CUDA to process images correctly&lt;/li&gt; &lt;li&gt;Uses a separate CUDA-compiled llama.cpp build&lt;/li&gt; &lt;li&gt;llama-swap manages model loading/unloading&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Both connect to Open WebUI (or any OpenAI-compatible frontend) as separate connections.&lt;/p&gt; &lt;h1&gt;Hardware Setup&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Component&lt;/th&gt; &lt;th align="left"&gt;Details&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;System&lt;/td&gt; &lt;td align="left"&gt;Minisforum MS-01 S1 Max&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;CPU&lt;/td&gt; &lt;td align="left"&gt;AMD Ryzen AI Max+ 395 (Strix Halo)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;RAM&lt;/td&gt; &lt;td align="left"&gt;128GB LPDDR5x-8000&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;iGPU&lt;/td&gt; &lt;td align="left"&gt;AMD Radeon 8060S (gfx1151, 96GB via Vulkan)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;eGPU&lt;/td&gt; &lt;td align="left"&gt;NVIDIA RTX 3090 Ti 24GB via OCuLink&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;OS&lt;/td&gt; &lt;td align="left"&gt;Windows 11&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Ollama&lt;/td&gt; &lt;td align="left"&gt;0.16.3&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;llama.cpp&lt;/td&gt; &lt;td align="left"&gt;b8117&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The OCuLink eGPU is key — it gives you a reliable CUDA device alongside the iGPU. This should work with any NVIDIA GPU connected via OCuLink, Thunderbolt, or internal PCIe.&lt;/p&gt; &lt;h1&gt;Setup Guide&lt;/h1&gt; &lt;h1&gt;Step 1: Get Two llama.cpp Builds&lt;/h1&gt; &lt;p&gt;You need a &lt;strong&gt;Vulkan build&lt;/strong&gt; (Ollama ships with one) and a &lt;strong&gt;CUDA build&lt;/strong&gt; (download separately).&lt;/p&gt; &lt;p&gt;Download the CUDA build from llama.cpp releases matching your Ollama version:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;https://github.com/ggml-org/llama.cpp/releases &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Get the &lt;a href="http://llama-bXXXX-bin-win-cuda-12.4-x64.zip"&gt;&lt;code&gt;llama-bXXXX-bin-win-cuda-12.4-x64.zip&lt;/code&gt;&lt;/a&gt; package.&lt;/p&gt; &lt;p&gt;Extract to a separate folder (e.g., &lt;code&gt;C:\ai-stack\llama-swap\llama-cpp-cuda\&lt;/code&gt;).&lt;/p&gt; &lt;h1&gt;Step 2: Copy CUDA Runtime DLLs&lt;/h1&gt; &lt;p&gt;The CUDA build needs runtime DLLs. Ollama ships them:&lt;/p&gt; &lt;p&gt;cmd&lt;/p&gt; &lt;pre&gt;&lt;code&gt;copy &amp;quot;C:\Users\&amp;lt;YOU&amp;gt;\AppData\Local\Programs\Ollama\lib\ollama\cuda_v12\cublas64_12.dll&amp;quot; &amp;quot;C:\ai-stack\llama-swap\llama-cpp-cuda\&amp;quot; copy &amp;quot;C:\Users\&amp;lt;YOU&amp;gt;\AppData\Local\Programs\Ollama\lib\ollama\cuda_v12\cublasLt64_12.dll&amp;quot; &amp;quot;C:\ai-stack\llama-swap\llama-cpp-cuda\&amp;quot; copy &amp;quot;C:\Users\&amp;lt;YOU&amp;gt;\AppData\Local\Programs\Ollama\lib\ollama\cuda_v12\cudart64_12.dll&amp;quot; &amp;quot;C:\ai-stack\llama-swap\llama-cpp-cuda\&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Do NOT copy &lt;code&gt;ggml-cuda.dll&lt;/code&gt; from Ollama — keep the one from the llama.cpp release.&lt;/p&gt; &lt;p&gt;Verify CUDA works:&lt;/p&gt; &lt;p&gt;cmd&lt;/p&gt; &lt;pre&gt;&lt;code&gt;C:\ai-stack\llama-swap\llama-cpp-cuda\llama-server.exe --version &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Should show: &lt;code&gt;ggml_cuda_init: found 1 CUDA devices: Device 0: NVIDIA GeForce RTX 3090 Ti&lt;/code&gt;&lt;/p&gt; &lt;h1&gt;Step 3: Download Vision Model GGUFs&lt;/h1&gt; &lt;p&gt;llama.cpp needs GGUF files + mmproj (vision projector) files. Download from Hugging Face:&lt;/p&gt; &lt;p&gt;For qwen2.5vl:7b:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;Qwen2.5-VL-7B-Instruct-Q8_0.gguf&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;mmproj-Qwen2.5-VL-7B-Instruct-f16.gguf&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Place them in a models folder (e.g., &lt;code&gt;C:\ai-stack\llama-swap\models\&lt;/code&gt;).&lt;/p&gt; &lt;h1&gt;Step 4: Install llama-swap&lt;/h1&gt; &lt;p&gt;powershell&lt;/p&gt; &lt;pre&gt;&lt;code&gt;winget install llama-swap &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Create &lt;code&gt;config.yaml&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;yaml&lt;/p&gt; &lt;pre&gt;&lt;code&gt;models: qwen2.5vl:7b: cmd: C:\ai-stack\llama-swap\llama-cpp-cuda\llama-server.exe --port ${PORT} --model C:\ai-stack\llama-swap\models\Qwen2.5-VL-7B-Instruct-Q8_0.gguf --mmproj C:\ai-stack\llama-swap\models\mmproj-Qwen2.5-VL-7B-Instruct-f16.gguf -ngl 999 -c 16384 --jinja ttl: -1 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Step 5: The Startup Script&lt;/h1&gt; &lt;p&gt;This is the critical piece — environment variable isolation:&lt;/p&gt; &lt;p&gt;batch&lt;/p&gt; &lt;pre&gt;&lt;code&gt;u/echo off :: Stop Ollama service if running net stop Ollama 2&amp;gt;nul :: Window 1: Ollama on iGPU ONLY (Vulkan, no CUDA, no 3090) start &amp;quot;Ollama - iGPU Vulkan&amp;quot; cmd /k &amp;quot;set OLLAMA_VULKAN=1 &amp;amp;&amp;amp; set CUDA_VISIBLE_DEVICES=-1 &amp;amp;&amp;amp; set GGML_VK_VISIBLE_DEVICES=0 &amp;amp;&amp;amp; set OLLAMA_FLASH_ATTENTION=1 &amp;amp;&amp;amp; set OLLAMA_HOST=0.0.0.0:11434 &amp;amp;&amp;amp; set OLLAMA_KEEP_ALIVE=-1 &amp;amp;&amp;amp; set OLLAMA_KV_CACHE_TYPE=q8_0 &amp;amp;&amp;amp; ollama serve&amp;quot; :: Wait for Ollama to start timeout /t 5 /nobreak &amp;gt;nul :: Window 2: llama-swap on 3090 ONLY (CUDA, no Vulkan) start &amp;quot;llama-swap - 3090 CUDA&amp;quot; cmd /k &amp;quot;set CUDA_VISIBLE_DEVICES=0 &amp;amp;&amp;amp; llama-swap --config C:\ai-stack\llama-swap\config.yaml --listen :11435&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Key environment variables explained:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Variable&lt;/th&gt; &lt;th align="left"&gt;Value&lt;/th&gt; &lt;th align="left"&gt;Why&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;OLLAMA_VULKAN=1&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;Forces Vulkan backend for Ollama (avoids ROCm garbage)&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;CUDA_VISIBLE_DEVICES=-1&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;Hides 3090 from CUDA. But does NOT hide it from Vulkan.&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;GGML_VK_VISIBLE_DEVICES=0&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;THE MISSING PIECE.&lt;/strong&gt; Tells Vulkan to only use device 0 (iGPU). Without this, the 3090 still shows up as Vulkan1 and Ollama loads models onto it.&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;code&gt;CUDA_VISIBLE_DEVICES=0&lt;/code&gt;&lt;/td&gt; &lt;td align="left"&gt;(llama-swap window) Ensures the 3090 is visible to CUDA. Empty string caused detection failure.&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Step 6: Connect Open WebUI&lt;/h1&gt; &lt;p&gt;Add llama-swap as a second connection:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Settings → Connections → Add&lt;/li&gt; &lt;li&gt;Type: OpenAI&lt;/li&gt; &lt;li&gt;URL: &lt;a href="http://host.docker.internal:11435/v1"&gt;&lt;code&gt;http://host.docker.internal:11435/v1&lt;/code&gt;&lt;/a&gt; (if Open WebUI is in Docker)&lt;/li&gt; &lt;li&gt;API Key: any dummy value&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Vision models appear under the &amp;quot;External&amp;quot; tab. Ollama text models under &amp;quot;Local.&amp;quot;&lt;/p&gt; &lt;h1&gt;What Works Where&lt;/h1&gt; &lt;h1&gt;iGPU via Vulkan (Ollama, port 11434) — TEXT ONLY&lt;/h1&gt; &lt;p&gt;✅ GPT-OSS 120B (87GB, 5.1B active MoE) — fast text reasoning ✅ Llama 4 Scout (67GB, 17B active MoE) — text only ✅ Llama 3.3 70B — general purpose ✅ Any large text model that fits in 96-111GB ❌ ANY vision/image model — Vulkan corrupts image data&lt;/p&gt; &lt;h1&gt;3090 via CUDA (llama-swap, port 11435) — VISION + TEXT&lt;/h1&gt; &lt;p&gt;✅ qwen2.5vl:7b (8GB Q8) — excellent receipt/document OCR ✅ qwen2.5vl:32b (20GB Q4) — higher accuracy vision ✅ Any vision model under 24GB ❌ Models over 24GB (3090 VRAM limit)&lt;/p&gt; &lt;h1&gt;What Does NOT Work (Don't Waste Your Time)&lt;/h1&gt; &lt;p&gt;❌ ROCm on gfx1151 — garbage output, known compute corruption ❌ Vulkan vision on ANY GPU — corrupts image data, produces hallucinated content ❌ &lt;code&gt;ROCR_VISIBLE_DEVICES=-1&lt;/code&gt; on Windows — Ollama ignores it ❌ Mixed CUDA+Vulkan in single Ollama instance — impossible&lt;/p&gt; &lt;h1&gt;Verification&lt;/h1&gt; &lt;p&gt;After starting the bat file, check the Ollama cmd window log. You should see:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_VISIBLE_DEVICES:-1 OLLAMA_VULKAN:true ... Vulkan0 = AMD Radeon(TM) 8060S Graphics ← iGPU only, GOOD &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;You should NOT see &lt;code&gt;Vulkan1 = NVIDIA GeForce RTX 3090 Ti&lt;/code&gt;. If you do, &lt;code&gt;GGML_VK_VISIBLE_DEVICES=0&lt;/code&gt; isn't set.&lt;/p&gt; &lt;p&gt;Check 3090 isolation:&lt;/p&gt; &lt;p&gt;powershell&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Load an Ollama model, then check: nvidia-smi # Should show 0 MiB used — Ollama isn't touching the 3090 # Load a llama-swap vision model, then check: nvidia-smi # Should show the model loaded on the 3090 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Performance Notes&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Strix Halo iGPU via Vulkan: ~20-25 tok/s for Scout text (17B active), good for MoE models&lt;/li&gt; &lt;li&gt;3090 Ti via CUDA: Fast vision inference, receipts process in seconds&lt;/li&gt; &lt;li&gt;llama-swap model swap time: ~20 seconds (loading from disk to VRAM)&lt;/li&gt; &lt;li&gt;Set &lt;code&gt;ttl: -1&lt;/code&gt; in llama-swap config to keep models loaded permanently&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Tested On&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Ollama 0.16.3&lt;/li&gt; &lt;li&gt;llama.cpp b8117&lt;/li&gt; &lt;li&gt;llama-swap (latest via winget, Feb 2026)&lt;/li&gt; &lt;li&gt;AMD Driver: Adrenalin 25.8.1 WHQL&lt;/li&gt; &lt;li&gt;NVIDIA Driver: 591.74, CUDA 13.1&lt;/li&gt; &lt;li&gt;Windows 11&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;em&gt;This solution was developed through extensive trial-and-error testing by Claude (Anthropic) and a human collaborator. The critical discovery — that Vulkan corrupts vision model image input on both AMD AND NVIDIA GPUs — took hours of isolating variables to identify. We hope this saves someone else the pain.&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/yourbutthurtstoo"&gt; /u/yourbutthurtstoo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbettn/working_dualbackend_setup_strix_halo_igpu_vulkan/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbettn/working_dualbackend_setup_strix_halo_igpu_vulkan/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbettn/working_dualbackend_setup_strix_halo_igpu_vulkan/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T06:45:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rbckwi</id>
     <title>FOOM.md — open research agenda for training LLMs to reason in self-discovered compressed languages instead of English</title>
     <updated>2026-02-22T04:42:42+00:00</updated>
@@ -84,19 +84,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbbmjv/i732gbrtx5060_desktop_good_for_local_llama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T03:53:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rbdv2c</id>
-    <title>LangGraph-based production-style RAG (Parent-Child retrieval, idempotent ingestion) — feedback on recursive loop control?</title>
-    <updated>2026-02-22T05:51:27+00:00</updated>
-    <author>
-      <name>/u/Lazy-Kangaroo-573</name>
-      <uri>https://old.reddit.com/user/Lazy-Kangaroo-573</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdv2c/langgraphbased_productionstyle_rag_parentchild/"&gt; &lt;img alt="LangGraph-based production-style RAG (Parent-Child retrieval, idempotent ingestion) — feedback on recursive loop control?" src="https://external-preview.redd.it/bjBmbGNlYjRqemtnMRhUss1EXwXfKnsnKkQzg0YppwxdhP3rJZGhFGp0oVwc.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a670614cb687a7591f13c819b15ce755b4f67b0d" title="LangGraph-based production-style RAG (Parent-Child retrieval, idempotent ingestion) — feedback on recursive loop control?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built a production-style RAG backend using FastAPI + LangGraph.&lt;/p&gt; &lt;p&gt;Architecture highlights:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;Parent–Child retrieval: Child chunks (768-dim embeddings) stored in Qdrant. Parent documents stored separately in PostgreSQL (Supabase). Retrieval returns child hits, then expands to full parent context.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Idempotent ingestion: Document hashing + metadata versioning to prevent duplicate chunk re-indexing.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Recursive retrieval loop via LangGraph: Node-based flow handles: → intent classification → optional PII masking → retrieval → circuit breaker before LLM call&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Main question: For recursive RAG loops, what termination criteria have worked best for you?&lt;/p&gt; &lt;p&gt;Currently evaluating: - max graph depth - token growth threshold - retrieval confidence delta - semantic similarity plateau&lt;/p&gt; &lt;p&gt;Trying to avoid infinite refinement loops without hurting answer quality.&lt;/p&gt; &lt;p&gt;Would appreciate feedback from people running local/production RAG systems.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Lazy-Kangaroo-573"&gt; /u/Lazy-Kangaroo-573 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/qtda3q94jzkg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdv2c/langgraphbased_productionstyle_rag_parentchild/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdv2c/langgraphbased_productionstyle_rag_parentchild/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T05:51:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1rb7o1f</id>
@@ -125,17 +112,17 @@
     <published>2026-02-21T13:31:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rb062y</id>
-    <title>Have you ever hesitated before typing something into ChatGPT or Claude? Are you worried about the amount of information these third party providers have about you? What are the most common use cases you worry about</title>
-    <updated>2026-02-21T19:30:18+00:00</updated>
+    <id>t3_1rbdsds</id>
+    <title>Best Model for single 3090 in 2026?</title>
+    <updated>2026-02-22T05:47:26+00:00</updated>
     <author>
-      <name>/u/alichherawalla</name>
-      <uri>https://old.reddit.com/user/alichherawalla</uri>
+      <name>/u/myusuf3</name>
+      <uri>https://old.reddit.com/user/myusuf3</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What are different use cases where you'd rather not send your data to the cloud but still be able to leverage AI fully?&lt;/p&gt; &lt;p&gt;Is it legal documents, or financial documents, personal information? Please feel free to be as detailed as you'd like.&lt;/p&gt; &lt;p&gt;Thank you&lt;/p&gt; &lt;p&gt;Full disclosure I'm building something in the space. However, it's free, totally on device , and private.&lt;/p&gt; &lt;p&gt;All I want to do is make it better. Appreciate the help.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/alichherawalla"&gt; /u/alichherawalla &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Running a single RTX 3090 (24GB VRAM) and looking for the best overall model in 2026 for coding + reasoning.&lt;/p&gt; &lt;p&gt;Main priorities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Strong code generation (Go/TypeScript)&lt;/li&gt; &lt;li&gt;Good reasoning depth&lt;/li&gt; &lt;li&gt;Runs comfortably in 24GB (quantized is fine)&lt;/li&gt; &lt;li&gt;Decent latency on local inference&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What are you all running on a single 3090 right now? Qwen? DeepSeek? Something else? Would love specific model names + quant setups.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/myusuf3"&gt; /u/myusuf3 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbdsds/best_model_for_single_3090_in_2026/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-21T19:30:18+00:00</published>
+    <published>2026-02-22T05:47:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1rb8mzd</id>
@@ -151,6 +138,19 @@
     <published>2026-02-22T01:29:23+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rb062y</id>
+    <title>Have you ever hesitated before typing something into ChatGPT or Claude? Are you worried about the amount of information these third party providers have about you? What are the most common use cases you worry about</title>
+    <updated>2026-02-21T19:30:18+00:00</updated>
+    <author>
+      <name>/u/alichherawalla</name>
+      <uri>https://old.reddit.com/user/alichherawalla</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What are different use cases where you'd rather not send your data to the cloud but still be able to leverage AI fully?&lt;/p&gt; &lt;p&gt;Is it legal documents, or financial documents, personal information? Please feel free to be as detailed as you'd like.&lt;/p&gt; &lt;p&gt;Thank you&lt;/p&gt; &lt;p&gt;Full disclosure I'm building something in the space. However, it's free, totally on device , and private.&lt;/p&gt; &lt;p&gt;All I want to do is make it better. Appreciate the help.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/alichherawalla"&gt; /u/alichherawalla &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb062y/have_you_ever_hesitated_before_typing_something/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-21T19:30:18+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rbbmcl</id>
     <title>Ouro 2.6B GGUFs are up — Q8_0 and Q4_K_M | Release notes + known limitations inside</title>
     <updated>2026-02-22T03:53:12+00:00</updated>
@@ -162,19 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbbmcl/ouro_26b_ggufs_are_up_q8_0_and_q4_k_m_release/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T03:53:12+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rb61og</id>
-    <title>Nanbeige 4.1 is the best small LLM, it crush qwen 4b</title>
-    <updated>2026-02-21T23:32:59+00:00</updated>
-    <author>
-      <name>/u/Individual-Source618</name>
-      <uri>https://old.reddit.com/user/Individual-Source618</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Self-explenatory, try it its insane if you give him enough room to think. Its my go to local llm now. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Individual-Source618"&gt; /u/Individual-Source618 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-21T23:32:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1rawge5</id>
@@ -203,6 +190,19 @@
     <published>2026-02-21T15:46:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rb61og</id>
+    <title>Nanbeige 4.1 is the best small LLM, it crush qwen 4b</title>
+    <updated>2026-02-21T23:32:59+00:00</updated>
+    <author>
+      <name>/u/Individual-Source618</name>
+      <uri>https://old.reddit.com/user/Individual-Source618</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Self-explenatory, try it its insane if you give him enough room to think. Its my go to local llm now. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Individual-Source618"&gt; /u/Individual-Source618 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-21T23:32:59+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ray0vz</id>
     <title>CXMT has been offering DDR4 chips at about half the prevailing market rate</title>
     <updated>2026-02-21T18:07:33+00:00</updated>
@@ -229,19 +229,6 @@
     <published>2026-02-21T20:52:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rbculq</id>
-    <title>Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)</title>
-    <updated>2026-02-22T04:56:59+00:00</updated>
-    <author>
-      <name>/u/Thrumpwart</name>
-      <uri>https://old.reddit.com/user/Thrumpwart</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"&gt; &lt;img alt="Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)" src="https://external-preview.redd.it/6QqGCIHe3v1WQBe6_gTslJhJpyRq4mX4jqVDYTY6xG0.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=504511a0ed53dd20492f3b96504f6d5f1655bc7b" title="Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Thrumpwart"&gt; /u/Thrumpwart &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://discrepancyreport.com/lawyer-says-google-shut-down-his-gmail-voice-and-photos-after-notebooklm-upload/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T04:56:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rb4luf</id>
     <title>O-TITANS: Orthogonal LoRAs for Gemma 3 using Google's TITANS memory architecture</title>
     <updated>2026-02-21T22:32:47+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb4luf/otitans_orthogonal_loras_for_gemma_3_using/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-21T22:32:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rbculq</id>
+    <title>Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)</title>
+    <updated>2026-02-22T04:56:59+00:00</updated>
+    <author>
+      <name>/u/Thrumpwart</name>
+      <uri>https://old.reddit.com/user/Thrumpwart</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"&gt; &lt;img alt="Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)" src="https://external-preview.redd.it/6QqGCIHe3v1WQBe6_gTslJhJpyRq4mX4jqVDYTY6xG0.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=504511a0ed53dd20492f3b96504f6d5f1655bc7b" title="Lawyer says Google shut down his Gmail, Voice and Photos after NotebookLM upload - Discrepancy Report (or how I learned to love Local LLMs)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Thrumpwart"&gt; /u/Thrumpwart &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://discrepancyreport.com/lawyer-says-google-shut-down-his-gmail-voice-and-photos-after-notebooklm-upload/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T04:56:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1rbafs8</id>
