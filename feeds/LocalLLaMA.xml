@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-22T20:08:08+00:00</updated>
+  <updated>2026-02-22T20:25:39+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -19,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbi0ij/are_ai_coding_agents_gptcodex_claude_sonnetopus/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T09:58:38+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rbbmcl</id>
-    <title>Ouro 2.6B GGUFs are up — Q8_0 and Q4_K_M | Release notes + known limitations inside</title>
-    <updated>2026-02-22T03:53:12+00:00</updated>
-    <author>
-      <name>/u/PruneLanky3551</name>
-      <uri>https://old.reddit.com/user/PruneLanky3551</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;GGUFs are live on HuggingFace: https://huggingface.co/scpalmetto/Ouro-2.6B-Thinking-Fixed Q8_0 (2.7GB) and Q4_K_M (1.6GB) — works in LM Studio, Ollama, llama.cpp. --- ## What Ouro actually is (quick recap) Ouro is a looped inference model — instead of running the transformer once per token, it passes the output back into itself for multiple reasoning iterations before committing. The &amp;quot;thinking&amp;quot; you see in the output is real: it's the model working through loops before settling on an answer. Full writeup in the original post. --- ## ⚠️ Release Notes — What the GGUF does and doesn't include **GGUF format is standard Llama architecture.** Ouro has three custom architectural features that llama.cpp doesn't support. Here's exactly what happens to each: ### 1. Early Exit Gate (skipped) Ouro has an `early_exit_gate` (weight + bias) — a learned mechanism that lets the model decide mid-sequence whether it has &amp;quot;thought enough&amp;quot; and can exit the loop early. **In the GGUF:** This tensor is skipped entirely. The model runs all layers every pass — no early exit. This means the GGUF is slightly *more* compute than the original per loop, but also means it won't short-circuit on hard problems. ### 2. TL2 — Second Layer Norms (skipped) Each transformer block in Ouro has two layer norms instead of one: - `input_layernorm` (TL1) — standard, kept ✅ - `input_layernorm_2` (TL2) — Ouro's second norm pass, skipped ❌ - `post_attention_layernorm` (TL1) — standard, kept ✅ - `post_attention_layernorm_2` (TL2) — skipped ❌ These are present across all 48 layers. The TL2 norms appear to act as a &amp;quot;re-centering&amp;quot; step between loop iterations. Skipping them means the GGUF doesn't re-normalize between passes the way the full model does. **Practical effect:** The GGUF reasoning is still good — the base weights carry the learned behavior. But if you notice the thinking chains being slightly less structured than the HuggingFace original, this is why. ### 3. Python Looping / Inference Wrapper (not in any GGUF) The looping itself — passing output back as input for N iterations — is implemented in Python at the inference layer, not baked into the weights. **No GGUF can include this** because it's control flow, not a tensor. The GGUF runs one pass per token like any standard model. What you get is essentially the *distilled reasoning capability* that Ouro developed through loop training — the model learned to think in its weights, even if the runtime loop isn't there. For the full looped experience, use the original safetensors on HuggingFace with the inference script. --- ## What still works great - The thinking style and extended reasoning — very much present - The chattiness and self-correction behavior - Chat template (ChatML / `&amp;lt;|im_start|&amp;gt;` `&amp;lt;|im_end|&amp;gt;`) works out of the box - Q8_0 has minimal quality loss over F16; Q4_K_M is solid for RAM-constrained setups --- ## Files | File | Size | Use case | |------|------|----------| | `ouro-2.6b-q8_0.gguf` | 2.7GB | Best quality, ~3GB VRAM | | `ouro-2.6b-q4_k_m.gguf` | 1.6GB | Fastest, ~2GB VRAM | --- Happy to answer questions about the architecture, the conversion process, or what the looping actually does. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PruneLanky3551"&gt; /u/PruneLanky3551 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbbmcl/ouro_26b_ggufs_are_up_q8_0_and_q4_k_m_release/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbbmcl/ouro_26b_ggufs_are_up_q8_0_and_q4_k_m_release/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbbmcl/ouro_26b_ggufs_are_up_q8_0_and_q4_k_m_release/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T03:53:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1rb4luf</id>
@@ -73,17 +60,17 @@
     <published>2026-02-22T18:22:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rbtudq</id>
-    <title>Void-Box: Capability-Bound Agent Runtime</title>
-    <updated>2026-02-22T18:44:27+00:00</updated>
+    <id>t3_1rbvbzt</id>
+    <title>Best open-source coder model for replacing Claude Code with Qwen locally?</title>
+    <updated>2026-02-22T19:40:34+00:00</updated>
     <author>
-      <name>/u/Wide_Spite5612</name>
-      <uri>https://old.reddit.com/user/Wide_Spite5612</uri>
+      <name>/u/pauljeba</name>
+      <uri>https://old.reddit.com/user/pauljeba</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;We’ve been building &lt;strong&gt;Void-Box&lt;/strong&gt;, a Rust runtime for executing AI agent workflows inside disposable KVM micro-VMs.&lt;/p&gt; &lt;p&gt;The core idea:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;VoidBox = Agent(Skill) + Isolation&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Instead of running agents inside shared processes or containers, each stage runs inside its own micro-VM that is created on demand and destroyed after execution. Structured output is then passed to the next stage in a pipeline.&lt;/p&gt; &lt;p&gt;Architecture highlights&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Per-stage micro-VM isolation&lt;/strong&gt; (stronger boundary than shared-process/container models)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Policy-enforced runtime&lt;/strong&gt; — command allowlists, resource limits, seccomp-BPF, controlled egress&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Capability-bound skill model&lt;/strong&gt; — MCP servers, SKILL files, CLI tools mounted explicitly per Box&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Composable pipeline API&lt;/strong&gt; — sequential &lt;code&gt;.pipe()&lt;/code&gt; and parallel &lt;code&gt;.fan_out()&lt;/code&gt; with explicit failure domains&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Claude Code runtime integration&lt;/strong&gt; (Claude by default, Ollama via compatible provider mode)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Built-in observability&lt;/strong&gt; — OTLP traces, structured logs, stage-level telemetry&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Rootless networking&lt;/strong&gt; via usermode SLIRP (smoltcp, no TAP devices)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The design goal is to treat execution boundaries as a first-class primitive:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;No shared filesystem state&lt;/li&gt; &lt;li&gt;No cross-run side effects&lt;/li&gt; &lt;li&gt;Deterministic teardown after each stage&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Still early, but the KVM sandbox + pipeline engine are functional.&lt;/p&gt; &lt;p&gt;We’d especially appreciate feedback from folks with experience in:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;KVM / virtualization from Rust&lt;/li&gt; &lt;li&gt;Capability systems&lt;/li&gt; &lt;li&gt;Sandbox/runtime design&lt;/li&gt; &lt;li&gt;Secure workflow execution&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/the-void-ia/void-box"&gt;https://github.com/the-void-ia/void-box&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Wide_Spite5612"&gt; /u/Wide_Spite5612 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I’m currently using Claude Code but want to move fully local.&lt;/p&gt; &lt;p&gt;I’m specifically looking for a strong coding model for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Claude code like capaiblities - code + bash &lt;/li&gt; &lt;li&gt;Long file capabiliites&lt;/li&gt; &lt;li&gt;Read image, files&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I’m considering &lt;code&gt;Qwen3-Coder&lt;/code&gt;, but I’m unsure:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Is &lt;code&gt;Qwen3-Coder&lt;/code&gt; the best choice for a 12GB GPU?&lt;/li&gt; &lt;li&gt;Should I instead run a smaller Qwen coder model (7B/14B) quantized?&lt;/li&gt; &lt;li&gt;Are there better alternatives that outperform Qwen for coding in this VRAM range?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Would appreciate real-world experience. If there is an hardward upgrade recommendation what would that be.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pauljeba"&gt; /u/pauljeba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T18:44:27+00:00</published>
+    <published>2026-02-22T19:40:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1rawoe4</id>
@@ -112,19 +99,6 @@
     <published>2026-02-22T19:36:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rbvbzt</id>
-    <title>Best open-source coder model for replacing Claude Code with Qwen locally?</title>
-    <updated>2026-02-22T19:40:34+00:00</updated>
-    <author>
-      <name>/u/pauljeba</name>
-      <uri>https://old.reddit.com/user/pauljeba</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I’m currently using Claude Code but want to move fully local.&lt;/p&gt; &lt;p&gt;I’m specifically looking for a strong coding model for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Claude code like capaiblities - code + bash &lt;/li&gt; &lt;li&gt;Long file capabiliites&lt;/li&gt; &lt;li&gt;Read image, files&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I’m considering &lt;code&gt;Qwen3-Coder&lt;/code&gt;, but I’m unsure:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Is &lt;code&gt;Qwen3-Coder&lt;/code&gt; the best choice for a 12GB GPU?&lt;/li&gt; &lt;li&gt;Should I instead run a smaller Qwen coder model (7B/14B) quantized?&lt;/li&gt; &lt;li&gt;Are there better alternatives that outperform Qwen for coding in this VRAM range?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Would appreciate real-world experience. If there is an hardward upgrade recommendation what would that be.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pauljeba"&gt; /u/pauljeba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbvbzt/best_opensource_coder_model_for_replacing_claude/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T19:40:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rbvmpk</id>
     <title>Running Llama 3.2 1B entirely on an AMD NPU on Linux (Strix Halo, IRON framework, 4.4 tok/s)</title>
     <updated>2026-02-22T19:51:45+00:00</updated>
@@ -151,17 +125,30 @@
     <published>2026-02-22T02:54:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rburpm</id>
-    <title>Predictions / Expectations / Wishlist on LLMs by end of 2026? (Realistic)</title>
-    <updated>2026-02-22T19:19:06+00:00</updated>
+    <id>t3_1rbwbgl</id>
+    <title>nanollama — train Llama 3 from scratch and export to GGUF, one command, open source</title>
+    <updated>2026-02-22T20:17:50+00:00</updated>
     <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
+      <name>/u/ataeff</name>
+      <uri>https://old.reddit.com/user/ataeff</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here my Wishlist:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;1-4B models with best t/s(Like 20-30) for Mobile &amp;amp; edge devices.(Currently getting only 5 t/s for Qwen3-4B-IQ4XS on my 8GB RAM mobile)&lt;/li&gt; &lt;li&gt;4-10B models with performance of current 30B models&lt;/li&gt; &lt;li&gt;30-50B models with performance of current 100-150B models&lt;/li&gt; &lt;li&gt;100-150B models with performance of current 500+B models&lt;/li&gt; &lt;li&gt;10-20B Coder models with performance of current 30-80B coder models&lt;/li&gt; &lt;li&gt;More Tailored models like STEM, Writer, Designer, etc., (Like how already we have few categories like Coder, Medical) or Tailored models like Math, Science, History, etc.,&lt;/li&gt; &lt;li&gt;Ability to run 30B MOE models(Q4) on CPU-only inference with 40-50 t/s (Currently getting 25 t/s with 32GB DDR5 RAM on llama.cpp. Somebody please let me know what ik_llama.cpp is giving)&lt;/li&gt; &lt;li&gt;I prefer 5 100B models(Model-WorldKnowledge, Model-Coder, Model-Writer, Model-STEM, Model-Misc) to 1 500B model(Model-GiantALLinOne). Good for Consumer hardwares where Q4 comes in 50GB size. Of course it's good to have additional giant models(or like those 5 tailored models).&lt;/li&gt; &lt;li&gt;Really want to see coding models(with good Agentic coding) to run just with my 8GB VRAM + 32GB RAM(Able to run Qwen3-30B-A3B's IQ4_XS at 35-40 t/s. 15-20 t/s with 32K context). Is this possible by this year end? Though I'm getting new rig, still want to use my current laptop (whenever I'm away from home) effectively with small/medium models.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;So what are your Predictions, Expectations &amp;amp; Wishlist?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;nanollama — train Llama 3 from scratch. &lt;/p&gt; &lt;p&gt;I've been working on a framework for training Llama 3 architecture models from scratch: not fine-tuning, not LoRA, actual from-zero pretraining. The output is a llama.cpp-compatible GGUF file.&lt;/p&gt; &lt;p&gt;The whole pipeline is one command:&lt;/p&gt; &lt;p&gt;'''&lt;/p&gt; &lt;p&gt;bash runs/lambda_train.sh --name mini&lt;/p&gt; &lt;p&gt;'''&lt;/p&gt; &lt;p&gt;This downloads training data, trains the model, and exports GGUF. Verified with llama-cli.&lt;/p&gt; &lt;p&gt;In the the box:&lt;/p&gt; &lt;p&gt;- Llama 3 architecture (RoPE, SwiGLU, RMSNorm, GQA), 8 configs from 46M to 7B&lt;/p&gt; &lt;p&gt;- multi-corpus training (FineWeb-Edu, DCLM, code, math — SmolLM2 recipe)&lt;/p&gt; &lt;p&gt;- native GGUF v3 exporter (no HuggingFace/safetensors conversion)&lt;/p&gt; &lt;p&gt;- personality injection — train base + personality model, subtract weights, get a portable personality vector you can apply to any compatible base&lt;/p&gt; &lt;p&gt;- pure Go inference engine (~9MB binary, reads GGUF, zero runtime deps) for when you don't need the full llama.cpp stack&lt;/p&gt; &lt;p&gt;- beginner's guide — first model in ~30 min on a rented GPU for a few bucks &lt;/p&gt; &lt;p&gt;Trained and verified so far: nano (46M), micro (87M), mini (175M), small (338M). goldie (1.1B, multilingual) is training now.&lt;/p&gt; &lt;p&gt;The point: there's no clean, modern &amp;quot;train from scratch&amp;quot; pipeline for Llama-family models. nanoGPT/nanochat did this for GPT-2, but GPT-2 is 2019 architecture. This is the same idea updated for 2026.&lt;/p&gt; &lt;p&gt;Born from karpathy's nanochat, rewritten for Llama 3. GPLv3.&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/ariannamethod/nanollama"&gt;https://github.com/ariannamethod/nanollama&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Release: &lt;a href="https://github.com/ariannamethod/nanollama/releases/tag/v0.1.0"&gt;https://github.com/ariannamethod/nanollama/releases/tag/v0.1.0&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ataeff"&gt; /u/ataeff &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbwbgl/nanollama_train_llama_3_from_scratch_and_export/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbwbgl/nanollama_train_llama_3_from_scratch_and_export/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbwbgl/nanollama_train_llama_3_from_scratch_and_export/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T19:19:06+00:00</published>
+    <published>2026-02-22T20:17:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rbtudq</id>
+    <title>Void-Box: Capability-Bound Agent Runtime</title>
+    <updated>2026-02-22T18:44:27+00:00</updated>
+    <author>
+      <name>/u/Wide_Spite5612</name>
+      <uri>https://old.reddit.com/user/Wide_Spite5612</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;We’ve been building &lt;strong&gt;Void-Box&lt;/strong&gt;, a Rust runtime for executing AI agent workflows inside disposable KVM micro-VMs.&lt;/p&gt; &lt;p&gt;The core idea:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;VoidBox = Agent(Skill) + Isolation&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Instead of running agents inside shared processes or containers, each stage runs inside its own micro-VM that is created on demand and destroyed after execution. Structured output is then passed to the next stage in a pipeline.&lt;/p&gt; &lt;p&gt;Architecture highlights&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Per-stage micro-VM isolation&lt;/strong&gt; (stronger boundary than shared-process/container models)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Policy-enforced runtime&lt;/strong&gt; — command allowlists, resource limits, seccomp-BPF, controlled egress&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Capability-bound skill model&lt;/strong&gt; — MCP servers, SKILL files, CLI tools mounted explicitly per Box&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Composable pipeline API&lt;/strong&gt; — sequential &lt;code&gt;.pipe()&lt;/code&gt; and parallel &lt;code&gt;.fan_out()&lt;/code&gt; with explicit failure domains&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Claude Code runtime integration&lt;/strong&gt; (Claude by default, Ollama via compatible provider mode)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Built-in observability&lt;/strong&gt; — OTLP traces, structured logs, stage-level telemetry&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Rootless networking&lt;/strong&gt; via usermode SLIRP (smoltcp, no TAP devices)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The design goal is to treat execution boundaries as a first-class primitive:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;No shared filesystem state&lt;/li&gt; &lt;li&gt;No cross-run side effects&lt;/li&gt; &lt;li&gt;Deterministic teardown after each stage&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Still early, but the KVM sandbox + pipeline engine are functional.&lt;/p&gt; &lt;p&gt;We’d especially appreciate feedback from folks with experience in:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;KVM / virtualization from Rust&lt;/li&gt; &lt;li&gt;Capability systems&lt;/li&gt; &lt;li&gt;Sandbox/runtime design&lt;/li&gt; &lt;li&gt;Secure workflow execution&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/the-void-ia/void-box"&gt;https://github.com/the-void-ia/void-box&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Wide_Spite5612"&gt; /u/Wide_Spite5612 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtudq/voidbox_capabilitybound_agent_runtime/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T18:44:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1rbfh1y</id>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T07:23:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rburpm</id>
+    <title>Predictions / Expectations / Wishlist on LLMs by end of 2026? (Realistic)</title>
+    <updated>2026-02-22T19:19:06+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here my Wishlist:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;1-4B models with best t/s(Like 20-30) for Mobile &amp;amp; edge devices.(Currently getting only 5 t/s for Qwen3-4B-IQ4XS on my 8GB RAM mobile)&lt;/li&gt; &lt;li&gt;4-10B models with performance of current 30B models&lt;/li&gt; &lt;li&gt;30-50B models with performance of current 100-150B models&lt;/li&gt; &lt;li&gt;100-150B models with performance of current 500+B models&lt;/li&gt; &lt;li&gt;10-20B Coder models with performance of current 30-80B coder models&lt;/li&gt; &lt;li&gt;More Tailored models like STEM, Writer, Designer, etc., (Like how already we have few categories like Coder, Medical) or Tailored models like Math, Science, History, etc.,&lt;/li&gt; &lt;li&gt;Ability to run 30B MOE models(Q4) on CPU-only inference with 40-50 t/s (Currently getting 25 t/s with 32GB DDR5 RAM on llama.cpp. Somebody please let me know what ik_llama.cpp is giving)&lt;/li&gt; &lt;li&gt;I prefer 5 100B models(Model-WorldKnowledge, Model-Coder, Model-Writer, Model-STEM, Model-Misc) to 1 500B model(Model-GiantALLinOne). Good for Consumer hardwares where Q4 comes in 50GB size. Of course it's good to have additional giant models(or like those 5 tailored models).&lt;/li&gt; &lt;li&gt;Really want to see coding models(with good Agentic coding) to run just with my 8GB VRAM + 32GB RAM(Able to run Qwen3-30B-A3B's IQ4_XS at 35-40 t/s. 15-20 t/s with 32K context). Is this possible by this year end? Though I'm getting new rig, still want to use my current laptop (whenever I'm away from home) effectively with small/medium models.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;So what are your Predictions, Expectations &amp;amp; Wishlist?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rburpm/predictions_expectations_wishlist_on_llms_by_end/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T19:19:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1raq23i</id>
@@ -216,19 +216,6 @@
     <published>2026-02-22T04:56:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rbtfld</id>
-    <title>What Other Subs Do you Read to Keep Up with AI?</title>
-    <updated>2026-02-22T18:29:17+00:00</updated>
-    <author>
-      <name>/u/chibop1</name>
-      <uri>https://old.reddit.com/user/chibop1</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wondering what other subs do you recommend to read to keep up with AI?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chibop1"&gt; /u/chibop1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T18:29:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rb2j5c</id>
     <title>Favourite niche usecases?</title>
     <updated>2026-02-21T21:06:34+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbmnw7/is_there_any_good_coding_agent_software_for_use/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T14:04:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rbtfld</id>
+    <title>What Other Subs Do you Read to Keep Up with AI?</title>
+    <updated>2026-02-22T18:29:17+00:00</updated>
+    <author>
+      <name>/u/chibop1</name>
+      <uri>https://old.reddit.com/user/chibop1</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wondering what other subs do you recommend to read to keep up with AI?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chibop1"&gt; /u/chibop1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbtfld/what_other_subs_do_you_read_to_keep_up_with_ai/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T18:29:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1rblce7</id>
