@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-22T08:55:47+00:00</updated>
+  <updated>2026-02-22T09:13:08+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1ram2ov</id>
-    <title>How I mapped every High Court of Australia case and their citations (1901-2025)</title>
-    <updated>2026-02-21T08:36:59+00:00</updated>
-    <author>
-      <name>/u/Neon0asis</name>
-      <uri>https://old.reddit.com/user/Neon0asis</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ram2ov/how_i_mapped_every_high_court_of_australia_case/"&gt; &lt;img alt="How I mapped every High Court of Australia case and their citations (1901-2025)" src="https://preview.redd.it/2mntthxp7tkg1.gif?width=640&amp;amp;crop=smart&amp;amp;s=2eb05b7ded68545504de00ea12ea1305b546acb8" title="How I mapped every High Court of Australia case and their citations (1901-2025)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve recently begun working on a project to convert entirety of Australian case law and legislation into a LexisNexis-style interlinked legal knowledge graph.&lt;/p&gt; &lt;p&gt;As I’ve experimented with techniques to normalise case citations, I thought it would be cool to turn my work into a neat little visualisation, and explain how you could do the same with your own documents.&lt;/p&gt; &lt;p&gt;So the graph above is a visualisation of a cross-section of a legal knowledge graph I’ve been developing of Australian case law.&lt;/p&gt; &lt;p&gt;Each node represents a High Court of Australia decision. The size of the node reflects how often that case has been cited by other High Court cases. The node's location and clustering comes from mapping each case’s semantic “position” into 3D space, based on its location in a higher-dimensional embedding space.&lt;/p&gt; &lt;h1&gt;How the dataset was built&lt;/h1&gt; &lt;p&gt;To assemble the graph, I downloaded the &lt;a href="https://huggingface.co/datasets/isaacus/open-australian-legal-corpus"&gt;Open Australian Legal Corpus &lt;/a&gt;and ran the &lt;a href="https://docs.isaacus.com/capabilities/enrichment"&gt;Kanon 2 Enricher&lt;/a&gt; to extract citations and additional metadata, such as decision dates and pinpoint references. I then used this additional metadata to repair and improve some of the dataset's missing features.&lt;/p&gt; &lt;p&gt;For roughly 90% of the corpus, I was able to recover and uniquely identify the party names, decision dates, and common aliases.&lt;/p&gt; &lt;p&gt;Using the party names and year as a composite key, I then normalised and deduplicated every citation appearing in High Court decisions. This produced ~20,000 High Court-to-High Court citations.&lt;/p&gt; &lt;p&gt;With the citations linked, I used the &lt;a href="https://docs.isaacus.com/capabilities/embedding"&gt;Kanon 2 Embedder&lt;/a&gt; to generate vector embeddings for each case, and then applied &lt;a href="https://github.com/YingfanWang/PaCMAP"&gt;PaCMAP&lt;/a&gt; (a dimensionality reduction library) to reduce those embeddings down to a 3D representation.&lt;/p&gt; &lt;p&gt;To infer clusters (i.e., broad topical groupings), I ran &lt;a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html"&gt;K-means &lt;/a&gt;in the original embedding space. To make the clusters interpretable, I used &lt;a href="https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html"&gt;TF–IDF&lt;/a&gt; to generate simple semantic labels based on the most characteristic terms in each cluster.&lt;/p&gt; &lt;p&gt;Finally, using the reception labels extracted by the Kanon 2 Enricher, I captured a sentiment-like signal for how cases treat the authorities they cite. Most citations are neutral (grey). Citations that overrule prior High Court authority are marked in red, while supportive citations are shown in green. Because the Enricher extracts these signals natively, that step was straightforward.&lt;/p&gt; &lt;p&gt;With the features extracted and linked, I then vibe coded a lightweight interface to render the network as an interactive node graph.&lt;/p&gt; &lt;h1&gt;What you can see in the result&lt;/h1&gt; &lt;p&gt;Even with around ~7,000 High Court cases, some patterns stand out immediately:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The semantic geometry works surprisingly well.&lt;/strong&gt; Closely related areas of law sit near one another in 3D space. Estate law and land law, for example, tend to cluster tightly (towards the bottom of the structure) while criminal law, which is not related to these fields, occupies the top end of the grap.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;You can explore fine-grained subregions interactively.&lt;/strong&gt; In the notebook (linked at the end of the post), there’s a region where several clusters intersect that corresponds strongly to constitutional cases involving Indigenous communities. &lt;em&gt;Mabo v Queensland (No 2)&lt;/em&gt; is one of the best-known cases in that neighbourhood.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The time dimension reflects legal history.&lt;/strong&gt; You can see a shift toward citing domestic authority more heavily after the &lt;a href="https://peo.gov.au/understand-our-parliament/history-of-parliament/history-milestones/australian-parliament-history-timeline/events/australia-act-1986"&gt;Australia Acts 1986&lt;/a&gt;, which helped establish Australia’s judicial independence. Earlier High Court decisions cite UK Privy Council rulings more often and are more visibly shaped by UK common law. This is one reason the earliest cases cite Australian authorities less than you might expect.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Reproducing it&lt;/h1&gt; &lt;p&gt;All code to reproduce the results is on &lt;a href="https://github.com/isaacus-dev/cookbooks/tree/main/cookbooks/semantic-legal-citation-graph"&gt;GitHub,&lt;/a&gt; and the interactive visualisation is embedded directly in the notebook, so you can explore it without running anything locally. If you’d like a guided walkthrough, there’s also a guided tour highlighting landmark cases in Australian constitutional law I have up on &lt;a href="https://youtu.be/in76S6P9xOw?si=hBaPpb0p6HVyjelv"&gt;YouTube&lt;/a&gt;.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Neon0asis"&gt; /u/Neon0asis &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/2mntthxp7tkg1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ram2ov/how_i_mapped_every_high_court_of_australia_case/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ram2ov/how_i_mapped_every_high_court_of_australia_case/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-21T08:36:59+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rb2ho1</id>
     <title>I built a simple dockerized WebUI for KittenTTS</title>
@@ -125,17 +112,17 @@
     <published>2026-02-22T01:29:23+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rb61og</id>
-    <title>Nanbeige 4.1 is the best small LLM, it crush qwen 4b</title>
-    <updated>2026-02-21T23:32:59+00:00</updated>
+    <id>t3_1rbgzv5</id>
+    <title>The power of the sun in the palm of your hand ( Locally running Qwen 3 TTS model : LocalEcho )</title>
+    <updated>2026-02-22T08:55:37+00:00</updated>
     <author>
-      <name>/u/Individual-Source618</name>
-      <uri>https://old.reddit.com/user/Individual-Source618</uri>
+      <name>/u/No-Cap-8145</name>
+      <uri>https://old.reddit.com/user/No-Cap-8145</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Self-explenatory, try it its insane if you give him enough room to think. Its my go to local llm now. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Individual-Source618"&gt; /u/Individual-Source618 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbgzv5/the_power_of_the_sun_in_the_palm_of_your_hand/"&gt; &lt;img alt="The power of the sun in the palm of your hand ( Locally running Qwen 3 TTS model : LocalEcho )" src="https://external-preview.redd.it/eWljZGM0enZmMGxnMYJIVtXgOl3k8mbr55raX9pU_Bwp14RUXuSkRBoaV_CZ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=2916e5c55cb1925d9d417d562cee796cdcdde588" title="The power of the sun in the palm of your hand ( Locally running Qwen 3 TTS model : LocalEcho )" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;“I am not running on the clouds… I am running locally on your computer.”&lt;/p&gt; &lt;p&gt;This project actually started while I was building a &lt;strong&gt;streaming agent audio call service&lt;/strong&gt;. I needed low-latency TTS that I could fully control — no API limits, no external calls, no sending voice data to someone else’s servers.&lt;/p&gt; &lt;p&gt;That’s how &lt;strong&gt;LocalEcho&lt;/strong&gt; was born.&lt;/p&gt; &lt;p&gt;It’s a small open-source project that lets you run Qwen 3 TTS completely locally. Everything happens on your machine — no API keys, no cloud dependency, no hidden usage costs.&lt;/p&gt; &lt;p&gt;It currently supports:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🎙 Custom Voice — choose from 9 high-quality preset speakers for quick narration&lt;/li&gt; &lt;li&gt;✏️ Voice Design — describe a voice in plain English and generate it&lt;/li&gt; &lt;li&gt;🔬 Voice Cloning — record 5–10 seconds of a voice and clone it locally&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Minimum requirement right now is &lt;strong&gt;8GB RAM&lt;/strong&gt; for a smooth experience with Qwen 3 TTS.&lt;/p&gt; &lt;p&gt;It’s not tied to one specific environment. The idea was to make it practical across common dev setups:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🍎 &lt;strong&gt;Mac (Apple Silicon)&lt;/strong&gt; — runs using MLX with Metal GPU acceleration. Fully supported.&lt;/li&gt; &lt;li&gt;🐧 &lt;strong&gt;Linux (NVIDIA GPU)&lt;/strong&gt; — PyTorch + CUDA. Fully supported.&lt;/li&gt; &lt;li&gt;🪟 &lt;strong&gt;Windows (NVIDIA GPU)&lt;/strong&gt; — PyTorch + CUDA. Fully supported.&lt;/li&gt; &lt;li&gt;💻 &lt;strong&gt;CPU-only&lt;/strong&gt; — Works with PyTorch, but it’s slow. Good for testing, not ideal for real usage.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If that doesn’t fit your setup, the project is structured so you can swap in other open-source TTS models with lighter requirements. The goal is flexibility, not locking into one model.&lt;/p&gt; &lt;p&gt;This isn’t a SaaS or wrapper around someone else’s API. It’s more of a practical local GenAI toolkit — useful if you're:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;building voice-enabled agents&lt;/li&gt; &lt;li&gt;experimenting with offline AI systems&lt;/li&gt; &lt;li&gt;working on indie games or narration tools&lt;/li&gt; &lt;li&gt;or just curious how modern TTS pipelines work under the hood&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Would genuinely appreciate feedback — especially around performance on different machines, latency for streaming use cases, and model alternatives people are experimenting with.&lt;/p&gt; &lt;p&gt;My first post ever on reddit. Let me know if any feedbacks.&lt;/p&gt; &lt;p&gt;Repo:&lt;br /&gt; &lt;a href="https://github.com/AnuragGupta93/LocalEcho"&gt;https://github.com/AnuragGupta93/LocalEcho&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Cap-8145"&gt; /u/No-Cap-8145 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/dcwp22zvf0lg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbgzv5/the_power_of_the_sun_in_the_palm_of_your_hand/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbgzv5/the_power_of_the_sun_in_the_palm_of_your_hand/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-21T23:32:59+00:00</published>
+    <published>2026-02-22T08:55:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1raucof</id>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1raucof/wave_field_llm_on_log_n_attention_via_wave/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-21T15:46:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rb61og</id>
+    <title>Nanbeige 4.1 is the best small LLM, it crush qwen 4b</title>
+    <updated>2026-02-21T23:32:59+00:00</updated>
+    <author>
+      <name>/u/Individual-Source618</name>
+      <uri>https://old.reddit.com/user/Individual-Source618</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Self-explenatory, try it its insane if you give him enough room to think. Its my go to local llm now. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Individual-Source618"&gt; /u/Individual-Source618 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rb61og/nanbeige_41_is_the_best_small_llm_it_crush_qwen_4b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-21T23:32:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1rawge5</id>
@@ -216,19 +216,6 @@
     <published>2026-02-21T20:52:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rbfh1y</id>
-    <title>dyslexia and ADHD in the coding community</title>
-    <updated>2026-02-22T07:23:34+00:00</updated>
-    <author>
-      <name>/u/PruneLanky3551</name>
-      <uri>https://old.reddit.com/user/PruneLanky3551</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is my third post on my first Reddit account. Here's why that took so long.&lt;/p&gt; &lt;p&gt;I have dyslexia and ADHD. I've been lurking in communities like this one for years -- reading everything, learning everything -- but never posting. Not because I had nothing to contribute. Because I was scared of what would happen when people saw how I write.&lt;/p&gt; &lt;p&gt;People with dyslexia and ADHD don't write the way the internet expects. The spelling is off. The punctuation is wrong. The sentences don't flow right. And the internet has never been kind about that. We get called stupid. We get told our ideas don't matter because the package they came in looked messy. So we lurk. We learn. We do real work quietly and never share it because the cost of being mocked is too high.&lt;/p&gt; &lt;p&gt;I use AI to help me write. Not to generate ideas -- the ideas are mine. Not to do the work -- I did the work. To help me communicate in a way that doesn't get me dismissed before anyone reads what I actually built.&lt;/p&gt; &lt;p&gt;Yesterday I shipped the first working GGUF quantization of Ouro -- ByteDance's recurrent thinking model. I figured out the tensor mapping, the layer norm mismatch, the early exit gate skip. That was me. And the first thing someone did was question whether I was human.&lt;/p&gt; &lt;p&gt;I'm posting this because I know I'm not the only one. There are people in this community right now with real knowledge, real skills, real contributions -- who won't post because they're afraid of exactly what happened to me today.&lt;/p&gt; &lt;p&gt;You belong here. Your ideas belong here. How you write doesn't determine what you know.&lt;/p&gt; &lt;p&gt;This was my first post. It won't be my last.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PruneLanky3551"&gt; /u/PruneLanky3551 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-22T07:23:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rb4luf</id>
     <title>O-TITANS: Orthogonal LoRAs for Gemma 3 using Google's TITANS memory architecture</title>
     <updated>2026-02-21T22:32:47+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbculq/lawyer_says_google_shut_down_his_gmail_voice_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-22T04:56:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rbfh1y</id>
+    <title>dyslexia and ADHD in the coding community</title>
+    <updated>2026-02-22T07:23:34+00:00</updated>
+    <author>
+      <name>/u/PruneLanky3551</name>
+      <uri>https://old.reddit.com/user/PruneLanky3551</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is my third post on my first Reddit account. Here's why that took so long.&lt;/p&gt; &lt;p&gt;I have dyslexia and ADHD. I've been lurking in communities like this one for years -- reading everything, learning everything -- but never posting. Not because I had nothing to contribute. Because I was scared of what would happen when people saw how I write.&lt;/p&gt; &lt;p&gt;People with dyslexia and ADHD don't write the way the internet expects. The spelling is off. The punctuation is wrong. The sentences don't flow right. And the internet has never been kind about that. We get called stupid. We get told our ideas don't matter because the package they came in looked messy. So we lurk. We learn. We do real work quietly and never share it because the cost of being mocked is too high.&lt;/p&gt; &lt;p&gt;I use AI to help me write. Not to generate ideas -- the ideas are mine. Not to do the work -- I did the work. To help me communicate in a way that doesn't get me dismissed before anyone reads what I actually built.&lt;/p&gt; &lt;p&gt;Yesterday I shipped the first working GGUF quantization of Ouro -- ByteDance's recurrent thinking model. I figured out the tensor mapping, the layer norm mismatch, the early exit gate skip. That was me. And the first thing someone did was question whether I was human.&lt;/p&gt; &lt;p&gt;I'm posting this because I know I'm not the only one. There are people in this community right now with real knowledge, real skills, real contributions -- who won't post because they're afraid of exactly what happened to me today.&lt;/p&gt; &lt;p&gt;You belong here. Your ideas belong here. How you write doesn't determine what you know.&lt;/p&gt; &lt;p&gt;This was my first post. It won't be my last.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PruneLanky3551"&gt; /u/PruneLanky3551 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rbfh1y/dyslexia_and_adhd_in_the_coding_community/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-22T07:23:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1rbafs8</id>
