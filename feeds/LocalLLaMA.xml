@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-25T12:49:11+00:00</updated>
+  <updated>2026-02-25T13:34:40+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1rdv74o</id>
-    <title>FlashLM v6 "SUPERNOVA": 4.1M ternary model hits 3,500 tok/s on CPU — novel P-RCSM reasoning architecture, no attention, no convolution</title>
-    <updated>2026-02-24T22:36:52+00:00</updated>
-    <author>
-      <name>/u/Own-Albatross868</name>
-      <uri>https://old.reddit.com/user/Own-Albatross868</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Back with v6. Some of you saw v5 “Thunderbolt” — 29.7M params, PPL 1.36, beat the TinyStories-1M baseline on a borrowed Ryzen 7950X3D (thanks again to arki05 for that machine). This time I went back to the free Deepnote notebook — 2 threads, 5GB RAM — and built a completely new architecture from scratch.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it is:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;4.1M parameter language model with a novel architecture called P-RCSM (Parallel - Recursive Compositional State Machines). 81% of weights are ternary {-1, 0, +1}. Trained for ~3 hours on a free CPU notebook. No GPU at any point. Generates coherent children’s stories with characters, dialogue, and narrative structure at 3,500 tokens/sec.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why this matters beyond TinyStories:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I’m a student with no budget for GPUs. This entire project runs on free-tier cloud CPUs. But the goal was never “make a toy story generator” — it’s to prove that a ternary, matmul-free architecture can produce coherent language on the absolute worst hardware available.&lt;/p&gt; &lt;p&gt;Think about where a model like this could actually be useful: a fast, tiny model running on a couple of CPU cores alongside a big GPU model on the same server. The small model handles routing, classification, draft tokens for speculative decoding — tasks where latency matters more than capability. Or on edge devices, phones, microcontrollers — places where there’s no GPU at all. At 3,500 tok/s on 2 CPU threads with 16MB of RAM, this is already fast enough to be practical as a side-car model.&lt;/p&gt; &lt;p&gt;TinyStories is just the proving ground. The architecture is what I’m validating.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The new architecture — P-RCSM:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;v4 used convolutions for token mixing. v5 used gated recurrence. v5.2 used standard attention. All have tradeoffs — convolutions have limited receptive field, recurrence is sequential (slow on CPU), attention is O(T²).&lt;/p&gt; &lt;p&gt;v6 introduces three new components:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MultiScaleLinearBank&lt;/strong&gt; — replaces convolutions. Projects [current_token, shifted_token] through ternary linear layers at multiple temporal offsets (shift 1, shift 2). A learned soft router blends the scales per token. No Conv1d anywhere — pure F.linear calls.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;HierarchicalStateGate&lt;/strong&gt; — a compact “planner” state (32 dims) that gates a larger “executor” state (64 dims). The planner updates slowly via mean-pooled summaries, providing implicit adaptive computation depth. No Python loops.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;SlotMemoryAttention&lt;/strong&gt; — 8 learned memory slots accessed via a single matmul. Tokens query the slots in parallel. Replaces sequential read/write memory with one batched operation.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;All three use only &lt;code&gt;F.linear&lt;/code&gt; (BitLinear ternary) and element-wise ops. Zero convolutions, zero attention, zero sequential loops.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Embedding (4K × 192, float, weight-tied) → 6× SupernovaBlock: RMSNorm → GatedLinearMixer (ternary) + residual RMSNorm → P-RCSM (MultiScaleLinearBank + StateGate + SlotMemory) + residual RMSNorm → TernaryGLU (ternary gate/up/down, SiLU) + residual → RMSNorm → Output Head (tied to embedding) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;FlashLM v6&lt;/th&gt; &lt;th align="left"&gt;FlashLM v5.2&lt;/th&gt; &lt;th align="left"&gt;FlashLM v4&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Params&lt;/td&gt; &lt;td align="left"&gt;4.1M (81% ternary)&lt;/td&gt; &lt;td align="left"&gt;5.0M (float32)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Val PPL&lt;/td&gt; &lt;td align="left"&gt;14.0&lt;/td&gt; &lt;td align="left"&gt;10.56&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Speed&lt;/td&gt; &lt;td align="left"&gt;3,500 tok/s&lt;/td&gt; &lt;td align="left"&gt;3,500 tok/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Architecture&lt;/td&gt; &lt;td align="left"&gt;P-RCSM (linear-only)&lt;/td&gt; &lt;td align="left"&gt;Transformer + RoPE&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Token mixing&lt;/td&gt; &lt;td align="left"&gt;GatedLinearMixer&lt;/td&gt; &lt;td align="left"&gt;Multi-head attention&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Training time&lt;/td&gt; &lt;td align="left"&gt;~3 hours&lt;/td&gt; &lt;td align="left"&gt;2 hours&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Hardware&lt;/td&gt; &lt;td align="left"&gt;2-thread CPU&lt;/td&gt; &lt;td align="left"&gt;2-thread CPU&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;v6 beats v4 on quality (PPL 14.0 vs 15.05) with 2.4× the throughput, using a fundamentally different architecture. v5.2 still wins on PPL because standard attention with RoPE is hard to beat at small scale — but v6 uses zero attention and zero convolution.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Honest assessment:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The P-RCSM reasoning components are small in this config (d_reason=64, d_planner=32, 2 scales, 8 memory slots). Most capacity is in the GatedLinearMixer + TernaryGLU backbone. To really prove the reasoning components help, I need more data — 4.4M tokens is tiny and the model hit a data ceiling at PPL 14.0 after ~9 epochs. The architecture needs to be tested at scale with a proper dataset.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Sample output:&lt;/strong&gt;&lt;/p&gt; &lt;blockquote&gt; &lt;/blockquote&gt; &lt;p&gt;Coherent narratives, character names, dialogue, emotional content. Some repetition on longer generations — expected with a 6-token effective receptive field.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Training curve:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Step&lt;/th&gt; &lt;th align="left"&gt;Train Loss&lt;/th&gt; &lt;th align="left"&gt;Val PPL&lt;/th&gt; &lt;th align="left"&gt;Tokens&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;50&lt;/td&gt; &lt;td align="left"&gt;3.52&lt;/td&gt; &lt;td align="left"&gt;—&lt;/td&gt; &lt;td align="left"&gt;0.05M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;300&lt;/td&gt; &lt;td align="left"&gt;1.90&lt;/td&gt; &lt;td align="left"&gt;45.0&lt;/td&gt; &lt;td align="left"&gt;0.31M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;1,500&lt;/td&gt; &lt;td align="left"&gt;1.54&lt;/td&gt; &lt;td align="left"&gt;24.1&lt;/td&gt; &lt;td align="left"&gt;1.5M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;6,000&lt;/td&gt; &lt;td align="left"&gt;1.36&lt;/td&gt; &lt;td align="left"&gt;16.6&lt;/td&gt; &lt;td align="left"&gt;6.1M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;15,300&lt;/td&gt; &lt;td align="left"&gt;1.28&lt;/td&gt; &lt;td align="left"&gt;14.2&lt;/td&gt; &lt;td align="left"&gt;15.7M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;30,300&lt;/td&gt; &lt;td align="left"&gt;1.25&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;14.0&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;31.0M&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Loss was still improving when I stopped. Data-limited, not architecture-limited.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The speed debugging story:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The original v6 design used depthwise Conv1d and ran at 13 tok/s. Turned out PyTorch 2.1.2 has a known bug where bfloat16 autocast + Conv1d is ~100× slower on CPU. After upgrading to PyTorch 2.5.1+cpu and replacing every Conv1d with pure F.linear calls, speed jumped from 13 → 3,500 tok/s. Lesson: on CPU, &lt;code&gt;F.linear&lt;/code&gt; through optimized BLAS is king.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What’s next:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Scale test&lt;/strong&gt; — P-RCSM needs to be validated on a bigger model (10M+ params) with more data. The reasoning components are too small in this config to prove they help.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Better dataset&lt;/strong&gt; — TinyStories was the proving ground. Need broader data to test if the architecture generalizes.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Nano-Coder (NC series)&lt;/strong&gt; — Applying FlashLM techniques to code generation.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;C inference runtime&lt;/strong&gt; — AVX2 ternary kernels. A 4.1M ternary model packs into ~800KB — fits entirely in L2 cache. Should be insanely fast with native code.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;The bigger picture:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I started this project on a free 2-thread notebook because that’s what I had. I’m a student, no GPU budget, no lab access. Every version of FlashLM has been about pushing what’s possible under the worst constraints. If this architecture works at 1-2B parameters on a proper CPU (say an EPYC with big L3 cache), a fast ternary model running on spare CPU cores could serve as a draft model for speculative decoding, a router for MoE, or a standalone model for edge deployment. That’s the long-term bet.&lt;/p&gt; &lt;p&gt;If anyone has compute to spare and wants to help scale this up — or just wants to run the training script yourself — everything is MIT licensed and on GitHub.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GitHub: &lt;a href="https://github.com/changcheng967/FlashLM"&gt;https://github.com/changcheng967/FlashLM&lt;/a&gt;&lt;/li&gt; &lt;li&gt;v6 model + weights: &lt;a href="https://huggingface.co/changcheng967/flashlm-v6-supernova"&gt;https://huggingface.co/changcheng967/flashlm-v6-supernova&lt;/a&gt;&lt;/li&gt; &lt;li&gt;v5 Thunderbolt: &lt;a href="https://huggingface.co/changcheng967/flashlm-v5-thunderbolt"&gt;https://huggingface.co/changcheng967/flashlm-v5-thunderbolt&lt;/a&gt;&lt;/li&gt; &lt;li&gt;v4 Bolt: &lt;a href="https://huggingface.co/changcheng967/flashlm-v4-bolt"&gt;https://huggingface.co/changcheng967/flashlm-v4-bolt&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Own-Albatross868"&gt; /u/Own-Albatross868 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rdv74o/flashlm_v6_supernova_41m_ternary_model_hits_3500/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rdv74o/flashlm_v6_supernova_41m_ternary_model_hits_3500/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rdv74o/flashlm_v6_supernova_41m_ternary_model_hits_3500/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-24T22:36:52+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rdi26s</id>
     <title>Liquid AI releases LFM2-24B-A2B</title>
@@ -34,17 +21,17 @@
     <published>2026-02-24T14:43:33+00:00</published>
   </entry>
   <entry>
-    <id>t3_1re9h4r</id>
-    <title>Some Qwen3.5 benchmarks on Strix Halo &amp; llama.cpp</title>
-    <updated>2026-02-25T10:16:31+00:00</updated>
+    <id>t3_1reb313</id>
+    <title>Qwen 3.5 35B A3B and 122B A10B - Solid performance on dual 3090</title>
+    <updated>2026-02-25T11:48:01+00:00</updated>
     <author>
-      <name>/u/spaceman_</name>
-      <uri>https://old.reddit.com/user/spaceman_</uri>
+      <name>/u/Imakerocketengine</name>
+      <uri>https://old.reddit.com/user/Imakerocketengine</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"&gt; &lt;img alt="Some Qwen3.5 benchmarks on Strix Halo &amp;amp; llama.cpp" src="https://preview.redd.it/115tak288mlg1.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=b6fdc1a7fa847c119f000591d1f6c834d66bd8d6" title="Some Qwen3.5 benchmarks on Strix Halo &amp;amp; llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys! I was excited to try out some Qwen 3.5 models on my Strix Halo laptop.&lt;/p&gt; &lt;p&gt;All benchmarks were run at 30k context depth and I've included some of my current favorites for comparison (Qwen3-Coder-Next, gpt-oss-120b, step-3.5-flash). For some reason, with the current build, llama-bench failed to produce numbers for MiniMax M2.5, even though I'm running the models using llama-server just fine.&lt;/p&gt; &lt;p&gt;No real reason why I picked these quants, except that they fit in memory and I noticed in previous benchmarks that Q8 and Q4 quants were faster than others (Q3, Q5, Q6). So here we are.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Same caveat as in my previous post: my device is limited to 70W, so other people may get somewhat better numbers on their 120-140W mini PCs!&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/spaceman_"&gt; /u/spaceman_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1re9h4r"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, i've been playing with the 35B A3B variant of Qwen 3.5 and been getting solid performance on my dual 3090 rig (64gb of DDR4)&lt;/p&gt; &lt;p&gt;For Qwen 3.5 35B A3B :&lt;/p&gt; &lt;p&gt;&lt;code&gt;in the unsloth MXFP4 : (on a large prompt 40K token)&lt;/code&gt;&lt;br /&gt; &lt;code&gt;prompt processing : 2K t/s&lt;/code&gt;&lt;br /&gt; &lt;code&gt;token generation : 90 t/s&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;in the unsloth Q8_0 : (on a large prompt 40K token)&lt;/code&gt;&lt;br /&gt; &lt;code&gt;prompt processing : 1.7K t/s&lt;/code&gt;&lt;br /&gt; &lt;code&gt;token generation : 77 t/s&lt;/code&gt;&lt;/p&gt; &lt;p&gt;For Qwen 3.5 122B A10B : with offloading to the cpu&lt;/p&gt; &lt;p&gt;&lt;code&gt;in the unsloth MXFP4 : (on a small prompt)&lt;/code&gt;&lt;br /&gt; &lt;code&gt;prompt processing : 146 t/s&lt;/code&gt;&lt;br /&gt; &lt;code&gt;token generation : 25 t/s&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;in the unsloth Q4_K_XL : (on a small prompt)&lt;/code&gt;&lt;br /&gt; &lt;code&gt;prompt processing : 191 t/s&lt;/code&gt;&lt;br /&gt; &lt;code&gt;token generation : 26 t/s&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;Pretty wierd that i'm getting less performance on the MXFP4 variant&lt;/em&gt;&lt;/p&gt; &lt;p&gt;I think i need to test them a bit more but the 35B is on the road to become my daily driver with qwen coder next for agentic coding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Imakerocketengine"&gt; /u/Imakerocketengine &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1reb313/qwen_35_35b_a3b_and_122b_a10b_solid_performance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1reb313/qwen_35_35b_a3b_and_122b_a10b_solid_performance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1reb313/qwen_35_35b_a3b_and_122b_a10b_solid_performance/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T10:16:31+00:00</published>
+    <published>2026-02-25T11:48:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1re7ypi</id>
@@ -73,17 +60,30 @@
     <published>2026-02-24T23:14:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1re9crt</id>
-    <title>An LLM hard-coded into silicon that can do inference at 17k tokens/s???</title>
-    <updated>2026-02-25T10:09:18+00:00</updated>
+    <id>t3_1rea5vs</id>
+    <title>Price of MSI GB300 workstation (DGX Station) appeared online ~ $97k</title>
+    <updated>2026-02-25T10:57:07+00:00</updated>
     <author>
-      <name>/u/wombatsock</name>
-      <uri>https://old.reddit.com/user/wombatsock</uri>
+      <name>/u/fairydreaming</name>
+      <uri>https://old.reddit.com/user/fairydreaming</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9crt/an_llm_hardcoded_into_silicon_that_can_do/"&gt; &lt;img alt="An LLM hard-coded into silicon that can do inference at 17k tokens/s???" src="https://external-preview.redd.it/JqDe2NF6kolh0uBSiMVgY8NEE7ZZjWayCqAO-_3SCRk.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4b4d38ee533ac1338f5f4d53df3e7f4f3e39cc84" title="An LLM hard-coded into silicon that can do inference at 17k tokens/s???" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What do people think about this?? Is it a scam, or could it be real? Seems crazy to me, I would like to see the actual, physical product reviewed/benchmarked by independent experts before I really believe it, but. yikes.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wombatsock"&gt; /u/wombatsock &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://taalas.com/the-path-to-ubiquitous-ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9crt/an_llm_hardcoded_into_silicon_that_can_do/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re9crt/an_llm_hardcoded_into_silicon_that_can_do/"/>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.cdw.com/product/msi-nvidia-gb300-wkstn-72c-grace-cpu/9087313?pfm=srh"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rea5vs/price_of_msi_gb300_workstation_dgx_station/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rea5vs/price_of_msi_gb300_workstation_dgx_station/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T10:09:18+00:00</published>
+    <published>2026-02-25T10:57:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1re9h4r</id>
+    <title>Some Qwen3.5 benchmarks on Strix Halo &amp; llama.cpp</title>
+    <updated>2026-02-25T10:16:31+00:00</updated>
+    <author>
+      <name>/u/spaceman_</name>
+      <uri>https://old.reddit.com/user/spaceman_</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"&gt; &lt;img alt="Some Qwen3.5 benchmarks on Strix Halo &amp;amp; llama.cpp" src="https://preview.redd.it/115tak288mlg1.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=b6fdc1a7fa847c119f000591d1f6c834d66bd8d6" title="Some Qwen3.5 benchmarks on Strix Halo &amp;amp; llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys! I was excited to try out some Qwen 3.5 models on my Strix Halo laptop.&lt;/p&gt; &lt;p&gt;All benchmarks were run at 30k context depth and I've included some of my current favorites for comparison (Qwen3-Coder-Next, gpt-oss-120b, step-3.5-flash). For some reason, with the current build, llama-bench failed to produce numbers for MiniMax M2.5, even though I'm running the models using llama-server just fine.&lt;/p&gt; &lt;p&gt;No real reason why I picked these quants, except that they fit in memory and I noticed in previous benchmarks that Q8 and Q4 quants were faster than others (Q3, Q5, Q6). So here we are.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Same caveat as in my previous post: my device is limited to 70W, so other people may get somewhat better numbers on their 120-140W mini PCs!&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/spaceman_"&gt; /u/spaceman_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1re9h4r"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re9h4r/some_qwen35_benchmarks_on_strix_halo_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-25T10:16:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1rdfhfx</id>
@@ -112,6 +112,19 @@
     <published>2026-02-25T08:22:51+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rechcr</id>
+    <title>Qwen just published the vision language benchmarks of qwen3.5 medium and I have compared Qwen3.5-35b-a3b with Qwen3-VL-235b-a22b, They actually perform close to each other which is insane!</title>
+    <updated>2026-02-25T12:57:00+00:00</updated>
+    <author>
+      <name>/u/abdouhlili</name>
+      <uri>https://old.reddit.com/user/abdouhlili</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rechcr/qwen_just_published_the_vision_language/"&gt; &lt;img alt="Qwen just published the vision language benchmarks of qwen3.5 medium and I have compared Qwen3.5-35b-a3b with Qwen3-VL-235b-a22b, They actually perform close to each other which is insane!" src="https://preview.redd.it/5yfl6ics1nlg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0be51e6ebac5d994265103624a292df8b2510163" title="Qwen just published the vision language benchmarks of qwen3.5 medium and I have compared Qwen3.5-35b-a3b with Qwen3-VL-235b-a22b, They actually perform close to each other which is insane!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/abdouhlili"&gt; /u/abdouhlili &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/5yfl6ics1nlg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rechcr/qwen_just_published_the_vision_language/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rechcr/qwen_just_published_the_vision_language/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-25T12:57:00+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1re1b4a</id>
     <title>You can use Qwen3.5 without thinking</title>
     <updated>2026-02-25T02:52:49+00:00</updated>
@@ -125,19 +138,6 @@
     <published>2026-02-25T02:52:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1re6fud</id>
-    <title>Your coding agent sessions are sitting on your machine right now. Big labs use this data internally. We could build an open equivalent.</title>
-    <updated>2026-02-25T07:11:25+00:00</updated>
-    <author>
-      <name>/u/No-Point1424</name>
-      <uri>https://old.reddit.com/user/No-Point1424</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Every time you use Claude Code or Codex CLI in agent mode, it logs everything locally. The full loop: your task, the model's reasoning, every tool call, every environment response, every error and retry. Complete (state → action → reward → next state) tuples. The exact data format RL researchers dream about.&lt;/p&gt; &lt;p&gt;I checked all my machines today.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Mac Mini: ~/.claude/projects/ 3.1GB 1103 files 574 agentic sessions MacBook: ~/.codex/sessions/ 2.4GB 3530 files 79 agentic sessions ~/.claude/projects/ 652MB 316 files 99 agentic sessions &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;775 sessions with real tool calls. 41 million tokens.&lt;/p&gt; &lt;p&gt;Extrapolate to thousands developers and we would have hundreds of billions tokens of real agentic trajectory data. No Pile equivalent exists for this. It's just sitting on people's hard drives, being silently deleted.&lt;/p&gt; &lt;p&gt;Claude Code deletes logs after 30 days by default. Fix it now:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;echo '{&amp;quot;cleanupPeriodDays&amp;quot;: 36500}' &amp;gt; ~/.claude/settings.json &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why this data matters&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The environment always tells you if it worked. Exit code 0 or not. Tests pass or not. This is the missing training signal , causal reasoning, error recovery, long-horizon planning. Things current models are genuinely bad at.&lt;/p&gt; &lt;p&gt;Big labs already collect this. Every Claude Code,codex session trains proprietary models. There's no open equivalent, not because the data doesn't exist, but because it's fragmented across developer machines.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The proposal&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Federated learning. Your data never leaves your machine. You train a small LoRA adapter locally, share only the weights with differential privacy noise, and get an improved global model back. Everyone contributes compute and signal. Nobody exposes their data or we can anonymize the data and create a dataset finetune a model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Check your own machines&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;du -sh ~/.codex/sessions/ 2&amp;gt;/dev/null du -sh ~/.claude/projects/ 2&amp;gt;/dev/null find ~/.codex/sessions/ -name &amp;quot;*.jsonl&amp;quot; | wc -l find ~/.claude/projects/ -name &amp;quot;*.jsonl&amp;quot; | wc -l &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Drop your numbers in the comments. I want to know the actual scale sitting unused across this community.&lt;/p&gt; &lt;p&gt;If there's enough interest we can build this out.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Point1424"&gt; /u/No-Point1424 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T07:11:25+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rdlbvc</id>
     <title>Qwen/Qwen3.5-35B-A3B · Hugging Face</title>
     <updated>2026-02-24T16:44:05+00:00</updated>
@@ -149,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rdlbvc/qwenqwen3535ba3b_hugging_face/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-24T16:44:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1re6fud</id>
+    <title>Your coding agent sessions are sitting on your machine right now. Big labs use this data internally. We could build an open equivalent.</title>
+    <updated>2026-02-25T07:11:25+00:00</updated>
+    <author>
+      <name>/u/No-Point1424</name>
+      <uri>https://old.reddit.com/user/No-Point1424</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Every time you use Claude Code or Codex CLI in agent mode, it logs everything locally. The full loop: your task, the model's reasoning, every tool call, every environment response, every error and retry. Complete (state → action → reward → next state) tuples. The exact data format RL researchers dream about.&lt;/p&gt; &lt;p&gt;I checked all my machines today.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Mac Mini: ~/.claude/projects/ 3.1GB 1103 files 574 agentic sessions MacBook: ~/.codex/sessions/ 2.4GB 3530 files 79 agentic sessions ~/.claude/projects/ 652MB 316 files 99 agentic sessions &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;775 sessions with real tool calls. 41 million tokens.&lt;/p&gt; &lt;p&gt;Extrapolate to thousands developers and we would have hundreds of billions tokens of real agentic trajectory data. No Pile equivalent exists for this. It's just sitting on people's hard drives, being silently deleted.&lt;/p&gt; &lt;p&gt;Claude Code deletes logs after 30 days by default. Fix it now:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;echo '{&amp;quot;cleanupPeriodDays&amp;quot;: 36500}' &amp;gt; ~/.claude/settings.json &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why this data matters&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The environment always tells you if it worked. Exit code 0 or not. Tests pass or not. This is the missing training signal , causal reasoning, error recovery, long-horizon planning. Things current models are genuinely bad at.&lt;/p&gt; &lt;p&gt;Big labs already collect this. Every Claude Code,codex session trains proprietary models. There's no open equivalent, not because the data doesn't exist, but because it's fragmented across developer machines.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The proposal&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Federated learning. Your data never leaves your machine. You train a small LoRA adapter locally, share only the weights with differential privacy noise, and get an improved global model back. Everyone contributes compute and signal. Nobody exposes their data or we can anonymize the data and create a dataset finetune a model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Check your own machines&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;du -sh ~/.codex/sessions/ 2&amp;gt;/dev/null du -sh ~/.claude/projects/ 2&amp;gt;/dev/null find ~/.codex/sessions/ -name &amp;quot;*.jsonl&amp;quot; | wc -l find ~/.claude/projects/ -name &amp;quot;*.jsonl&amp;quot; | wc -l &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Drop your numbers in the comments. I want to know the actual scale sitting unused across this community.&lt;/p&gt; &lt;p&gt;If there's enough interest we can build this out.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Point1424"&gt; /u/No-Point1424 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re6fud/your_coding_agent_sessions_are_sitting_on_your/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-25T07:11:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1re17th</id>
@@ -177,19 +190,6 @@
     <published>2026-02-24T16:44:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1re894z</id>
-    <title>The FIRST local vision model to get this right!</title>
-    <updated>2026-02-25T09:02:26+00:00</updated>
-    <author>
-      <name>/u/po_stulate</name>
-      <uri>https://old.reddit.com/user/po_stulate</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"&gt; &lt;img alt="The FIRST local vision model to get this right!" src="https://preview.redd.it/lz1m6nnetllg1.png?width=140&amp;amp;height=95&amp;amp;auto=webp&amp;amp;s=76a479a04722956d7dce2d4e7bf120f210e8e04b" title="The FIRST local vision model to get this right!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I decided to give qwen3.5-35b-a3b a try on this once very popular question in this sub. I've tried literally every popular local vision models in the past including bigger ones like glm-4.6v (106B) and qwen3-vl-235b-a22b and none of them got it even remotely correct. So I was thinking after it failed I will try qwen3.5-122b-a10b on this and hopefully it can get it after a few tries.&lt;/p&gt; &lt;p&gt;And to my surprise, 35b-a3b got it the first try! It came to the correct answer multiple times in the thinking process using different methods but didn't believe itself that 102 is the correct answer. After like the 5th time it calculated 102, it quoted &amp;quot;Not drawn accurately&amp;quot; and decided that it's probably actually the correct answer. Took over 30k thinking tokens for this.&lt;/p&gt; &lt;p&gt;I'm so amazed my these new qwen3.5 models, gonna test 122b on this now.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/po_stulate"&gt; /u/po_stulate &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1re894z"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T09:02:26+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rdptw8</id>
     <title>more qwens will appear</title>
     <updated>2026-02-24T19:22:21+00:00</updated>
@@ -214,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rdvq3s/qwen35_27b_is_match_made_in_heaven_for_size_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-24T22:57:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1re894z</id>
+    <title>The FIRST local vision model to get this right!</title>
+    <updated>2026-02-25T09:02:26+00:00</updated>
+    <author>
+      <name>/u/po_stulate</name>
+      <uri>https://old.reddit.com/user/po_stulate</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"&gt; &lt;img alt="The FIRST local vision model to get this right!" src="https://preview.redd.it/lz1m6nnetllg1.png?width=140&amp;amp;height=95&amp;amp;auto=webp&amp;amp;s=76a479a04722956d7dce2d4e7bf120f210e8e04b" title="The FIRST local vision model to get this right!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I decided to give qwen3.5-35b-a3b a try on this once very popular question in this sub. I've tried literally every popular local vision models in the past including bigger ones like glm-4.6v (106B) and qwen3-vl-235b-a22b and none of them got it even remotely correct. So I was thinking after it failed I will try qwen3.5-122b-a10b on this and hopefully it can get it after a few tries.&lt;/p&gt; &lt;p&gt;And to my surprise, 35b-a3b got it the first try! It came to the correct answer multiple times in the thinking process using different methods but didn't believe itself that 102 is the correct answer. After like the 5th time it calculated 102, it quoted &amp;quot;Not drawn accurately&amp;quot; and decided that it's probably actually the correct answer. Took over 30k thinking tokens for this.&lt;/p&gt; &lt;p&gt;I'm so amazed my these new qwen3.5 models, gonna test 122b on this now.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/po_stulate"&gt; /u/po_stulate &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1re894z"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re894z/the_first_local_vision_model_to_get_this_right/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-25T09:02:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1re76g6</id>
@@ -255,17 +268,17 @@
     <published>2026-02-25T04:39:52+00:00</published>
   </entry>
   <entry>
-    <id>t3_1re9fiv</id>
-    <title>"Don't steal my training data"</title>
-    <updated>2026-02-25T10:13:50+00:00</updated>
+    <id>t3_1re72h4</id>
+    <title>Qwen3.5 27B better than 35B-A3B?</title>
+    <updated>2026-02-25T07:49:05+00:00</updated>
     <author>
-      <name>/u/NotBadSon</name>
-      <uri>https://old.reddit.com/user/NotBadSon</uri>
+      <name>/u/-OpenSourcer</name>
+      <uri>https://old.reddit.com/user/-OpenSourcer</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9fiv/dont_steal_my_training_data/"&gt; &lt;img alt="&amp;quot;Don't steal my training data&amp;quot;" src="https://preview.redd.it/6fiywtco8mlg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ea2df903684a1e91362b1363061415042878db8a" title="&amp;quot;Don't steal my training data&amp;quot;" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NotBadSon"&gt; /u/NotBadSon &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/6fiywtco8mlg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re9fiv/dont_steal_my_training_data/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re9fiv/dont_steal_my_training_data/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"&gt; &lt;img alt="Qwen3.5 27B better than 35B-A3B?" src="https://preview.redd.it/f9x0emmuillg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bee689086672602801cb1e88155d725c01342793" title="Qwen3.5 27B better than 35B-A3B?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Which model would be better with 16 GB of VRAM and 32 GB of RAM?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/-OpenSourcer"&gt; /u/-OpenSourcer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/f9x0emmuillg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T10:13:50+00:00</published>
+    <published>2026-02-25T07:49:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1re6ifz</id>
@@ -279,19 +292,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re6ifz/anthropic_is_the_leading_contributor_to_open/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-25T07:15:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1re72h4</id>
-    <title>Qwen3.5 27B better than 35B-A3B?</title>
-    <updated>2026-02-25T07:49:05+00:00</updated>
-    <author>
-      <name>/u/-OpenSourcer</name>
-      <uri>https://old.reddit.com/user/-OpenSourcer</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"&gt; &lt;img alt="Qwen3.5 27B better than 35B-A3B?" src="https://preview.redd.it/f9x0emmuillg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bee689086672602801cb1e88155d725c01342793" title="Qwen3.5 27B better than 35B-A3B?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Which model would be better with 16 GB of VRAM and 32 GB of RAM?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/-OpenSourcer"&gt; /u/-OpenSourcer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/f9x0emmuillg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1re72h4/qwen35_27b_better_than_35ba3b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-25T07:49:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1rdxfdu</id>
