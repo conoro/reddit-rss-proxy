@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-02-28T05:46:19+00:00</updated>
+  <updated>2026-02-28T06:13:56+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
-  <entry>
-    <id>t3_1rg4apu</id>
-    <title>Qwen 3.5 Architecture Analysis: Parameter Distribution in the Dense 27B vs. 122B/35B MoE Models</title>
-    <updated>2026-02-27T11:33:21+00:00</updated>
-    <author>
-      <name>/u/Luca3700</name>
-      <uri>https://old.reddit.com/user/Luca3700</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rg4apu/qwen_35_architecture_analysis_parameter/"&gt; &lt;img alt="Qwen 3.5 Architecture Analysis: Parameter Distribution in the Dense 27B vs. 122B/35B MoE Models" src="https://preview.redd.it/gnzye3xgw0mg1.jpg?width=140&amp;amp;height=59&amp;amp;auto=webp&amp;amp;s=0b22d57c5ebae2ec043a1a48c7da75344ed162db" title="Qwen 3.5 Architecture Analysis: Parameter Distribution in the Dense 27B vs. 122B/35B MoE Models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yesterday, I wrote a &lt;a href="https://www.reddit.com/r/LocalLLaMA/s/EdTcLCLtTD"&gt;comment on this post&lt;/a&gt; on why, in my opinion, the dense model Qwen 3.5 27B can achieve good results in benchmarks, by providing an architectural analysis. And today I'm expanding my thoughts in this post.&lt;/p&gt; &lt;h1&gt;Intro&lt;/h1&gt; &lt;p&gt;A few days ago, Qwen released three new models: two &lt;strong&gt;Mixture of Experts models&lt;/strong&gt; (122B A10 and 35B A3) and a &lt;strong&gt;dense model&lt;/strong&gt; (with 27B parameters).&lt;/p&gt; &lt;p&gt;All of them share a similar architecture, that interleaves &lt;strong&gt;three Gated DeltaNet&lt;/strong&gt; layers with a &lt;strong&gt;Gated Attention&lt;/strong&gt; Layer, each of them followed by their respective Feed Forward Network.&lt;/p&gt; &lt;p&gt;Before going in detail in the analysis, let's summarize the three architectures with this picture (taken from the models overview on huggingface).&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/gnzye3xgw0mg1.jpg?width=2125&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=e0fe6c74b37c8f212024d7f1398784289c020e09"&gt;Models overview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: the hidden layout of the 122B model appears to be incorrect in the picture, because it should be &lt;em&gt;12x&lt;/em&gt; (3x ... -&amp;gt; 1x ...) and not &lt;em&gt;16x&lt;/em&gt;, because the number of layers is 48 (as stated in the config.json file as well)&lt;/p&gt; &lt;h1&gt;Architecture Analysis - Feed Forward Network&lt;/h1&gt; &lt;p&gt;Even though the blueprint is similar, the parameter distribution is different, and the &lt;strong&gt;main divergence&lt;/strong&gt; between the MoE models and the 27B dense model is that the former use &lt;strong&gt;more parameters in the experts&lt;/strong&gt; of the Feed Forward Network. In contrast, the 27B model (due to the use of a dense Feed Forward Network that uses less parameters than the MoE counterpart) is able to &lt;strong&gt;allocate more of them to other parts of the network&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;If we want to quantify the amount of parameters used in the FFN layers, we could say that for the MoE models is &lt;/p&gt; &lt;p&gt;&lt;code&gt;2 x hidden_dim x expert_int_dim x num_experts x num_layers&lt;/code&gt;&lt;/p&gt; &lt;p&gt;instead for the dense model is&lt;/p&gt; &lt;p&gt;&lt;code&gt;2 x hidden_dim x int_dim x num_layers&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Therefore, we obtain:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;122B MoE model: 77,3 B (active 2,7) -&amp;gt; &lt;strong&gt;63% (2,2%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;35B MoE model: 21,5 B (active 0,8) -&amp;gt; &lt;strong&gt;61% (2,3%)&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;27B dense model: 9,1 B -&amp;gt; &lt;strong&gt;34%&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Where these parameters go in the dense model?&lt;/h1&gt; &lt;p&gt;The dense model is able to use, in percentage, half of the parameters in the FFN layers, and can spread them to other parts of the architecture (the following points correspond to the numbers on the arrows in the images): &lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;the dense model is deeper&lt;/strong&gt;, it has 64 layers (instead the MoE models have respectively 48 and 40), and this should allow the model to have more depth for reasoning tasks&lt;/li&gt; &lt;li&gt;&lt;strong&gt;it uses 4 keys and 4 values in the gated attention layers&lt;/strong&gt; (compared to only 2 than the MoE architectures), and it could allow the attention layer to capture more nuances&lt;/li&gt; &lt;li&gt;&lt;strong&gt;it uses more heads in the Gated DeltaNet layers&lt;/strong&gt; compared to the 35B counterpart.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Another point to take into account is the number of active parameters. Although the dense model has a smaller number of parameters in the FFN, it uses more of them actively, allowing it to use &lt;strong&gt;more computational power per token&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;Conclusion&lt;/h1&gt; &lt;p&gt;Therefore, the 27B dense model can be seen, under the points of view listed above, as a &lt;strong&gt;deeper and wider&lt;/strong&gt; network than the 35B MoE model, and in some respects also than the 122B model. &lt;/p&gt; &lt;p&gt;I think that all these differences allow the dense model to have comparable performance to its bigger brother, even given the &lt;strong&gt;4,5x smaller parameter footprint&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;Thank you for reading until here!&lt;/p&gt; &lt;p&gt;What do you think about this analysis? &lt;/p&gt; &lt;p&gt;Note: LLM used only for grammar checks and title suggestion. Post inspired by the &lt;a href="/u/seraschka"&gt;u/seraschka&lt;/a&gt; architectures deep dive.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Luca3700"&gt; /u/Luca3700 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rg4apu/qwen_35_architecture_analysis_parameter/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rg4apu/qwen_35_architecture_analysis_parameter/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rg4apu/qwen_35_architecture_analysis_parameter/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-27T11:33:21+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rgiait</id>
     <title>Switched to Qwen3.5-122B-A10B-i1-GGUF</title>
@@ -45,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rgek4m/what_are_your_expectations_for_the_small_series/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-27T18:22:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rguty0</id>
+    <title>Get your local models in order. Anthropic just got "dislike" from the US government.</title>
+    <updated>2026-02-28T06:01:55+00:00</updated>
+    <author>
+      <name>/u/FPham</name>
+      <uri>https://old.reddit.com/user/FPham</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yeah as things look RN OpenAI+US government are on the war path to bring Anthropic to its knees.&lt;/p&gt; &lt;p&gt;Would Anthropic fall be good or bad for us?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FPham"&gt; /u/FPham &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rguty0/get_your_local_models_in_order_anthropic_just_got/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rguty0/get_your_local_models_in_order_anthropic_just_got/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rguty0/get_your_local_models_in_order_anthropic_just_got/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-28T06:01:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1rgoygs</id>
