@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-01T13:29:56+00:00</updated>
+  <updated>2026-03-01T13:48:18+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss AI &amp; Llama, the large language model created by Meta AI.</subtitle>
   <entry>
-    <id>t3_1rh802w</id>
-    <title>What if LLM agents passed KV-cache to each other instead of text? I tried it -- 73-78% token savings across Qwen, Llama, and DeepSeek</title>
-    <updated>2026-02-28T17:10:16+00:00</updated>
+    <id>t3_1rhsto2</id>
+    <title>I replaced my entire automation stack with MCP servers and local LLMs. Here's what actually works and what doesn't.</title>
+    <updated>2026-03-01T09:15:25+00:00</updated>
     <author>
-      <name>/u/proggmouse</name>
-      <uri>https://old.reddit.com/user/proggmouse</uri>
+      <name>/u/EquivalentGuitar7140</name>
+      <uri>https://old.reddit.com/user/EquivalentGuitar7140</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you've used multi-agent setups with LangChain, CrewAI, AutoGen, or Swarm, you've probably noticed: every agent re-tokenizes and re-processes the full conversation from scratch. Agent 3 in a 4-agent chain is re-reading everything agents 1 and 2 already chewed through. When I measured this across Qwen2.5, Llama 3.2, and DeepSeek-R1-Distill, &lt;strong&gt;47-53% of all tokens in text mode turned out to be redundant re-processing.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;AVP (Agent Vector Protocol) is my attempt to fix this. Instead of passing text between agents, it passes the KV-cache directly. Agent A finishes reasoning serializes its key-value attention states, and Agent B injects them. No re-tokenization, no redundant forward passes.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Text: Planner -&amp;gt; [text] -&amp;gt; Critic re-tokenizes everything -&amp;gt; [text] -&amp;gt; Refiner re-tokenizes everything Latent: Planner -&amp;gt; [KV-cache] -&amp;gt; Critic injects, skips to generation -&amp;gt; [KV-cache] -&amp;gt; Refiner same &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;What it actually does:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Same model on both sides? Direct KV-cache transfer, zero overhead.&lt;/li&gt; &lt;li&gt;Same family, different size (e.g. Qwen2.5-7B talking to 1.5B)? Vocabulary-mediated projection. No learned params, no calibration data needed.&lt;/li&gt; &lt;li&gt;Different families? Falls back to JSON. Not everything needs to be fancy.&lt;/li&gt; &lt;li&gt;Transport-agnostic -- works alongside A2A, MCP, gRPC, whatever you're already using&lt;/li&gt; &lt;li&gt;Binary wire format, not JSON+Base64 (33% overhead on tensor data is painful)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Numbers (these are structural, not accuracy claims):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Token savings of 73-78% and 2-4x speedups held consistent across all three model families. This isn't model-dependent -- it's just fewer forward passes, so less wall time. Here's the intuition: text prompt sizes balloon at each hop (186 -&amp;gt; 545 -&amp;gt; 1,073 -&amp;gt; 1,397 tokens in a 4-agent GSM8K chain). Latent stays flat at ~164-207 tokens per hop because prior context arrives as pre-computed KV-cache, not as text that needs re-encoding.&lt;/p&gt; &lt;p&gt;The gap widens with chain length. At 4 agents it's roughly 2x. At 16 agents (projected) it'd be around 6x, because text scales O(n^2) while latent scales O(n).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Limitations (yes, I know about these):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Sample sizes are n=20 per model. The token and speed numbers are solid because they're structural (fewer forward passes is fewer forward passes), but n=20 isn't enough to make accuracy claims. That's future work.&lt;/li&gt; &lt;li&gt;Tested on small models only (1.5B-3B on an RTX 3070 Ti). 7B+ results pending.&lt;/li&gt; &lt;li&gt;This is a datacenter / same-machine thing. KV-cache for a 3B model runs about 130 MB per sample. You need 1 Gbps+ bandwidth minimum. Sending this over the internet is not happening.&lt;/li&gt; &lt;li&gt;Requires KV-cache access, so self-hosted only. Won't work with OpenAI/Anthropic/etc. APIs.&lt;/li&gt; &lt;li&gt;Same model only for now. Cross-model (Rosetta Stone) is implemented but not benchmarked yet.&lt;/li&gt; &lt;li&gt;Latent uses 17-54x more VRAM than text because you're holding KV-cache across hops instead of discarding it. Totally fine for 1.5B-3B on 8GB+ GPUs. At 7B+ it becomes a real constraint, and I don't have a clean answer for that yet.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Try it yourself:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pip install avp &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Two API levels depending on how much control you want:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;import avp msg = avp.pack(&amp;quot;Hello&amp;quot;, model=&amp;quot;Qwen/Qwen2.5-7B-Instruct&amp;quot;, think_steps=20) answer = avp.unpack(msg, model=&amp;quot;Qwen/Qwen2.5-7B-Instruct&amp;quot;) from avp import HuggingFaceConnector connector = HuggingFaceConnector.from_pretrained(&amp;quot;Qwen/Qwen2.5-1.5B-Instruct&amp;quot;) context = connector.think(&amp;quot;Analyze this problem&amp;quot;, steps=20) answer = connector.generate(&amp;quot;Solve it.&amp;quot;, context=context) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;vLLM connector also available (&lt;code&gt;pip install &amp;quot;avp[vllm]&amp;quot;&lt;/code&gt;).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;SDK: &lt;a href="https://github.com/VectorArc/avp-python"&gt;github.com/VectorArc/avp-python&lt;/a&gt; (MIT, 377 tests, 7 benchmarks)&lt;/li&gt; &lt;li&gt;Spec: &lt;a href="https://github.com/VectorArc/avp-spec"&gt;github.com/VectorArc/avp-spec&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Benchmark details: &lt;a href="https://github.com/VectorArc/avp-python/blob/main/docs/BENCHMARKS.md"&gt;BENCHMARKS.md&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This is a nights-and-weekends project born out of my own multi-agent work. Happy to answer questions about the implementation and genuinely interested in feedback from people running multi-agent setups in production.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/proggmouse"&gt; /u/proggmouse &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh802w/what_if_llm_agents_passed_kvcache_to_each_other/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh802w/what_if_llm_agents_passed_kvcache_to_each_other/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rh802w/what_if_llm_agents_passed_kvcache_to_each_other/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've spent the last 4 months rebuilding my personal automation infrastructure around MCP (Model Context Protocol) + local models, and I wanted to share what I've learned because the hype-to-reality gap is massive.&lt;/p&gt; &lt;p&gt;**The setup:**&lt;/p&gt; &lt;p&gt;I run a mix of Qwen 2.5 32B (quantized) and Llama 3.3 70B on a dual 3090 rig. Each automation task gets its own MCP server that exposes tools the model can call. Think of it like building an API that an LLM consumes instead of a human.&lt;/p&gt; &lt;p&gt;**What actually works well:**&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;**Code review automation** - I point the model at a git diff via MCP tools and it catches real issues. Not the trivial lint stuff. Actual logic bugs, missing error handling, race conditions. Works better than I expected, maybe 70% as good as a senior dev review.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;**Log analysis and alerting** - MCP server connects to my ELK stack, model monitors for anomaly patterns. It's caught 3 production issues before my Grafana alerts fired. The key is giving it enough context about what &amp;quot;normal&amp;quot; looks like for your system.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;**Documentation generation** - Model reads the codebase through MCP file tools, generates/updates API docs. This one saves me hours per week and the output quality is genuinely good.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;**What doesn't work (yet):**&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;**Multi-step reasoning chains** - Anything requiring more than 3-4 tool calls in sequence starts to go off the rails. The model loses context of the original goal. Smaller context windows make this worse. I've tried chain-of-thought prompting and it helps but doesn't solve it.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;**Anything requiring real-time decision making** - Latency on 70B models means you can't use this for anything time-sensitive. My code review pipeline takes 2-3 minutes per PR. Fine for async workflows, useless for real-time.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;**Creative problem solving** - If the task requires figuring out an approach that isn't well-represented in training data, local models struggle hard. API models (Claude, GPT-4) are noticeably better here.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;**Key architectural lessons:**&lt;/p&gt; &lt;p&gt;- Keep MCP servers stateless. Let the model manage state through tool calls, not server-side session.&lt;/p&gt; &lt;p&gt;- Build retry logic into your MCP client, not the server. Models will make malformed tool calls ~5% of the time.&lt;/p&gt; &lt;p&gt;- Log every tool call and response. You'll need it for debugging when the model does something unexpected.&lt;/p&gt; &lt;p&gt;- Use structured output (JSON mode) for anything downstream systems consume. Free-form text output is a debugging nightmare.&lt;/p&gt; &lt;p&gt;Happy to answer questions about specific MCP server implementations or model configs. What's everyone else using local models for in their dev workflows?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EquivalentGuitar7140"&gt; /u/EquivalentGuitar7140 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rhsto2/i_replaced_my_entire_automation_stack_with_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rhsto2/i_replaced_my_entire_automation_stack_with_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rhsto2/i_replaced_my_entire_automation_stack_with_mcp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-28T17:10:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rhlosn</id>
-    <title>microgpt</title>
-    <updated>2026-03-01T02:42:51+00:00</updated>
-    <author>
-      <name>/u/johnnyApplePRNG</name>
-      <uri>https://old.reddit.com/user/johnnyApplePRNG</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://karpathy.github.io/2026/02/12/microgpt/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rhlosn/microgpt/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rhlosn/microgpt/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-01T02:42:51+00:00</published>
+    <published>2026-03-01T09:15:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1rhmepa</id>
@@ -99,19 +86,6 @@
     <published>2026-02-28T11:02:10+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rh095c</id>
-    <title>DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times</title>
-    <updated>2026-02-28T11:25:49+00:00</updated>
-    <author>
-      <name>/u/Nunki08</name>
-      <uri>https://old.reddit.com/user/Nunki08</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"&gt; &lt;img alt="DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times" src="https://preview.redd.it/kwyym79lz7mg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=abd4de62b86da5c98b3825614d512759e3a8ec10" title="DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Financial Times: DeepSeek to release long-awaited AI model in new challenge to US rivals (paywall): &lt;a href="https://www.ft.com/content/e3366881-0622-40a7-9c34-a0d82e3d573e"&gt;https://www.ft.com/content/e3366881-0622-40a7-9c34-a0d82e3d573e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/kwyym79lz7mg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-02-28T11:25:49+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rhw16v</id>
     <title>Dense (non-thinking) &gt; MoE? Qwen-3.5-27B is blowing me away in coding</title>
     <updated>2026-03-01T12:25:32+00:00</updated>
@@ -123,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rhw16v/dense_nonthinking_moe_qwen3527b_is_blowing_me/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-01T12:25:32+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rh095c</id>
+    <title>DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times</title>
+    <updated>2026-02-28T11:25:49+00:00</updated>
+    <author>
+      <name>/u/Nunki08</name>
+      <uri>https://old.reddit.com/user/Nunki08</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"&gt; &lt;img alt="DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times" src="https://preview.redd.it/kwyym79lz7mg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=abd4de62b86da5c98b3825614d512759e3a8ec10" title="DeepSeek V4 will be released next week and will have image and video generation capabilities, according to the Financial Times" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Financial Times: DeepSeek to release long-awaited AI model in new challenge to US rivals (paywall): &lt;a href="https://www.ft.com/content/e3366881-0622-40a7-9c34-a0d82e3d573e"&gt;https://www.ft.com/content/e3366881-0622-40a7-9c34-a0d82e3d573e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/kwyym79lz7mg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rh095c/deepseek_v4_will_be_released_next_week_and_will/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-02-28T11:25:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1rh6pru</id>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rhfque/qwen3_coder_next_qwen35_27b_devstral_small_2_rust/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-02-28T22:17:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rhx5pc</id>
+    <title>Reverse engineered Apple Neural Engine(ANE) to train Microgpt</title>
+    <updated>2026-03-01T13:21:55+00:00</updated>
+    <author>
+      <name>/u/jack_smirkingrevenge</name>
+      <uri>https://old.reddit.com/user/jack_smirkingrevenge</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rhx5pc/reverse_engineered_apple_neural_engineane_to/"&gt; &lt;img alt="Reverse engineered Apple Neural Engine(ANE) to train Microgpt" src="https://preview.redd.it/vl6kd7lvpfmg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=df3b9c88272add092ba76ce112ea2a10e4e2381c" title="Reverse engineered Apple Neural Engine(ANE) to train Microgpt" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Why? Because i bought a mac mini M4 and I wanted to leverage its compute for my compiler project&lt;/h1&gt; &lt;p&gt;Training on Metal(GPU) is well known but ANE is a black box and Apple doesn't talk about it. So I harnessed Claude to reverse engineer the ANE private APIs , run benchmarks by bypassing coreml(which is the recommended way to use ANE)&lt;/p&gt; &lt;p&gt;The NPU has 38 TFLOPS worth of claimed INT8 compute (but it's a FP16 processor so actual compute is half that)&lt;/p&gt; &lt;p&gt;In the end I create a bespoke training pipeline to train a small 110M microgpt model.&lt;/p&gt; &lt;p&gt;Now you can't in practice use it to train bigger models on a single chip but maybe a cluster of them in theory can train larger models. But even a single device should be able to do LoRA training for 3b/7b models.&lt;/p&gt; &lt;p&gt;Again, why train on NPUs? - they are extremely power efficient. Peak compute on ANE only consumes 2.8 W which at 19 tflops becomes 6.6 tflops/watt. Insane! (Metal GPU - 1, H100 - 1.4 Tflops/watt) &lt;/p&gt; &lt;h1&gt;Resources&lt;/h1&gt; &lt;p&gt;&lt;a href="https://open.substack.com/pub/maderix/p/inside-the-m4-apple-neural-engine"&gt;Reverse Engineering&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://open.substack.com/pub/maderix/p/inside-the-m4-apple-neural-engine-615"&gt;Benchmarks&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Training&lt;/strong&gt;: WIP&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo&lt;/strong&gt; : &lt;a href="https://github.com/maderix/ANE"&gt;GitHub&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jack_smirkingrevenge"&gt; /u/jack_smirkingrevenge &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vl6kd7lvpfmg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rhx5pc/reverse_engineered_apple_neural_engineane_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rhx5pc/reverse_engineered_apple_neural_engineane_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-01T13:21:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1rh43za</id>
