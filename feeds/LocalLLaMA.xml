@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-03T18:20:54+00:00</updated>
+  <updated>2026-03-03T18:48:10+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rizodv</id>
-    <title>Running Qwen 3.5 0.8B locally in the browser on WebGPU w/ Transformers.js</title>
-    <updated>2026-03-02T17:46:44+00:00</updated>
-    <author>
-      <name>/u/xenovatech</name>
-      <uri>https://old.reddit.com/user/xenovatech</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rizodv/running_qwen_35_08b_locally_in_the_browser_on/"&gt; &lt;img alt="Running Qwen 3.5 0.8B locally in the browser on WebGPU w/ Transformers.js" src="https://external-preview.redd.it/Y3Y3ejI3aTk1b21nMdWbvGcxCx2ye2tGU7zJWShDhnYRgbWYJJKHggNlhZlM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9f7f9c51655b141e1039757e48ea979d03c43f7a" title="Running Qwen 3.5 0.8B locally in the browser on WebGPU w/ Transformers.js" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Today, Qwen released their latest family of small multimodal models, Qwen 3.5 Small, available in a range of sizes (0.8B, 2B, 4B, and 9B parameters) and perfect for on-device applications. So, I built a demo running the smallest variant (0.8B) locally in the browser on WebGPU. The bottleneck is definitely the vision encoder, but I think it's pretty cool that it can run in the first place haha!&lt;/p&gt; &lt;p&gt;Links for those interested: - Qwen 3.5 collection on Hugging Face: &lt;a href="https://huggingface.co/collections/Qwen/qwen35"&gt;https://huggingface.co/collections/Qwen/qwen35&lt;/a&gt; - Online WebGPU demo: &lt;a href="https://huggingface.co/spaces/webml-community/Qwen3.5-0.8B-WebGPU"&gt;https://huggingface.co/spaces/webml-community/Qwen3.5-0.8B-WebGPU&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/hta9o2i95omg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rizodv/running_qwen_35_08b_locally_in_the_browser_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rizodv/running_qwen_35_08b_locally_in_the_browser_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-02T17:46:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rjsf7f</id>
-    <title>I spent 6 hours last night failing to fine-tune Qwen3.5-9B until Kimi k2.5 walked me through the fixes - here's the working config</title>
-    <updated>2026-03-03T15:34:31+00:00</updated>
-    <author>
-      <name>/u/pakalolo7123432</name>
-      <uri>https://old.reddit.com/user/pakalolo7123432</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I need to preface this: I didn't write this code (or most of this post) myself. Last night I went down a 6-hour rabbit hole trying to train a style-replica model (basically &amp;quot;JoeyOS&amp;quot; - my own voice for job application emails) on Qwen3.5-9B, and I failed spectacularly multiple times until I got the right help.&lt;/p&gt; &lt;p&gt;I Started with Gemini trying to use Unsloth and got vision processor errors immediately. Kept getting &lt;code&gt;OutOfMemoryError&lt;/code&gt; on an RTX 4090 with r=256 LoRA. Switched to A100 40GB, then 80GB. Still broke.&lt;/p&gt; &lt;p&gt;Then I switched to Kimi K2.5 for the long slog after Gemini started going in circles and forgetting everything from 10 minutes ago at 2 in the morning....... &lt;/p&gt; &lt;p&gt;Multiple SSH drops, corrupted file transfers, the whole &amp;quot;taking longer than expected&amp;quot; RunPod Jupyter hell, and then the real kicker: &lt;strong&gt;TokenizersBackend doesn't exist&lt;/strong&gt; and &lt;strong&gt;qwen3_5 architecture not recognized&lt;/strong&gt; errors.&lt;/p&gt; &lt;p&gt;We ended up bypassing Unsloth entirely and going raw Transformers + PEFT with some very specific hacks:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The working script&lt;/strong&gt; (tested on A100 80GB, but should work on 40GB with lower rank):&lt;/p&gt; &lt;p&gt;Python&lt;/p&gt; &lt;p&gt;Copy&lt;/p&gt; &lt;pre&gt;&lt;code&gt;import torch from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, DataCollatorForSeq2Seq, BitsAndBytesConfig from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training from datasets import load_dataset from huggingface_hub import hf_hub_download import json import os os.environ[&amp;quot;TOKENIZERS_PARALLELISM&amp;quot;] = &amp;quot;false&amp;quot; model_id = &amp;quot;unsloth/Qwen3.5-9B&amp;quot; # CRITICAL FIX 1: Patch the broken tokenizer config that references non-existent TokenizersBackend class tokenizer_config_path = hf_hub_download(repo_id=model_id, filename=&amp;quot;tokenizer_config.json&amp;quot;) with open(tokenizer_config_path, &amp;quot;r&amp;quot;) as f: config = json.load(f) if config.get(&amp;quot;tokenizer_class&amp;quot;) == &amp;quot;TokenizersBackend&amp;quot;: config[&amp;quot;tokenizer_class&amp;quot;] = &amp;quot;PreTrainedTokenizerFast&amp;quot; with open(tokenizer_config_path, &amp;quot;w&amp;quot;) as f: json.dump(config, f, indent=2) # CRITICAL FIX 2: Load config separately to bypass the qwen3_5 architecture lookup that breaks in Transformers &amp;lt; 5.0 config = AutoConfig.from_pretrained(model_id, trust_remote_code=True) tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True) tokenizer.pad_token = tokenizer.eos_token bnb_config = BitsAndBytesConfig( load_in_4bit=True, bnb_4bit_quant_type=&amp;quot;nf4&amp;quot;, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_use_double_quant=True, ) model = AutoModelForCausalLM.from_pretrained( model_id, config=config, # Pre-loaded to avoid registry error quantization_config=bnb_config, device_map=&amp;quot;auto&amp;quot;, trust_remote_code=True, ) model = prepare_model_for_kbit_training(model) lora_config = LoraConfig( r=256, lora_alpha=512, target_modules=[&amp;quot;q_proj&amp;quot;, &amp;quot;k_proj&amp;quot;, &amp;quot;v_proj&amp;quot;, &amp;quot;o_proj&amp;quot;, &amp;quot;gate_proj&amp;quot;, &amp;quot;up_proj&amp;quot;, &amp;quot;down_proj&amp;quot;], lora_dropout=0, bias=&amp;quot;none&amp;quot;, task_type=&amp;quot;CAUSAL_LM&amp;quot;, ) model = get_peft_model(model, lora_config) # Data prep dataset = load_dataset(&amp;quot;json&amp;quot;, data_files=&amp;quot;train.jsonl&amp;quot;, split=&amp;quot;train&amp;quot;) def format_prompt(examples): texts = [] for messages in examples[&amp;quot;messages&amp;quot;]: text = &amp;quot;&amp;quot; for msg in messages: text += f&amp;quot;&amp;lt;|im_start|&amp;gt;{msg['role']}\n{msg['content']}&amp;lt;|im_end|&amp;gt;\n&amp;quot; text += &amp;quot;&amp;lt;|im_start|&amp;gt;assistant\n&amp;quot; texts.append(text) return {&amp;quot;text&amp;quot;: texts} dataset = dataset.map(format_prompt, batched=True, remove_columns=dataset.column_names) def tokenize(examples): return tokenizer(examples[&amp;quot;text&amp;quot;], truncation=True, max_length=4096, padding=False) dataset = dataset.map(tokenize, batched=True, remove_columns=[&amp;quot;text&amp;quot;]) dataset = dataset.train_test_split(test_size=0.1) trainer = Trainer( model=model, args=TrainingArguments( output_dir=&amp;quot;outputs&amp;quot;, num_train_epochs=3, per_device_train_batch_size=1, gradient_accumulation_steps=8, learning_rate=2e-4, warmup_steps=50, logging_steps=10, bf16=True, gradient_checkpointing=True, optim=&amp;quot;paged_adamw_8bit&amp;quot;, remove_unused_columns=False, ), train_dataset=dataset[&amp;quot;train&amp;quot;], eval_dataset=dataset[&amp;quot;test&amp;quot;], data_collator=DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model, padding=True, max_length=4096), ) trainer.train() model.save_pretrained(&amp;quot;lora_adapter&amp;quot;) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;What makes this different from other &amp;quot;working&amp;quot; Qwen3.5 scripts:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;No Unsloth.&lt;/strong&gt; The vision processor in Unsloth's FastModel keeps trying to parse your text training data as images. Raw Transformers avoids this entirely.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;TokenizersBackend patch:&lt;/strong&gt; Qwen3.5's tokenizer_config.json literally references a class that doesn't exist in Transformers 4.x. We patch it to &lt;code&gt;PreTrainedTokenizerFast&lt;/code&gt; before loading.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Pre-loaded config:&lt;/strong&gt; Even with &lt;code&gt;trust_remote_code=True&lt;/code&gt;, AutoConfig fails to recognize &lt;code&gt;model_type: qwen3_5&lt;/code&gt;. Loading it separately bypasses the registry check.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;The use case:&lt;/strong&gt;&lt;br /&gt; I'm building an editor-mode assistant, not a generator. I write messy brain-dump cover letters (ADHD tax - run-ons, missing punctuation, weak word choices) and it fixes the grammar/flow while keeping my actual voice. Training on 1,500 examples of my own Slack/email history from the last decade, cleaned of 2015-era email headers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware reality check:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;RTX 4090 (24GB): Crashes at r=256 with 4096 context. Use r=128 or 2048 context max.&lt;/li&gt; &lt;li&gt;A100 40GB: Works but tight.&lt;/li&gt; &lt;li&gt;A100 80GB: Comfortable, ~90min training time.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;If you're struggling with Qwen3.5 today:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Don't trust Unsloth shortcuts yet (it's too bleeding edge)&lt;/li&gt; &lt;li&gt;You need Transformers 5.x for the architecture support (but that breaks Unsloth dependencies, so go full raw)&lt;/li&gt; &lt;li&gt;The tokenizer patch is mandatory until they fix the config&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Anyone else fighting Qwen3.5 fine-tuning this week? What broke for you?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pakalolo7123432"&gt; /u/pakalolo7123432 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjsf7f/i_spent_6_hours_last_night_failing_to_finetune/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjsf7f/i_spent_6_hours_last_night_failing_to_finetune/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjsf7f/i_spent_6_hours_last_night_failing_to_finetune/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-03T15:34:31+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rj8x1q</id>
     <title>Qwen3.5 4B: overthinking to say hello.</title>
@@ -73,19 +47,6 @@
     <published>2026-03-03T04:33:56+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rjptl1</id>
-    <title>[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter</title>
-    <updated>2026-03-03T13:50:02+00:00</updated>
-    <author>
-      <name>/u/MelodicRecognition7</name>
-      <uri>https://old.reddit.com/user/MelodicRecognition7</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"&gt; &lt;img alt="[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter" src="https://preview.redd.it/e25ge8894umg1.png?width=140&amp;amp;height=80&amp;amp;auto=webp&amp;amp;s=f2ff1280c5da36df52ac396cb887221f03686a77" title="[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago I've asked here how to combine two unused MCIO ports into one useful PCIe x16 and got a few recommendations, in the end I've bought this adapter and cables branded &amp;quot;10Gtek&amp;quot; and they do work well: &lt;a href="https://www.sfpcables.com/mcio-pcie-gen5-device-adapter-2-8i-to-x16"&gt;https://www.sfpcables.com/mcio-pcie-gen5-device-adapter-2-8i-to-x16&lt;/a&gt; &lt;a href="https://www.sfpcables.com/mcio-to-mcio-8x-cable-sff-ta-1016-mini-cool-edge-io-straight-pcie-gen5-85-ohm-0-2m-0-75-m-50cm"&gt;https://www.sfpcables.com/mcio-to-mcio-8x-cable-sff-ta-1016-mini-cool-edge-io-straight-pcie-gen5-85-ohm-0-2m-0-75-m-50cm&lt;/a&gt;&lt;/p&gt; &lt;p&gt;the cables seems to be of a high quality because during the installation I've bent and pulled them quite hard and they still are seated well in the ports and did not break. I've seen reports somewhere in this sub that cheap MCIO cables are fragile and tend to jump out from the port if bent or pulled.&lt;/p&gt; &lt;p&gt;adapter + 2 cables + fast shipping by FedEx costed me 160 USD, which is more expensive than Aliexpress variants like this &lt;a href="https://www.aliexpress.com/item/3256809557573086.html"&gt;https://www.aliexpress.com/item/3256809557573086.html&lt;/a&gt; but cheaper than European variants like this &lt;a href="https://c-payne.com/products/mcio-pcie-gen5-device-adapter-x8-x16"&gt;https://c-payne.com/products/mcio-pcie-gen5-device-adapter-x8-x16&lt;/a&gt;&lt;/p&gt; &lt;p&gt;important caveats:&lt;/p&gt; &lt;p&gt;- 50cm cable was a PITA to route, the 75cm model should have been much better, but you must note that the longer the cable the higher the interference and error rate, so the 75cm length model might not provide a full PCIe v5 speed and limit the port to PCIe v4. I do not know this for sure and could not test even if the 50cm model gives real PCIe v5 speeds because I use a PCIe v4 device, but at least I see full PCIe v4 speed over that 50cm cable so it does not downgrade it to PCIe v3 lol.&lt;/p&gt; &lt;p&gt;- your motherboard must support the &amp;quot;reverse bifurcation&amp;quot; i.e. to combine 2 separate x8 ports into 1 single x16. Supermicro H13SSL does support this, see pics 3 and 4&lt;/p&gt; &lt;p&gt;- notice the PCIe power port position on the adapter: it is turned to the MCIO port so it was unconvenient to plug, I think it was designed for small server chassis with constrained space. Other adapters have PCIe power port turned outside which is much more convenient but might not fit into some chassis.&lt;/p&gt; &lt;p&gt;also note that this company ships from mainland China so while the delivery is fast to the SEA and USA, it could take much longer to Europe, perhaps choose C-Payne instead if you reside in Europe.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MelodicRecognition7"&gt; /u/MelodicRecognition7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1rjptl1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-03T13:50:02+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rjr5uq</id>
     <title>BloonsBench – Evaluate LLM agent performance on Bloons Tower Defense 5</title>
     <updated>2026-03-03T14:45:06+00:00</updated>
@@ -97,6 +58,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjr5uq/bloonsbench_evaluate_llm_agent_performance_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-03T14:45:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rjptl1</id>
+    <title>[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter</title>
+    <updated>2026-03-03T13:50:02+00:00</updated>
+    <author>
+      <name>/u/MelodicRecognition7</name>
+      <uri>https://old.reddit.com/user/MelodicRecognition7</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"&gt; &lt;img alt="[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter" src="https://preview.redd.it/e25ge8894umg1.png?width=140&amp;amp;height=80&amp;amp;auto=webp&amp;amp;s=f2ff1280c5da36df52ac396cb887221f03686a77" title="[totally not an ad] combine 2x MCIO into 1x PCIe x16 adapter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago I've asked here how to combine two unused MCIO ports into one useful PCIe x16 and got a few recommendations, in the end I've bought this adapter and cables branded &amp;quot;10Gtek&amp;quot; and they do work well: &lt;a href="https://www.sfpcables.com/mcio-pcie-gen5-device-adapter-2-8i-to-x16"&gt;https://www.sfpcables.com/mcio-pcie-gen5-device-adapter-2-8i-to-x16&lt;/a&gt; &lt;a href="https://www.sfpcables.com/mcio-to-mcio-8x-cable-sff-ta-1016-mini-cool-edge-io-straight-pcie-gen5-85-ohm-0-2m-0-75-m-50cm"&gt;https://www.sfpcables.com/mcio-to-mcio-8x-cable-sff-ta-1016-mini-cool-edge-io-straight-pcie-gen5-85-ohm-0-2m-0-75-m-50cm&lt;/a&gt;&lt;/p&gt; &lt;p&gt;the cables seems to be of a high quality because during the installation I've bent and pulled them quite hard and they still are seated well in the ports and did not break. I've seen reports somewhere in this sub that cheap MCIO cables are fragile and tend to jump out from the port if bent or pulled.&lt;/p&gt; &lt;p&gt;adapter + 2 cables + fast shipping by FedEx costed me 160 USD, which is more expensive than Aliexpress variants like this &lt;a href="https://www.aliexpress.com/item/3256809557573086.html"&gt;https://www.aliexpress.com/item/3256809557573086.html&lt;/a&gt; but cheaper than European variants like this &lt;a href="https://c-payne.com/products/mcio-pcie-gen5-device-adapter-x8-x16"&gt;https://c-payne.com/products/mcio-pcie-gen5-device-adapter-x8-x16&lt;/a&gt;&lt;/p&gt; &lt;p&gt;important caveats:&lt;/p&gt; &lt;p&gt;- 50cm cable was a PITA to route, the 75cm model should have been much better, but you must note that the longer the cable the higher the interference and error rate, so the 75cm length model might not provide a full PCIe v5 speed and limit the port to PCIe v4. I do not know this for sure and could not test even if the 50cm model gives real PCIe v5 speeds because I use a PCIe v4 device, but at least I see full PCIe v4 speed over that 50cm cable so it does not downgrade it to PCIe v3 lol.&lt;/p&gt; &lt;p&gt;- your motherboard must support the &amp;quot;reverse bifurcation&amp;quot; i.e. to combine 2 separate x8 ports into 1 single x16. Supermicro H13SSL does support this, see pics 3 and 4&lt;/p&gt; &lt;p&gt;- notice the PCIe power port position on the adapter: it is turned to the MCIO port so it was unconvenient to plug, I think it was designed for small server chassis with constrained space. Other adapters have PCIe power port turned outside which is much more convenient but might not fit into some chassis.&lt;/p&gt; &lt;p&gt;also note that this company ships from mainland China so while the delivery is fast to the SEA and USA, it could take much longer to Europe, perhaps choose C-Payne instead if you reside in Europe.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MelodicRecognition7"&gt; /u/MelodicRecognition7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1rjptl1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjptl1/totally_not_an_ad_combine_2x_mcio_into_1x_pcie/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-03T13:50:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1rjnm7z</id>
@@ -164,6 +138,19 @@
     <published>2026-03-03T14:15:26+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rjwm8i</id>
+    <title>Qwen3.5-9B abliterated — 0% refusals + vision</title>
+    <updated>2026-03-03T18:07:49+00:00</updated>
+    <author>
+      <name>/u/Flat_cola</name>
+      <uri>https://old.reddit.com/user/Flat_cola</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, I have made an abliterated Qwen3.5-9B with vision support. The two-stage approach (orthogonal projection + LoRA) gets it to a 0% refusal rate, while the heretic version still refuses 46% of the time. &lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Vision (multimodal) ollama run lukey03/qwen3.5-9b-abliterated-vision # Text-only ollama run lukey03/qwen3.5-9b-abliterated &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Append /no_think for faster responses. &lt;/p&gt; &lt;p&gt;Model card with full methodology: &lt;a href="https://huggingface.co/lukey03/Qwen3.5-9B-abliterated"&gt;https://huggingface.co/lukey03/Qwen3.5-9B-abliterated&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Flat_cola"&gt; /u/Flat_cola &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjwm8i/qwen359b_abliterated_0_refusals_vision/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjwm8i/qwen359b_abliterated_0_refusals_vision/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjwm8i/qwen359b_abliterated_0_refusals_vision/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-03T18:07:49+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rjmnv4</id>
     <title>Meet SWE-rebench-V2: the largest open, multilingual, executable dataset for training code agents!</title>
     <updated>2026-03-03T11:14:54+00:00</updated>
@@ -177,19 +164,6 @@
     <published>2026-03-03T11:14:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rjt4hh</id>
-    <title>MCP server that indexes codebases into a knowledge graph — 120x token reduction benchmarked across 35 repos</title>
-    <updated>2026-03-03T16:01:16+00:00</updated>
-    <author>
-      <name>/u/OkDragonfruit4138</name>
-      <uri>https://old.reddit.com/user/OkDragonfruit4138</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built an MCP server for AI coding assistants that replaces file-by-file code exploration with graph queries. The key metric: At least 10x fewer tokens for the same structural questions, benchmarked across 35 real-world repos. &lt;/p&gt; &lt;p&gt;The problem: When AI coding tools (Claude Code, Cursor, Codex, or local setups) need to understand code structure, they grep through files. &amp;quot;What calls this function?&amp;quot; becomes: list files → grep for pattern → read matching files → grep for related patterns → read those files. Each step dumps file contents into the context. &lt;/p&gt; &lt;p&gt;The solution: Parse the codebase with tree-sitter into a persistent knowledge graph (SQLite). Functions, classes, call relationships, HTTP routes, cross-service links — all stored as nodes and edges. When the AI asks &amp;quot;what calls ProcessOrder?&amp;quot;, it gets a precise call chain in one graph query (~500 tokens) instead of reading dozens of files (~80K tokens). &lt;/p&gt; &lt;p&gt;Why this matters for local LLM setups: If you're running models with smaller context windows (8K-32K), every token counts even more. The graph returns exactly the structural information needed. Works as an MCP server with any MCP-compatible client, or via CLI mode for direct terminal use. &lt;/p&gt; &lt;p&gt;Specs:&lt;br /&gt; - Single Go binary, zero infrastructure (no Docker, no databases, no API keys)&lt;br /&gt; - 35 languages, sub-ms queries&lt;br /&gt; - Auto-syncs on file changes (background polling)&lt;br /&gt; - Cypher-like query language for complex graph patterns&lt;br /&gt; - Benchmarked: 78 to 49K node repos, Linux kernel stress test (20K nodes, 67K edges, zero timeouts) &lt;/p&gt; &lt;p&gt;MIT licensed: &lt;a href="https://github.com/DeusData/codebase-memory-mcp"&gt;https://github.com/DeusData/codebase-memory-mcp&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OkDragonfruit4138"&gt; /u/OkDragonfruit4138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-03T16:01:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rjcqm5</id>
     <title>Qwen 3.5 4B is scary smart</title>
     <updated>2026-03-03T02:09:28+00:00</updated>
@@ -201,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjcqm5/qwen_35_4b_is_scary_smart/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-03T02:09:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rjt4hh</id>
+    <title>MCP server that indexes codebases into a knowledge graph — 120x token reduction benchmarked across 35 repos</title>
+    <updated>2026-03-03T16:01:16+00:00</updated>
+    <author>
+      <name>/u/OkDragonfruit4138</name>
+      <uri>https://old.reddit.com/user/OkDragonfruit4138</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built an MCP server for AI coding assistants that replaces file-by-file code exploration with graph queries. The key metric: At least 10x fewer tokens for the same structural questions, benchmarked across 35 real-world repos. &lt;/p&gt; &lt;p&gt;The problem: When AI coding tools (Claude Code, Cursor, Codex, or local setups) need to understand code structure, they grep through files. &amp;quot;What calls this function?&amp;quot; becomes: list files → grep for pattern → read matching files → grep for related patterns → read those files. Each step dumps file contents into the context. &lt;/p&gt; &lt;p&gt;The solution: Parse the codebase with tree-sitter into a persistent knowledge graph (SQLite). Functions, classes, call relationships, HTTP routes, cross-service links — all stored as nodes and edges. When the AI asks &amp;quot;what calls ProcessOrder?&amp;quot;, it gets a precise call chain in one graph query (~500 tokens) instead of reading dozens of files (~80K tokens). &lt;/p&gt; &lt;p&gt;Why this matters for local LLM setups: If you're running models with smaller context windows (8K-32K), every token counts even more. The graph returns exactly the structural information needed. Works as an MCP server with any MCP-compatible client, or via CLI mode for direct terminal use. &lt;/p&gt; &lt;p&gt;Specs:&lt;br /&gt; - Single Go binary, zero infrastructure (no Docker, no databases, no API keys)&lt;br /&gt; - 35 languages, sub-ms queries&lt;br /&gt; - Auto-syncs on file changes (background polling)&lt;br /&gt; - Cypher-like query language for complex graph patterns&lt;br /&gt; - Benchmarked: 78 to 49K node repos, Linux kernel stress test (20K nodes, 67K edges, zero timeouts) &lt;/p&gt; &lt;p&gt;MIT licensed: &lt;a href="https://github.com/DeusData/codebase-memory-mcp"&gt;https://github.com/DeusData/codebase-memory-mcp&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OkDragonfruit4138"&gt; /u/OkDragonfruit4138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjt4hh/mcp_server_that_indexes_codebases_into_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-03T16:01:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1rjrjg3</id>
@@ -255,6 +242,19 @@
     <published>2026-03-03T13:14:03+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rjx5he</id>
+    <title>Qwen tech lead and multiple other members leaving Alibaba</title>
+    <updated>2026-03-03T18:26:30+00:00</updated>
+    <author>
+      <name>/u/kymigreg</name>
+      <uri>https://old.reddit.com/user/kymigreg</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;quot;Qwen could have had a Singapore base, all thanks to Junyang. But now that he's gone, there's no reason left to stay here.&amp;quot;&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/kxli_2000/status/2028885313247162750"&gt;https://x.com/kxli_2000/status/2028885313247162750&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kymigreg"&gt; /u/kymigreg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://x.com/JustinLin610/status/2028865835373359513"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjx5he/qwen_tech_lead_and_multiple_other_members_leaving/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjx5he/qwen_tech_lead_and_multiple_other_members_leaving/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-03T18:26:30+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rjd4pv</id>
     <title>Qwen 2.5 -&gt; 3 -&gt; 3.5, smallest models. Incredible improvement over the generations.</title>
     <updated>2026-03-03T02:26:58+00:00</updated>
@@ -281,19 +281,6 @@
     <published>2026-03-03T16:46:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rjtzyn</id>
-    <title>Junyang Lin has left Qwen :(</title>
-    <updated>2026-03-03T16:33:33+00:00</updated>
-    <author>
-      <name>/u/InternationalAsk1490</name>
-      <uri>https://old.reddit.com/user/InternationalAsk1490</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt; &lt;img alt="Junyang Lin has left Qwen :(" src="https://preview.redd.it/4fjzkqelxumg1.png?width=140&amp;amp;height=24&amp;amp;auto=webp&amp;amp;s=599ba709fcf8d7b30da76e3247cd87b681ac1b57" title="Junyang Lin has left Qwen :(" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/4fjzkqelxumg1.png?width=1178&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c6b0015cec7f0970b412b41d52548a90e949c13b"&gt;https://preview.redd.it/4fjzkqelxumg1.png?width=1178&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c6b0015cec7f0970b412b41d52548a90e949c13b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Thank him for his contributions to local LLM&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/InternationalAsk1490"&gt; /u/InternationalAsk1490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-03T16:33:33+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rjqsv6</id>
     <title>Apple unveils M5 Pro and M5 Max, citing up to 4× faster LLM prompt processing than M4 Pro and M4 Max</title>
     <updated>2026-03-03T14:30:39+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjqsv6/apple_unveils_m5_pro_and_m5_max_citing_up_to_4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-03T14:30:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rjtzyn</id>
+    <title>Junyang Lin has left Qwen :(</title>
+    <updated>2026-03-03T16:33:33+00:00</updated>
+    <author>
+      <name>/u/InternationalAsk1490</name>
+      <uri>https://old.reddit.com/user/InternationalAsk1490</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt; &lt;img alt="Junyang Lin has left Qwen :(" src="https://preview.redd.it/4fjzkqelxumg1.png?width=140&amp;amp;height=24&amp;amp;auto=webp&amp;amp;s=599ba709fcf8d7b30da76e3247cd87b681ac1b57" title="Junyang Lin has left Qwen :(" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/4fjzkqelxumg1.png?width=1178&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c6b0015cec7f0970b412b41d52548a90e949c13b"&gt;https://preview.redd.it/4fjzkqelxumg1.png?width=1178&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c6b0015cec7f0970b412b41d52548a90e949c13b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Thank him for his contributions to local LLM&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/InternationalAsk1490"&gt; /u/InternationalAsk1490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rjtzyn/junyang_lin_has_left_qwen/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-03T16:33:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1r7bsfd</id>
