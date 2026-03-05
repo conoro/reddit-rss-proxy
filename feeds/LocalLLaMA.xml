@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-05T22:13:47+00:00</updated>
+  <updated>2026-03-05T22:30:29+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rlkhjk</id>
-    <title>OpenAI text-embedding-3-large vs bge-m3 vs Zembed-1: My Comparison</title>
-    <updated>2026-03-05T15:27:23+00:00</updated>
-    <author>
-      <name>/u/Born-Comfortable2868</name>
-      <uri>https://old.reddit.com/user/Born-Comfortable2868</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here's my Comparison Between Top Embedding models on different Benchmarks. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Accuracy&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;On general benchmarks &lt;code&gt;text-embedding-3-large&lt;/code&gt; sits near the top and the quality is real. But that lead starts shrinking the moment you move off Wikipedia-style data onto anything domain-specific. &lt;code&gt;bge-m3&lt;/code&gt; is competitive but trails on pure English accuracy. &lt;code&gt;zembed-1&lt;/code&gt; is where things get interesting — it's trained using Elo-style pairwise scoring where documents compete head-to-head and each gets a continuous relevance score between 0 and 1 rather than a binary relevant/not-relevant signal. On legal, finance, and healthcare corpora that training approach starts showing up in the recall numbers. Not by a little.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Dimensions and storage&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;At 10M documents, float32:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;text-embedding-3-large&lt;/code&gt;: 3072 dims → ~117 GB&lt;/li&gt; &lt;li&gt;&lt;code&gt;bge-m3&lt;/code&gt;: 1024 dims → ~39 GB&lt;/li&gt; &lt;li&gt;&lt;code&gt;zembed-1&lt;/code&gt;: 2560 dims (default) → ~98 GB, truncatable down to 40 dims at inference time without retraining&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The &lt;code&gt;zembed-1&lt;/code&gt; dimension flexibility is genuinely useful in production. You can go 2560 → 640 → 160 depending on your storage and latency budget after the fact. Drop to int8 quantization and a 2560-dim vector goes from ~8KB to ~2KB. At 40 dims with binary quantization you're under 128 bytes per vector.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Cost&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;text-embedding-3-large&lt;/code&gt;: $0.00013 per 1K tokens (~$0.13 per 1M)&lt;/li&gt; &lt;li&gt;&lt;code&gt;bge-m3&lt;/code&gt;: free, self-hosted&lt;/li&gt; &lt;li&gt;&lt;code&gt;zembed-1&lt;/code&gt;: $0.05 per 1M tokens via API, free if self-hosting via HuggingFace&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;At 10M docs averaging 500 tokens, OpenAI costs ~$650 to embed once. &lt;code&gt;zembed-1&lt;/code&gt; via API is ~$25 for the same run. Re-embedding after updates, that difference compounds fast.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Multilingual&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;bge-m3&lt;/code&gt; was purpose-built for multilingual and it shows. &lt;code&gt;zembed-1&lt;/code&gt; is genuinely multilingual too more than half its training data was non-English, and the Elo-trained relevance scoring applies cross-lingually, so quality doesn't quietly degrade on non-English queries the way it does with models that bolt multilingual on as an afterthought. &lt;code&gt;text-embedding-3-large&lt;/code&gt; handles it adequately but it's not what it was optimized for.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hybrid retrieval&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;bge-m3&lt;/code&gt; is the only one that does dense + sparse in a single model. If your use case needs both semantic similarity and exact keyword matching in the same pass, nothing else here does that. &lt;code&gt;text-embedding-3-large&lt;/code&gt; and &lt;code&gt;zembed-1&lt;/code&gt; are dense-only.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Privacy and deployment&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;text-embedding-3-large&lt;/code&gt; is API-only your data leaves your infrastructure every single time. Non-starter for regulated industries. Both &lt;code&gt;bge-m3&lt;/code&gt; and &lt;code&gt;zembed-1&lt;/code&gt; have weights on HuggingFace so you can fully self-host. &lt;code&gt;zembed-1&lt;/code&gt; is also on AWS Marketplace via SageMaker if you need a managed path without running your own infra.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Fine-tuning&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;OpenAI's model is a black box, no fine-tuning possible. Both &lt;code&gt;bge-m3&lt;/code&gt; and &lt;code&gt;zembed-1&lt;/code&gt; are open-weight, so if your domain vocabulary is specialized enough that general training data doesn't cover it, you have that option.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;When to use which&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Use &lt;code&gt;text-embedding-3-large&lt;/code&gt; if: you need solid general accuracy, data privacy isn't a constraint, and API convenience matters more than cost at scale.&lt;/p&gt; &lt;p&gt;Use &lt;code&gt;bge-m3&lt;/code&gt; if: you need hybrid dense+sparse retrieval, you're working across multiple languages, or you need zero API cost with full local control.&lt;/p&gt; &lt;p&gt;Use &lt;code&gt;zembed-1&lt;/code&gt; if: domain accuracy is the priority, you're working in legal/finance/healthcare, you want better recall than OpenAI at a lower price, or you need dimension and quantization flexibility at inference time without retraining.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Born-Comfortable2868"&gt; /u/Born-Comfortable2868 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkhjk/openai_textembedding3large_vs_bgem3_vs_zembed1_my/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkhjk/openai_textembedding3large_vs_bgem3_vs_zembed1_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkhjk/openai_textembedding3large_vs_bgem3_vs_zembed1_my/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-05T15:27:23+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rlg80c</id>
     <title>Arandu - v0.5.82 available</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlg80c/arandu_v0582_available/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-05T12:21:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rlukql</id>
+    <title>DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds</title>
+    <updated>2026-03-05T21:38:32+00:00</updated>
+    <author>
+      <name>/u/johnnyApplePRNG</name>
+      <uri>https://old.reddit.com/user/johnnyApplePRNG</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"&gt; &lt;img alt="DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds" src="https://external-preview.redd.it/1S5MY3w-LXwnACQv9DjM9FU4UZWqA8G88JDrEkJ9eEg.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=eb5229228b634ec80b54557fed888ba5d4e66be3" title="DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://archive.is/Bn3wX"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-05T21:38:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1rl54v7</id>
@@ -60,17 +60,17 @@
     <published>2026-03-05T19:27:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rlukql</id>
-    <title>DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds</title>
-    <updated>2026-03-05T21:38:32+00:00</updated>
+    <id>t3_1rkrwub</id>
+    <title>PSA: Humans are scary stupid</title>
+    <updated>2026-03-04T17:38:22+00:00</updated>
     <author>
-      <name>/u/johnnyApplePRNG</name>
-      <uri>https://old.reddit.com/user/johnnyApplePRNG</uri>
+      <name>/u/rm-rf-rm</name>
+      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"&gt; &lt;img alt="DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds" src="https://external-preview.redd.it/1S5MY3w-LXwnACQv9DjM9FU4UZWqA8G88JDrEkJ9eEg.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=eb5229228b634ec80b54557fed888ba5d4e66be3" title="DRAM bots reportedly being deployed to hoover up memory chips and components — one operation ran 10 million web scraping requests, hitting DDR5 RAM product pages every 6.5 seconds" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://archive.is/Bn3wX"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlukql/dram_bots_reportedly_being_deployed_to_hoover_up/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Apologies for the harsh post title but wanted to be evocative &amp;amp; sensationalist as I think everyone needs to see this.&lt;/p&gt; &lt;p&gt;This is in response to this submission made yesterday: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1rjcqm5/qwen_35_4b_is_scary_smart/"&gt;Qwen3.5 4b is scary smart&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Making this post as a dutiful mod here - don't want this sub to spread noise/misinformation.&lt;/p&gt; &lt;p&gt;The submission claimed that Qwen3.5 4b was able to identify what was in an image accurately - except it was COMPLETELY wrong and hallucinated a building that does not exist. The poster clearly had no idea. And it got over &lt;strong&gt;300&lt;/strong&gt; upvotes (85% upvote ratio).. The top comment on the post points this out but the upvotes suggest that not only were most people blindly believing the claim but did not open the thread to read/participate in the discussion.&lt;/p&gt; &lt;p&gt;This is a stark example of something I think is deeply troubling - stuff is readily accepted without any validation/thought. AI/LLMs are exacerbating this as they are not fully reliable sources of information. Its like that old saying &amp;quot;do you think people would just go on the internet and lie?&amp;quot;, but now on steroids.&lt;/p&gt; &lt;p&gt;The irony is that AI IS the tool to counter this problem - &lt;strong&gt;when used correctly&lt;/strong&gt; (grounding in valid sources, cross referencing multiple sources, using validated models with good prompts, parameters, reasoning enabled etc.)&lt;/p&gt; &lt;p&gt;So requesting: a) Posters please validate before posting b) People critically evaluate posts/comments before upvoting c) Use LLMs correctly (here using websearch tool would have likely given the correct result) and expect others on this sub to do so as well&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-05T21:38:32+00:00</published>
+    <published>2026-03-04T17:38:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1rltm0f</id>
@@ -84,19 +84,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rltm0f/onnx_runtime_v1243_just_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-05T21:02:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rkrwub</id>
-    <title>PSA: Humans are scary stupid</title>
-    <updated>2026-03-04T17:38:22+00:00</updated>
-    <author>
-      <name>/u/rm-rf-rm</name>
-      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Apologies for the harsh post title but wanted to be evocative &amp;amp; sensationalist as I think everyone needs to see this.&lt;/p&gt; &lt;p&gt;This is in response to this submission made yesterday: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1rjcqm5/qwen_35_4b_is_scary_smart/"&gt;Qwen3.5 4b is scary smart&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Making this post as a dutiful mod here - don't want this sub to spread noise/misinformation.&lt;/p&gt; &lt;p&gt;The submission claimed that Qwen3.5 4b was able to identify what was in an image accurately - except it was COMPLETELY wrong and hallucinated a building that does not exist. The poster clearly had no idea. And it got over &lt;strong&gt;300&lt;/strong&gt; upvotes (85% upvote ratio).. The top comment on the post points this out but the upvotes suggest that not only were most people blindly believing the claim but did not open the thread to read/participate in the discussion.&lt;/p&gt; &lt;p&gt;This is a stark example of something I think is deeply troubling - stuff is readily accepted without any validation/thought. AI/LLMs are exacerbating this as they are not fully reliable sources of information. Its like that old saying &amp;quot;do you think people would just go on the internet and lie?&amp;quot;, but now on steroids.&lt;/p&gt; &lt;p&gt;The irony is that AI IS the tool to counter this problem - &lt;strong&gt;when used correctly&lt;/strong&gt; (grounding in valid sources, cross referencing multiple sources, using validated models with good prompts, parameters, reasoning enabled etc.)&lt;/p&gt; &lt;p&gt;So requesting: a) Posters please validate before posting b) People critically evaluate posts/comments before upvoting c) Use LLMs correctly (here using websearch tool would have likely given the correct result) and expect others on this sub to do so as well&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rkrwub/psa_humans_are_scary_stupid/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-04T17:38:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1rlfg4o</id>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rl49vc/google_invites_exqwen/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-05T01:37:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rlvn8m</id>
+    <title>ik_llama.cpp dramatically outperforming mainline for Qwen3.5 on CPU</title>
+    <updated>2026-03-05T22:18:46+00:00</updated>
+    <author>
+      <name>/u/EffectiveCeilingFan</name>
+      <uri>https://old.reddit.com/user/EffectiveCeilingFan</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Heard mentioned here that ik_llama.cpp is excellent for CPU inference, so decided to test it out. Getting 5x pp and 1.7x tg on a Zen5 laptop CPU.&lt;/p&gt; &lt;p&gt;Using the latest Unsloth Qwen3.5 4B IQ4_XS:&lt;/p&gt; &lt;p&gt;(CPU is an AMD Ryzen AI 9 365 10c20t @ 5Ghz)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;ik_llama.cpp&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;model&lt;/th&gt; &lt;th align="left"&gt;size&lt;/th&gt; &lt;th align="left"&gt;params&lt;/th&gt; &lt;th align="left"&gt;backend&lt;/th&gt; &lt;th align="left"&gt;threads&lt;/th&gt; &lt;th align="left"&gt;test&lt;/th&gt; &lt;th align="left"&gt;t/s&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;qwen35 ?B IQ4_XS - 4.25 bpw&lt;/td&gt; &lt;td align="left"&gt;2.78 GiB&lt;/td&gt; &lt;td align="left"&gt;4.84 B&lt;/td&gt; &lt;td align="left"&gt;CPU&lt;/td&gt; &lt;td align="left"&gt;10&lt;/td&gt; &lt;td align="left"&gt;pp512&lt;/td&gt; &lt;td align="left"&gt;281.56 ± 15.16&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;qwen35 ?B IQ4_XS - 4.25 bpw&lt;/td&gt; &lt;td align="left"&gt;2.78 GiB&lt;/td&gt; &lt;td align="left"&gt;4.84 B&lt;/td&gt; &lt;td align="left"&gt;CPU&lt;/td&gt; &lt;td align="left"&gt;10&lt;/td&gt; &lt;td align="left"&gt;tg128&lt;/td&gt; &lt;td align="left"&gt;22.41 ± 0.33&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Mainline llama.cpp&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;model&lt;/th&gt; &lt;th align="left"&gt;size&lt;/th&gt; &lt;th align="left"&gt;params&lt;/th&gt; &lt;th align="left"&gt;backend&lt;/th&gt; &lt;th align="left"&gt;threads&lt;/th&gt; &lt;th align="left"&gt;test&lt;/th&gt; &lt;th align="left"&gt;t/s&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;qwen35 4B IQ4_XS - 4.25 bpw&lt;/td&gt; &lt;td align="left"&gt;2.30 GiB&lt;/td&gt; &lt;td align="left"&gt;4.21 B&lt;/td&gt; &lt;td align="left"&gt;CPU&lt;/td&gt; &lt;td align="left"&gt;10&lt;/td&gt; &lt;td align="left"&gt;pp512&lt;/td&gt; &lt;td align="left"&gt;56.47 ± 0.58&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;qwen35 4B IQ4_XS - 4.25 bpw&lt;/td&gt; &lt;td align="left"&gt;2.30 GiB&lt;/td&gt; &lt;td align="left"&gt;4.21 B&lt;/td&gt; &lt;td align="left"&gt;CPU&lt;/td&gt; &lt;td align="left"&gt;10&lt;/td&gt; &lt;td align="left"&gt;tg128&lt;/td&gt; &lt;td align="left"&gt;12.85 ± 0.09&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;For whatever reason, ik_llama.cpp and mainline report different size and parameter counts for the same exact file, don't know what that's about.&lt;/p&gt; &lt;p&gt;Saw the same thing with different quants as well as the smaller Qwen3.5's. Is there something special about the Qwen3.5 architecture that lends well to ik_llama.cpp?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EffectiveCeilingFan"&gt; /u/EffectiveCeilingFan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlvn8m/ik_llamacpp_dramatically_outperforming_mainline/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlvn8m/ik_llamacpp_dramatically_outperforming_mainline/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlvn8m/ik_llamacpp_dramatically_outperforming_mainline/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-05T22:18:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1rlrkun</id>
