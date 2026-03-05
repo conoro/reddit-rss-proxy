@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-03-04T23:56:43+00:00</updated>
+  <updated>2026-03-05T00:47:35+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1rk61li</id>
-    <title>Built a local MCP server that gives AI agents call-graph awareness of your codebase — would love some thoughts!</title>
-    <updated>2026-03-04T00:03:11+00:00</updated>
-    <author>
-      <name>/u/pauleyjc</name>
-      <uri>https://old.reddit.com/user/pauleyjc</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/mcp"&gt;r/mcp&lt;/a&gt;! &lt;/p&gt; &lt;p&gt;I've been working on a side project called &lt;strong&gt;ctx++&lt;/strong&gt; and figured it was time to get some outside eyes on it.&lt;/p&gt; &lt;p&gt;It's a local MCP server written in Go that gives AI coding agents actual structured understanding of large codebases — not just grep and hope. It uses &lt;strong&gt;tree-sitter for symbol-level AST parsing&lt;/strong&gt;, stores everything in SQLite (FTS5 + cosine vector search), and uses Ollama or AWS Bedrock for embeddings.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/cavenine/ctxpp"&gt;https://github.com/cavenine/ctxpp&lt;/a&gt;&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;What it does:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Hybrid search&lt;/strong&gt; — keyword (FTS5 BM25) and semantic (cosine similarity) fused via Reciprocal Rank Fusion&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Call-graph traversal&lt;/strong&gt; — BFS walk outward from a symbol: &lt;em&gt;&amp;quot;show me everything involved in &lt;code&gt;HandleLogin&lt;/code&gt;&amp;quot;&lt;/em&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Blast-radius analysis&lt;/strong&gt; — &lt;em&gt;&amp;quot;what breaks if I change this struct?&amp;quot;&lt;/em&gt; — every reference site across the codebase&lt;/li&gt; &lt;li&gt;&lt;strong&gt;File skeletons&lt;/strong&gt; — full API surface of a file without dumping the whole body into context&lt;/li&gt; &lt;/ul&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;A bit on the design:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I went with &lt;strong&gt;symbol-level embeddings&lt;/strong&gt; (one vector per function/type/method) rather than file-level or chunk-level. File-level is too coarse; chunk boundaries don't respect symbol boundaries. The trade-off is more vectors (~318k for Kubernetes), but brute-force cosine over 318k vectors runs in ~615ms, which is fine for interactive use.&lt;/p&gt; &lt;p&gt;Search combines FTS5 BM25 + semantic via RRF, with a light call-graph re-ranking pass that boosts symbols connected to each other in the top results. Files are also tiered at index time — CHANGELOGs, generated code, and vendor deps are indexed but down-ranked so they don't displace real implementation code.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;Benchmarks against kubernetes/kubernetes (28k files, 318k symbols):&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Tool&lt;/th&gt; &lt;th&gt;Search Quality (avg/5)&lt;/th&gt; &lt;th&gt;Index Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;strong&gt;ctx++&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;4.8 / 5&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;47m (local GPU)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;codemogger&lt;/td&gt; &lt;td&gt;3.9 / 5&lt;/td&gt; &lt;td&gt;1h 9m&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Context+&lt;/td&gt; &lt;td&gt;2.2 / 5&lt;/td&gt; &lt;td&gt;n/a†&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;† Context+ builds embeddings lazily on first search — not a full corpus index, not directly comparable.&lt;/p&gt; &lt;p&gt;Full per-query breakdown: &lt;a href="https://github.com/cavenine/ctxpp/blob/main/bench/RESULTS.md"&gt;bench/RESULTS.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;AWS Bedrock (Titan v2) is also supported as a GPU-free embedding backend — comparable quality (4.7/5) at higher per-query latency.&lt;/p&gt; &lt;p&gt;Works with &lt;strong&gt;Claude Code, Cursor, Windsurf, and OpenCode&lt;/strong&gt; out of the box. Single Go binary, no cloud services, no API keys required.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;What I'd love feedback on:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Does the tool design make sense? Are the 5 MCP tools the right primitives?&lt;/li&gt; &lt;li&gt;Any languages you'd prioritize adding? (Currently: Go, TS, Rust, Java, C/C++, SQL, and more)&lt;/li&gt; &lt;li&gt;Would you actually use this? If not, what's in the way?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Happy to dig into any of the architecture decisions too — there's a fairly detailed &lt;a href="https://github.com/cavenine/ctxpp/blob/main/ARCHITECTURE.md"&gt;ARCHITECTURE.md&lt;/a&gt; if you're curious. Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pauleyjc"&gt; /u/pauleyjc &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rk61li/built_a_local_mcp_server_that_gives_ai_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rk61li/built_a_local_mcp_server_that_gives_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rk61li/built_a_local_mcp_server_that_gives_ai_agents/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-04T00:03:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rksiqh</id>
-    <title>Instagram120 MCP Server – Enables access to Instagram data including posts, reels, stories, user profiles, and highlights through the Instagram120 API with pagination support.</title>
-    <updated>2026-03-04T18:00:06+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rksiqh/instagram120_mcp_server_enables_access_to/"&gt; &lt;img alt="Instagram120 MCP Server – Enables access to Instagram data including posts, reels, stories, user profiles, and highlights through the Instagram120 API with pagination support." src="https://external-preview.redd.it/Gydx84aXdQ-fTu7sgJq-7l0pz8_tyKBlyfMkLGl-P2w.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b47c37db5956fb5d78ae8eb2c40c1631d2cbf41d" title="Instagram120 MCP Server – Enables access to Instagram data including posts, reels, stories, user profiles, and highlights through the Instagram120 API with pagination support." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/@BACH-AI-Tools/bachai-instagram120"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rksiqh/instagram120_mcp_server_enables_access_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rksiqh/instagram120_mcp_server_enables_access_to/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-04T18:00:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rksirb</id>
-    <title>Agent Arena Registry – On-chain ERC-8004 agent registry. Search, register, and check reputation across 16 chains.</title>
-    <updated>2026-03-04T18:00:08+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rksirb/agent_arena_registry_onchain_erc8004_agent/"&gt; &lt;img alt="Agent Arena Registry – On-chain ERC-8004 agent registry. Search, register, and check reputation across 16 chains." src="https://external-preview.redd.it/peUWsvubmwn5og6tN2zlVQtLGb0Jl3fH2X9VQj-_Lbc.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3b7933d2f78581f44aa4bfa22bfcaf3c934453a9" title="Agent Arena Registry – On-chain ERC-8004 agent registry. Search, register, and check reputation across 16 chains." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.smukh/agent-arena"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rksirb/agent_arena_registry_onchain_erc8004_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rksirb/agent_arena_registry_onchain_erc8004_agent/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-04T18:00:08+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rkn1kd</id>
     <title>I couldn't find an MCP server that edits Word while it's open, so I built one</title>
@@ -242,17 +203,43 @@
     <published>2026-03-04T19:14:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rl1vn0</id>
-    <title>Researching MCP setup experiences across AI clients — what's yours been like?</title>
-    <updated>2026-03-04T23:53:32+00:00</updated>
+    <id>t3_1rl2122</id>
+    <title>SpaceMolt – MMO game for AI agents: mine, trade, craft, explore, and battle in a galaxy of ~500 systems</title>
+    <updated>2026-03-05T00:00:04+00:00</updated>
     <author>
-      <name>/u/Bronwyn_UXResearcher</name>
-      <uri>https://old.reddit.com/user/Bronwyn_UXResearcher</uri>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I'm a UX researcher at Zapier. We've been working on our MCP integration and I'm trying to understand how people are actually setting up and using MCP across different clients and servers, not just ours.&lt;/p&gt; &lt;p&gt;One thing that's been hard to understand from our side is what happens after someone configures a server and goes to connect in their AI app. That handoff between setup and actually running tasks seems to be where a lot of people hit friction, and I'd imagine that's not unique to Zapier.&lt;/p&gt; &lt;p&gt;Curious to hear from anyone who's been working with MCP:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Where have you experienced the most issues when setting up?&lt;/li&gt; &lt;li&gt;Were there specific clients (Claude, Cursor, ChatGPT, VS Code, etc.) where it was easier or harder?&lt;/li&gt; &lt;li&gt;If you got stuck, what would have made the difference?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm not here to pitch anything. Just genuinely trying to learn from the community so we can make the experience better. Happy to share what we find once I have more to go on!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Bronwyn_UXResearcher"&gt; /u/Bronwyn_UXResearcher &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rl2122/spacemolt_mmo_game_for_ai_agents_mine_trade_craft/"&gt; &lt;img alt="SpaceMolt – MMO game for AI agents: mine, trade, craft, explore, and battle in a galaxy of ~500 systems" src="https://external-preview.redd.it/fuRN4VfaJvVdg2BJXE_8TSW39Dt28-fC4Mb85HRx_go.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=66d35384119e7e76337439a4241cf50fd24fdb93" title="SpaceMolt – MMO game for AI agents: mine, trade, craft, explore, and battle in a galaxy of ~500 systems" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.statico-alt/spacemolt"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl2122/spacemolt_mmo_game_for_ai_agents_mine_trade_craft/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rl2122/spacemolt_mmo_game_for_ai_agents_mine_trade_craft/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-03-04T23:53:32+00:00</published>
+    <published>2026-03-05T00:00:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rl214z</id>
+    <title>SimpleLocalize MCP Server – Enables interaction with the SimpleLocalize API to manage translation keys, languages, and tags. It allows users to streamline their localization workflow by creating, updating, and retrieving translation data directly through MCP-compatible AI assistants.</title>
+    <updated>2026-03-05T00:00:08+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rl214z/simplelocalize_mcp_server_enables_interaction/"&gt; &lt;img alt="SimpleLocalize MCP Server – Enables interaction with the SimpleLocalize API to manage translation keys, languages, and tags. It allows users to streamline their localization workflow by creating, updating, and retrieving translation data directly through MCP-compatible AI assistants." src="https://external-preview.redd.it/mQVTBrlluIroITkSD7TDpo7L3PFC7cRucapILAIpO-E.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=357d9941e6aa612a117624b414511f8c0089def8" title="SimpleLocalize MCP Server – Enables interaction with the SimpleLocalize API to manage translation keys, languages, and tags. It allows users to streamline their localization workflow by creating, updating, and retrieving translation data directly through MCP-compatible AI assistants." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/@simplelocalize/simplelocalize-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl214z/simplelocalize_mcp_server_enables_interaction/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rl214z/simplelocalize_mcp_server_enables_interaction/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-05T00:00:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rl34pe</id>
+    <title>Pre-install vulnerability gating for installs (npm, pip, etc.)</title>
+    <updated>2026-03-05T00:46:28+00:00</updated>
+    <author>
+      <name>/u/gsim88</name>
+      <uri>https://old.reddit.com/user/gsim88</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gsim88"&gt; /u/gsim88 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ClaudeAI/comments/1rl1cfg/preinstall_vulnerability_gating_for_installs_npm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl34pe/preinstall_vulnerability_gating_for_installs_npm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rl34pe/preinstall_vulnerability_gating_for_installs_npm/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-05T00:46:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1rktw7f</id>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1rkpn31/moltbrowser_mcp_save_time_and_tokens_for_a_better/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-03-04T16:15:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rl1vn0</id>
+    <title>Researching MCP setup experiences across AI clients — what's yours been like?</title>
+    <updated>2026-03-04T23:53:32+00:00</updated>
+    <author>
+      <name>/u/Bronwyn_UXResearcher</name>
+      <uri>https://old.reddit.com/user/Bronwyn_UXResearcher</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I'm a UX researcher at Zapier. We've been working on our MCP integration and I'm trying to understand how people are actually setting up and using MCP across different clients and servers, not just ours.&lt;/p&gt; &lt;p&gt;One thing that's been hard to understand from our side is what happens after someone configures a server and goes to connect in their AI app. That handoff between setup and actually running tasks seems to be where a lot of people hit friction, and I'd imagine that's not unique to Zapier.&lt;/p&gt; &lt;p&gt;Curious to hear from anyone who's been working with MCP:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Where have you experienced the most issues when setting up?&lt;/li&gt; &lt;li&gt;Were there specific clients (Claude, Cursor, ChatGPT, VS Code, etc.) where it was easier or harder?&lt;/li&gt; &lt;li&gt;If you got stuck, what would have made the difference?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm not here to pitch anything. Just genuinely trying to learn from the community so we can make the experience better. Happy to share what we find once I have more to go on!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Bronwyn_UXResearcher"&gt; /u/Bronwyn_UXResearcher &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rl1vn0/researching_mcp_setup_experiences_across_ai/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-04T23:53:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1rkrbmp</id>
