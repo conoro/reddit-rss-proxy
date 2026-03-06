@@ -2,23 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-06T11:53:24+00:00</updated>
+  <updated>2026-03-06T12:17:00+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1rlkon0</id>
-    <title>FlashAttention-4</title>
-    <updated>2026-03-05T15:35:01+00:00</updated>
+    <id>t3_1rm8ryt</id>
+    <title>Fix for random Wi-Fi / SSH drops on Fedora (Strix Halo) when downloading huge files</title>
+    <updated>2026-03-06T08:46:44+00:00</updated>
     <author>
-      <name>/u/incarnadine72</name>
-      <uri>https://old.reddit.com/user/incarnadine72</uri>
+      <name>/u/Dazzling_Equipment_9</name>
+      <uri>https://old.reddit.com/user/Dazzling_Equipment_9</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkon0/flashattention4/"&gt; &lt;img alt="FlashAttention-4" src="https://external-preview.redd.it/mgnpYvrrV3VZWX2pjjuWD2BEcEnWrgGYCxj0FsnGzT4.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=128346e6d1860b131dbcf70431cbad6b659c0aea" title="FlashAttention-4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/incarnadine72"&gt; /u/incarnadine72 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.together.ai/blog/flashattention-4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkon0/flashattention4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlkon0/flashattention4/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wanted to share a fix for a weird issue I hit on my Strix Halo build (Fedora 43, 128GB RAM).&lt;/p&gt; &lt;p&gt;I was trying to download the 90GB Qwen 3.5 397B GGUF. Whenever I used &lt;code&gt;aria2c&lt;/code&gt;, the Wi-Fi would just die after a minute—SSH session would drop, and the wireless card would reset itself. Strangely, &lt;code&gt;hf_transfer&lt;/code&gt; was fine, but &lt;code&gt;aria2c&lt;/code&gt; killed it every time.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Culprit:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I ran &lt;code&gt;journalctl -k&lt;/code&gt; and found a massive wall of this:&lt;/p&gt; &lt;p&gt;&lt;code&gt;kernel: mt7925e ... swiotlb buffer is full (sz: 4096 bytes)&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The problem:&lt;/strong&gt; The default Linux DMA bounce buffer (&lt;code&gt;swiotlb&lt;/code&gt;) is usually just 64MB. With Wi-Fi 7 (mt7925e) and the way &lt;code&gt;aria2c&lt;/code&gt; handles high-concurrency I/O, that buffer gets flooded instantly. The driver chokes, times out, and the hardware resets.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The fix:&lt;/strong&gt; Since I have plenty of RAM, I just bumped the buffer to 512MB. If you're running into this on a high-end setup, just add it to your kernel args:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo grubby --update-kernel=ALL --args=&amp;quot;swiotlb=262144&amp;quot;&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;(Note: 262144 is 512MB worth of 2KB blocks).&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Rebooted and now it's rock solid. Hope this helps if you're pulling massive models and the connection keeps flaking out.&lt;/p&gt; &lt;h1&gt;Log snippets for reference:&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Baseline:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[15:45:22] Ping: | TCP_Conn:141 | IO_Wait:0.0% [cite: 2] [15:45:24] Ping: | TCP_Conn:140 | IO_Wait:0.0% [cite: 3] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The &amp;quot;swiotlb buffer is full&amp;quot; flood (via&lt;/strong&gt; &lt;code&gt;journalctl -k&lt;/code&gt;**):**&lt;/p&gt; &lt;pre&gt;&lt;code&gt;3月 06 15:46:01 kernel: mt7925e 0000:c3:00.0: swiotlb buffer is full (sz: 4096 bytes), total 32768 (slots), used 29937 (slots) 3月 06 15:46:01 kernel: mt7925e 0000:c3:00.0: swiotlb buffer is full (sz: 4096 bytes), total 32768 (slots), used 29937 (slots) [cite: 20] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The final crash:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;3月 06 15:48:43 kernel: mt7925e 0000:c3:00.0: Message 00020016 (seq 1) timeout [cite: 95] 3月 06 15:48:44 kernel: wlp195s0: Driver requested disconnection from AP 80:2d:1a:41:8f:bd [cite: 96] &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dazzling_Equipment_9"&gt; /u/Dazzling_Equipment_9 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-05T15:35:01+00:00</published>
+    <published>2026-03-06T08:46:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rma5zs</id>
+    <title>Qwen3.5 122B and Claude Opus 4.6</title>
+    <updated>2026-03-06T10:11:44+00:00</updated>
+    <author>
+      <name>/u/Minimum_Thought_x</name>
+      <uri>https://old.reddit.com/user/Minimum_Thought_x</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rma5zs/qwen35_122b_and_claude_opus_46/"&gt; &lt;img alt="Qwen3.5 122B and Claude Opus 4.6" src="https://preview.redd.it/3c0hkgpkdeng1.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=e21599511d670ea47f5b6000e13f27b7f13795ae" title="Qwen3.5 122B and Claude Opus 4.6" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I know, I know, Claude Opus is by far the best for coding. However.... Qwen 3.5 is just amazing sometimes. &lt;/p&gt; &lt;p&gt;This result was achieved without using search tools or RAG. &lt;/p&gt; &lt;p&gt;Claude Opus 4.6 :&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/3c0hkgpkdeng1.png?width=2540&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a47a8e8b0423d276760f0f17c29456aeeb271d21"&gt;https://preview.redd.it/3c0hkgpkdeng1.png?width=2540&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a47a8e8b0423d276760f0f17c29456aeeb271d21&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Qwen 3.5 122B &lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/zof1jg67feng1.png?width=3022&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=61ab06270d3a3d79cde5e8b3fd9d1403466ea9e4"&gt;https://preview.redd.it/zof1jg67feng1.png?width=3022&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=61ab06270d3a3d79cde5e8b3fd9d1403466ea9e4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/gfqoxm7ffeng1.png?width=2924&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85de1f65b28c8ea7f32b7aff6b158c84cc8741c9"&gt;https://preview.redd.it/gfqoxm7ffeng1.png?width=2924&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85de1f65b28c8ea7f32b7aff6b158c84cc8741c9&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Minimum_Thought_x"&gt; /u/Minimum_Thought_x &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rma5zs/qwen35_122b_and_claude_opus_46/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rma5zs/qwen35_122b_and_claude_opus_46/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rma5zs/qwen35_122b_and_claude_opus_46/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-06T10:11:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1rmbvy8</id>
@@ -32,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rmbvy8/i_bypassed_writing_a_massive_privacy_policy_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-06T11:48:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rm8ryt</id>
-    <title>Fix for random Wi-Fi / SSH drops on Fedora (Strix Halo) when downloading huge files</title>
-    <updated>2026-03-06T08:46:44+00:00</updated>
-    <author>
-      <name>/u/Dazzling_Equipment_9</name>
-      <uri>https://old.reddit.com/user/Dazzling_Equipment_9</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wanted to share a fix for a weird issue I hit on my Strix Halo build (Fedora 43, 128GB RAM).&lt;/p&gt; &lt;p&gt;I was trying to download the 90GB Qwen 3.5 397B GGUF. Whenever I used &lt;code&gt;aria2c&lt;/code&gt;, the Wi-Fi would just die after a minute—SSH session would drop, and the wireless card would reset itself. Strangely, &lt;code&gt;hf_transfer&lt;/code&gt; was fine, but &lt;code&gt;aria2c&lt;/code&gt; killed it every time.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Culprit:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I ran &lt;code&gt;journalctl -k&lt;/code&gt; and found a massive wall of this:&lt;/p&gt; &lt;p&gt;&lt;code&gt;kernel: mt7925e ... swiotlb buffer is full (sz: 4096 bytes)&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The problem:&lt;/strong&gt; The default Linux DMA bounce buffer (&lt;code&gt;swiotlb&lt;/code&gt;) is usually just 64MB. With Wi-Fi 7 (mt7925e) and the way &lt;code&gt;aria2c&lt;/code&gt; handles high-concurrency I/O, that buffer gets flooded instantly. The driver chokes, times out, and the hardware resets.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The fix:&lt;/strong&gt; Since I have plenty of RAM, I just bumped the buffer to 512MB. If you're running into this on a high-end setup, just add it to your kernel args:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo grubby --update-kernel=ALL --args=&amp;quot;swiotlb=262144&amp;quot;&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;(Note: 262144 is 512MB worth of 2KB blocks).&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Rebooted and now it's rock solid. Hope this helps if you're pulling massive models and the connection keeps flaking out.&lt;/p&gt; &lt;h1&gt;Log snippets for reference:&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Baseline:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[15:45:22] Ping: | TCP_Conn:141 | IO_Wait:0.0% [cite: 2] [15:45:24] Ping: | TCP_Conn:140 | IO_Wait:0.0% [cite: 3] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The &amp;quot;swiotlb buffer is full&amp;quot; flood (via&lt;/strong&gt; &lt;code&gt;journalctl -k&lt;/code&gt;**):**&lt;/p&gt; &lt;pre&gt;&lt;code&gt;3月 06 15:46:01 kernel: mt7925e 0000:c3:00.0: swiotlb buffer is full (sz: 4096 bytes), total 32768 (slots), used 29937 (slots) 3月 06 15:46:01 kernel: mt7925e 0000:c3:00.0: swiotlb buffer is full (sz: 4096 bytes), total 32768 (slots), used 29937 (slots) [cite: 20] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The final crash:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;3月 06 15:48:43 kernel: mt7925e 0000:c3:00.0: Message 00020016 (seq 1) timeout [cite: 95] 3月 06 15:48:44 kernel: wlp195s0: Driver requested disconnection from AP 80:2d:1a:41:8f:bd [cite: 96] &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dazzling_Equipment_9"&gt; /u/Dazzling_Equipment_9 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rm8ryt/fix_for_random_wifi_ssh_drops_on_fedora_strix/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-06T08:46:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1rm1n34</id>
@@ -112,19 +112,6 @@
     <published>2026-03-06T04:57:40+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rmazat</id>
-    <title>Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call.</title>
-    <updated>2026-03-06T10:59:09+00:00</updated>
-    <author>
-      <name>/u/wouldacouldashoulda</name>
-      <uri>https://old.reddit.com/user/wouldacouldashoulda</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"&gt; &lt;img alt="Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call." src="https://external-preview.redd.it/pX511OAYJEoMXkpZ6dtE1vV1OcDc9oYHXgC2LU-_Fb0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4c589814f9bf21b53ec7751588f3b52c2c2eed79" title="Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wouldacouldashoulda"&gt; /u/wouldacouldashoulda &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://theredbeard.io/blog/five-clis-walk-into-a-context-window/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-06T10:59:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rlrtwn</id>
     <title>Apple Stops Producing 512GB Mac Studio</title>
     <updated>2026-03-05T19:55:38+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rlrtwn/apple_stops_producing_512gb_mac_studio/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-05T19:55:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rmazat</id>
+    <title>Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call.</title>
+    <updated>2026-03-06T10:59:09+00:00</updated>
+    <author>
+      <name>/u/wouldacouldashoulda</name>
+      <uri>https://old.reddit.com/user/wouldacouldashoulda</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"&gt; &lt;img alt="Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call." src="https://external-preview.redd.it/pX511OAYJEoMXkpZ6dtE1vV1OcDc9oYHXgC2LU-_Fb0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4c589814f9bf21b53ec7751588f3b52c2c2eed79" title="Claude Code sends 62,600 characters of tool definitions per turn. I ran the same model through five CLIs and traced every API call." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wouldacouldashoulda"&gt; /u/wouldacouldashoulda &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://theredbeard.io/blog/five-clis-walk-into-a-context-window/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rmazat/claude_code_sends_62600_characters_of_tool/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-06T10:59:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1rlwbrf</id>
@@ -164,19 +164,6 @@
     <published>2026-03-05T22:18:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rmahj7</id>
-    <title>Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage</title>
-    <updated>2026-03-06T10:30:41+00:00</updated>
-    <author>
-      <name>/u/fairydreaming</name>
-      <uri>https://old.reddit.com/user/fairydreaming</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"&gt; &lt;img alt="Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage" src="https://external-preview.redd.it/8mHOqiuL7SgwdFhqErzw7GsuIKUtlNdmFlPeQG3KyVk.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d18263f43aa3533746b105a9373fcc96237ab6b3" title="Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.macrumors.com/2026/03/05/mac-studio-no-512gb-ram-upgrade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-06T10:30:41+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rm94gy</id>
     <title>MLX vs GGUF (Unsloth) - Qwen3.5 122b-10b</title>
     <updated>2026-03-06T09:07:56+00:00</updated>
@@ -203,6 +190,19 @@
     <published>2026-03-05T19:04:30+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rmahj7</id>
+    <title>Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage</title>
+    <updated>2026-03-06T10:30:41+00:00</updated>
+    <author>
+      <name>/u/fairydreaming</name>
+      <uri>https://old.reddit.com/user/fairydreaming</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"&gt; &lt;img alt="Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage" src="https://external-preview.redd.it/8mHOqiuL7SgwdFhqErzw7GsuIKUtlNdmFlPeQG3KyVk.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d18263f43aa3533746b105a9373fcc96237ab6b3" title="Mac Studio 512GB RAM Option Disappears Amid Global DRAM Shortage" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.macrumors.com/2026/03/05/mac-studio-no-512gb-ram-upgrade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rmahj7/mac_studio_512gb_ram_option_disappears_amid/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-06T10:30:41+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rm54ab</id>
     <title>My journey through Reverse Engineering SynthID</title>
     <updated>2026-03-06T05:16:00+00:00</updated>
@@ -216,19 +216,6 @@
     <published>2026-03-06T05:16:00+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rm53a7</id>
-    <title>Qwen3.5 122B A10B - My impressions</title>
-    <updated>2026-03-06T05:14:29+00:00</updated>
-    <author>
-      <name>/u/kevin_1994</name>
-      <uri>https://old.reddit.com/user/kevin_1994</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With unsloth's latest upload of the Qwen3.5 122B A10B quants, I decided to spend the evening trying to get it to work. With previous quant uploads, I wasn't able to get this model running stable. &lt;/p&gt; &lt;p&gt;I did get it working with the following command:&lt;/p&gt; &lt;p&gt;taskset -c 0-15 /home/kevin/ai/llama.cpp/build/bin/llama-cli -m /home/kevin/ai/models/Qwen3.5-122B-A10B-UD-Q6_K_XL/Qwen3.5-122B-A10B-UD-Q6_K_XL-00001-of-00004.gguf -fa on --jinja -t 16 -ub 4096 -b 4096 --mmproj /home/kevin/ai/models/Qwen3.5-122B-A10B-UD-Q6_K_XL/mmproj-BF16.gguf --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00 --cache-type-k bf16 --cache-type-v bf16 --presence-penalty 1.1 --repeat-penalty 1.05 --repeat-last-n 512 --n-cpu-moe 33 -ts 4,1 -c 32000&lt;/p&gt; &lt;p&gt;Hardware: RTX 4090, RTX 3090, Intel i7 13700k, 128 GB DDR5 5600&lt;/p&gt; &lt;p&gt;Things I learned&lt;/p&gt; &lt;p&gt;&lt;strong&gt;You can eke out more performance by manually fitting tensors than using --fit&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Since the &lt;code&gt;--fit&lt;/code&gt;/&lt;code&gt;--fit-ctx&lt;/code&gt; flags came out, I've been using them extensively. However, using &lt;code&gt;--fit on --fix-ctx 32000&lt;/code&gt; with Qwen3.5-122B-A10B-UD-Q6_K_X I got abysmal performance:&lt;/p&gt; &lt;p&gt;&lt;code&gt; [ Prompt: 30.8 t/s | Generation: 9.1 t/s ] &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Using &lt;code&gt;--n-cpu-moe 33 -ts 4,1 -c 320000&lt;/code&gt; (46 GB of VRAM) I get &lt;/p&gt; &lt;p&gt;&lt;code&gt; [ Prompt: 143.4 t/s | Generation: 18.6 t/s ] &lt;/code&gt;&lt;/p&gt; &lt;p&gt;About 50% better performance and seems to degrade with long context far slower.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;bf16 cache makes a difference&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;hello&amp;quot; with default &lt;code&gt;fp16&lt;/code&gt; kv causes even the Q6XL model to go into reasoning loops. The reasoning was much clearer and focused with &lt;code&gt;-cache-type-k bf16 --cache-type-v bf16&lt;/code&gt;. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;repeat penalty is necessary&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The &lt;code&gt;--presence-penalty 1.1 --repeat-penalty 1.05 --repeat-last-n 512&lt;/code&gt; flags were necessary to stop the model from degrading into loops on long context. This is the first model I've encountered with this behavior. Even using the recommended sampling params &lt;code&gt;--temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00&lt;/code&gt; were insufficient to solve this problem. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;my final impressions on Qwen3.5 122B A10B&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The model overall with bf16, correct sampling params, repeat penalty, and manually fit tensors is usable. But imo, it is too slow to be used agentically with the amount of reasoning it does, and it's much less smart than other reasoning models I can run at decent speeds. imo Minimax M2.5 IQ4_NL is far superior&lt;/p&gt; &lt;p&gt;I'm not sure if llama.cpp is not optimized for this particular model but it feels underwhelming to me. It's far less impressive then Qwen3-Coder-Next which I use every day and is fantastic.&lt;/p&gt; &lt;p&gt;Anyways hoepully someone finds this useful in some way. How have you guys found this model?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kevin_1994"&gt; /u/kevin_1994 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-06T05:14:29+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rll349</id>
     <title>Ran Qwen 3.5 9B on M1 Pro (16GB) as an actual agent, not just a chat demo. Honest results.</title>
     <updated>2026-03-05T15:50:39+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rll349/ran_qwen_35_9b_on_m1_pro_16gb_as_an_actual_agent/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-05T15:50:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rm53a7</id>
+    <title>Qwen3.5 122B A10B - My impressions</title>
+    <updated>2026-03-06T05:14:29+00:00</updated>
+    <author>
+      <name>/u/kevin_1994</name>
+      <uri>https://old.reddit.com/user/kevin_1994</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With unsloth's latest upload of the Qwen3.5 122B A10B quants, I decided to spend the evening trying to get it to work. With previous quant uploads, I wasn't able to get this model running stable. &lt;/p&gt; &lt;p&gt;I did get it working with the following command:&lt;/p&gt; &lt;p&gt;taskset -c 0-15 /home/kevin/ai/llama.cpp/build/bin/llama-cli -m /home/kevin/ai/models/Qwen3.5-122B-A10B-UD-Q6_K_XL/Qwen3.5-122B-A10B-UD-Q6_K_XL-00001-of-00004.gguf -fa on --jinja -t 16 -ub 4096 -b 4096 --mmproj /home/kevin/ai/models/Qwen3.5-122B-A10B-UD-Q6_K_XL/mmproj-BF16.gguf --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00 --cache-type-k bf16 --cache-type-v bf16 --presence-penalty 1.1 --repeat-penalty 1.05 --repeat-last-n 512 --n-cpu-moe 33 -ts 4,1 -c 32000&lt;/p&gt; &lt;p&gt;Hardware: RTX 4090, RTX 3090, Intel i7 13700k, 128 GB DDR5 5600&lt;/p&gt; &lt;p&gt;Things I learned&lt;/p&gt; &lt;p&gt;&lt;strong&gt;You can eke out more performance by manually fitting tensors than using --fit&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Since the &lt;code&gt;--fit&lt;/code&gt;/&lt;code&gt;--fit-ctx&lt;/code&gt; flags came out, I've been using them extensively. However, using &lt;code&gt;--fit on --fix-ctx 32000&lt;/code&gt; with Qwen3.5-122B-A10B-UD-Q6_K_X I got abysmal performance:&lt;/p&gt; &lt;p&gt;&lt;code&gt; [ Prompt: 30.8 t/s | Generation: 9.1 t/s ] &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Using &lt;code&gt;--n-cpu-moe 33 -ts 4,1 -c 320000&lt;/code&gt; (46 GB of VRAM) I get &lt;/p&gt; &lt;p&gt;&lt;code&gt; [ Prompt: 143.4 t/s | Generation: 18.6 t/s ] &lt;/code&gt;&lt;/p&gt; &lt;p&gt;About 50% better performance and seems to degrade with long context far slower.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;bf16 cache makes a difference&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;hello&amp;quot; with default &lt;code&gt;fp16&lt;/code&gt; kv causes even the Q6XL model to go into reasoning loops. The reasoning was much clearer and focused with &lt;code&gt;-cache-type-k bf16 --cache-type-v bf16&lt;/code&gt;. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;repeat penalty is necessary&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The &lt;code&gt;--presence-penalty 1.1 --repeat-penalty 1.05 --repeat-last-n 512&lt;/code&gt; flags were necessary to stop the model from degrading into loops on long context. This is the first model I've encountered with this behavior. Even using the recommended sampling params &lt;code&gt;--temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00&lt;/code&gt; were insufficient to solve this problem. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;my final impressions on Qwen3.5 122B A10B&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The model overall with bf16, correct sampling params, repeat penalty, and manually fit tensors is usable. But imo, it is too slow to be used agentically with the amount of reasoning it does, and it's much less smart than other reasoning models I can run at decent speeds. imo Minimax M2.5 IQ4_NL is far superior&lt;/p&gt; &lt;p&gt;I'm not sure if llama.cpp is not optimized for this particular model but it feels underwhelming to me. It's far less impressive then Qwen3-Coder-Next which I use every day and is fantastic.&lt;/p&gt; &lt;p&gt;Anyways hoepully someone finds this useful in some way. How have you guys found this model?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kevin_1994"&gt; /u/kevin_1994 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rm53a7/qwen35_122b_a10b_my_impressions/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-06T05:14:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1rm9i6f</id>
