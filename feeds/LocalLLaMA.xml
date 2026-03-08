@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-08T17:40:00+00:00</updated>
+  <updated>2026-03-08T17:52:10+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1ro9e4n</id>
-    <title>Workaround for NVFP4 MOE on Rtx 5090/Pro 6000 (SM 12): --moe-bakcend marlin gives 47 tok/s on Qwen 3.5 397b</title>
-    <updated>2026-03-08T16:37:15+00:00</updated>
+    <id>t3_1roa2lz</id>
+    <title>A source translator for kernels written against the Triton API to CUDA C++</title>
+    <updated>2026-03-08T17:03:29+00:00</updated>
     <author>
-      <name>/u/lawdawgattorney</name>
-      <uri>https://old.reddit.com/user/lawdawgattorney</uri>
+      <name>/u/IntrepidAttention56</name>
+      <uri>https://old.reddit.com/user/IntrepidAttention56</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;# Workaround: NVFP4 MoE Models on SM120 (RTX PRO 6000 / RTX 5090 Blackwell) -- Use `--moe-backend marlin` ## TL;DR NVFP4 MoE models produce **garbage output** on SM120 GPUs due to broken CUTLASS `mm_fp4` GEMM kernels. The fix: use vLLM's Marlin MoE backend (`--moe-backend marlin`) with `--tensor-parallel-size 2 --pipeline-parallel-size 2`. This bypasses the broken kernel entirely by dequantizing FP4 weights to FP16 before computation (W4A16 path), preserving memory bandwidth savings while producing correct output. **Tested and confirmed working** with `nvidia/Qwen3.5-397B-A17B-NVFP4` on 4x RTX PRO 6000 Blackwell (SM120, 96GB each). ## Hardware | Component | Detail | |---|---| | GPUs | 4x NVIDIA RTX PRO 6000 Blackwell Workstation Edition (96GB each, 384GB total) | | Compute Capability | SM 12.0 (sm_120) | | Interconnect | PCIe (no NVLink) | | Driver | 582.16 | | OS | Windows 11 Pro + WSL2 Ubuntu 22.04 | ## Software | Component | Version | |---|---| | vLLM | 0.17.0 | | PyTorch | 2.10.0+cu128 | | CUDA | 12.8 | | FlashInfer | 0.6.4 | ## The Problem All NVFP4 MoE backends that use native FP4 GEMM produce garbage/NaN output on SM120: - **VLLM_CUTLASS** (`CutlassExpertsFp4`): Device capability check passes (SM120 recognized since PR #33417), but the underlying `cutlass_fp4_group_mm` kernel silently returns wrong results. - **FLASHINFER_CUTLASS** (`FlashInferExperts`): Same issue -- delegates to FlashInfer's CUTLASS FP4 MoE which has the same broken kernel. - Root cause: FlashInfer `mm_fp4` GEMM is broken on SM120 ([flashinfer-ai/flashinfer#2577]( https://github.com/flashinfer-ai/flashinfer/issues/2577 )). CUTLASS silently returns zeros/garbage on SM120 despite working on SM90/SM100. The Python-level device capability checks pass fine -- the issue is in the compiled CUDA kernels. ## The Workaround Use the **Marlin MoE backend** , which performs W4A16 dequantization (FP4 weights decompressed to FP16 before GEMM). This completely bypasses the broken CUTLASS FP4 kernel while preserving the memory bandwidth advantage of 4-bit weight storage. ### Launch Command ```bash python -m vllm.entrypoints.openai.api_server \ --model nvidia/Qwen3.5-397B-A17B-NVFP4 \ --dtype bfloat16 \ --tensor-parallel-size 2 \ --pipeline-parallel-size 2 \ --moe-backend marlin \ --max-model-len 32768 \ --gpu-memory-utilization 0.95 \ --trust-remote-code ``` ### Key Flags | Flag | Why | |---|---| | `--moe-backend marlin` | **The critical fix.** Forces Marlin W4A16 MoE backend, bypassing broken CUTLASS FP4 GEMM. | | `--tensor-parallel-size 2` | TP=2 reduces PCIe all-reduce overhead vs TP=4. | | `--pipeline-parallel-size 2` | PP=2 uses all 4 GPUs while keeping TP communication to only 2 GPUs. | | No `--enforce-eager` | CUDA graphs work correctly with Marlin backend. | ### Required Environment Variables (WSL2) ```bash export NCCL_P2P_DISABLE=1 # Required for Blackwell on WSL2 export NCCL_CUMEM_ENABLE=0 export VLLM_WORKER_MULTIPROC_METHOD=spawn ``` ### Important: Do NOT Use the Env Var Approach Setting `VLLM_TEST_FORCE_FP8_MARLIN=1` as an environment variable causes `RuntimeError: CUDA driver error: unknown error` in spawned worker processes. The `--moe-backend marlin` CLI flag works correctly. ## Benchmark Results ### Model: `nvidia/Qwen3.5-397B-A17B-NVFP4` (397B total params, 17B active per token, 512 experts, 10 routed + 1 shared) ### Single User Decode Speed | Parallelism Config | MoE Backend | Speed (tok/s) | Output Quality | |---|---|---|---| | TP=4 | VLLM_CUTLASS (default) | 6-7 | **Garbage** (broken kernel) | | TP=4 | Marlin | 6-7 | Correct | | TP=2 + EP=2 | Marlin | 1.4-2.6 | Correct (EP terrible on PCIe) | | **TP=2 + PP=2** | **Marlin** | **46-49** | **Correct** | ### Concurrent Throughput (TP=2 + PP=2 + Marlin) | Concurrent Requests | Aggregate tok/s | Per-User tok/s | |---|---|---| | 1 | 46-49 | 46-49 | | 4 | 147-149 | ~37 | | 8 | 198-212 | ~25-26 | All concurrent requests produced correct, coherent output (tested with legal analysis prompts). ### GPU Memory Usage (During Serving) | GPU | Memory Used | Total | |---|---|---| | GPU 0 (PP0_TP0) | 97,018 MiB | 97,887 MiB | | GPU 1 (PP0_TP1) | 95,812 MiB | 97,887 MiB | | GPU 2 (PP1_TP0) | 97,229 MiB | 97,887 MiB | | GPU 3 (PP1_TP1) | 96,582 MiB | 97,887 MiB | ### Sample Output (Truncated) Prompt: *&amp;quot;Write a comprehensive legal analysis of Kentucky non-compete law&amp;quot;* &amp;gt; **MEMORANDUM OF LAW** &amp;gt; &amp;gt; **RE:** Comprehensive Analysis of Kentucky Non-Compete and Restrictive Covenant Law &amp;gt; &amp;gt; **I. INTRODUCTION** &amp;gt; &amp;gt; In the Commonwealth of Kentucky, the enforceability of non-competition agreements (non-competes) and other restrictive covenants represents a complex intersection of contract law, public policy, and economic reality. Unlike states such as California, which largely voids non-competes, or Florida, which statutorily favors their enforcement, Kentucky occupies a middle ground grounded primarily in common law reasonableness... &amp;gt; &amp;gt; **II. THE COMMON LAW FRAMEWORK: THE REASONABLENESS TEST** &amp;gt; &amp;gt; Because Kentucky lacks a comprehensive statutory codification governing the general enforceability of non-competes (prior to 2024 legislation discussed infra), the law is derived almost entirely from judicial precedent. The seminal standard for enforcement is the three-prong &amp;quot;reasonableness&amp;quot; test... (4,096 tokens generated at 46-49 tok/s, coherent legal analysis with case citations and statutory references) ## Why This Works The Marlin MoE backend uses a **W4A16 kernel path** : 1. Reads FP4-quantized expert weights from GPU memory (same bandwidth as native FP4) 2. Dequantizes to FP16 in registers 3. Performs GEMM in FP16 (using proven, stable FP16 tensor cores) This preserves the **memory bandwidth savings** of 4-bit weights (the bottleneck for decode speed) while avoiding the broken FP4 compute kernels on SM120. The FP16 compute overhead is negligible since MoE decode is memory-bandwidth-bound, not compute-bound. ## Why TP=2 + PP=2 is Faster Than TP=4 On PCIe-connected GPUs (no NVLink), tensor parallelism requires expensive all-reduce operations across all TP GPUs for every transformer layer. With TP=4, this means all-reduce across 4 GPUs via PCIe every layer. With TP=2 + PP=2: - All-reduce only between 2 GPUs (halved communication) - Pipeline parallelism passes activations between GPU pairs (much lighter than all-reduce) - Result: ~7x speedup over TP=4 (46 tok/s vs 6-7 tok/s) ## Related Issues - [vLLM #35566]( https://github.com/vllm-project/vllm/issues/35566 ) -- CUDA illegal memory access in MoE layer with NVFP4 on Blackwell SM120 - [vLLM #36094]( https://github.com/vllm-project/vllm/issues/36094 ) -- Qwen3.5 NVFP4 poor accuracy - [SGLang #18954]( https://github.com/sgl-project/sglang/issues/18954 ) -- NVFP4 NaN outputs on SM120 - [FlashInfer #2577]( https://github.com/flashinfer-ai/flashinfer/issues/2577 ) -- mm_fp4 GEMM broken on SM120 (upstream root cause) - [SGLang #20050]( https://github.com/sgl-project/sglang/issues/20050 ) -- Qwen3.5 NVFP4 gibberish with TP&amp;gt;2 ## Tested Configurations That Do NOT Work on SM120 | Config | Result | |---|---| | Any MoE backend except Marlin | Garbage/NaN output | | `VLLM_TEST_FORCE_FP8_MARLIN=1` env var | CUDA driver error in spawned workers | | `--enable-expert-parallel` on PCIe | Works but 1.4 tok/s (unusable) | | TensorRT-LLM v1.1.0 | `qwen3_5_moe` not supported | | SGLang 0.5.8 | NaN outputs (same upstream kernel bug) | | vLLM 0.16.0 | `Qwen3_5MoeForConditionalGeneration` not supported | &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lawdawgattorney"&gt; /u/lawdawgattorney &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro9e4n/workaround_for_nvfp4_moe_on_rtx_5090pro_6000_sm/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro9e4n/workaround_for_nvfp4_moe_on_rtx_5090pro_6000_sm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro9e4n/workaround_for_nvfp4_moe_on_rtx_5090pro_6000_sm/"/>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IntrepidAttention56"&gt; /u/IntrepidAttention56 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/abdimoallim/tritoncu"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1roa2lz/a_source_translator_for_kernels_written_against/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1roa2lz/a_source_translator_for_kernels_written_against/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T16:37:15+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ro7gqf</id>
-    <title>Medical MCP</title>
-    <updated>2026-03-08T15:19:47+00:00</updated>
-    <author>
-      <name>/u/Delicious-Farmer-234</name>
-      <uri>https://old.reddit.com/user/Delicious-Farmer-234</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"&gt; &lt;img alt="Medical MCP" src="https://external-preview.redd.it/QA7Quo8_-PDG0EgqBu_NP7bv1NGlk6VmT3pAuR0HNMk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f14ac880259fa17021a1b3256e220d70bb785629" title="Medical MCP" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to share an open-source MCP for Medical search up. Runs on docker for easy setup, no API key (optional for UMLS). Works great for transcribing medical notes. Check it out&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Delicious-Farmer-234"&gt; /u/Delicious-Farmer-234 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/hypersniper05/MCP-MedLookup"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T15:19:47+00:00</published>
+    <published>2026-03-08T17:03:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1rnwi4e</id>
@@ -71,6 +58,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro9mz4/findings_from_testing_qwen35_4b_and_35b_on_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-08T16:46:38+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ro7gqf</id>
+    <title>Medical MCP</title>
+    <updated>2026-03-08T15:19:47+00:00</updated>
+    <author>
+      <name>/u/Delicious-Farmer-234</name>
+      <uri>https://old.reddit.com/user/Delicious-Farmer-234</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"&gt; &lt;img alt="Medical MCP" src="https://external-preview.redd.it/QA7Quo8_-PDG0EgqBu_NP7bv1NGlk6VmT3pAuR0HNMk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f14ac880259fa17021a1b3256e220d70bb785629" title="Medical MCP" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to share an open-source MCP for Medical search up. Runs on docker for easy setup, no API key (optional for UMLS). Works great for transcribing medical notes. Check it out&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Delicious-Farmer-234"&gt; /u/Delicious-Farmer-234 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/hypersniper05/MCP-MedLookup"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro7gqf/medical_mcp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T15:19:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1rn8ulj</id>
@@ -125,19 +125,6 @@
     <published>2026-03-08T08:57:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rnui6o</id>
-    <title>Intel B70 Pro 32G VRAM</title>
-    <updated>2026-03-08T03:53:52+00:00</updated>
-    <author>
-      <name>/u/FancyImagination880</name>
-      <uri>https://old.reddit.com/user/FancyImagination880</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://videocardz.com/newz/intel-adds-arc-pro-b70-to-official-website-launch-may-be-close"&gt;https://videocardz.com/newz/intel-adds-arc-pro-b70-to-official-website-launch-may-be-close&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FancyImagination880"&gt; /u/FancyImagination880 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T03:53:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rnrxsv</id>
     <title>(Llama.cpp) In case people are struggling with prompt processing on larger models like Qwen 27B, here's what helped me out</title>
     <updated>2026-03-08T01:49:39+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnrxsv/llamacpp_in_case_people_are_struggling_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-08T01:49:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rnui6o</id>
+    <title>Intel B70 Pro 32G VRAM</title>
+    <updated>2026-03-08T03:53:52+00:00</updated>
+    <author>
+      <name>/u/FancyImagination880</name>
+      <uri>https://old.reddit.com/user/FancyImagination880</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://videocardz.com/newz/intel-adds-arc-pro-b70-to-official-website-launch-may-be-close"&gt;https://videocardz.com/newz/intel-adds-arc-pro-b70-to-official-website-launch-may-be-close&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FancyImagination880"&gt; /u/FancyImagination880 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T03:53:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1rnwvg6</id>
