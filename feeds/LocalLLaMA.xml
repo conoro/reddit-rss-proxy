@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-08T10:25:25+00:00</updated>
+  <updated>2026-03-08T10:42:22+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rnz5xp</id>
-    <title>Prisma: Interpretability-Inspired Mirrored Transformer Architecture</title>
-    <updated>2026-03-08T08:05:23+00:00</updated>
-    <author>
-      <name>/u/y3i12</name>
-      <uri>https://old.reddit.com/user/y3i12</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey y'all! I think some of you might be interested in this model I trained - it holds an unconventional garage lab architecture.&lt;/p&gt; &lt;p&gt;Some quick facts:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Beats GPT-2 Medium on 5/8 benchmarks with 25% less training data (yeah, old model I know)&lt;/li&gt; &lt;li&gt;BoolQ 0.620, ARC-E 0.548, competitive with models trained on 10-100x more tokens&lt;/li&gt; &lt;li&gt;357M params, 30B tokens, trained on a single H100&lt;/li&gt; &lt;li&gt;GPT2-medium has ~350M params with 24 layers of 1024 dims, Prisma has 41 layers of 1024 dims with ~350M params&lt;/li&gt; &lt;li&gt;4 weightsets per FFN layer (vs standard 3) — the extra gate enables weight sharing across layers&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;After elucubrating a lot and many almost delirious nights of asking &amp;quot;am I tripping hard and this is a flop?&amp;quot;, I think I can say &amp;quot;It is alive!&amp;quot;.&lt;/p&gt; &lt;p&gt;It is &amp;quot;just another model&amp;quot;, but I didn't go the traditional known recipes from GPT, Llama or Qwen. I went through my own interpretation of how the model could self organize and proposed an architecture on top of it.&lt;/p&gt; &lt;p&gt;When fussing around with Llama 3.2 I had an image in my mind that the model (in greedy mode) can be seen as a lens with microfractures inside. The overall shape of the lens determines the general path of the light and the fractures do things to the light, so the resulting passing light is &amp;quot;next token&amp;quot;. This gave the idea of mirroring some weightsets (W1 and W2) expecting the model to re-use features in both directions (it didn't) - but hey! it saved a ton of weights!... and made the model dumb AF - until it got fixed by the development that follows:&lt;/p&gt; &lt;p&gt;I decided to add a 4th weightset, tried adding W3 and W4 (results would oddly drift within semantics), tried multiplying W3 by W4 (there was no coherence in synthesis) and then I came to the epiphany that W3 gate had to work &lt;strong&gt;literally&lt;/strong&gt; in function of W4, giving birth to what I called &lt;strong&gt;G²LU&lt;/strong&gt;, which is a gated gate: &lt;code&gt;y = W2 @ (W1 @ x * silu(W3 @ x * silu(W4 @ x)))&lt;/code&gt; instead of &lt;code&gt;y = W2 @ (W1 @ x * silu(W3 @ x))&lt;/code&gt;. (sorry for the offensive expressions)&lt;/p&gt; &lt;p&gt;On top of this, it was also added &lt;code&gt;WoRPE&lt;/code&gt;, which is Word-Position &lt;code&gt;RoPE&lt;/code&gt;. This allowed the model to converge slightly faster as the word prefix identification is given, instead of letting the model abstract the maths via &lt;code&gt;RoPE&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;I trained this guy on a few flavours locally as a tiny model, only 50M, on wikitext. First flavour was &lt;em&gt;vanilla&lt;/em&gt;, the standard transformer, to have a baseline. Then adding other features to compare. I tried a lot of different stuff, which some I might get back later, but the ones that stayed on the published model were the &lt;em&gt;survivors&lt;/em&gt; - what worked and actually has shown some improvement over &lt;em&gt;vanilla&lt;/em&gt;.&lt;/p&gt; &lt;p&gt;The &lt;em&gt;surviving&lt;/em&gt; configuration was scaled to what I could (with tears in my eyes) afford to pay in compute: 350M. The model was then trained on &lt;code&gt;hf:Bingsu/openwebtext_20p&lt;/code&gt; and &lt;code&gt;hf:HuggingFaceFW/fineweb-edu:sample-10BT&lt;/code&gt;, the first for validation for 4 epochs, the second to add real content with a good dataset, for 2 epochs. Total ~30B tokens seen. For my surprise, the model was beating GPT2 in most part of basic benchmarks. And it actually gets close to models that were trained with 200B tokens.&lt;/p&gt; &lt;p&gt;I'm not going to attribute good performance exclusively to the model's architecture - it uses &lt;code&gt;hf:facebook/MobileLLM-125M&lt;/code&gt; tokenizer &lt;strong&gt;and&lt;/strong&gt; embeddings, which is a lot of &amp;quot;pre-knowledge&amp;quot;. In fact, this model wouldn't be possible without pre-trained embeddings. Also the &lt;code&gt;fineweb-edu&lt;/code&gt; gives models a way better foundation than only &lt;code&gt;openwebtext&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;Anyhow. If you're interested &lt;a href="https://huggingface.co/y3i12/Prisma"&gt;hf:y3i12/Prisma&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;Looking forward for your thoughts and comments 😁&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/y3i12"&gt; /u/y3i12 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnz5xp/prisma_interpretabilityinspired_mirrored/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnz5xp/prisma_interpretabilityinspired_mirrored/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnz5xp/prisma_interpretabilityinspired_mirrored/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T08:05:23+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rnw9yg</id>
     <title>[Help/Issue] Qwen 3.5 35B (MoE) hard-capped at 11k context on 3090 Ti (llama.cpp/Docker)</title>
@@ -73,6 +60,19 @@
     <published>2026-03-07T07:56:00+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ro1kie</id>
+    <title>RTX 6000 build / drive and fan questions</title>
+    <updated>2026-03-08T10:30:56+00:00</updated>
+    <author>
+      <name>/u/Direct_Bodybuilder63</name>
+      <uri>https://old.reddit.com/user/Direct_Bodybuilder63</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt; &lt;img alt="RTX 6000 build / drive and fan questions" src="https://preview.redd.it/isuhcdzqtsng1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3078773b71b2f0e8cc60d0fc074fceac895d77d0" title="RTX 6000 build / drive and fan questions" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Currently I’m trying to figure out if I need a fan hub as I want to add 4 NOCTUA fans on the side, and 1 fan on the back. Additionally I have a KIOXIA 30TB NVMe mounted externally which is going into read-only mode as it’s running too hot. I think I may have bought the wrong drive as I didn’t realize. Any advice appreciated. &lt;/p&gt; &lt;p&gt;Would an NVMe heatsink help here? &lt;/p&gt; &lt;p&gt;The Build:&lt;/p&gt; &lt;p&gt;Motherboard: ASRock WRX90 WS EVO&lt;/p&gt; &lt;p&gt;CPU: Ryzen Threadripper PRO 9985WX&lt;/p&gt; &lt;p&gt;GPU: RTX 6000 MAX-Q x 3&lt;/p&gt; &lt;p&gt;RAM: 768GB (8x96GB) - Vcolor DDR5 6400 TR596G64D452O&lt;/p&gt; &lt;p&gt;Storage:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Samsung MZ-V9P2T0B/AM 990 PRO 2TB NVMe Solid State Drive&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;WD_BLACK 8TB SN850X NVMe Gen4 PCIe M.2 2280 WDS800T2XHE&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Kioxia 30.72TB SSD&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;PSU: Super Flower Leadex Titanium 2800W ATX 3.1&lt;/p&gt; &lt;p&gt;Cooling: Silverstone SST-XE360-TR5 Server AIO Liquid Cooling&lt;/p&gt; &lt;p&gt;Case: Phanteks PH-ES620PC_BK02 Enthoo Pro Server Edition&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Direct_Bodybuilder63"&gt; /u/Direct_Bodybuilder63 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/isuhcdzqtsng1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T10:30:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rnwo14</id>
     <title>Beyond scraping: Can a community-run repository of consented user chats solve the open-model quality crisis?</title>
     <updated>2026-03-08T05:45:24+00:00</updated>
@@ -84,19 +84,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwo14/beyond_scraping_can_a_communityrun_repository_of/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-08T05:45:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ro00p2</id>
-    <title>[Project] Karpathy autoresearch project— let AI agents run overnight LLM training experiments on a single GPU</title>
-    <updated>2026-03-08T08:57:14+00:00</updated>
-    <author>
-      <name>/u/freesysck</name>
-      <uri>https://old.reddit.com/user/freesysck</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tiny repo from Karpathy where an agent keeps editing &lt;a href="http://train.py"&gt;&lt;code&gt;train.py&lt;/code&gt;&lt;/a&gt;, runs &lt;strong&gt;5-minute&lt;/strong&gt; nanochat training experiments, checks whether &lt;strong&gt;val_bpb&lt;/strong&gt; improved, and repeats while you sleep. Pretty neat “AI researcher in a loop” demo.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Super minimal setup: &lt;strong&gt;one GPU, one file, one metric&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;Human writes the research org prompt in &lt;a href="http://program.md"&gt;&lt;code&gt;program.md&lt;/code&gt;&lt;/a&gt;; the agent does the code iteration.&lt;/li&gt; &lt;li&gt;Fixed &lt;strong&gt;5-minute&lt;/strong&gt; budget means roughly &lt;strong&gt;~12 experiments/hour&lt;/strong&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://github.com/karpathy/autoresearch"&gt;https://github.com/karpathy/autoresearch&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freesysck"&gt; /u/freesysck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T08:57:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1rnryid</id>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rn7k0e/what_are_the_best_nsfw_ai_models_with_no/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-07T11:18:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ro00p2</id>
+    <title>[Project] Karpathy autoresearch project— let AI agents run overnight LLM training experiments on a single GPU</title>
+    <updated>2026-03-08T08:57:14+00:00</updated>
+    <author>
+      <name>/u/freesysck</name>
+      <uri>https://old.reddit.com/user/freesysck</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tiny repo from Karpathy where an agent keeps editing &lt;a href="http://train.py"&gt;&lt;code&gt;train.py&lt;/code&gt;&lt;/a&gt;, runs &lt;strong&gt;5-minute&lt;/strong&gt; nanochat training experiments, checks whether &lt;strong&gt;val_bpb&lt;/strong&gt; improved, and repeats while you sleep. Pretty neat “AI researcher in a loop” demo.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Super minimal setup: &lt;strong&gt;one GPU, one file, one metric&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;Human writes the research org prompt in &lt;a href="http://program.md"&gt;&lt;code&gt;program.md&lt;/code&gt;&lt;/a&gt;; the agent does the code iteration.&lt;/li&gt; &lt;li&gt;Fixed &lt;strong&gt;5-minute&lt;/strong&gt; budget means roughly &lt;strong&gt;~12 experiments/hour&lt;/strong&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://github.com/karpathy/autoresearch"&gt;https://github.com/karpathy/autoresearch&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/freesysck"&gt; /u/freesysck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro00p2/project_karpathy_autoresearch_project_let_ai/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T08:57:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1rnmo3n</id>
