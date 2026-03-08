@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-08T10:54:34+00:00</updated>
+  <updated>2026-03-08T11:07:30+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rnw9yg</id>
-    <title>[Help/Issue] Qwen 3.5 35B (MoE) hard-capped at 11k context on 3090 Ti (llama.cpp/Docker)</title>
-    <updated>2026-03-08T05:24:46+00:00</updated>
-    <author>
-      <name>/u/Tasty-Butterscotch52</name>
-      <uri>https://old.reddit.com/user/Tasty-Butterscotch52</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnw9yg/helpissue_qwen_35_35b_moe_hardcapped_at_11k/"&gt; &lt;img alt="[Help/Issue] Qwen 3.5 35B (MoE) hard-capped at 11k context on 3090 Ti (llama.cpp/Docker)" src="https://preview.redd.it/wugsadf5arng1.png?width=140&amp;amp;height=68&amp;amp;auto=webp&amp;amp;s=b2406d6ff02fe1ab3693e4d5fd63529e29861740" title="[Help/Issue] Qwen 3.5 35B (MoE) hard-capped at 11k context on 3090 Ti (llama.cpp/Docker)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone, I’m running &lt;strong&gt;Qwen 3.5 35B A3B (Q4_K_M)&lt;/strong&gt; on a single &lt;strong&gt;RTX 3090 Ti (24GB)&lt;/strong&gt; using the &lt;code&gt;llama.cpp:server-cuda&lt;/code&gt; Docker image. I’m hitting a strange &amp;quot;Available context size&amp;quot; wall that is specifically capping me at &lt;strong&gt;11,008 tokens&lt;/strong&gt;, even though the model supports 256k and I have &lt;code&gt;--ctx-size 32768&lt;/code&gt; set in my compose file.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Setup:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GPU:&lt;/strong&gt; RTX 3090 Ti FE (24GB VRAM)&lt;/li&gt; &lt;li&gt;CPU Ryzen 9 9950x (12vcpu)&lt;/li&gt; &lt;li&gt;OS: Ubuntu 24 VM on Proxmox&lt;/li&gt; &lt;li&gt;RAM: 64GB DDR5 allocated just in case&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Driver:&lt;/strong&gt; 590.48.01 (CUDA 13.1)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Backend:&lt;/strong&gt; &lt;code&gt;llama.cpp&lt;/code&gt; (ghcr.io/ggml-org/llama.cpp:server-cuda)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Frontend:&lt;/strong&gt; Open WebUI&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Model:&lt;/strong&gt; Qwen3.5-35B-A3B-Q4_K_M.gguf (~21GB)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Current Open WebUI Settings (Optimized)&lt;/p&gt; &lt;p&gt;​1. Model Parameters (Advanced) ​Temperature: 1.35 (Custom) ​Max Tokens: 16384 (Custom) ​Top K: 40 (Custom) ​Top P: 0.9 (Custom) ​Frequency Penalty: 0.1 (Custom) ​Presence Penalty: 0.3 (Custom)&lt;/p&gt; &lt;p&gt;​2. Ollama/Backend Overrides ​num_ctx (Context Window): 65536 (Custom) ​num_batch: 512 (Custom) ​use_mmap: Default ​use_mlock: Default&lt;/p&gt; &lt;p&gt;​3. Tools &amp;amp; Capabilities ​Capabilities Enabled: Vision, File Upload, File Context, Web Search, Code Interpreter, Citations, Status Updates, Builtin Tools.&lt;/p&gt; &lt;p&gt;​Capabilities Disabled: Image Generation, Usage. ​Builtin Tools Enabled: Time &amp;amp; Calculation, Notes, Web Search, Code Interpreter.&lt;/p&gt; &lt;p&gt;​Builtin Tools Disabled: Memory, Chat History, Knowledge Base, Channels, Image Generation.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Issue:&lt;/strong&gt; Whenever I send a long prompt or try to summarize a conversation that hits ~30k tokens, I get an error stating: &lt;code&gt;Your request is 29,543 tokens, but the current model’s available context size is 11,008 tokens.&lt;/code&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-35b: image: ghcr.io/ggml-org/llama.cpp:server-cuda container_name: ai-llama-35b restart: unless-stopped shm_size: '4gb' ports: - &amp;quot;8081:8080&amp;quot; volumes: - /opt/ai/llamacpp/models:/models deploy: resources: reservations: devices: - driver: nvidia count: 1 capabilities: [gpu] command: &amp;gt; --model /models/Qwen3.5-35B-A3B-Q4_K_M.gguf --mmproj /models/mmproj-F16.gguf --no-mmproj-offload --ctx-size 32768 --n-gpu-layers 99 --n-cpu-moe 8 --parallel 1 --no-mmap --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --jinja --poll 0 --threads 8 --batch-size 2048 --fit on Sun Mar 8 00:16:32 2026 +-----------------------------------------------------------------------------------------+ | NVIDIA-SMI 590.48.01 Driver Version: 590.48.01 CUDA Version: 13.1 | +-----------------------------------------+------------------------+----------------------+ | GPU Name Persistence-M | Bus-Id Disp.A | Volatile Uncorr. ECC | | Fan Temp Perf Pwr:Usage/Cap | Memory-Usage | GPU-Util Compute M. | | | | MIG M. | |=========================================+========================+======================| | 0 NVIDIA GeForce RTX 3090 Ti On | 00000000:01:00.0 Off | Off | | 0% 36C P8 3W / 450W | 18124MiB / 24564MiB | 0% Default | | | | N/A | +-----------------------------------------+------------------------+----------------------+ +-----------------------------------------------------------------------------------------+ | Processes: | | GPU GI CI PID Type Process name GPU Memory | | ID ID Usage | |=========================================================================================| | 0 N/A N/A 1855 C /app/llama-server 18108MiB | +-----------------------------------------------------------------------------------------+ nicolas-ai@llm-server:~/llm-stack$ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/wugsadf5arng1.png?width=1088&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7ed43ff406e632beca1f8b1a2a2626c54c08b9de"&gt;https://preview.redd.it/wugsadf5arng1.png?width=1088&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7ed43ff406e632beca1f8b1a2a2626c54c08b9de&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ogsot7p9arng1.png?width=285&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=604ff657978443a5931245dddd0a472f6aa9e584"&gt;tokens from a successfull prompt&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Question:&lt;/strong&gt; Is there a more efficient way to manage KV cache for MoE models on a 24GB card? If I want to hit 64k+ context for long research papers, should I look into &lt;strong&gt;KV Cache Quantization (4-bit)&lt;/strong&gt; or is offloading MoE experts to the CPU (&lt;code&gt;--n-cpu-moe&lt;/code&gt;) the only viable path forward?&lt;/p&gt; &lt;p&gt;Also, has anyone else noticed &lt;code&gt;llama-server&lt;/code&gt; &amp;quot;auto-shrinking&amp;quot; context when VRAM is tight instead of just OOM-ing?&lt;/p&gt; &lt;p&gt;How can I better optimize this? &lt;/p&gt; &lt;p&gt;Edited: added openwebui settings&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tasty-Butterscotch52"&gt; /u/Tasty-Butterscotch52 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnw9yg/helpissue_qwen_35_35b_moe_hardcapped_at_11k/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnw9yg/helpissue_qwen_35_35b_moe_hardcapped_at_11k/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnw9yg/helpissue_qwen_35_35b_moe_hardcapped_at_11k/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T05:24:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rny0zq</id>
-    <title>Qwen-tts and Xtts</title>
-    <updated>2026-03-08T06:59:40+00:00</updated>
-    <author>
-      <name>/u/Goresk</name>
-      <uri>https://old.reddit.com/user/Goresk</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I posted this before somewhere maybe here is better!&lt;/p&gt; &lt;p&gt;My coding is um terrible. Somehow managed create a python using qwen-tts to see if I could do it. It takes like 3 minutes for short line but it worked :) for amd gpu and cpu,&lt;/p&gt; &lt;p&gt;Before this! I had an issue.&lt;/p&gt; &lt;p&gt;I had python and pip fatal error messages, curious I created a new path environment, moved to top having it point to my new venv to make that python and pip was being used. I discovered that in windows/wsl I was using python 3.12 in miniconda and windowsapp. I uninstalled the window app long time ago, but python.exe remains there not sure why. THen I discovered pip was being used through Miniconda and by a separate python 3.10 installation when I was new to python! But that is all cleaned up. &lt;/p&gt; &lt;p&gt;Well, I use koboldcpp which does use the new Quen-tts usage but I like to keep tts separate from kobold, like chatterbox or xttsv2 Ewen I think? Any ways, I started up to xtts and in noticed it started to load up qwen-tts and the tokenizer (hugging face repo download). Low and behold no errors at all. The speech is fairly clear but alot garbling and noise in the end of processing of a chat lines. Plus it was limiting to 250 characters. Which xtts never did before. When looked at Qwen-tts py code it was 250 limit. I tried it again, xtts loads up Qwen-tts just fine! Crappy sound though, Now I wasn't sure why it was happening. Then I remembered, I added that environmental path to my qwen-tts venv and moved above miniconda python. So Xtts loads the Qwen model. Duckduckgo Ai said that sharing can happen. &lt;/p&gt; &lt;p&gt;First all, to all the hardworking genius's to make all great programs like kobold, chatterbox, llamacpp, and more hats off! Just little surprised that this happened. ANd it repeatedly loads up the qwen model (s) both 0.6B and 1.7B base models with a custom .wav voice! Really, this beyond me though, but Qwen-tts and xtts load models similarly or else there would errors.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Goresk"&gt; /u/Goresk &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rny0zq/qwentts_and_xtts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rny0zq/qwentts_and_xtts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rny0zq/qwentts_and_xtts/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T06:59:40+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rnl74f</id>
     <title>Local RAG with Ollama on a laptop – indexing 10 thousand PDFs</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnl74f/local_rag_with_ollama_on_a_laptop_indexing_10/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-07T20:58:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rnyz75</id>
+    <title>How I got MCP working in the llama-server web UI (A brief guide for noobs)</title>
+    <updated>2026-03-08T07:54:30+00:00</updated>
+    <author>
+      <name>/u/arcanemachined</name>
+      <uri>https://old.reddit.com/user/arcanemachined</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h3&gt;Intro&lt;/h3&gt; &lt;p&gt;I heard about the recent addition of &lt;a href="https://github.com/ggml-org/llama.cpp/pull/18655"&gt;MCP support to llama-server&lt;/a&gt; and I was interested in getting it working.&lt;/p&gt; &lt;p&gt;I have only briefly toyed with MCP, so I'm not super familiar with the ins and outs of it.&lt;/p&gt; &lt;p&gt;I spent a while screwing around getting it working, so I am offering this brief guide for my fellow noobs so they can spend less time spinning their wheels, and more time playing with the new feature.&lt;/p&gt; &lt;h3&gt;Guide&lt;/h3&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;First, ensure that uv is installed: &lt;a href="https://docs.astral.sh/uv/getting-started/installation/"&gt;https://docs.astral.sh/uv/getting-started/installation/&lt;/a&gt;&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Then, create a config file in the directory of your choice with some MCP servers:&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;code&gt;config.json&lt;/code&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;mcpServers&amp;quot;: { &amp;quot;time&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;uv&amp;quot;, &amp;quot;args&amp;quot;: [&amp;quot;run&amp;quot;, &amp;quot;mcp-server-time&amp;quot;, &amp;quot;--local-timezone=America/Chicago&amp;quot;] }, &amp;quot;fetch&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;uvx&amp;quot;, &amp;quot;args&amp;quot;: [&amp;quot;mcp-server-fetch&amp;quot;] }, &amp;quot;ddg-search&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;uvx&amp;quot;, &amp;quot;args&amp;quot;: [&amp;quot;duckduckgo-mcp-server&amp;quot;] } } } &lt;/code&gt;&lt;/pre&gt; &lt;ul&gt; &lt;li&gt;From the same directory, run this command:&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;code&gt;uvx mcp-proxy --named-server-config config.json --allow-origin &amp;quot;*&amp;quot; --port 8001 --stateless&lt;/code&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;When you run this command, it will list the name of each MCP server URL. To get it to work in the llama-server web UI, you will need to replace the &lt;code&gt;sse&lt;/code&gt; at the end of each URL with &lt;code&gt;mcp&lt;/code&gt;. Example: Convert &lt;code&gt;http://127.0.0.1:8001/servers/time/sse&lt;/code&gt; to &lt;code&gt;http://127.0.0.1:8001/servers/time/mcp&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Now, in the llama-server web UI, go to &lt;code&gt;Settings&lt;/code&gt; -&amp;gt; &lt;code&gt;MCP&lt;/code&gt; -&amp;gt; &lt;code&gt;Add New Server&lt;/code&gt;, and add each server in your config. For example:&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;code&gt;http://127.0.0.1:8001/servers/time/mcp&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;http://127.0.0.1:8001/servers/fetch/mcp&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;http://127.0.0.1:8001/servers/ddg-search/mcp&lt;/code&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Click &lt;code&gt;Add&lt;/code&gt; to finish adding each server, then check the toggle to activate it.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The configured MCP servers should now work in the llama-server web UI!&lt;/p&gt; &lt;p&gt;Hopefully this is helpful to someone else!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/arcanemachined"&gt; /u/arcanemachined &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnyz75/how_i_got_mcp_working_in_the_llamaserver_web_ui_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnyz75/how_i_got_mcp_working_in_the_llamaserver_web_ui_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnyz75/how_i_got_mcp_working_in_the_llamaserver_web_ui_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T07:54:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1rn476o</id>
@@ -138,17 +125,17 @@
     <published>2026-03-08T09:07:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rnwi4e</id>
-    <title>Can we expect qwen3.5-coder versions?</title>
-    <updated>2026-03-08T05:36:35+00:00</updated>
+    <id>t3_1ro21dr</id>
+    <title>ETH Zurich study confirms that more context ≠ better agents</title>
+    <updated>2026-03-08T10:58:38+00:00</updated>
     <author>
-      <name>/u/robertpro01</name>
-      <uri>https://old.reddit.com/user/robertpro01</uri>
+      <name>/u/EnoughNinja</name>
+      <uri>https://old.reddit.com/user/EnoughNinja</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You know, regarding the last bad news about the team. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/robertpro01"&gt; /u/robertpro01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This &lt;a href="https://www.engineerscodex.com/agents-md-making-ai-worse"&gt;paper from ETH Zurich&lt;/a&gt; tested four coding agents across 138 real GitHub tasks and the headline finding is that LLM-generated context files actually reduced task success rates by 2-3% while Inference costs went up 20%, and even human-written context files only improved success by ~4%, and still increased cost significantly.&lt;/p&gt; &lt;p&gt;The problem they found was that agents treated every instruction in the context file as something that must be executed. In one experiment they stripped the repo down to only the generated context file and performance improved again.&lt;/p&gt; &lt;p&gt;Their recommendation is basically to only include information the agent genuinely cannot discover on its own, and keep it minimal. &lt;/p&gt; &lt;p&gt;We found this is even more of an issue with communication data especially with email threads which might look like context but are often interpreted as instructions when they're really historical noise, with mismatched attribution and broken deduplication&lt;/p&gt; &lt;p&gt;To circumvent this, we've made a context API (iGPT), email focused for now which reconstructs email threads into conversation graphs before context hits the model, deduplicates quoted text, detects who said what and when, and returns structured JSON instead of raw text. &lt;/p&gt; &lt;p&gt;The agent receives filtered context, not the entire conversation history.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EnoughNinja"&gt; /u/EnoughNinja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro21dr/eth_zurich_study_confirms_that_more_context/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro21dr/eth_zurich_study_confirms_that_more_context/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro21dr/eth_zurich_study_confirms_that_more_context/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T05:36:35+00:00</published>
+    <published>2026-03-08T10:58:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1rnabs2</id>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnabs2/the_mcp_pr_for_llamacpp_has_been_merged/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-07T13:44:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rnwi4e</id>
+    <title>Can we expect qwen3.5-coder versions?</title>
+    <updated>2026-03-08T05:36:35+00:00</updated>
+    <author>
+      <name>/u/robertpro01</name>
+      <uri>https://old.reddit.com/user/robertpro01</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You know, regarding the last bad news about the team. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/robertpro01"&gt; /u/robertpro01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnwi4e/can_we_expect_qwen35coder_versions/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T05:36:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1ro00p2</id>
@@ -190,19 +190,6 @@
     <published>2026-03-08T04:56:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ro1kie</id>
-    <title>RTX 6000 build / drive and fan questions</title>
-    <updated>2026-03-08T10:30:56+00:00</updated>
-    <author>
-      <name>/u/Direct_Bodybuilder63</name>
-      <uri>https://old.reddit.com/user/Direct_Bodybuilder63</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt; &lt;img alt="RTX 6000 build / drive and fan questions" src="https://preview.redd.it/isuhcdzqtsng1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3078773b71b2f0e8cc60d0fc074fceac895d77d0" title="RTX 6000 build / drive and fan questions" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Currently I’m trying to figure out if I need a fan hub as I want to add 4 NOCTUA fans on the side, and 1 fan on the back. Additionally I have a KIOXIA 30TB NVMe mounted externally which is going into read-only mode as it’s running too hot. I think I may have bought the wrong drive as I didn’t realize. Any advice appreciated. &lt;/p&gt; &lt;p&gt;Would an NVMe heatsink help here? &lt;/p&gt; &lt;p&gt;The Build:&lt;/p&gt; &lt;p&gt;Motherboard: ASRock WRX90 WS EVO&lt;/p&gt; &lt;p&gt;CPU: Ryzen Threadripper PRO 9985WX&lt;/p&gt; &lt;p&gt;GPU: RTX 6000 MAX-Q x 3&lt;/p&gt; &lt;p&gt;RAM: 768GB (8x96GB) - Vcolor DDR5 6400 TR596G64D452O&lt;/p&gt; &lt;p&gt;Storage:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Samsung MZ-V9P2T0B/AM 990 PRO 2TB NVMe Solid State Drive&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;WD_BLACK 8TB SN850X NVMe Gen4 PCIe M.2 2280 WDS800T2XHE&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Kioxia 30.72TB SSD&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;PSU: Super Flower Leadex Titanium 2800W ATX 3.1&lt;/p&gt; &lt;p&gt;Cooling: Silverstone SST-XE360-TR5 Server AIO Liquid Cooling&lt;/p&gt; &lt;p&gt;Case: Phanteks PH-ES620PC_BK02 Enthoo Pro Server Edition&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Direct_Bodybuilder63"&gt; /u/Direct_Bodybuilder63 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/isuhcdzqtsng1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-08T10:30:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rnwvg6</id>
     <title>Is GLM-4.7-Flash relevant anymore?</title>
     <updated>2026-03-08T05:56:46+00:00</updated>
@@ -227,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rnui6o/intel_b70_pro_32g_vram/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-08T03:53:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ro1kie</id>
+    <title>RTX 6000 build / drive and fan questions</title>
+    <updated>2026-03-08T10:30:56+00:00</updated>
+    <author>
+      <name>/u/Direct_Bodybuilder63</name>
+      <uri>https://old.reddit.com/user/Direct_Bodybuilder63</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt; &lt;img alt="RTX 6000 build / drive and fan questions" src="https://preview.redd.it/isuhcdzqtsng1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3078773b71b2f0e8cc60d0fc074fceac895d77d0" title="RTX 6000 build / drive and fan questions" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Currently I’m trying to figure out if I need a fan hub as I want to add 4 NOCTUA fans on the side, and 1 fan on the back. Additionally I have a KIOXIA 30TB NVMe mounted externally which is going into read-only mode as it’s running too hot. I think I may have bought the wrong drive as I didn’t realize. Any advice appreciated. &lt;/p&gt; &lt;p&gt;Would an NVMe heatsink help here? &lt;/p&gt; &lt;p&gt;The Build:&lt;/p&gt; &lt;p&gt;Motherboard: ASRock WRX90 WS EVO&lt;/p&gt; &lt;p&gt;CPU: Ryzen Threadripper PRO 9985WX&lt;/p&gt; &lt;p&gt;GPU: RTX 6000 MAX-Q x 3&lt;/p&gt; &lt;p&gt;RAM: 768GB (8x96GB) - Vcolor DDR5 6400 TR596G64D452O&lt;/p&gt; &lt;p&gt;Storage:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Samsung MZ-V9P2T0B/AM 990 PRO 2TB NVMe Solid State Drive&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;WD_BLACK 8TB SN850X NVMe Gen4 PCIe M.2 2280 WDS800T2XHE&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Kioxia 30.72TB SSD&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;PSU: Super Flower Leadex Titanium 2800W ATX 3.1&lt;/p&gt; &lt;p&gt;Cooling: Silverstone SST-XE360-TR5 Server AIO Liquid Cooling&lt;/p&gt; &lt;p&gt;Case: Phanteks PH-ES620PC_BK02 Enthoo Pro Server Edition&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Direct_Bodybuilder63"&gt; /u/Direct_Bodybuilder63 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/isuhcdzqtsng1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ro1kie/rtx_6000_build_drive_and_fan_questions/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-08T10:30:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1rn8ulj</id>
