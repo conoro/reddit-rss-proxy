@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-03-11T01:12:23+00:00</updated>
+  <updated>2026-03-11T01:58:33+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
+  <entry>
+    <id>t3_1rq2qc1</id>
+    <title>Our AI Is Helpful. Also Slightly Overprivileged.</title>
+    <updated>2026-03-10T17:08:04+00:00</updated>
+    <author>
+      <name>/u/baluchicken</name>
+      <uri>https://old.reddit.com/user/baluchicken</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/baluchicken"&gt; /u/baluchicken &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://blog.riptides.io/out-ai-is-helpful-also-slightly-overprivileged/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rq2qc1/our_ai_is_helpful_also_slightly_overprivileged/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rq2qc1/our_ai_is_helpful_also_slightly_overprivileged/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-10T17:08:04+00:00</published>
+  </entry>
   <entry>
     <id>t3_1rpuztd</id>
     <title>Ytstream Download Youtube Videos MCP Server – Enables users to stream or download YouTube video information and direct links via the Ytstream API. It supports geographic optimization and language selection for better download speeds and audio availability.</title>
@@ -292,19 +305,6 @@
     <link href="https://old.reddit.com/r/mcp/comments/1rq6r56/built_a_realtime_ai_analytics_dashboard_using/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-03-10T19:29:01+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rqeafy</id>
-    <title>How I built an MCP server using Cloudflare's Code Mode pattern for keyword research (2 tools, ~1,000 tokens)</title>
-    <updated>2026-03-11T00:09:16+00:00</updated>
-    <author>
-      <name>/u/Ok-Macaron3016</name>
-      <uri>https://old.reddit.com/user/Ok-Macaron3016</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most MCP servers I've seen follow the same pattern: one tool per API endpoint. It works, but the token cost scales linearly. 15 endpoints = 15 tool definitions = thousands of tokens burned before the agent does anything useful.&lt;/p&gt; &lt;p&gt;I wanted to try a different approach for TheKeyword, a keyword research API I built. Instead of exposing every endpoint as a separate tool, I used the Code Mode pattern that Cloudflare open-sourced for their API MCP server.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The architecture:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The entire MCP server ships just two tools:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;search&lt;/code&gt; - the agent writes JS to query the OpenAPI spec and discover available endpoints&lt;/li&gt; &lt;li&gt;&lt;code&gt;execute&lt;/code&gt; - the agent writes JS to make authenticated API calls&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Total token footprint: ~1,000 tokens. Fixed, regardless of how many API endpoints exist behind it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How the sandbox works:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Both tools run agent-generated JS in a &lt;code&gt;node:vm&lt;/code&gt; sandbox with some hardening:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Null-prototype context base (&lt;code&gt;Object.create(null)&lt;/code&gt;) to block constructor chain walking&lt;/li&gt; &lt;li&gt;Frozen globals to prevent prototype pollution&lt;/li&gt; &lt;li&gt;Custom &lt;code&gt;JSON.parse/stringify&lt;/code&gt; (not host objects) to prevent realm bridging&lt;/li&gt; &lt;li&gt;Dynamic imports disabled&lt;/li&gt; &lt;li&gt;10-second execution timeout&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Security on the&lt;/strong&gt; &lt;code&gt;execute&lt;/code&gt; &lt;strong&gt;tool:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The &lt;code&gt;fetch()&lt;/code&gt; provided to agent code is scoped and pre-configured:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Auth headers injected server-side (API key never enters the agent's context)&lt;/li&gt; &lt;li&gt;Origin validation blocks subdomain prefix vectors (&lt;code&gt;thekeyword.io.evil.com&lt;/code&gt;) and userinfo bypass (&lt;code&gt;user:pass@evil.com&lt;/code&gt;)&lt;/li&gt; &lt;li&gt;&lt;code&gt;redirect: &amp;quot;error&amp;quot;&lt;/code&gt; prevents token exfiltration via 302 to an external host&lt;/li&gt; &lt;li&gt;Response objects are serialized into plain objects to avoid VM reference leaks&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;The OpenAPI spec layer:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The &lt;code&gt;search&lt;/code&gt; tool gives the agent a pre-parsed, flattened version of the OpenAPI spec. All &lt;code&gt;$ref&lt;/code&gt;s are pre-resolved. The spec is cached with a 1-hour TTL and lazy-loaded on first tool call. The agent can filter by method, path, tags, operationId, or any other metadata to find what it needs without the full spec entering the context window.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What the agent can actually do with it:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Once connected (works with Claude Desktop, Cursor, any MCP client), the agent can:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Analyze keywords (volume, CPC, difficulty, intent, trends)&lt;/li&gt; &lt;li&gt;Batch analyze up to 100 keywords with async job polling&lt;/li&gt; &lt;li&gt;Detect 7 trend signal types (breakout, spike, seasonal, etc.)&lt;/li&gt; &lt;li&gt;Pull SERP data with top 10 organic results&lt;/li&gt; &lt;li&gt;Chain multiple API calls in a single &lt;code&gt;execute&lt;/code&gt; invocation&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Example flow:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Agent calls &lt;code&gt;search&lt;/code&gt; with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;async () =&amp;gt; { return spec.operations .filter(op =&amp;gt; op.path.includes('keyword')) .map(op =&amp;gt; ({ method: op.method, path: op.path, summary: op.summary })) } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Gets back the relevant endpoints, then calls &lt;code&gt;execute&lt;/code&gt; to make the actual API requests.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I'd do differently:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The &lt;code&gt;node:vm&lt;/code&gt; sandbox is not a true security boundary against intentionally malicious input. For production with untrusted agents, &lt;code&gt;isolated-vm&lt;/code&gt; or a container would be better. For MCP use (where the agent is controlled by the user's own model), it's been sufficient.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Macaron3016"&gt; /u/Ok-Macaron3016 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rqeafy/how_i_built_an_mcp_server_using_cloudflares_code/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rqeafy/how_i_built_an_mcp_server_using_cloudflares_code/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rqeafy/how_i_built_an_mcp_server_using_cloudflares_code/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-11T00:09:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1h7pl2v</id>
