@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-13T05:35:53+00:00</updated>
+  <updated>2026-03-13T06:03:22+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rrfqlu</id>
-    <title>I spent 8+ hours benchmarking every MoE backend for Qwen3.5-397B NVFP4 on 4x RTX PRO 6000 (SM120). Here's what I found.</title>
-    <updated>2026-03-12T03:22:19+00:00</updated>
-    <author>
-      <name>/u/lawdawgattorney</name>
-      <uri>https://old.reddit.com/user/lawdawgattorney</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;The short version:&lt;/strong&gt; 50.5 tok/s sustained decode is the best I can get, and I'm pretty sure it's the best anyone has actually gotten on SM120 hardware -- despite claims of 130+ tok/s floating around. The reason? NVIDIA's own CUTLASS kernels are broken on their own workstation GPU.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;The Setup&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;4x RTX PRO 6000 Blackwell Workstation Edition (96GB GDDR7 each, 384GB total)&lt;/li&gt; &lt;li&gt;SM 12.0 -- this is the desktop/workstation Blackwell, NOT the datacenter B200 (SM 10.0)&lt;/li&gt; &lt;li&gt;PCIe Gen5, no NVLink&lt;/li&gt; &lt;li&gt;Threadripper 24C/48T, 512GB DDR5&lt;/li&gt; &lt;li&gt;Windows 11 + WSL2&lt;/li&gt; &lt;li&gt;Model: &lt;code&gt;nvidia/Qwen3.5-397B-A17B-NVFP4&lt;/code&gt; (~140GB, 397B total params, 17B active per token)&lt;/li&gt; &lt;/ul&gt; &lt;h2&gt;16 Configurations Tested&lt;/h2&gt; &lt;p&gt;I tested literally everything available: multiple Docker images, two inference frameworks, every MoE backend, MTP on/off, different CUDA versions, EP/PP/TP combinations, and a dozen kernel patches.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Config&lt;/th&gt; &lt;th&gt;Backend&lt;/th&gt; &lt;th&gt;TP&lt;/th&gt; &lt;th&gt;MTP&lt;/th&gt; &lt;th&gt;tok/s&lt;/th&gt; &lt;th&gt;Verdict&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;strong&gt;Marlin TP=4, no MTP&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;Marlin W4A16&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;4&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;50.5&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;Winner&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Marlin TP=2+PP=2&lt;/td&gt; &lt;td&gt;Marlin W4A16&lt;/td&gt; &lt;td&gt;2+PP2&lt;/td&gt; &lt;td&gt;No&lt;/td&gt; &lt;td&gt;49&lt;/td&gt; &lt;td&gt;Close second&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Marlin + MTP=2&lt;/td&gt; &lt;td&gt;Marlin W4A16&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;Yes&lt;/td&gt; &lt;td&gt;39-40&lt;/td&gt; &lt;td&gt;MTP makes it SLOWER&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;CUTLASS Docker (best case)&lt;/td&gt; &lt;td&gt;FlashInfer CUTLASS&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;Yes&lt;/td&gt; &lt;td&gt;41&lt;/td&gt; &lt;td&gt;80 fast kernels skipped&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;CUTLASS Docker (worst case)&lt;/td&gt; &lt;td&gt;FlashInfer CUTLASS&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;Yes&lt;/td&gt; &lt;td&gt;26&lt;/td&gt; &lt;td&gt;Same bug, worse fallback&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;vLLM native CUTLASS&lt;/td&gt; &lt;td&gt;CUTLASS&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;Yes&lt;/td&gt; &lt;td&gt;~5&lt;/td&gt; &lt;td&gt;Garbage output&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Default TP=4 (auto backend)&lt;/td&gt; &lt;td&gt;CUTLASS&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;No&lt;/td&gt; &lt;td&gt;6-7&lt;/td&gt; &lt;td&gt;Garbage output&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;SGLang 0.5.8&lt;/td&gt; &lt;td&gt;FlashInfer&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;--&lt;/td&gt; &lt;td&gt;NaN&lt;/td&gt; &lt;td&gt;Literally NaN&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Expert Parallel&lt;/td&gt; &lt;td&gt;Marlin&lt;/td&gt; &lt;td&gt;2+EP2&lt;/td&gt; &lt;td&gt;No&lt;/td&gt; &lt;td&gt;1.4-2.6&lt;/td&gt; &lt;td&gt;Don't even try on PCIe&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;TensorRT-LLM&lt;/td&gt; &lt;td&gt;--&lt;/td&gt; &lt;td&gt;--&lt;/td&gt; &lt;td&gt;--&lt;/td&gt; &lt;td&gt;N/A&lt;/td&gt; &lt;td&gt;Doesn't support the arch&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;FlashInfer Sampler&lt;/td&gt; &lt;td&gt;Marlin&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;No&lt;/td&gt; &lt;td&gt;5.9&lt;/td&gt; &lt;td&gt;8.6x regression from default&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h2&gt;The NVIDIA Bug That's Blocking Everything&lt;/h2&gt; &lt;p&gt;Here's the thing that makes this frustrating: the RTX PRO 6000 has FP4 tensor cores. NVIDIA ships NVFP4-quantized models designed to use them. The CUTLASS library has grouped GEMM kernels that should light them up for MoE inference.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;But on SM120, all 80 TMA Warp Specialized grouped GEMM tactics fail at initialization.&lt;/strong&gt; Every single one. The error:&lt;/p&gt; &lt;p&gt;&lt;code&gt; Failed to initialize cutlass TMA WS grouped gemm. Error: Error Internal (cutlass_kernel_file_gemm_grouped_sm120_M128_BS_group2.generated.cu:60) &lt;/code&gt;&lt;/p&gt; &lt;p&gt;So instead of native FP4 compute, you're stuck with Marlin, which dequantizes your FP4 weights to FP16 and runs standard GEMM. You're leaving roughly half the theoretical throughput on the table.&lt;/p&gt; &lt;p&gt;I filed &lt;a href="https://github.com/NVIDIA/cutlass/issues/3096"&gt;CUTLASS issue #3096&lt;/a&gt;. No response from NVIDIA.&lt;/p&gt; &lt;p&gt;The kicker: SM121 (DGX Spark, the other Blackwell variant) DOES work with NVFP4 MoE at 356 TFLOPS. So SM12x can do it -- NVIDIA just hasn't validated the SM120 tile configs.&lt;/p&gt; &lt;h2&gt;Why MTP Makes Things Worse&lt;/h2&gt; &lt;p&gt;This surprised me. Multi-Token Prediction should help, right? On SM120 with Marlin, it's a -22% regression:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Without MTP: &lt;strong&gt;50.5 tok/s&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;With MTP=2: &lt;strong&gt;39.6 tok/s&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The MTP draft heads were trained on native FP4 activations. Marlin uses W4A16 dequantization, which produces slightly different activation values. Result: 61-85% acceptance rate vs the expected 89%. The overhead of speculating and rejecting outweighs the benefit.&lt;/p&gt; &lt;h2&gt;About Those 130 tok/s Claims&lt;/h2&gt; &lt;p&gt;Someone on the community forums has been claiming 130-150 tok/s on the same hardware via custom SGLang/vLLM forks. I pulled both repos and reviewed every commit.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Zero kernel-level changes.&lt;/strong&gt; The forks modify Python-level quantization config, attention registry, and MTP state management. They use the same broken CUTLASS fallback. The same 80 TMA WS tactics fail.&lt;/p&gt; &lt;p&gt;How do you get 130 tok/s from code that runs at 50 tok/s? Most likely explanation: counting speculative tokens (proposed + rejected) rather than actual output tokens delivered. When you measure wall-clock output over 1000+ tokens, 50.5 tok/s is what you get.&lt;/p&gt; &lt;p&gt;If someone has genuinely hit 130+ tok/s sustained decode with correct output on SM120, I would love to be proven wrong. Show me a generation log with timestamps.&lt;/p&gt; &lt;h2&gt;What It Took to Get Here&lt;/h2&gt; &lt;p&gt;Just getting to 50.5 tok/s required &lt;strong&gt;12 patches&lt;/strong&gt; across FlashInfer and vLLM:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;7 FlashInfer patches: SM version checks, compute capability mappings, GDC compile flags, CuTe DSL architecture lists&lt;/li&gt; &lt;li&gt;5 vLLM patches: &lt;code&gt;is_device_capability_family(120)&lt;/code&gt; checks in MoE backend selection&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Submitted upstream: - &lt;a href="https://github.com/flashinfer-ai/flashinfer/pull/2725"&gt;FlashInfer PR #2725&lt;/a&gt; - &lt;a href="https://github.com/vllm-project/vllm/pull/36453"&gt;vLLM PR #36453&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;What This Means Practically&lt;/h2&gt; &lt;p&gt;50.5 tok/s for a 397B parameter model is genuinely impressive -- it's faster than most people's Llama 70B setups. The model quality is excellent. For single-user workloads, it's very usable.&lt;/p&gt; &lt;p&gt;But it should be 2-3x faster. NVIDIA sells this as a $20K+ professional AI GPU. They ship NVFP4 models for it. The inference path they designed for it doesn't work on it. That's not a software limitation -- it's a bug in NVIDIA's own kernel library that they haven't acknowledged.&lt;/p&gt; &lt;h2&gt;Practical Config for Anyone With This Hardware&lt;/h2&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;h1&gt;The important part: force Marlin, disable MTP&lt;/h1&gt; &lt;p&gt;export VLLM_MOE_FORCE_MARLIN=1&lt;/p&gt; &lt;p&gt;vllm serve nvidia/Qwen3.5-397B-A17B-NVFP4 \ --tensor-parallel-size 4 \ --max-model-len 262144 \ --gpu-memory-utilization 0.95 \ --enable-chunked-prefill \ --enable-prefix-caching \ --kv-cache-dtype fp8_e4m3 \ --calculate-kv-scales ```&lt;/p&gt; &lt;p&gt;Don't use &lt;code&gt;--enforce-eager&lt;/code&gt; (CUDA graphs help). Don't enable MTP. Don't try expert parallel on PCIe.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Open Issues&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://github.com/NVIDIA/cutlass/issues/3096"&gt;CUTLASS #3096&lt;/a&gt; -- The root cause bug (no NVIDIA response)&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/NVIDIA/cutlass/issues/2800"&gt;CUTLASS #2800&lt;/a&gt; -- FP4 restricted to sm_100a&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/deepseek-ai/DeepGEMM/issues/236"&gt;DeepGEMM #236&lt;/a&gt; -- SM120 not supported&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/vllm-project/vllm/issues/35566"&gt;vLLM #35566&lt;/a&gt; -- CUDA illegal memory access MoE SM120&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Has anyone else been fighting this battle on SM120? Would love to hear from other RTX PRO 6000 / RTX 5090 owners running MoE models.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lawdawgattorney"&gt; /u/lawdawgattorney &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rrfqlu/i_spent_8_hours_benchmarking_every_moe_backend/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rrfqlu/i_spent_8_hours_benchmarking_every_moe_backend/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rrfqlu/i_spent_8_hours_benchmarking_every_moe_backend/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-12T03:22:19+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rr4by8</id>
-    <title>Nvidia Will Spend $26 Billion to Build Open-Weight AI Models, Filings Show</title>
-    <updated>2026-03-11T19:51:15+00:00</updated>
-    <author>
-      <name>/u/dan945</name>
-      <uri>https://old.reddit.com/user/dan945</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rr4by8/nvidia_will_spend_26_billion_to_build_openweight/"&gt; &lt;img alt="Nvidia Will Spend $26 Billion to Build Open-Weight AI Models, Filings Show" src="https://external-preview.redd.it/3xKO6HYAebkeYnlMItSn_du4hc3J6RSi4pDff2N2gaY.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=90123ed1d7d29085afb3942b04777a1a9bbbe9bc" title="Nvidia Will Spend $26 Billion to Build Open-Weight AI Models, Filings Show" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dan945"&gt; /u/dan945 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.wired.com/story/nvidia-investing-26-billion-open-source-models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rr4by8/nvidia_will_spend_26_billion_to_build_openweight/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rr4by8/nvidia_will_spend_26_billion_to_build_openweight/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-11T19:51:15+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rrzoms</id>
     <title>MiniMax-M2.5-CARVE-v1-BF16</title>
@@ -47,30 +21,17 @@
     <published>2026-03-12T18:58:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rselsf</id>
-    <title>Rick Beato: "How AI Will Fail Like The Music Industry" (and why local LLMs will take over "commercial" ones)</title>
-    <updated>2026-03-13T05:19:47+00:00</updated>
+    <id>t3_1rsevio</id>
+    <title>Database setup with facts for the LLM to use?</title>
+    <updated>2026-03-13T05:34:59+00:00</updated>
     <author>
-      <name>/u/relmny</name>
-      <uri>https://old.reddit.com/user/relmny</uri>
+      <name>/u/SmoollBoobaTysm</name>
+      <uri>https://old.reddit.com/user/SmoollBoobaTysm</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Never thought I see the day, but Rick Beato (musician/guitarist/producer and youtuber with, arguably, the best youtube channel about music) explains why he thinks local LLMs will take over &amp;quot;commercial&amp;quot; LLMs.&lt;/p&gt; &lt;p&gt;And he also shows how easy it is to run LM Studio and... with Qwen3.5-35b!!! and also makes the case for privacy...&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.youtube.com/watch?v=YTLnnoZPALI"&gt;https://www.youtube.com/watch?v=YTLnnoZPALI&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/relmny"&gt; /u/relmny &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My use case is usually micro-code/boilerplate or casual nonsense philosophy but last night i tried to get a bit deep into movies and actors with Qwen3.5 and it became quickly obvious that the information wasn't even close to the truth, as in totally off when it came to actor details, which is fine its a local LLM after all and i don't expect it to generate factual niche details.&lt;/p&gt; &lt;p&gt;Which lead to my question, is there a existing database/LLM setup containing for example wikipedia+imdb with simple facts that can be connected as research tool for the LLM to use when facts are needed for a proper answer? (offline solution not web-search)&lt;/p&gt; &lt;p&gt;A 'small' mysql instance of a mere 100-200GiB could contain almost anything ever needed, maybe even add API docs to the latest releases of certain modules one uses.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SmoollBoobaTysm"&gt; /u/SmoollBoobaTysm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsevio/database_setup_with_facts_for_the_llm_to_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsevio/database_setup_with_facts_for_the_llm_to_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rsevio/database_setup_with_facts_for_the_llm_to_use/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-13T05:19:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rsen7t</id>
-    <title>Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop</title>
-    <updated>2026-03-13T05:21:57+00:00</updated>
-    <author>
-      <name>/u/Neurrone</name>
-      <uri>https://old.reddit.com/user/Neurrone</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"&gt; &lt;img alt="Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop" src="https://external-preview.redd.it/4EoyK9-jii1B7MJggoUt2dwf9qA4oowDEj7Q3j-y5WI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36dfaed3ba2083edb06593e44917c7c7f946f6f0" title="Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Neurrone"&gt; /u/Neurrone &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.storagereview.com/news/tenstorrent-quietbox-2-brings-risc-v-ai-inference-to-the-desktop"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-13T05:21:57+00:00</published>
+    <published>2026-03-13T05:34:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1rs9tfe</id>
@@ -112,6 +73,19 @@
     <published>2026-03-13T00:44:36+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rsas71</id>
+    <title>Qwen3.5-35B-A3B Benchmark On MacBook Pro(M4 Pro Chip + 48GB Unified Memory)</title>
+    <updated>2026-03-13T02:10:54+00:00</updated>
+    <author>
+      <name>/u/Impossible-Celery-87</name>
+      <uri>https://old.reddit.com/user/Impossible-Celery-87</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsas71/qwen3535ba3b_benchmark_on_macbook_prom4_pro_chip/"&gt; &lt;img alt="Qwen3.5-35B-A3B Benchmark On MacBook Pro(M4 Pro Chip + 48GB Unified Memory)" src="https://preview.redd.it/qj86bdm8zpog1.png?width=140&amp;amp;height=12&amp;amp;auto=webp&amp;amp;s=5663e5abb4f0dfd5baba36f62bf5bdc760e84b7e" title="Qwen3.5-35B-A3B Benchmark On MacBook Pro(M4 Pro Chip + 48GB Unified Memory)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/qj86bdm8zpog1.png?width=529&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=9292fd8e61df70a04be31e3d3f5ad0e0e8ee9aa6"&gt;llamacpp command config:&lt;/a&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;--model ~/.lmstudio/models/lmstudio-community/Qwen3.5-35B-A3B-GGUF/Qwen3.5-35B-A3B-Q4_K_M.gguf \ --mmproj ~/.lmstudio/models/lmstudio-community/Qwen3.5-35B-A3B-GGUF/mmproj-Qwen3.5-35B-A3B-BF16.gguf \ --alias &amp;quot;qwen/qwen3.5-35B-A3B&amp;quot; \ --temp 0.6 \ --top-p 0.95 \ --top-k 20 \ --min-p 0.00 \ --jinja -c 0 \ --host 127.0.0.1 \ --port 8001 \ --kv-unified \ --cache-type-k q8_0 --cache-type-v q8_0 \ --flash-attn on --fit on \ --ctx-size 98304 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Current throughput(also in the screenshot): ~35 tok/sec&lt;/p&gt; &lt;p&gt;Also, tried with a small draft model. Haven't seen any noticeable difference yet(not sure if it would for continuous usage)&lt;/p&gt; &lt;p&gt;I am fairly new to llamacpp. Looking for suggestions/feedbacks: anything to improve upon, in term of config?&lt;/p&gt; &lt;p&gt;Can the performance be notably better on Macbook Pro(M4 Pro Chip)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Impossible-Celery-87"&gt; /u/Impossible-Celery-87 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsas71/qwen3535ba3b_benchmark_on_macbook_prom4_pro_chip/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsas71/qwen3535ba3b_benchmark_on_macbook_prom4_pro_chip/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rsas71/qwen3535ba3b_benchmark_on_macbook_prom4_pro_chip/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-13T02:10:54+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rsdqvu</id>
     <title>ggml : add NVFP4 quantization type support</title>
     <updated>2026-03-13T04:33:40+00:00</updated>
@@ -151,6 +125,19 @@
     <published>2026-03-12T12:56:24+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rselsf</id>
+    <title>Rick Beato: "How AI Will Fail Like The Music Industry" (and why local LLMs will take over "commercial" ones)</title>
+    <updated>2026-03-13T05:19:47+00:00</updated>
+    <author>
+      <name>/u/relmny</name>
+      <uri>https://old.reddit.com/user/relmny</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Never thought I see the day, but Rick Beato (musician/guitarist/producer and youtuber with, arguably, the best youtube channel about music) explains why he thinks local LLMs will take over &amp;quot;commercial&amp;quot; LLMs.&lt;/p&gt; &lt;p&gt;And he also shows how easy it is to run LM Studio and... with Qwen3.5-35b!!! and also makes the case for privacy...&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.youtube.com/watch?v=YTLnnoZPALI"&gt;https://www.youtube.com/watch?v=YTLnnoZPALI&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/relmny"&gt; /u/relmny &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rselsf/rick_beato_how_ai_will_fail_like_the_music/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-13T05:19:47+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rrw3g4</id>
     <title>Nemotron-3-Super-120B-A12B NVFP4 inference benchmark on one RTX Pro 6000 Blackwell</title>
     <updated>2026-03-12T16:50:17+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rsavl4/understudy_localfirst_desktop_agent_that_learns/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-13T02:15:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rsen7t</id>
+    <title>Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop</title>
+    <updated>2026-03-13T05:21:57+00:00</updated>
+    <author>
+      <name>/u/Neurrone</name>
+      <uri>https://old.reddit.com/user/Neurrone</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"&gt; &lt;img alt="Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop" src="https://external-preview.redd.it/4EoyK9-jii1B7MJggoUt2dwf9qA4oowDEj7Q3j-y5WI.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=36dfaed3ba2083edb06593e44917c7c7f946f6f0" title="Tenstorrent QuietBox 2 Brings RISC-V AI Inference to the Desktop" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Neurrone"&gt; /u/Neurrone &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.storagereview.com/news/tenstorrent-quietbox-2-brings-risc-v-ai-inference-to-the-desktop"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rsen7t/tenstorrent_quietbox_2_brings_riscv_ai_inference/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-13T05:21:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1rrvyyh</id>

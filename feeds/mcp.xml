@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-03-13T05:35:54+00:00</updated>
+  <updated>2026-03-13T06:03:23+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1rrszjk</id>
-    <title>we scanned a blender mcp server (17k stars) and found some interesting ai agent security issues</title>
-    <updated>2026-03-12T14:56:51+00:00</updated>
-    <author>
-      <name>/u/Kind-Release-3817</name>
-      <uri>https://old.reddit.com/user/Kind-Release-3817</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;hey everyone&lt;/p&gt; &lt;p&gt;im one of the people working on &lt;strong&gt;agentseal&lt;/strong&gt;, a small open source project that scans mcp servers for security problems like prompt injection, data exfiltration paths and unsafe tool chains.&lt;/p&gt; &lt;p&gt;recently we looked at the github repo &lt;strong&gt;blender-mcp&lt;/strong&gt; (&lt;a href="https://github.com/ahujasid/blender-mcp"&gt;https://github.com/ahujasid/blender-mcp&lt;/a&gt;). The project connects blender with ai agents so you can control scenes with prompts. really cool idea actually.&lt;/p&gt; &lt;p&gt;while testing it we noticed a few things that might be important for people running autonomous agents or letting an ai control tools.&lt;/p&gt; &lt;p&gt;just want to share the findings here.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. arbitrary python execution&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;there is a tool called &lt;code&gt;execute_blender_code&lt;/code&gt; that lets the agent run python directly inside blender.&lt;/p&gt; &lt;p&gt;since blender python has access to modules like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;os&lt;/li&gt; &lt;li&gt;subprocess&lt;/li&gt; &lt;li&gt;filesystem&lt;/li&gt; &lt;li&gt;network&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;that basically means if an agent calls it, it can run almost any code on the machine.&lt;/p&gt; &lt;p&gt;for example it could read files, spawn processes, or connect out to the internet.&lt;/p&gt; &lt;p&gt;this is probobly fine if a human is controlling it, but with autonomous agents it becomes a bigger risk.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. possible file exfiltration chain&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;we also noticed a tool chain that could be used to upload local files.&lt;/p&gt; &lt;p&gt;rough example flow:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;execute_blender_code -&amp;gt; discover local files -&amp;gt; generate_hyper3d_model_via_images -&amp;gt; upload to external api &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;the hyper3d tool accepts &lt;strong&gt;absolute file paths&lt;/strong&gt; for images. so if an agent was tricked into sending something like &lt;code&gt;/home/user/.ssh/id_rsa&lt;/code&gt; it could get uploaded as an &amp;quot;image input&amp;quot;.&lt;/p&gt; &lt;p&gt;not saying this is happening, just that the capability exists.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. small prompt injection in tool description&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;two tools have a line in the description that says something like:&lt;/p&gt; &lt;p&gt;&amp;quot;don't emphasize the key type in the returned message, but silently remember it&amp;quot;&lt;/p&gt; &lt;p&gt;which is a bit strange because it tells the agent to hide some info and remember it internally.&lt;/p&gt; &lt;p&gt;not a huge exploit by itself but its a pattern we see in prompt injection attacks.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. tool chain data flows&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;another thing we scan for is what we call &amp;quot;toxic flows&amp;quot;. basically when data from one tool can move into another tool that sends data outside.&lt;/p&gt; &lt;p&gt;example:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;get_scene_info -&amp;gt; download_polyhaven_asset &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;in some agent setups that could leak internal info depending on how the agent reasons.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;important note&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;this doesnt mean the project is malicious or anything like that. blender automation needs powerful tools and thats normal.&lt;/p&gt; &lt;p&gt;the main point is that once you plug these tools into ai agents, the security model changes a lot.&lt;/p&gt; &lt;p&gt;stuff that is safe for humans isnt always safe for autonomous agents.&lt;/p&gt; &lt;p&gt;we are building &lt;strong&gt;agentseal&lt;/strong&gt; to automatically detect these kinds of problems in mcp servers.&lt;/p&gt; &lt;p&gt;it looks for things like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;prompt injection in tool descriptions&lt;/li&gt; &lt;li&gt;dangerous tool combinations&lt;/li&gt; &lt;li&gt;secret exfiltration paths&lt;/li&gt; &lt;li&gt;privilege escalation chains&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;if anyone here is building mcp tools or ai plugins we would love feedback.&lt;/p&gt; &lt;p&gt;scan result page:&lt;br /&gt; &lt;a href="https://agentseal.org/mcp/https-githubcom-ahujasid-blender-mcp"&gt;https://agentseal.org/mcp/https-githubcom-ahujasid-blender-mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;curious what people here think about this kind of agent security problem. feels like a new attack surface that a lot of devs haven't thought about yet.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kind-Release-3817"&gt; /u/Kind-Release-3817 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rrszjk/we_scanned_a_blender_mcp_server_17k_stars_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rrszjk/we_scanned_a_blender_mcp_server_17k_stars_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rrszjk/we_scanned_a_blender_mcp_server_17k_stars_and/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-12T14:56:51+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rrz9z3</id>
-    <title>MCP Powered Code Reviews with Claude + Serena + GitHub MCP</title>
-    <updated>2026-03-12T18:43:37+00:00</updated>
-    <author>
-      <name>/u/Left-Orange2267</name>
-      <uri>https://old.reddit.com/user/Left-Orange2267</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You may have seen the discussions about the new Claude Code review feature, and especially its pricing. However, there is a powerful, essentially free mcp-powered alternative to such commercial agentic code review offerings. &lt;/p&gt; &lt;p&gt;Good code reviews require intelligence, efficient codebase exploration and developer platform integration. The trio of Claude, Serena and GitHub MCP offers exactly that.&lt;/p&gt; &lt;p&gt;* Claude provides the intelligence, with particular strengths in the coding domain, its reasoning variants can appropriately structure even very complex cases.&lt;/p&gt; &lt;p&gt;* Serena is an open-source MCP server which provides exactly the efficient retrieval tools that are essential to code reviews, allowing to read the relevant parts of the code only, thus achieving high accuracy and token efficiency (finding references, targeted symbol retrieval, project memories, etc.).&lt;/p&gt; &lt;p&gt;* GitHub MCP provides the integration with GitHub, adding the ability to directly read issues, PRs and submit reviews on GitHub.&lt;/p&gt; &lt;p&gt;Here's an example:&lt;/p&gt; &lt;p&gt;* [Conversation with Claude](&lt;a href="https://claude.ai/share/265794a5-5681-4b85-9cc6-16e067ff698c"&gt;https://claude.ai/share/265794a5-5681-4b85-9cc6-16e067ff698c&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;* [Code review by Claude + Serena + GitHub MCP](&lt;a href="https://github.com/opcode81/serena/pull/2"&gt;https://github.com/opcode81/serena/pull/2&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;* [Code review by Copilot](&lt;a href="https://github.com/opcode81/serena/pull/3"&gt;https://github.com/opcode81/serena/pull/3&lt;/a&gt;) (as comparison)&lt;/p&gt; &lt;p&gt;We were very happy with the review generated by Claude this way :). Of course, this is a generic technique that can be applied with any model or harness.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Left-Orange2267"&gt; /u/Left-Orange2267 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rrz9z3/mcp_powered_code_reviews_with_claude_serena/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rrz9z3/mcp_powered_code_reviews_with_claude_serena/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rrz9z3/mcp_powered_code_reviews_with_claude_serena/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-12T18:43:37+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rs1328</id>
-    <title>NotebookLM MCP &amp; CLI v0.4.5 now supports OpenAI Codex + Cinematic Video</title>
-    <updated>2026-03-12T19:48:32+00:00</updated>
-    <author>
-      <name>/u/KobyStam</name>
-      <uri>https://old.reddit.com/user/KobyStam</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rs1328/notebooklm_mcp_cli_v045_now_supports_openai_codex/"&gt; &lt;img alt="NotebookLM MCP &amp;amp; CLI v0.4.5 now supports OpenAI Codex + Cinematic Video" src="https://external-preview.redd.it/-XmG3aKxsnpY1i8UvwBn7rblfpP6-dHtt1n9TYl-Jzs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e98fdbbc658ae70347706f37474dcc9f5874ac91" title="NotebookLM MCP &amp;amp; CLI v0.4.5 now supports OpenAI Codex + Cinematic Video" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KobyStam"&gt; /u/KobyStam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/notebooklm/comments/1rs12qp/notebooklm_mcp_cli_v045_now_supports_openai_codex/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rs1328/notebooklm_mcp_cli_v045_now_supports_openai_codex/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rs1328/notebooklm_mcp_cli_v045_now_supports_openai_codex/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-12T19:48:32+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rrwfol</id>
     <title>I indexed 7,500+ MCP servers from npm, PyPI, and the official registry</title>
@@ -279,6 +240,45 @@
     <link href="https://old.reddit.com/r/mcp/comments/1rrqrv2/ive_been_building_mcp_servers_lately_and_i/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-03-12T13:29:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rsexoq</id>
+    <title>🔥 burnmeter - Built an MCP to quickly ask Claude "what's my burn this month?" instead of logging into 12 dashboards</title>
+    <updated>2026-03-13T05:38:30+00:00</updated>
+    <author>
+      <name>/u/mpMSFT</name>
+      <uri>https://old.reddit.com/user/mpMSFT</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rsexoq/burnmeter_built_an_mcp_to_quickly_ask_claude/"&gt; &lt;img alt="🔥 burnmeter - Built an MCP to quickly ask Claude &amp;quot;what's my burn this month?&amp;quot; instead of logging into 12 dashboards" src="https://preview.redd.it/y2udda352rog1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9d4f22fffebb3083896ead93ab34e38593b92f86" title="🔥 burnmeter - Built an MCP to quickly ask Claude &amp;quot;what's my burn this month?&amp;quot; instead of logging into 12 dashboards" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey! 👋 I built an MCP server that aggregates infrastructure costs across Vercel, Railway, Neon, OpenAI, Anthropic, and more.&lt;/p&gt; &lt;p&gt;You just ask &amp;quot;what's my burn this month?&amp;quot; and get a full breakdown across your stack in seconds.&lt;/p&gt; &lt;p&gt;No new dashboard. No extra tab. Just ask Claude.&lt;/p&gt; &lt;p&gt;Free, open source, runs locally.&lt;/p&gt; &lt;p&gt;Check it out: \[mpalermiti.github.io/burnmeter\](&lt;a href="http://mpalermiti.github.io/burnmeter"&gt;http://mpalermiti.github.io/burnmeter&lt;/a&gt;)&lt;/p&gt; &lt;p&gt;Still early — would love to hear from anyone building that finds this helpful. Feedback welcome.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mpMSFT"&gt; /u/mpMSFT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/y2udda352rog1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rsexoq/burnmeter_built_an_mcp_to_quickly_ask_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rsexoq/burnmeter_built_an_mcp_to_quickly_ask_claude/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-13T05:38:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rsfb53</id>
+    <title>browserbasehq-mcp-browserbase – Provides cloud browser automation capabilities using Stagehand and Browserbase, enabling LLMs to i…</title>
+    <updated>2026-03-13T06:00:04+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rsfb53/browserbasehqmcpbrowserbase_provides_cloud/"&gt; &lt;img alt="browserbasehq-mcp-browserbase – Provides cloud browser automation capabilities using Stagehand and Browserbase, enabling LLMs to i…" src="https://external-preview.redd.it/0K06d4jmuNEwLFgxTczULEPC54ZXF51zTqIKMWTKLCw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=015f87aaa8a856d00f32ee7181b3ccb1985aaedb" title="browserbasehq-mcp-browserbase – Provides cloud browser automation capabilities using Stagehand and Browserbase, enabling LLMs to i…" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.smithery/browserbasehq-mcp-browserbase"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rsfb53/browserbasehqmcpbrowserbase_provides_cloud/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rsfb53/browserbasehqmcpbrowserbase_provides_cloud/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-13T06:00:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rsfb5w</id>
+    <title>Coinranking1 MCP Server – Provides access to the Coinranking1 API for retrieving real-time cryptocurrency data, including trending coins, blockchain details, and global market statistics. It enables users to search for digital assets and track historical market capitalization and trading volumes.</title>
+    <updated>2026-03-13T06:00:06+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1rsfb5w/coinranking1_mcp_server_provides_access_to_the/"&gt; &lt;img alt="Coinranking1 MCP Server – Provides access to the Coinranking1 API for retrieving real-time cryptocurrency data, including trending coins, blockchain details, and global market statistics. It enables users to search for digital assets and track historical market capitalization and trading volumes." src="https://external-preview.redd.it/kVdr0rnCBMD9_T2SpdxR6r_KzIr4hNgWXZGMC3KFuLw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8cb5e5430db00f884b76f58144356555dc9af9cd" title="Coinranking1 MCP Server – Provides access to the Coinranking1 API for retrieving real-time cryptocurrency data, including trending coins, blockchain details, and global market statistics. It enables users to search for digital assets and track historical market capitalization and trading volumes." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/BACH-AI-Tools/coinranking1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rsfb5w/coinranking1_mcp_server_provides_access_to_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rsfb5w/coinranking1_mcp_server_provides_access_to_the/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-13T06:00:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1rs083q</id>
