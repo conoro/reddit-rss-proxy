@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-03-16T11:07:21+00:00</updated>
+  <updated>2026-03-16T11:33:08+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1rup4ko</id>
-    <title>Keryx: a fullstack TypeScript framework where every action is automatically an MCP tool</title>
-    <updated>2026-03-15T20:40:26+00:00</updated>
-    <author>
-      <name>/u/evantahler</name>
-      <uri>https://old.reddit.com/user/evantahler</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building API frameworks in Node.js for over a decade (I'm the author and BDFL of &lt;a href="https://www.actionherojs.com/"&gt;ActionHero&lt;/a&gt;), and when MCP came along I realized the framework I wanted didn't exist yet. So I built it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.keryxjs.com/"&gt;Keryx&lt;/a&gt; is a fullstack TypeScript framework built on Bun where you write your controller once (one action class) and it can work as an HTTP endpoint, WebSocket handler, CLI command, background task, &lt;em&gt;and&lt;/em&gt; MCP tool. Same Zod validation, same middleware, same &lt;code&gt;run()&lt;/code&gt; method. No duplicated schemas, no separate MCP server bolted on after the fact.&lt;/p&gt; &lt;p&gt;The MCP integration is first-class. Here's what that means:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Every action can be automatically registered as an MCP tool. The Zod schema becomes the tool's input schema.&lt;/li&gt; &lt;li&gt;OAuth 2.1 + PKCE is built in - agents authenticate the same way browser clients do. One auth layer, not two.&lt;/li&gt; &lt;li&gt;Per-session MCP servers - each agent connection gets isolated state.&lt;/li&gt; &lt;li&gt;Typed errors via &lt;code&gt;ErrorType&lt;/code&gt; enum - agents can distinguish validation failures from auth errors, not just get a generic &amp;quot;something went wrong.&amp;quot;&lt;/li&gt; &lt;li&gt;Actions can also be exposed as MCP resources (URI-addressed data) and prompts (named templates).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;MCP tools shouldn't just be raw API wrappers - this is something we've seen over and over again at Arcade (where I work). The best tools for agents are higher-order methods that reflect &lt;em&gt;intentions&lt;/em&gt;, not HTTP verbs. An agent shouldn't be calling &amp;quot;POST /users&amp;quot; and then &amp;quot;POST /emails&amp;quot; and then &amp;quot;PUT /users/:id&amp;quot; - it should be calling &lt;code&gt;user:onboard&lt;/code&gt; and letting the server handle the workflow. Keryx's action model naturally encourages this because actions are named by what they do, and you can compose multiple operations into a single tool call. Arcade has a writeup on the patterns we've seen work: &lt;a href="https://www.arcade.dev/patterns"&gt;https://www.arcade.dev/patterns&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Here's what that looks like in practice — a single action that handles user onboarding as one tool call:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;export class UserOnboard implements Action { name = &amp;quot;user:onboard&amp;quot;; description = &amp;quot;Create a new user account, send welcome email, and set up default workspace&amp;quot;; inputs = z.object({ name: z.string().min(3).describe(&amp;quot;Display name&amp;quot;), email: z.string().email().describe(&amp;quot;Email address (used for login)&amp;quot;), password: secret(z.string().min(8).describe(&amp;quot;Password&amp;quot;)), company: z.string().optional().describe(&amp;quot;Company name (optional)&amp;quot;), }); web = { route: &amp;quot;/user/onboard&amp;quot;, method: HTTP_METHOD.PUT }; task = { queue: &amp;quot;default&amp;quot; }; mcp = { tool: true }; async run(params: ActionParams&amp;lt;UserOnboard&amp;gt;) { const user = await UserOps.create(params); await EmailOps.sendWelcome(user); await WorkspaceOps.createDefault(user, params.company); return { user: serializeUser(user) }; } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;That one class is an HTTP endpoint, a WebSocket handler, a CLI command, a background task, and an MCP tool. The agent calls &lt;code&gt;user-onboard&lt;/code&gt; and three things happen — no multi-step orchestration needed.&lt;/p&gt; &lt;p&gt;Works out of the box with Claude Desktop, VS Code Copilot, Cursor, Windsurf, and any other MCP client.&lt;/p&gt; &lt;p&gt;The framework is still early (v0.15), and I'm actively looking for feedback — especially from folks building MCP servers. What's working, what's missing, what's annoying. If you try it out, I'd love to hear what you think.&lt;/p&gt; &lt;p&gt;* GitHub: &lt;a href="https://github.com/actionhero/keryx"&gt;https://github.com/actionhero/keryx&lt;/a&gt; &lt;br /&gt; * Docs: &lt;a href="https://keryxjs.com/"&gt;https://keryxjs.com&lt;/a&gt; &lt;br /&gt; * LLMs.txt: &lt;a href="https://keryxjs.com/llms.txt"&gt;https://keryxjs.com/llms.txt&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/evantahler"&gt; /u/evantahler &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rup4ko/keryx_a_fullstack_typescript_framework_where/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rup4ko/keryx_a_fullstack_typescript_framework_where/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rup4ko/keryx_a_fullstack_typescript_framework_where/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-15T20:40:26+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ruu3vt</id>
     <title>OriginUI MCP Server – Enables searching, browsing, and installing OriginUI components through the Model Context Protocol. It provides detailed component information, visual previews, and installation commands compatible with the shadcn CLI.</title>
@@ -151,6 +138,19 @@
     <published>2026-03-16T06:00:28+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rv5dur</id>
+    <title>local mcp server i made for ai agent memory w auto consolidation + drift detection</title>
+    <updated>2026-03-16T10:05:18+00:00</updated>
+    <author>
+      <name>/u/charliew6</name>
+      <uri>https://old.reddit.com/user/charliew6</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;friend said some ppl would find it interesting (i didnt think so) but ya any feedback is appreciated&lt;br /&gt; &lt;a href="https://github.com/charliee1w/consolidation-memory"&gt;https://github.com/charliee1w/consolidation-memory&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/charliew6"&gt; /u/charliew6 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-16T10:05:18+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rue20c</id>
     <title>MCP is Dead; Long Live MCP!</title>
     <updated>2026-03-15T13:28:32+00:00</updated>
@@ -175,19 +175,6 @@
     <link href="https://old.reddit.com/r/mcp/comments/1rv3iwi/i_built_a_small_mcp_server_that_stops_risky_ai/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-03-16T08:09:00+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ruy1te</id>
-    <title>Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and</title>
-    <updated>2026-03-16T03:00:05+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"&gt; &lt;img alt="Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and" src="https://external-preview.redd.it/QtDb7dimFoh-pCEIZxW-2Y7n61UD-gq73swGZ7VBptk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0881ab66196f823f9941e8f916248be24cc9d20d" title="Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/BACH-AI-Tools/ClinicalTrials-MCP-Server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-16T03:00:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1rv4bhu</id>
@@ -229,19 +216,6 @@
     <published>2026-03-16T09:36:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rv5dur</id>
-    <title>local mcp server i made for ai agent memory w auto consolidation + drift detection</title>
-    <updated>2026-03-16T10:05:18+00:00</updated>
-    <author>
-      <name>/u/charliew6</name>
-      <uri>https://old.reddit.com/user/charliew6</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;friend said some ppl would find it interesting (i didnt think so) but ya any feedback is appreciated&lt;br /&gt; &lt;a href="https://github.com/charliee1w/consolidation-memory"&gt;https://github.com/charliee1w/consolidation-memory&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/charliew6"&gt; /u/charliew6 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1rv5dur/local_mcp_server_i_made_for_ai_agent_memory_w/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-03-16T10:05:18+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ruu15h</id>
     <title>mcpx - CLI for MCP</title>
     <updated>2026-03-15T23:57:25+00:00</updated>
@@ -253,6 +227,32 @@
     <link href="https://old.reddit.com/r/mcp/comments/1ruu15h/mcpx_cli_for_mcp/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-03-15T23:57:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ruy1te</id>
+    <title>Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and</title>
+    <updated>2026-03-16T03:00:05+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"&gt; &lt;img alt="Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and" src="https://external-preview.redd.it/QtDb7dimFoh-pCEIZxW-2Y7n61UD-gq73swGZ7VBptk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0881ab66196f823f9941e8f916248be24cc9d20d" title="Clinical Trials MCP Server – Provides programmatic access to ClinicalTrials.gov API with 18 specialized tools for searching, analyzing, and retrieving detailed information about 400,000+ clinical trials worldwide, including filtering by condition, location, phase, sponsor, eligibility criteria, and" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/BACH-AI-Tools/ClinicalTrials-MCP-Server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1ruy1te/clinical_trials_mcp_server_provides_programmatic/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-16T03:00:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rv6jyj</id>
+    <title>I measured MCP vs CLI token costs - the "MCP is dead" take is wrong (with data)</title>
+    <updated>2026-03-16T11:12:12+00:00</updated>
+    <author>
+      <name>/u/raphasouthall</name>
+      <uri>https://old.reddit.com/user/raphasouthall</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Seeing a lot of &amp;quot;MCP is dead, just use CLI&amp;quot; takes lately. I maintain an MCP server with 21 tools and decided to actually measure the overhead instead of vibing about it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Token costs (measured)&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;&lt;/th&gt; &lt;th&gt;MCP&lt;/th&gt; &lt;th&gt;CLI&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Upfront cost&lt;/td&gt; &lt;td&gt;~1,300 tokens (21 tool schemas at session start)&lt;/td&gt; &lt;td&gt;0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Per-query cost&lt;/td&gt; &lt;td&gt;~800 tokens (marshalling + result)&lt;/td&gt; &lt;td&gt;~750 tokens (result only)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;After 10 queries&lt;/td&gt; &lt;td&gt;~880 tokens/query amortized&lt;/td&gt; &lt;td&gt;750 tokens/query&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The MCP overhead is ~1,300 tokens per session. In a 200k context window, that's 0.65%. Breaks even around 8-10 queries.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Where CLI actually wins&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;One-off queries - strictly cheaper, no schema loading&lt;/li&gt; &lt;li&gt;Sub-agents can't use MCP - only the main orchestrator has access, so sub-agents need CLI fallback anyway&lt;/li&gt; &lt;li&gt;Composability - &lt;code&gt;tool --json search &amp;quot;query&amp;quot; | jq '.'&lt;/code&gt; pipes into anything. MCP is a closed loop.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Where MCP still wins&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Tool discovery - Claude sees all tools with typed parameters and rich docstrings. With CLI, it has to know the exact command and flags.&lt;/li&gt; &lt;li&gt;Structured I/O - MCP returns typed JSON that Claude parses natively. CLI output needs string parsing.&lt;/li&gt; &lt;li&gt;Multi-turn sessions - after the initial 1,300-token load, each call is only ~50 tokens more than CLI. In a real session with 5-15 interactions, that's noise.&lt;/li&gt; &lt;li&gt;Write semantics - individual MCP tools like &lt;code&gt;vault_remember&lt;/code&gt; or &lt;code&gt;vault_merge&lt;/code&gt; give Claude clear intent. CLI equivalents work but require knowing the subcommand structure.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;The real answer&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Both are correct for different contexts. The &amp;quot;MCP is dead&amp;quot; take is overfit to servers where schemas are bloated (some load 50+ tools with 10k+ tokens of schemas). If you keep your tool count lean and schemas tight, the overhead is negligible.&lt;/p&gt; &lt;p&gt;My setup: MCP for the main orchestrator, CLI for sub-agents. Both hit the same backend.&lt;/p&gt; &lt;p&gt;Curious what other MCP server authors are seeing for their schema overhead. Anyone else measured this?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/raphasouthall"&gt; /u/raphasouthall &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv6jyj/i_measured_mcp_vs_cli_token_costs_the_mcp_is_dead/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1rv6jyj/i_measured_mcp_vs_cli_token_costs_the_mcp_is_dead/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1rv6jyj/i_measured_mcp_vs_cli_token_costs_the_mcp_is_dead/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-03-16T11:12:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1rv4jmo</id>
