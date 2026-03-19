@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-19T22:25:51+00:00</updated>
+  <updated>2026-03-19T22:45:03+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1ryd3by</id>
-    <title>Local Qwen3-0.6B INT8 as embedding backbone for an AI memory system</title>
-    <updated>2026-03-19T21:31:54+00:00</updated>
-    <author>
-      <name>/u/living0tribunal</name>
-      <uri>https://old.reddit.com/user/living0tribunal</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most AI coding assistants solve the memory problem by calling an embedding API on every store and retrieve. This does not scale. 15-25 sessions per day means hundreds of API calls, latency on every write, and a dependency on a service that can change pricing at any time.&lt;/p&gt; &lt;p&gt;I needed embeddings for a memory lifecycle system that runs inside Claude Code. The system processes knowledge through 5 phases: buffer, connect, consolidate, route, age. Embeddings drive phases 2 through 4 (connection tracking, cluster detection, similarity routing).&lt;/p&gt; &lt;p&gt;Requirements: 1024-dimensional vectors, cosine similarity above 0.75 must mean genuine semantic relatedness, batch processing for 20+ entries, zero API calls.&lt;/p&gt; &lt;p&gt;I tested several models and landed on Qwen3-0.6B quantized to INT8 via ONNX Runtime. Not the obvious first pick. Sentence-transformers models seemed like the default choice, but Qwen3-0.6B at 1024d gave better separation between genuinely related entries and structural noise (session logs that share format but not topic).&lt;/p&gt; &lt;p&gt;The cold start problem: ONNX model loading takes ~3 seconds. For a hook-based system where every tool call can trigger an embedding check, that is not usable. Solution: a persistent embedding server on localhost:52525 that loads the model once at system boot. Warm inference: ~12ms per batch, roughly 250x faster than cold start.&lt;/p&gt; &lt;p&gt;The server starts automatically via a startup hook. If it goes down, the system falls back to direct ONNX loading. Nothing breaks, it just gets slower.&lt;/p&gt; &lt;p&gt;What the embeddings enable:&lt;/p&gt; &lt;p&gt;Connection graph: new entries get linked to existing entries above 0.75 cosine similarity. Isolated entries fade over time. Connected entries survive. Expiry based on isolation, not time.&lt;/p&gt; &lt;p&gt;Cluster detection: groups of 3+ connected entries get merged into proven knowledge by an LLM (Gemini Flash free tier for consolidation).&lt;/p&gt; &lt;p&gt;Similarity routing: proven knowledge gets routed to the right config file based on embedding distance to existing content.&lt;/p&gt; &lt;p&gt;All CPU, no GPU needed. The 0.6B model runs on any modern machine. Single Python script, ~2,900 lines, SQLite + ONNX.&lt;/p&gt; &lt;p&gt;Open source: &lt;a href="http://github.com/living0tribunal-dev/claude-memory-lifecycle"&gt;github.com/living0tribunal-dev/claude-memory-lifecycle&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Full engineering story with threshold decisions and failure modes: After 3,874 Memories, My AI Coding Assistant Couldn't Find Anything Useful&lt;/p&gt; &lt;p&gt;Anyone else using small local models for infrastructure rather than generation? Embeddings feel like the right use case for sub-1B parameters.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/living0tribunal"&gt; /u/living0tribunal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryd3by/local_qwen306b_int8_as_embedding_backbone_for_an/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryd3by/local_qwen306b_int8_as_embedding_backbone_for_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryd3by/local_qwen306b_int8_as_embedding_backbone_for_an/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T21:31:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ry22we</id>
-    <title>QwenDean-4B | fine-tuned SLM for UIGen; our first attempt, looking for feedback!</title>
-    <updated>2026-03-19T14:34:44+00:00</updated>
-    <author>
-      <name>/u/dyeusyt</name>
-      <uri>https://old.reddit.com/user/dyeusyt</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We've been quietly working on a fine-tuned model and finally decided to put it out there. The idea was to fine-tune a really small LLM that could be mediocre at CodeGen, but then try to enhance it by feeding it better quality code for a very niche CodeGen task (To be precise: UIgen, in one particular framework, language &amp;amp; CSS library) We got the idea from this paper: &lt;a href="https://arxiv.org/abs/2506.02153"&gt;https://arxiv.org/abs/2506.02153&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Overview&lt;/strong&gt;&lt;br /&gt; Qwendean is a 4 billion parameter model fine-tuned on top of Qwen3-4B for UI gen tasks. It was trained on a &lt;code&gt;{prompt, completion}&lt;/code&gt; pair JSONL dataset consisting of around 4K samples. Won't get into minute details since you can directly check out the Colab notebook for now: &lt;a href="https://colab.research.google.com/drive/1r7g7xyG1tegQJntL82cIwu-iog-fhv0i?usp=sharing"&gt;https://colab.research.google.com/drive/1r7g7xyG1tegQJntL82cIwu-iog-fhv0i?usp=sharing&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The end goal is to build something like Vercel's v0.dev. For that we're currently building a LangGraph system where a bigger model delegates tasks to these SLMs for generating the UI, which then goes into the synthesizer. Once we get some time after writing our academic thesis, we'll put out a clean repo covering all the training and LangGraph stuff under &lt;code&gt;Apache 2.0&lt;/code&gt; &lt;/p&gt; &lt;p&gt;We're not great fine-tuning wizards like others here, better vibecoders maybe... so it is not the best out there, but we are looking for honest feedback from the community, especially from people who work on fine-tuning.&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/iamdyeus/qwendean-4b"&gt;https://huggingface.co/iamdyeus/qwendean-4b&lt;/a&gt;&lt;br /&gt; Quantised: &lt;a href="https://huggingface.co/iamdyeus/qwendean-4b-GGUF"&gt;https://huggingface.co/iamdyeus/qwendean-4b-GGUF&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dyeusyt"&gt; /u/dyeusyt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry22we/qwendean4b_finetuned_slm_for_uigen_our_first/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry22we/qwendean4b_finetuned_slm_for_uigen_our_first/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry22we/qwendean4b_finetuned_slm_for_uigen_our_first/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T14:34:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ry177f</id>
     <title>Newest GPU server in the lab! 72gb ampere vram!</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry177f/newest_gpu_server_in_the_lab_72gb_ampere_vram/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-19T14:01:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rydtag</id>
+    <title>Nemotron-3-Nano (4B), new hybrid Mamba + Attention model from NVIDIA, running locally in your browser on WebGPU.</title>
+    <updated>2026-03-19T21:59:23+00:00</updated>
+    <author>
+      <name>/u/xenovatech</name>
+      <uri>https://old.reddit.com/user/xenovatech</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rydtag/nemotron3nano_4b_new_hybrid_mamba_attention_model/"&gt; &lt;img alt="Nemotron-3-Nano (4B), new hybrid Mamba + Attention model from NVIDIA, running locally in your browser on WebGPU." src="https://external-preview.redd.it/ZGRraDB1MGxwMnFnMbx8UYeyZpNabXgETWcNmj1v4zrCxRAikuV8KdbRpDA8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=eaa46b9b7ff20a8ec86c2bafd6b5c60655959e97" title="Nemotron-3-Nano (4B), new hybrid Mamba + Attention model from NVIDIA, running locally in your browser on WebGPU." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I haven't seen many people talking about NVIDIA's new Nemotron-3-Nano model, which was released just a couple of days ago... so, I decided to build a WebGPU demo for it! Everything runs locally in your browser (using Transformers.js). On my M4 Max, I get ~75 tokens per second - not bad!&lt;/p&gt; &lt;p&gt;It's a 4B hybrid Mamba + Attention model, designed to be capable of both reasoning and non-reasoning tasks.&lt;/p&gt; &lt;p&gt;Link to demo (+ source code): &lt;a href="https://huggingface.co/spaces/webml-community/Nemotron-3-Nano-WebGPU"&gt;https://huggingface.co/spaces/webml-community/Nemotron-3-Nano-WebGPU&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/owg2ok0lp2qg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rydtag/nemotron3nano_4b_new_hybrid_mamba_attention_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rydtag/nemotron3nano_4b_new_hybrid_mamba_attention_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T21:59:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1rybd1y</id>
@@ -125,6 +112,19 @@
     <published>2026-03-18T18:23:36+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ry5mvx</id>
+    <title>Open-source, local document parsing CLI by LlamaIndex: LiteParse</title>
+    <updated>2026-03-19T16:46:52+00:00</updated>
+    <author>
+      <name>/u/tuanacelik</name>
+      <uri>https://old.reddit.com/user/tuanacelik</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;LiteParse is a lightweight CLI tool for local document parsing, born out of everything we learned building LlamaParse. The core idea is pretty simple: rather than trying to detect and reconstruct document structure, it preserves spatial layout as-is and passes that to your LLM. This works well in practice because LLMs are already trained on ASCII tables and indented text, so they understand the format naturally without you having to do extra wrangling.&lt;/p&gt; &lt;p&gt;A few things it can do:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Parse text from PDFs, DOCX, XLSX, and images with layout preserved&lt;/li&gt; &lt;li&gt;Built-in OCR, with support for PaddleOCR or EasyOCR via HTTP if you need something more robust&lt;/li&gt; &lt;li&gt;Screenshot capability so agents can reason over pages visually for multimodal workflows&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Everything runs locally, no API calls, no cloud dependency. The output is designed to plug straight into agents.&lt;/p&gt; &lt;p&gt;For more complex documents (scanned PDFs with messy layouts, dense tables, that kind of thing) LlamaParse is still going to give you better results. But for a lot of common use cases this gets you pretty far without the overhead.&lt;/p&gt; &lt;p&gt;Would love to hear what you build with it or any feedback on the approach.&lt;/p&gt; &lt;p&gt;📖 &lt;a href="https://www.llamaindex.ai/blog/liteparse-local-document-parsing-for-ai-agents?utm_medium=tc_socials&amp;amp;utm_source=reddit&amp;amp;utm_campaign=2026-mar-liteparse-launch"&gt;Announcement&lt;/a&gt;&lt;br /&gt; 🔗 &lt;a href="https://github.com/run-llama/liteparse"&gt;GitHub&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tuanacelik"&gt; /u/tuanacelik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T16:46:52+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ry61wd</id>
     <title>rednote-hilab/dots.mocr · Hugging Face</title>
     <updated>2026-03-19T17:01:57+00:00</updated>
@@ -138,17 +138,17 @@
     <published>2026-03-19T17:01:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ry5mvx</id>
-    <title>Open-source, local document parsing CLI by LlamaIndex: LiteParse</title>
-    <updated>2026-03-19T16:46:52+00:00</updated>
+    <id>t3_1ryetd5</id>
+    <title>Vercel will train model on your code</title>
+    <updated>2026-03-19T22:37:52+00:00</updated>
     <author>
-      <name>/u/tuanacelik</name>
-      <uri>https://old.reddit.com/user/tuanacelik</uri>
+      <name>/u/Shitfuckusername</name>
+      <uri>https://old.reddit.com/user/Shitfuckusername</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;LiteParse is a lightweight CLI tool for local document parsing, born out of everything we learned building LlamaParse. The core idea is pretty simple: rather than trying to detect and reconstruct document structure, it preserves spatial layout as-is and passes that to your LLM. This works well in practice because LLMs are already trained on ASCII tables and indented text, so they understand the format naturally without you having to do extra wrangling.&lt;/p&gt; &lt;p&gt;A few things it can do:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Parse text from PDFs, DOCX, XLSX, and images with layout preserved&lt;/li&gt; &lt;li&gt;Built-in OCR, with support for PaddleOCR or EasyOCR via HTTP if you need something more robust&lt;/li&gt; &lt;li&gt;Screenshot capability so agents can reason over pages visually for multimodal workflows&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Everything runs locally, no API calls, no cloud dependency. The output is designed to plug straight into agents.&lt;/p&gt; &lt;p&gt;For more complex documents (scanned PDFs with messy layouts, dense tables, that kind of thing) LlamaParse is still going to give you better results. But for a lot of common use cases this gets you pretty far without the overhead.&lt;/p&gt; &lt;p&gt;Would love to hear what you build with it or any feedback on the approach.&lt;/p&gt; &lt;p&gt;📖 &lt;a href="https://www.llamaindex.ai/blog/liteparse-local-document-parsing-for-ai-agents?utm_medium=tc_socials&amp;amp;utm_source=reddit&amp;amp;utm_campaign=2026-mar-liteparse-launch"&gt;Announcement&lt;/a&gt;&lt;br /&gt; 🔗 &lt;a href="https://github.com/run-llama/liteparse"&gt;GitHub&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tuanacelik"&gt; /u/tuanacelik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry5mvx/opensource_local_document_parsing_cli_by/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryetd5/vercel_will_train_model_on_your_code/"&gt; &lt;img alt="Vercel will train model on your code" src="https://preview.redd.it/j1vlmz7hx2qg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=746f3d6cc3a0499a5ffc40ec52b927b90b368908" title="Vercel will train model on your code" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Got these new terms and policy changes.&lt;/p&gt; &lt;p&gt;If you are under hobby or free plan - you are default yes for model training.&lt;/p&gt; &lt;p&gt;You have 10 days to opt out of model training.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Shitfuckusername"&gt; /u/Shitfuckusername &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/j1vlmz7hx2qg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryetd5/vercel_will_train_model_on_your_code/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryetd5/vercel_will_train_model_on_your_code/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T16:46:52+00:00</published>
+    <published>2026-03-19T22:37:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1ry865a</id>
@@ -175,32 +175,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry7ugu/will_minimax_m27_be_opensourced_there_is_no/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-19T18:06:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ryc3w0</id>
-    <title>My Experience with Qwen 3.5 35B</title>
-    <updated>2026-03-19T20:54:33+00:00</updated>
-    <author>
-      <name>/u/viperx7</name>
-      <uri>https://old.reddit.com/user/viperx7</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;these last few months we got some excellent local models like&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Nemotron Nano 30BA3&lt;/li&gt; &lt;li&gt;GLM 4.7 Flash&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;both of these were very good compared to anything that came before them with these two for the first time i was able to reliably do stuff(meaning i can look at a task and know &lt;code&gt;yup these will be able to do it&lt;/code&gt;)&lt;/p&gt; &lt;p&gt;but then came Qwen 35B. it was smarter overall speeds don't degrade with larger context, and all the things that the other two struggle with Qwen 3.5B nailed it with ease (the task i am referring to here is something like given a very large homepage config with 100s of services split between 3 domains which are very similar and ask them to categorize all the services with machines. the names were very confusing) i had to pullout oss120B to get that done&lt;/p&gt; &lt;p&gt;with more testing i found limitations of 35B not in any particular task but when you are vibe coding along after 80k context you ask the model to add a particular line of code the model adds it everything works but it added it at the wrong spot there are many little things that stack up. in this case when i looked at the instruction that i gave it wasn't clear and i didn't tell it where exactly i wanted the change (unfair comparison: but if i have given the same instruction to SOTA models they would have got it right every-time), they just know&lt;/p&gt; &lt;p&gt;this has been my experience so far.&lt;/p&gt; &lt;p&gt;given all that i wanted to ask you guys about your experience and do you think i would see a noticeable improvement with&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Quantization&lt;/th&gt; &lt;th align="left"&gt;Speed (t/s)&lt;/th&gt; &lt;th align="left"&gt;Context Window&lt;/th&gt; &lt;th align="left"&gt;Vision Support&lt;/th&gt; &lt;th align="left"&gt;Prompt Processing&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 35B&lt;/td&gt; &lt;td align="left"&gt;Q8&lt;/td&gt; &lt;td align="left"&gt;115&lt;/td&gt; &lt;td align="left"&gt;262k&lt;/td&gt; &lt;td align="left"&gt;Yes (mmproj)&lt;/td&gt; &lt;td align="left"&gt;6000 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 27B&lt;/td&gt; &lt;td align="left"&gt;Q8&lt;/td&gt; &lt;td align="left"&gt;28&lt;/td&gt; &lt;td align="left"&gt;262k&lt;/td&gt; &lt;td align="left"&gt;Yes (mmproj)&lt;/td&gt; &lt;td align="left"&gt;2500 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 122B&lt;/td&gt; &lt;td align="left"&gt;Q4_XS&lt;/td&gt; &lt;td align="left"&gt;37&lt;/td&gt; &lt;td align="left"&gt;110k&lt;/td&gt; &lt;td align="left"&gt;No&lt;/td&gt; &lt;td align="left"&gt;280-300 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3 Coder&lt;/td&gt; &lt;td align="left"&gt;mxfp4&lt;/td&gt; &lt;td align="left"&gt;120k&lt;/td&gt; &lt;td align="left"&gt;No&lt;/td&gt; &lt;td align="left"&gt;95 t/s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;ul&gt; &lt;li&gt;qwen3.5 27B Q8&lt;/li&gt; &lt;li&gt;Qwen3 coder next 80B MXFP4&lt;/li&gt; &lt;li&gt;Qwen3.5 coder next 120B Q4_XS&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;if any of you have used these models extensively for agentic stuff or for coding how was your experience!! and do you think the quality benefit they provide outweighs the speed tradeoff.&lt;/p&gt; &lt;p&gt;would love to hear any other general advice or other model options you have tried and found useful.&lt;/p&gt; &lt;p&gt;Note: I have a rig with 48GB VRAM&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/viperx7"&gt; /u/viperx7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T20:54:33+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ry9936</id>
-    <title>Will Gemma 3 12B be the best all-rounder(no coding) during Iran's internet shutdowns on my RTX 4060 laptop?</title>
-    <updated>2026-03-19T18:57:33+00:00</updated>
-    <author>
-      <name>/u/ProducerOwl</name>
-      <uri>https://old.reddit.com/user/ProducerOwl</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I need it mainly to practice advanced academic English and sometimes ask it general questions. No coding.&lt;/p&gt; &lt;p&gt;I'm wondering if Gemma 3 12B is my best option?&lt;/p&gt; &lt;p&gt;My specs:&lt;/p&gt; &lt;p&gt;RTX 4060&lt;/p&gt; &lt;p&gt;Ryzen 7735HS&lt;/p&gt; &lt;p&gt;16GB DDR5 RAM&lt;/p&gt; &lt;p&gt;Thanks! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ProducerOwl"&gt; /u/ProducerOwl &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T18:57:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1rxue4x</id>
@@ -240,6 +214,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry2v92/pearlos_we_gave_swarm_intelligence_a_local/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-19T15:04:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ryc3w0</id>
+    <title>My Experience with Qwen 3.5 35B</title>
+    <updated>2026-03-19T20:54:33+00:00</updated>
+    <author>
+      <name>/u/viperx7</name>
+      <uri>https://old.reddit.com/user/viperx7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;these last few months we got some excellent local models like&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Nemotron Nano 30BA3&lt;/li&gt; &lt;li&gt;GLM 4.7 Flash&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;both of these were very good compared to anything that came before them with these two for the first time i was able to reliably do stuff(meaning i can look at a task and know &lt;code&gt;yup these will be able to do it&lt;/code&gt;)&lt;/p&gt; &lt;p&gt;but then came Qwen 35B. it was smarter overall speeds don't degrade with larger context, and all the things that the other two struggle with Qwen 3.5B nailed it with ease (the task i am referring to here is something like given a very large homepage config with 100s of services split between 3 domains which are very similar and ask them to categorize all the services with machines. the names were very confusing) i had to pullout oss120B to get that done&lt;/p&gt; &lt;p&gt;with more testing i found limitations of 35B not in any particular task but when you are vibe coding along after 80k context you ask the model to add a particular line of code the model adds it everything works but it added it at the wrong spot there are many little things that stack up. in this case when i looked at the instruction that i gave it wasn't clear and i didn't tell it where exactly i wanted the change (unfair comparison: but if i have given the same instruction to SOTA models they would have got it right every-time), they just know&lt;/p&gt; &lt;p&gt;this has been my experience so far.&lt;/p&gt; &lt;p&gt;given all that i wanted to ask you guys about your experience and do you think i would see a noticeable improvement with&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Quantization&lt;/th&gt; &lt;th align="left"&gt;Speed (t/s)&lt;/th&gt; &lt;th align="left"&gt;Context Window&lt;/th&gt; &lt;th align="left"&gt;Vision Support&lt;/th&gt; &lt;th align="left"&gt;Prompt Processing&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 35B&lt;/td&gt; &lt;td align="left"&gt;Q8&lt;/td&gt; &lt;td align="left"&gt;115&lt;/td&gt; &lt;td align="left"&gt;262k&lt;/td&gt; &lt;td align="left"&gt;Yes (mmproj)&lt;/td&gt; &lt;td align="left"&gt;6000 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 27B&lt;/td&gt; &lt;td align="left"&gt;Q8&lt;/td&gt; &lt;td align="left"&gt;28&lt;/td&gt; &lt;td align="left"&gt;262k&lt;/td&gt; &lt;td align="left"&gt;Yes (mmproj)&lt;/td&gt; &lt;td align="left"&gt;2500 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3.5 122B&lt;/td&gt; &lt;td align="left"&gt;Q4_XS&lt;/td&gt; &lt;td align="left"&gt;37&lt;/td&gt; &lt;td align="left"&gt;110k&lt;/td&gt; &lt;td align="left"&gt;No&lt;/td&gt; &lt;td align="left"&gt;280-300 t/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Qwen 3 Coder&lt;/td&gt; &lt;td align="left"&gt;mxfp4&lt;/td&gt; &lt;td align="left"&gt;120k&lt;/td&gt; &lt;td align="left"&gt;No&lt;/td&gt; &lt;td align="left"&gt;95 t/s&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;ul&gt; &lt;li&gt;qwen3.5 27B Q8&lt;/li&gt; &lt;li&gt;Qwen3 coder next 80B MXFP4&lt;/li&gt; &lt;li&gt;Qwen3.5 coder next 120B Q4_XS&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;if any of you have used these models extensively for agentic stuff or for coding how was your experience!! and do you think the quality benefit they provide outweighs the speed tradeoff.&lt;/p&gt; &lt;p&gt;would love to hear any other general advice or other model options you have tried and found useful.&lt;/p&gt; &lt;p&gt;Note: I have a rig with 48GB VRAM&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/viperx7"&gt; /u/viperx7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryc3w0/my_experience_with_qwen_35_35b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T20:54:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ry9936</id>
+    <title>Will Gemma 3 12B be the best all-rounder(no coding) during Iran's internet shutdowns on my RTX 4060 laptop?</title>
+    <updated>2026-03-19T18:57:33+00:00</updated>
+    <author>
+      <name>/u/ProducerOwl</name>
+      <uri>https://old.reddit.com/user/ProducerOwl</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I need it mainly to practice advanced academic English and sometimes ask it general questions. No coding.&lt;/p&gt; &lt;p&gt;I'm wondering if Gemma 3 12B is my best option?&lt;/p&gt; &lt;p&gt;My specs:&lt;/p&gt; &lt;p&gt;RTX 4060&lt;/p&gt; &lt;p&gt;Ryzen 7735HS&lt;/p&gt; &lt;p&gt;16GB DDR5 RAM&lt;/p&gt; &lt;p&gt;Thanks! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ProducerOwl"&gt; /u/ProducerOwl &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ry9936/will_gemma_3_12b_be_the_best_allrounderno_coding/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T18:57:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1rxunqq</id>
