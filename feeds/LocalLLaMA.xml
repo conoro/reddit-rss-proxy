@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-19T07:08:57+00:00</updated>
+  <updated>2026-03-19T07:34:40+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rx94ry</id>
-    <title>Qwen3.5-122B-A10B GPTQ Int4 on 4× Radeon AI PRO R9700 with vLLM ROCm: working config + real-world numbers</title>
-    <updated>2026-03-18T16:47:29+00:00</updated>
-    <author>
-      <name>/u/grunt_monkey_</name>
-      <uri>https://old.reddit.com/user/grunt_monkey_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First, this not possible without &lt;a href="/u/djdeniro"&gt;u/djdeniro&lt;/a&gt; (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1rlgovg/qwen35122ba10bgptqint4_on_4xr9700_recipe/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1rlgovg/qwen35122ba10bgptqint4_on_4xr9700_recipe/&lt;/a&gt;); &lt;a href="/u/sloptimizer"&gt;u/sloptimizer&lt;/a&gt; (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1rlgovg/qwen35122ba10bgptqint4_on_4xr9700_recipe/o8wxdly/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1rlgovg/qwen35122ba10bgptqint4_on_4xr9700_recipe/o8wxdly/&lt;/a&gt;) and &lt;a href="/u/Ok-Ad-8976"&gt;u/Ok-Ad-8976&lt;/a&gt; (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1rhk0gz/r9700_and_vllm_with_qwen35/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1rhk0gz/r9700_and_vllm_with_qwen35/&lt;/a&gt;), where i learnt the recipes to start this.&lt;/p&gt; &lt;p&gt;Hardware: 4× AMD Radeon AI PRO R9700 (32 GB each) with vLLM on a Gigabyte MC62-G40 + Threadripper Pro 5955WX, 6/8 dimm slots filled with 16gb ddr4 2133 rdimms - yes i bought off ebay and 2 were throwing ECs during burn-in.&lt;/p&gt; &lt;p&gt;Big surprise: for my real 41k-context workflow, prefill was dramatically faster than llama.cpp.&lt;/p&gt; &lt;p&gt;Measured result on one real task: - TTFT / prefill: 34.9 s - Total time: 101.7 s - vLLM reported about 4150 tok/s prompt throughput - basically blazing fast. - decode 41 tok/s&lt;/p&gt; &lt;p&gt;Compared with my earlier llama.cpp setup on the same box, this was a huge prefill win (70 t/s PP and 20 t/s TG - yuck).&lt;/p&gt; &lt;p&gt;notes: - used Qwen3.5-122B-A10B-GPTQ-Int4 - standard HF weights OOM’d at my target settings, so GPTQ Int4 was the path that fit - to stop Qwen from “thinking” all over the place, I had to send: chat_template_kwargs: {&amp;quot;enable_thinking&amp;quot;: false} - OpenWebUI did not expose that cleanly for me, so I put a tiny proxy in front of vLLM to inject it - quality on my real workflow was still a bit worse than llama.cpp Q5_K_XL, so this is not a blanket “vLLM is better” claim — more like massive speed win, some quality trade-off&lt;/p&gt; &lt;p&gt;Working launch command: docker run --rm --tty \ --name vllm-qwen35-gptq \ --ipc=host \ --shm-size=128g \ --device /dev/kfd:/dev/kfd \ --device /dev/dri:/dev/dri \ --device /dev/mem:/dev/mem \ -e VLLM_ROCM_USE_AITER=1 \ -e HSA_OVERRIDE_GFX_VERSION=12.0.1 \ -e VLLM_ROCM_USE_AITER_MOE=1 \ -e FLASH_ATTENTION_TRITON_AMD_ENABLE=TRUE \ -e HSA_ENABLE_SDMA=0 \ -v &amp;quot;$PWD/hf-cache:/root/.cache/huggingface&amp;quot; \ -p 8000:8000 \ rocm/vllm-dev:upstream_preview_releases_v0.17.0_20260303 \ vllm serve Qwen/Qwen3.5-122B-A10B-GPTQ-Int4 \ --served-model-name Qwen3.5-122B \ --host 0.0.0.0 \ --port 8000 \ --max-model-len 56000 \ --tensor-parallel-size 4 \ --disable-log-requests \ --max-num-seqs 1 \ --gpu-memory-utilization 0.95 \ --dtype float16&lt;/p&gt; &lt;p&gt;Things I found unnecessary / ignored on this image: - VLLM_V1_USE_PREFILL_DECODE_ATTENTION - VLLM_USE_TRITON_FLASH_ATTN - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True&lt;/p&gt; &lt;p&gt;Downsides (I am still not happy): - all 4 GPUs were fully engaged and got hot 90+c in an airconditioned room - i had a script running to kick my fans in full speed when GPU temps &amp;gt;90c. - high idle power (~90 W/GPU) on this setup, so this is still in burn-in / tuning stage - there was also a warning that vLLM was using a default MoE config for my GPU, so there may still be performance left on the table as support matures&lt;/p&gt; &lt;p&gt;Hope this helps someone out there. Godspeed.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/grunt_monkey_"&gt; /u/grunt_monkey_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rx94ry/qwen35122ba10b_gptq_int4_on_4_radeon_ai_pro_r9700/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rx94ry/qwen35122ba10b_gptq_int4_on_4_radeon_ai_pro_r9700/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rx94ry/qwen35122ba10b_gptq_int4_on_4_radeon_ai_pro_r9700/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-18T16:47:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rx0vus</id>
-    <title>A visual guide to AGENTS.md, Skills, and MCP for local-agent workflows</title>
-    <updated>2026-03-18T11:07:40+00:00</updated>
-    <author>
-      <name>/u/phoneixAdi</name>
-      <uri>https://old.reddit.com/user/phoneixAdi</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rx0vus/a_visual_guide_to_agentsmd_skills_and_mcp_for/"&gt; &lt;img alt="A visual guide to AGENTS.md, Skills, and MCP for local-agent workflows" src="https://preview.redd.it/lgphxp2fdspg1.png?width=140&amp;amp;height=115&amp;amp;auto=webp&amp;amp;s=9c43b14ea7b4a57f1d398a224a4cb7dcafa41b1a" title="A visual guide to AGENTS.md, Skills, and MCP for local-agent workflows" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/phoneixAdi"&gt; /u/phoneixAdi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1rx0vus"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rx0vus/a_visual_guide_to_agentsmd_skills_and_mcp_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rx0vus/a_visual_guide_to_agentsmd_skills_and_mcp_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-18T11:07:40+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rx05cw</id>
     <title>[Project] I bypassed NemoClaw's sandbox isolation to run a fully local agent (Nemotron 9B + tool calling) on a single RTX 5090</title>
@@ -71,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rxayki/arandu_v060_is_available/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-18T17:52:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rxqvha</id>
+    <title>Hunter Alpha was a stealth model revealed on March 18th as an early testing version of MiMo-V2-Pro.</title>
+    <updated>2026-03-19T04:33:19+00:00</updated>
+    <author>
+      <name>/u/ForeverInYou</name>
+      <uri>https://old.reddit.com/user/ForeverInYou</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openrouter.ai/xiaomi/mimo-v2-pro"&gt;https://openrouter.ai/xiaomi/mimo-v2-pro&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It will have a open weight variant when this model is stable enough they said. For my use case exclusively with openclaw, it was 10x better than minimax 2.5, albeit I'm just recently using Chinese models&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ForeverInYou"&gt; /u/ForeverInYou &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxqvha/hunter_alpha_was_a_stealth_model_revealed_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxqvha/hunter_alpha_was_a_stealth_model_revealed_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rxqvha/hunter_alpha_was_a_stealth_model_revealed_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T04:33:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1rwxzj3</id>
@@ -112,6 +99,19 @@
     <published>2026-03-19T06:24:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1rxtrne</id>
+    <title>[Architecture Help] Serving Embed + Rerank + Zero-Shot Classifier on 8GB VRAM. Fighting System RAM Kills and Latency.</title>
+    <updated>2026-03-19T07:20:31+00:00</updated>
+    <author>
+      <name>/u/CourtAdventurous_1</name>
+      <uri>https://old.reddit.com/user/CourtAdventurous_1</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone, I’ve been banging my head against the wall on this for a few weeks and could really use some architecture or MLOps advice.&lt;/p&gt; &lt;p&gt;I am building a unified Knowledge Graph / RAG service for a local coding agent. It runs in a single Docker container via FastAPI. Initially, it ran okay on Windows (WSL), but moving it to native Linux has exposed severe memory limit issues under stress tests.&lt;/p&gt; &lt;p&gt;Hardware Constraints:&lt;/p&gt; &lt;p&gt;• 8GB VRAM (Laptop GPU)&lt;/p&gt; &lt;p&gt;• ~16GB System RAM (Docker limits hit fast, usually only ~6GB free when models are loaded)&lt;/p&gt; &lt;p&gt;The Stack (The Models):&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Embedding: nomic-ai/nomic-embed-text-v2-moe&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Reranking: BAAI/bge-reranker-base&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Classification: MoritzLaurer/ModernBERT-large-zeroshot-v2.0 (used to classify text pairs into 4 relations: dependency, expansion, contradiction, unrelated).&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The Problem / The Nightmare:&lt;/p&gt; &lt;p&gt;Because I am feeding code chunks and natural text into these models, I cannot aggressively truncate the text. I need the models to process variable, long sequences.&lt;/p&gt; &lt;p&gt;Here is what I’ve run into:&lt;/p&gt; &lt;p&gt;• Latency vs. OOM: If I use torch.cuda.empty_cache() to keep the GPU clean, latency spikes to 18-20 seconds per request due to driver syncs. If I remove it, the GPU instantly OOMs when concurrent requests hit.&lt;/p&gt; &lt;p&gt;• System RAM Explosion (Linux Exit 137): Using the Hugging Face pipeline(&amp;quot;zero-shot-classification&amp;quot;) caused massive CPU RAM bloat. Without truncation, the pipeline generates massive combination matrices in memory before sending them to the GPU. The Linux kernel instantly kills the container.&lt;/p&gt; &lt;p&gt;• VRAM Spikes: cudnn.benchmark = True was caching workspaces for every unique sequence length, draining my 3GB of free VRAM in seconds during stress tests.&lt;/p&gt; &lt;p&gt;Current &amp;quot;Band-Aid&amp;quot; Implementation:&lt;/p&gt; &lt;p&gt;Right now, I have a pure Python/FastAPI setup. I bypassed the HF pipeline and wrote a manual NLI inference loop for ModernBERT. I am using asyncio.Lock() to force serial execution (only one model touches the GPU at a time) and using deterministic deallocation (del inputs + gc.collect()) via FastAPI background tasks.&lt;/p&gt; &lt;p&gt;It's better, but still unstable under a 3-minute stress test.&lt;/p&gt; &lt;p&gt;My Questions for the Community:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Model Alternatives: Are there smaller/faster models that maintain high accuracy for Zero-Shot NLI and Reranking that fit better in an 8GB envelope?&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Prebuilt Architectures: I previously looked at infinity_emb but struggled to integrate my custom 4-way NLI classification logic into its wrapper without double-loading models. Should I be looking at TEI (Text Generation Inference), TensorRT, or something else optimized for Encoder models?&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Serving Strategy: Is there a standard design pattern for hosting 3 transformer models on a single consumer GPU without them stepping on each other's memory?&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Any suggestions on replacing the models, changing the inference engine, or restructuring the deployment to keep latency low while entirely preventing these memory crashes would be amazing. Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CourtAdventurous_1"&gt; /u/CourtAdventurous_1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxtrne/architecture_help_serving_embed_rerank_zeroshot/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxtrne/architecture_help_serving_embed_rerank_zeroshot/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rxtrne/architecture_help_serving_embed_rerank_zeroshot/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T07:20:31+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rx7htl</id>
     <title>3D Visualizing RAG retrieval</title>
     <updated>2026-03-18T15:47:09+00:00</updated>
@@ -138,19 +138,6 @@
     <published>2026-03-18T16:13:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rxsvam</id>
-    <title>Those of you building with voice AI, how is it going?</title>
-    <updated>2026-03-19T06:25:39+00:00</updated>
-    <author>
-      <name>/u/Once_ina_Lifetime</name>
-      <uri>https://old.reddit.com/user/Once_ina_Lifetime</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;#x200b;&lt;/p&gt; &lt;p&gt;Genuine question. I was tempted to go deeper into voice AI, not just because of the hype, but because people keep saying it's the next big evolution after chat. But at the same time, I keep hearing mixed opinions. Someone told me this that kind of stuck:&lt;/p&gt; &lt;p&gt;Voice AI tools are not really competing on models. They're competing on how well they handle everything around the model. One feels smooth in demos, the other actually works in messy real-world conversations.&lt;/p&gt; &lt;p&gt;For context, I’ve mostly worked with text-based LLMs for a long time, and now building voice agents more seriously. I can see the potential, but also a lot of rough edges. Latency feels unpredictable, interruptions don’t always work well, and once something breaks, it’s hard to understand. &lt;/p&gt; &lt;p&gt;I’ve even built an open source voice agent platform for building voice ai workflows, and honestly, there’s still a big gap between what looks good and what actually works reliably. My biggest concern is whether this is actually useful.&lt;/p&gt; &lt;p&gt;For those of you who are building or have already built voice AI agents, how has your experience been in terms of latency, interruptions, and reliability over longer conversations, and does it actually hold up outside demos?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Once_ina_Lifetime"&gt; /u/Once_ina_Lifetime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-19T06:25:39+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rwy5sl</id>
     <title>Omnicoder-Claude-4.6-Opus-Uncensored-GGUF</title>
     <updated>2026-03-18T08:28:10+00:00</updated>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rwy5sl/omnicoderclaude46opusuncensoredgguf/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-18T08:28:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rxsvam</id>
+    <title>Those of you building with voice AI, how is it going?</title>
+    <updated>2026-03-19T06:25:39+00:00</updated>
+    <author>
+      <name>/u/Once_ina_Lifetime</name>
+      <uri>https://old.reddit.com/user/Once_ina_Lifetime</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;#x200b;&lt;/p&gt; &lt;p&gt;Genuine question. I was tempted to go deeper into voice AI, not just because of the hype, but because people keep saying it's the next big evolution after chat. But at the same time, I keep hearing mixed opinions. Someone told me this that kind of stuck:&lt;/p&gt; &lt;p&gt;Voice AI tools are not really competing on models. They're competing on how well they handle everything around the model. One feels smooth in demos, the other actually works in messy real-world conversations.&lt;/p&gt; &lt;p&gt;For context, I’ve mostly worked with text-based LLMs for a long time, and now building voice agents more seriously. I can see the potential, but also a lot of rough edges. Latency feels unpredictable, interruptions don’t always work well, and once something breaks, it’s hard to understand. &lt;/p&gt; &lt;p&gt;I’ve even built an open source voice agent platform for building voice ai workflows, and honestly, there’s still a big gap between what looks good and what actually works reliably. My biggest concern is whether this is actually useful.&lt;/p&gt; &lt;p&gt;For those of you who are building or have already built voice AI agents, how has your experience been in terms of latency, interruptions, and reliability over longer conversations, and does it actually hold up outside demos?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Once_ina_Lifetime"&gt; /u/Once_ina_Lifetime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rxsvam/those_of_you_building_with_voice_ai_how_is_it/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-19T06:25:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1rwwqbm</id>
