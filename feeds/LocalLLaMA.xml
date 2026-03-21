@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-21T14:11:57+00:00</updated>
+  <updated>2026-03-21T14:27:56+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1rz2rwh</id>
-    <title>Trained a 0.8M model on business email generation.</title>
-    <updated>2026-03-20T17:34:54+00:00</updated>
-    <author>
-      <name>/u/SrijSriv211</name>
-      <uri>https://old.reddit.com/user/SrijSriv211</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rz2rwh/trained_a_08m_model_on_business_email_generation/"&gt; &lt;img alt="Trained a 0.8M model on business email generation." src="https://preview.redd.it/dckvbaj8i8qg1.png?width=140&amp;amp;height=66&amp;amp;auto=webp&amp;amp;s=5b60b5ca783f92c96fb294ece5539496aa5bc962" title="Trained a 0.8M model on business email generation." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I saw this post (&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1ryq2lg/experiment_how_far_can_a_28m_model_go_in_business/"&gt;28m model email experiment&lt;/a&gt;) and decided to train on this dataset but with a different architecture.&lt;/p&gt; &lt;p&gt;Test prompt same as the above post:&lt;/p&gt; &lt;p&gt;Prompt: &lt;code&gt;Write a polite refusal email&amp;lt;|eop|&amp;gt;&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Output:&lt;/p&gt; &lt;p&gt;``` Correcting Reason for Recent Experience Dear [Officer's Name],&lt;/p&gt; &lt;p&gt;I hope this email finds you well.&lt;/p&gt; &lt;p&gt;As you know, [Company Name] has recently received your experience with [Product Name], a hugely successful funding round, and we’re committed to providing you with the billing records and targeted a highly value of [Client Name].&lt;/p&gt; &lt;p&gt;As you know, our rebranding initiative is currently undergoing a significant rebranding phase, and we want to sincerely apologize for the timing. We value your time and appreciate your understanding.&lt;/p&gt; &lt;p&gt;We understand your concerns swiftly and want to assure you that we will be moving forward. Please let us know your availability.&lt;/p&gt; &lt;p&gt;Sincerely, [Name] Junior Developer [Company Name]&amp;lt;|eot|&amp;gt; ```&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;&lt;code&gt;&amp;lt;|eop|&amp;gt;&lt;/code&gt; means end-of-prompt and &lt;code&gt;&amp;lt;|eot|&amp;gt;&lt;/code&gt; means end-of-text.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;code&gt;&amp;lt;|eop|&amp;gt;&lt;/code&gt; is used at the end of prompt and the model uses &lt;code&gt;&amp;lt;|eot|&amp;gt;&lt;/code&gt; at the end of the generated output.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I've been experimenting with a simple idea. That is, completely removing FFN and replacing the Linear layers in Swiglu FFN with Attention layers. Thus converting Swiglu into something I call Silia (Silu in attention). It achieved similar loss and performance (compared to a standard Attention + Swiglu architecture) on same dataset &amp;amp; training config with much less parameters.&lt;/p&gt; &lt;p&gt;This is the architecture diagram:&lt;/p&gt; &lt;p&gt;&lt;code&gt; Input tokens | [Token Embedding] | [2x Strawberry Blocks] |--- Scaled Dot Product Attention | |--- Rotary Positional Embeddings | |--- QK Norm | |--- Multi-Headed Attention |--- SiLU non-linearity * Scaled Dot Product Attention |--- Scaled Dot Product Attention | | [Output Projection (weight-tied)] | Next token logits &lt;/code&gt;&lt;/p&gt; &lt;p&gt;I trained on &lt;a href="https://huggingface.co/datasets/Kamisori-daijin/email-datasets-20k"&gt;email-datasets-20k&lt;/a&gt; dataset which was used in the post I linked above.&lt;/p&gt; &lt;p&gt;This is the model training config: &lt;code&gt;{&amp;quot;dataset&amp;quot;: {&amp;quot;data_division&amp;quot;: 0.8, &amp;quot;load_from_file&amp;quot;: true, &amp;quot;path&amp;quot;: &amp;quot;data/email.bin&amp;quot;}, &amp;quot;checkpoints&amp;quot;: {&amp;quot;path&amp;quot;: &amp;quot;bin/email&amp;quot;, &amp;quot;interval&amp;quot;: 1000, &amp;quot;create_checkpoints&amp;quot;: true}, &amp;quot;model_hyperparams&amp;quot;: {&amp;quot;vocab_size&amp;quot;: 8192, &amp;quot;block_size&amp;quot;: 256, &amp;quot;n_layer&amp;quot;: 2, &amp;quot;n_head&amp;quot;: 4, &amp;quot;n_embd&amp;quot;: 64}, &amp;quot;optimizer_hyperparams&amp;quot;: {&amp;quot;eps&amp;quot;: 1e-08, &amp;quot;beta1&amp;quot;: 0.9, &amp;quot;beta2&amp;quot;: 0.99, &amp;quot;weight_decay&amp;quot;: 0.001, &amp;quot;use_muon&amp;quot;: false, &amp;quot;momentum&amp;quot;: 0.95}, &amp;quot;model_path&amp;quot;: &amp;quot;bin/email/email.strawberry&amp;quot;, &amp;quot;encoder_path&amp;quot;: &amp;quot;bin/cl8k.bin&amp;quot;, &amp;quot;init_from&amp;quot;: &amp;quot;scratch&amp;quot;, &amp;quot;seed&amp;quot;: &amp;quot;auto&amp;quot;, &amp;quot;gradient_accumulation_steps&amp;quot;: 1, &amp;quot;batch_size&amp;quot;: 16, &amp;quot;max_iters&amp;quot;: 10000, &amp;quot;eval_interval&amp;quot;: 1000, &amp;quot;log_interval&amp;quot;: 100, &amp;quot;eval_iters&amp;quot;: 100, &amp;quot;decay_lr&amp;quot;: true, &amp;quot;lr_decay_iters&amp;quot;: 10000, &amp;quot;learning_rate&amp;quot;: 0.002, &amp;quot;cooldown_frac&amp;quot;: 0.4, &amp;quot;warmup_iters&amp;quot;: 500, &amp;quot;min_lr&amp;quot;: 0.0002}&lt;/code&gt;&lt;/p&gt; &lt;p&gt;The model has 0.8M total params out of which 0.3M are non-embedding params. The model has 2 blocks (4 attention layers &amp;amp; 2 activations in total), 4 attention heads.&lt;/p&gt; &lt;p&gt;I used my custom tokenizer with 8k vocab size. It is just Regex + BPE tokenizer which Andrej Karpathy made in one of his videos, the only difference is I'm using &lt;code&gt;o200k_base&lt;/code&gt; regex pattern which was used for GPT-4.&lt;/p&gt; &lt;p&gt;After tokenization the dataset had 5.5M total tokens, after splitting by 80/20 rule, I had 4.4M train tokens, 1.1M val tokens. The dataset had ~20M chars in total. I trained on the dataset for ~10 epochs.&lt;/p&gt; &lt;p&gt;The final train &amp;amp; val loss were 1.65 &amp;amp; 1.68 respectively.&lt;/p&gt; &lt;p&gt;I've attached some screenshots of loss &amp;amp; demo generations.&lt;/p&gt; &lt;p&gt;Here's the github repo link: &lt;a href="https://github.com/SrijanSriv211/Strawberry"&gt;https://github.com/SrijanSriv211/Strawberry&lt;/a&gt;&lt;/p&gt; &lt;p&gt;You can download the model from here: &lt;a href="https://github.com/SrijanSriv211/Strawberry/releases/tag/s0.2a"&gt;https://github.com/SrijanSriv211/Strawberry/releases/tag/s0.2a&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Thank you :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SrijSriv211"&gt; /u/SrijSriv211 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1rz2rwh"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rz2rwh/trained_a_08m_model_on_business_email_generation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rz2rwh/trained_a_08m_model_on_business_email_generation/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-20T17:34:54+00:00</published>
-  </entry>
   <entry>
     <id>t3_1rzp73s</id>
     <title>Question for those who have build multi GPU rigs using MCIO gen 5.0</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzp73s/question_for_those_who_have_build_multi_gpu_rigs/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T11:33:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rzsgf2</id>
+    <title>What do you think about the possibility of this setup ?</title>
+    <updated>2026-03-21T14:10:52+00:00</updated>
+    <author>
+      <name>/u/lethalratpoison</name>
+      <uri>https://old.reddit.com/user/lethalratpoison</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want to locally run decent llms, the best cost effective setup i thought of is 8 v100 (16gb) on a 4028GR-TXRT for the x8 nvlink if i find a barebones one or a SYS-4028GR-TRT for 900 usd and run a custom watercooling setup with watercooling blocks from aliexpress (theyre around 35 usd each) and run the v100 setup at 75% power or lower for higher efficiency &lt;/p&gt; &lt;p&gt;the v100 cost 99usd including their heatsink, this setup has 128gb of vram and im planning on not putting any of the model's weights on the ram so it wont have abyssmally shit performance&lt;/p&gt; &lt;p&gt;it comes out cheaper than an rtx 5090 while having better performance (on paper) &lt;/p&gt; &lt;p&gt;has anyone tried this setup and can tell if its a waste of money and time ? its cheaper than a 128gb vram/lpddr ryzen halo max+ 395 or whatever its named&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lethalratpoison"&gt; /u/lethalratpoison &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsgf2/what_do_you_think_about_the_possibility_of_this/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsgf2/what_do_you_think_about_the_possibility_of_this/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsgf2/what_do_you_think_about_the_possibility_of_this/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T14:10:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzn5dy</id>
@@ -58,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryu7rr/running_tinyllama_11b_locally_on_a_powerbook_g4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-20T11:54:40+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1rzosnf</id>
-    <title>Welp, looks like minimax m2.7 may not be open sourced</title>
-    <updated>2026-03-21T11:10:33+00:00</updated>
-    <author>
-      <name>/u/Gohab2001</name>
-      <uri>https://old.reddit.com/user/Gohab2001</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzosnf/welp_looks_like_minimax_m27_may_not_be_open/"&gt; &lt;img alt="Welp, looks like minimax m2.7 may not be open sourced" src="https://external-preview.redd.it/H8CAnX_FiMKbScPZS1c-H-J8KKJcOT0_UU3v7Vyh9mI.png?width=140&amp;amp;height=73&amp;amp;auto=webp&amp;amp;s=8bd51f136fdc9be9049e91120b59cc020045dc0c" title="Welp, looks like minimax m2.7 may not be open sourced" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/qzl3zhpfrdqg1.png?width=277&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cca91d4172b0c82547c6c1828bd0473b406b78f0"&gt;https://preview.redd.it/qzl3zhpfrdqg1.png?width=277&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cca91d4172b0c82547c6c1828bd0473b406b78f0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Looks like MiniMax m2.7 is staying behind a paywall. The &lt;a href="http://Arena.ai"&gt;Arena.ai&lt;/a&gt; listing has it marked as proprietary, putting it in the same camp as the newly released Qwen 3.5 Max preview. We all saw the writing on the wall with Chinese labs pivoting to closed-source, but it’s still disappointing to see another one bite the dust.&lt;/p&gt; &lt;p&gt;What do you all think? Is the era of high-end open-source parity from these labs officially over? Would anyone pay to use Chinese models considering inferior quality and slower inference performance? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Gohab2001"&gt; /u/Gohab2001 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzosnf/welp_looks_like_minimax_m27_may_not_be_open/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzosnf/welp_looks_like_minimax_m27_may_not_be_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzosnf/welp_looks_like_minimax_m27_may_not_be_open/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T11:10:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzri71</id>
@@ -110,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzq981/since_fastflowlm_added_support_for_linux_i/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T12:30:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rzsehn</id>
+    <title>Fixing Qwen thinking repetition</title>
+    <updated>2026-03-21T14:08:32+00:00</updated>
+    <author>
+      <name>/u/Tccybo</name>
+      <uri>https://old.reddit.com/user/Tccybo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;ok so I found something pretty cool. Qwen always has this problem where it goes way too long and gets super repetitive with its thinking. But I discovered that pasting this system prompt from Claude into Qwen fixes the issue completely. It actually works and keeps responses focused.&lt;/p&gt; &lt;p&gt;Just wanted to share in case it helps anyone else dealing with the same annoyance.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tccybo"&gt; /u/Tccybo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsehn/fixing_qwen_thinking_repetition/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsehn/fixing_qwen_thinking_repetition/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzsehn/fixing_qwen_thinking_repetition/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T14:08:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzocet</id>
@@ -164,19 +164,6 @@
     <published>2026-03-21T10:43:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rzns9c</id>
-    <title>Trained a GPT transformer from scratch on a $300 CPU — 39 minutes, 0.82M params, no GPU needed</title>
-    <updated>2026-03-21T10:08:17+00:00</updated>
-    <author>
-      <name>/u/Suspicious_Gap1121</name>
-      <uri>https://old.reddit.com/user/Suspicious_Gap1121</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Character-level GPT transformer built in PyTorch from scratch — pure architecture and training from zero. No fine-tuning, no pre-trained weights, no cloud compute.&lt;/p&gt; &lt;p&gt;Can be trained on $300 machine &lt;/p&gt; &lt;p&gt;Git hub repo : &lt;a href="https://github.com/Eamon2009/Transformer-language-model"&gt;https://github.com/Eamon2009/Transformer-language-model&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I trained:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Parameters : 0.82M Dataset : 201K characters of children's stories Vocab size : 28 unique characters Hardware : CPU only — AMD Ryzen 5 Train time : 39 minutes Best val : 1.3145 — still improving at step 3000 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Full training log:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[ 0/3000] train=3.2961 val=3.2981 &amp;lt;&amp;lt; best! [ 200/3000] train=2.3038 val=2.2490 &amp;lt;&amp;lt; best! [ 400/3000] train=2.2469 val=2.1950 &amp;lt;&amp;lt; best! [ 800/3000] train=1.9742 val=1.9103 &amp;lt;&amp;lt; best! [ 1400/3000] train=1.5889 val=1.5360 &amp;lt;&amp;lt; best! [ 2000/3000] train=1.4604 val=1.4081 &amp;lt;&amp;lt; best! [ 2600/3000] train=1.3501 val=1.3446 &amp;lt;&amp;lt; best! [ 2999/3000] train=1.3191 val=1.3145 &amp;lt;&amp;lt; best! &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Every single checkpoint improved. No overfitting at all — train and val loss decreased together the entire run.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Actual output the model generated:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;one day and was arroom him that she rabbing animals the dreezed at neard had to there man owl them one smiled the mushrought boy he rabbit to havin after the but help &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Story structure learned. Character names learned. Narrative flow learned. Spelling breaks because the model works character by character — it learned that after &lt;code&gt;fr&lt;/code&gt; comes &lt;code&gt;i,e,n,d&lt;/code&gt; but sometimes gets the sequence slightly wrong. No concept of words, only character patterns.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it got right vs wrong:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;✓ Story structure → &amp;quot;one day...&amp;quot;, paragraphs, narrative flow ✓ Character names → jack, tim, lucy, mary ✓ Sentence patterns → &amp;quot;he said&amp;quot;, &amp;quot;she was&amp;quot;, &amp;quot;they went&amp;quot; ✗ Spelling → &amp;quot;driendly&amp;quot;, &amp;quot;mushrought&amp;quot;, &amp;quot;surpring&amp;quot; ✗ Logic → sentences don't connect coherently &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The architecture runs on any hardware:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;batch_size = 16 block_size = 128 n_embd = 128 n_head = 4 n_layer = 4 dropout = 0.2 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;If you have a GPU, scale to 10.8M parameters by changing 4 lines in the config. The model hasn't hit its ceiling — val loss was still falling at step 3000. More data and more steps would directly improve output.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Highest impact next steps for anyone wanting to extend this:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;1. Scale data to 1M+ characters — TinyStories dataset is perfect 2. Increase max_iters to 5000-10000 3. Larger model only after steps 1 and 2 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Full training logs, output analysis, overfitting breakdown and GPU config in the repo&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Suspicious_Gap1121"&gt; /u/Suspicious_Gap1121 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T10:08:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rzds1b</id>
     <title>Mistral CEO: AI companies should pay a content levy in Europe</title>
     <updated>2026-03-21T00:52:14+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzds1b/mistral_ceo_ai_companies_should_pay_a_content/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T00:52:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rzns9c</id>
+    <title>Trained a GPT transformer from scratch on a $300 CPU — 39 minutes, 0.82M params, no GPU needed</title>
+    <updated>2026-03-21T10:08:17+00:00</updated>
+    <author>
+      <name>/u/Suspicious_Gap1121</name>
+      <uri>https://old.reddit.com/user/Suspicious_Gap1121</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Character-level GPT transformer built in PyTorch from scratch — pure architecture and training from zero. No fine-tuning, no pre-trained weights, no cloud compute.&lt;/p&gt; &lt;p&gt;Can be trained on $300 machine &lt;/p&gt; &lt;p&gt;Git hub repo : &lt;a href="https://github.com/Eamon2009/Transformer-language-model"&gt;https://github.com/Eamon2009/Transformer-language-model&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I trained:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Parameters : 0.82M Dataset : 201K characters of children's stories Vocab size : 28 unique characters Hardware : CPU only — AMD Ryzen 5 Train time : 39 minutes Best val : 1.3145 — still improving at step 3000 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Full training log:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[ 0/3000] train=3.2961 val=3.2981 &amp;lt;&amp;lt; best! [ 200/3000] train=2.3038 val=2.2490 &amp;lt;&amp;lt; best! [ 400/3000] train=2.2469 val=2.1950 &amp;lt;&amp;lt; best! [ 800/3000] train=1.9742 val=1.9103 &amp;lt;&amp;lt; best! [ 1400/3000] train=1.5889 val=1.5360 &amp;lt;&amp;lt; best! [ 2000/3000] train=1.4604 val=1.4081 &amp;lt;&amp;lt; best! [ 2600/3000] train=1.3501 val=1.3446 &amp;lt;&amp;lt; best! [ 2999/3000] train=1.3191 val=1.3145 &amp;lt;&amp;lt; best! &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Every single checkpoint improved. No overfitting at all — train and val loss decreased together the entire run.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Actual output the model generated:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;one day and was arroom him that she rabbing animals the dreezed at neard had to there man owl them one smiled the mushrought boy he rabbit to havin after the but help &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Story structure learned. Character names learned. Narrative flow learned. Spelling breaks because the model works character by character — it learned that after &lt;code&gt;fr&lt;/code&gt; comes &lt;code&gt;i,e,n,d&lt;/code&gt; but sometimes gets the sequence slightly wrong. No concept of words, only character patterns.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it got right vs wrong:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;✓ Story structure → &amp;quot;one day...&amp;quot;, paragraphs, narrative flow ✓ Character names → jack, tim, lucy, mary ✓ Sentence patterns → &amp;quot;he said&amp;quot;, &amp;quot;she was&amp;quot;, &amp;quot;they went&amp;quot; ✗ Spelling → &amp;quot;driendly&amp;quot;, &amp;quot;mushrought&amp;quot;, &amp;quot;surpring&amp;quot; ✗ Logic → sentences don't connect coherently &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The architecture runs on any hardware:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;batch_size = 16 block_size = 128 n_embd = 128 n_head = 4 n_layer = 4 dropout = 0.2 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;If you have a GPU, scale to 10.8M parameters by changing 4 lines in the config. The model hasn't hit its ceiling — val loss was still falling at step 3000. More data and more steps would directly improve output.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Highest impact next steps for anyone wanting to extend this:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;1. Scale data to 1M+ characters — TinyStories dataset is perfect 2. Increase max_iters to 5000-10000 3. Larger model only after steps 1 and 2 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Full training logs, output analysis, overfitting breakdown and GPU config in the repo&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Suspicious_Gap1121"&gt; /u/Suspicious_Gap1121 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzns9c/trained_a_gpt_transformer_from_scratch_on_a_300/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T10:08:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzacir</id>
