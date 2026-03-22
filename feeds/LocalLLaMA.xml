@@ -2,63 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-22T15:53:01+00:00</updated>
+  <updated>2026-03-22T16:10:00+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1s0n92k</id>
-    <title>[UPDATE] Recursive Latent Forcing: It's Architecture-Agnostic — Just Bolted It Onto GPT-2</title>
-    <updated>2026-03-22T14:36:58+00:00</updated>
-    <author>
-      <name>/u/Just-Ad-6488</name>
-      <uri>https://old.reddit.com/user/Just-Ad-6488</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Original post: &amp;quot;I taught a 130M Mamba2 model to 'Think' in latent space (8-hop OOD Generalization, 0.5GB VRAM)&amp;quot;&lt;/h1&gt; &lt;p&gt;Quick update. A lot of you asked: &lt;strong&gt;&amp;quot;Does this only work because Mamba is recurrent?&amp;quot;&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Fair question. If the Prompt Lifeline is just compensating for SSM memory decay, then RLF is a Mamba band-aid, not a general technique.&lt;/p&gt; &lt;p&gt;So I bolted it onto &lt;strong&gt;GPT-2 (124M)&lt;/strong&gt; — a pure Transformer, zero Mamba anywhere. Same training data, same loss, same hyperparameters. Here's what changed and what didn't.&lt;/p&gt; &lt;h1&gt;The Crossover Architecture&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;GPT-2 (all 12 attention layers) ← runs ONCE, completely FROZEN │ x_prompt = snapshot ← Prompt Lifeline anchor │ ┌───────▼────────────────────────────────┐ │ LOOP (runs N times) │ │ │ │ x += gate ⊙ x_prompt ← Lifeline │ │ x = RoPE(x, loop_i) ← Loop count │ │ x += transformer_core(x) ← 2-layer │ │ causal attention (14M params) │ │ x = LayerNorm(x) │ │ logits → supervise each loop step │ └────────────────────────────────────────┘ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;What's identical to the Mamba version&lt;/strong&gt;: Lifeline, RoPE, per-loop supervision, &lt;code&gt;&amp;lt;HALT&amp;gt;&lt;/code&gt; learning, training data.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's different&lt;/strong&gt;: The base encoder is GPT-2 attention (not Mamba2 SSM). The loop core is a 2-layer TransformerEncoder (not a Mamba2 block). &lt;strong&gt;There is zero SSM code in this system.&lt;/strong&gt;&lt;/p&gt; &lt;h1&gt;Results (Training In Progress)&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Step&lt;/th&gt; &lt;th align="left"&gt;AllLoop Acc&lt;/th&gt; &lt;th align="left"&gt;Answer Acc&lt;/th&gt; &lt;th align="left"&gt;Halt Acc&lt;/th&gt; &lt;th align="left"&gt;VRAM&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;50&lt;/td&gt; &lt;td align="left"&gt;22%&lt;/td&gt; &lt;td align="left"&gt;18%&lt;/td&gt; &lt;td align="left"&gt;45%&lt;/td&gt; &lt;td align="left"&gt;1.46 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;200&lt;/td&gt; &lt;td align="left"&gt;53%&lt;/td&gt; &lt;td align="left"&gt;45%&lt;/td&gt; &lt;td align="left"&gt;99%&lt;/td&gt; &lt;td align="left"&gt;1.46 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;500&lt;/td&gt; &lt;td align="left"&gt;61%&lt;/td&gt; &lt;td align="left"&gt;54%&lt;/td&gt; &lt;td align="left"&gt;98%&lt;/td&gt; &lt;td align="left"&gt;1.46 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;800&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;75%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;71%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;98%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;1.46 GB&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Still climbing ~3% per 100 steps. Halt detection was nearly perfect by step 100. The learning curve shape is almost identical to the Mamba2 version.&lt;/p&gt; &lt;h1&gt;What This Proves&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;RLF is not a Mamba trick.&lt;/strong&gt; The Prompt Lifeline, RoPE loop encoding, and per-loop supervision work on Transformers too. The technique is about &lt;em&gt;training methodology&lt;/em&gt;, not architecture.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Lifeline solves a universal problem.&lt;/strong&gt; Even Transformers — which have full attention over the context — lose track of the original query when you loop through a reasoning core repeatedly. The Lifeline fixes this for &lt;em&gt;any&lt;/em&gt; backbone.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Cheap reasoning is backbone-agnostic.&lt;/strong&gt; The loop core is only 14M params (2 attention layers). Each reasoning step costs a forward pass through those 14M params, not the full 124M. On our Mamba2 version, we got this down to $O(1)$ memory per loop.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;What I'm Watching For&lt;/h1&gt; &lt;p&gt;The Mamba2 version hit 99.9% and then showed something wild: the Lifeline could be &lt;strong&gt;completely severed at inference&lt;/strong&gt; with no accuracy drop. The model had internalized the entire FSM into its recurrent state.&lt;/p&gt; &lt;p&gt;The question is: &lt;strong&gt;will GPT-2 do the same thing?&lt;/strong&gt; Or does it remain dependent on the Lifeline because attention doesn't build up a recurrent state the way an SSM does? That's the next test once training converges.&lt;/p&gt; &lt;p&gt;If it does internalize — we're looking at a general method for teaching &lt;em&gt;any&lt;/em&gt; LLM to do implicit multi-step reasoning in a single forward pass + tiny loop. No chain-of-thought tokens. No scratchpad. No extra generation cost.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code/Paper&lt;/strong&gt;: &lt;a href="https://github.com/batteryphil/mamba2backbonerecursion"&gt;https://github.com/batteryphil/mamba2backbonerecursion&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Training is still running. I'll update with final numbers and the inference autonomy ablation once it converges.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Just-Ad-6488"&gt; /u/Just-Ad-6488 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0n92k/update_recursive_latent_forcing_its/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0n92k/update_recursive_latent_forcing_its/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0n92k/update_recursive_latent_forcing_its/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T14:36:58+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0o30b</id>
-    <title>Best models for RTX 6000 x 4 build</title>
-    <updated>2026-03-22T15:10:02+00:00</updated>
-    <author>
-      <name>/u/Direct_Bodybuilder63</name>
-      <uri>https://old.reddit.com/user/Direct_Bodybuilder63</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Ive got my 4th RTX 6000 MAX-Q (384GB) (also have 768GB RAM) coming in a couple days, I’ve been looking and doing some reading regarding what the current best models I can run on this are with limited degradation. &lt;/p&gt; &lt;p&gt;So far I’m looking at the following: &lt;/p&gt; &lt;p&gt;Qwen3.5-122B-A10B at BF16 &lt;/p&gt; &lt;p&gt;Qwen3.5-397B-A17B at Q6_K&lt;/p&gt; &lt;p&gt;Predominately looking to build out and refine a bundle of hacking tools, some fuzzing, and some code auditing.&lt;/p&gt; &lt;p&gt;Is there any additional optimisation I need to do for these cards and these models? &lt;/p&gt; &lt;p&gt;I’ve already been building stuff out with this, if anyone has any tips or resources they’d recommend please share them with me :) &lt;/p&gt; &lt;p&gt;Thanks &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Direct_Bodybuilder63"&gt; /u/Direct_Bodybuilder63 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T15:10:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0ludn</id>
-    <title>Best open source coding models for claude code? LB?</title>
-    <updated>2026-03-22T13:37:11+00:00</updated>
-    <author>
-      <name>/u/Fried_Cheesee</name>
-      <uri>https://old.reddit.com/user/Fried_Cheesee</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello! I'm looking to try out claude code, but I dont have a subscription. Its been a while since Ive meddled with models, I wanted to know if there exists a leaderboard for open source models with tooling? i.e. which ones are the best ones for claude code? &lt;/p&gt; &lt;p&gt;No restrictions on hardware or size of model, I've got some credits to rent out GPU's, from T4 to B200's. &lt;/p&gt; &lt;p&gt;The names i've heard for now are: Qwen 3.5 35b, glm and kimi. &lt;/p&gt; &lt;p&gt;Once I'm done hosting the model, i'll look how to connect it to CC.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fried_Cheesee"&gt; /u/Fried_Cheesee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0ludn/best_open_source_coding_models_for_claude_code_lb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0ludn/best_open_source_coding_models_for_claude_code_lb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0ludn/best_open_source_coding_models_for_claude_code_lb/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T13:37:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0hnw5</id>
-    <title>I trained the same GPT architecture twice — CPU vs GPU, 0.82M vs 10.82M params, full logs inside</title>
-    <updated>2026-03-22T09:54:32+00:00</updated>
-    <author>
-      <name>/u/Suspicious_Gap1121</name>
-      <uri>https://old.reddit.com/user/Suspicious_Gap1121</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built a character-level GPT from scratch in PyTorch — no pre-trained weights, no HuggingFace, no shortcuts. Trained the same architecture twice under very different compute conditions to measure exactly what scaling does to loss and output quality.&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/Eamon2009/Transformer-language-model"&gt;https://github.com/Eamon2009/Transformer-language-model&lt;/a&gt;&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**Architecture (both runs)**&lt;/p&gt; &lt;p&gt;Standard GPT decoder stack — multi-head causal self-attention, learned positional embeddings, LayerNorm + residuals, AdamW (lr=3e-4), dropout=0.2. Only the scale differs between runs.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**Run 1 — CPU (AMD Ryzen 5 PRO 3500U)**&lt;/p&gt; &lt;p&gt;- 0.82M params | 4 layers × 4 heads × 128d&lt;/p&gt; &lt;p&gt;- 201,570 chars | vocab=28 | block=128 | batch=16&lt;/p&gt; &lt;p&gt;- 3,000 iters | 39.4 minutes&lt;/p&gt; &lt;p&gt;- Best val loss: **1.3145** | no overfitting&lt;/p&gt; &lt;p&gt;**Run 2 — CUDA (Google Colab GPU)**&lt;/p&gt; &lt;p&gt;- 10.82M params | 6 layers × 6 heads × 384d&lt;/p&gt; &lt;p&gt;- 88,406,739 chars | vocab=110 | block=256 | batch=64&lt;/p&gt; &lt;p&gt;- 5,000 iters | 61.3 minutes&lt;/p&gt; &lt;p&gt;- Best val loss: **0.7176** | no overfitting&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**The numbers that matter**&lt;/p&gt; &lt;p&gt;- Parameters: 0.82M → 10.82M **(13.2× more)**&lt;/p&gt; &lt;p&gt;- Dataset: 201K → 88.4M chars **(438× more)**&lt;/p&gt; &lt;p&gt;- Training time: 39.4 → 61.3 min **(only 1.55× longer)**&lt;/p&gt; &lt;p&gt;- Val loss: 1.3145 → 0.7176 **(45% drop)**&lt;/p&gt; &lt;p&gt;- Overfitting: none in either run — best! at every single checkpoint&lt;/p&gt; &lt;p&gt;- Ceiling hit: no — loss still falling in both runs at final iter&lt;/p&gt; &lt;p&gt;438× more data and 13× more parameters, for only 1.55× the time. That's what CUDA gives you.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**Run 2 full loss log**&lt;/p&gt; &lt;p&gt;Iter Train Val&lt;/p&gt; &lt;p&gt;0 4.9244 4.9262&lt;/p&gt; &lt;p&gt;250 2.1218 2.1169&lt;/p&gt; &lt;p&gt;500 1.3606 1.3500&lt;/p&gt; &lt;p&gt;1000 1.0332 1.0296&lt;/p&gt; &lt;p&gt;1500 0.9305 0.9189&lt;/p&gt; &lt;p&gt;2000 0.8673 0.8602&lt;/p&gt; &lt;p&gt;2500 0.8162 0.8141&lt;/p&gt; &lt;p&gt;3000 0.7888 0.7803&lt;/p&gt; &lt;p&gt;3500 0.7634 0.7551&lt;/p&gt; &lt;p&gt;4000 0.7480 0.7434&lt;/p&gt; &lt;p&gt;4500 0.7371 0.7314&lt;/p&gt; &lt;p&gt;4999 0.7259 0.7176 ← best!&lt;/p&gt; &lt;p&gt;Train/val gap at end: 0.0083. Loss was still falling at the final checkpoint — this model has not plateaued.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**Chinchilla position (20× rule)**&lt;/p&gt; &lt;p&gt;- Run 1: 0.82M params → needs ~16.4M tokens → had 200K → **1.2% of optimal**&lt;/p&gt; &lt;p&gt;- Run 2: 10.82M params → needs ~216M tokens → had 79.6M → **36.8% of optimal**&lt;/p&gt; &lt;p&gt;Run 2 is 30× closer to compute-optimal. The output quality gap is a direct consequence.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**Actual output — same architecture, only scale differs**&lt;/p&gt; &lt;p&gt;Run 2 (10.82M, val loss 0.7176):&lt;/p&gt; &lt;p&gt;&amp;gt; Upon a time, there were two friends, Jack and Tom. They had a cold doll in the sunshine.&lt;/p&gt; &lt;p&gt;&amp;gt;&lt;/p&gt; &lt;p&gt;&amp;gt; One day, Jack saw that he was universed. He used the sky at past it to march around the garden. He felt dizzy and wanted to share his happy with them.&lt;/p&gt; &lt;p&gt;Run 1 (0.82M, val loss 1.3145):&lt;/p&gt; &lt;p&gt;&amp;gt; when years me told be found a big ea reak abig driendly they named not she rabbit smiled by aded he what in again one smiled the mushrought boy&lt;/p&gt; &lt;p&gt;Run 2: coherent paragraphs, consistent character names, proper sentence boundaries. Run 1: character-pattern noise. Same architecture — only scale differs.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;**What's next**&lt;/p&gt; &lt;p&gt;- Push to 10,000 iters — loss still falling, ceiling not reached&lt;/p&gt; &lt;p&gt;- Expand dataset toward compute-optimal (~216M tokens for this model size)&lt;/p&gt; &lt;p&gt;- Hold off on growing the model until data catches up&lt;/p&gt; &lt;p&gt;Full logs, architecture code, and README with detailed comparisons at the repo. Happy to answer questions in the comments.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Eamon2009/Transformer-language-model"&gt;https://github.com/Eamon2009/Transformer-language-model&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Suspicious_Gap1121"&gt; /u/Suspicious_Gap1121 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0hnw5/i_trained_the_same_gpt_architecture_twice_cpu_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0hnw5/i_trained_the_same_gpt_architecture_twice_cpu_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0hnw5/i_trained_the_same_gpt_architecture_twice_cpu_vs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T09:54:32+00:00</published>
-  </entry>
   <entry>
     <id>t3_1s0hpg8</id>
     <title>I checked Strix Halo (Ryzen ai max+ 395) performance test as context length increases</title>
@@ -110,6 +58,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0en62/running_mistral_locally_for_meeting_notes_and_its/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-22T06:42:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s0p6bl</id>
+    <title>Chugging along!</title>
+    <updated>2026-03-22T15:52:57+00:00</updated>
+    <author>
+      <name>/u/diddlysquidler</name>
+      <uri>https://old.reddit.com/user/diddlysquidler</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p6bl/chugging_along/"&gt; &lt;img alt="Chugging along!" src="https://preview.redd.it/xeafxs8c5mqg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1a862716d5d15982d5f7cfff7c24872586fe5889" title="Chugging along!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/diddlysquidler"&gt; /u/diddlysquidler &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xeafxs8c5mqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p6bl/chugging_along/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p6bl/chugging_along/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T15:52:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzud2z</id>
@@ -164,6 +125,19 @@
     <published>2026-03-21T12:39:51+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s0o30b</id>
+    <title>Best models for RTX 6000 x 4 build</title>
+    <updated>2026-03-22T15:10:02+00:00</updated>
+    <author>
+      <name>/u/Direct_Bodybuilder63</name>
+      <uri>https://old.reddit.com/user/Direct_Bodybuilder63</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Ive got my 4th RTX 6000 MAX-Q (384GB) (also have 768GB RAM) coming in a couple days, I’ve been looking and doing some reading regarding what the current best models I can run on this are with limited degradation. &lt;/p&gt; &lt;p&gt;So far I’m looking at the following: &lt;/p&gt; &lt;p&gt;Qwen3.5-122B-A10B at BF16 &lt;/p&gt; &lt;p&gt;Qwen3.5-397B-A17B at Q6_K&lt;/p&gt; &lt;p&gt;Predominately looking to build out and refine a bundle of hacking tools, some fuzzing, and some code auditing.&lt;/p&gt; &lt;p&gt;Is there any additional optimisation I need to do for these cards and these models? &lt;/p&gt; &lt;p&gt;I’ve already been building stuff out with this, if anyone has any tips or resources they’d recommend please share them with me :) &lt;/p&gt; &lt;p&gt;Thanks &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Direct_Bodybuilder63"&gt; /u/Direct_Bodybuilder63 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0o30b/best_models_for_rtx_6000_x_4_build/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T15:10:02+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1s0fhl1</id>
     <title>Should we start 3-4 year plan to run AI locally for real work?</title>
     <updated>2026-03-22T07:34:15+00:00</updated>
@@ -175,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fhl1/should_we_start_34_year_plan_to_run_ai_locally/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-22T07:34:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s0p7hn</id>
+    <title>A Collection of Nice Datasets</title>
+    <updated>2026-03-22T15:54:13+00:00</updated>
+    <author>
+      <name>/u/Good-Assumption5582</name>
+      <uri>https://old.reddit.com/user/Good-Assumption5582</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If anyone in LocalLLaMA still trains models, I made a collection of interesting and nice datasets:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Green0-0/llm_datasets/tree/main"&gt;https://github.com/Green0-0/llm_datasets/tree/main&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Good-Assumption5582"&gt; /u/Good-Assumption5582 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p7hn/a_collection_of_nice_datasets/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p7hn/a_collection_of_nice_datasets/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0p7hn/a_collection_of_nice_datasets/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T15:54:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1s0nchk</id>
@@ -229,30 +216,17 @@
     <published>2026-03-22T12:00:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s0fje7</id>
-    <title>Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5</title>
-    <updated>2026-03-22T07:37:27+00:00</updated>
+    <id>t3_1s0pfml</id>
+    <title>Alibaba confirms they are committed to continuously open-sourcing new Qwen and Wan models</title>
+    <updated>2026-03-22T16:02:43+00:00</updated>
     <author>
-      <name>/u/icepatfork</name>
-      <uri>https://old.reddit.com/user/icepatfork</uri>
+      <name>/u/TKGaming_11</name>
+      <uri>https://old.reddit.com/user/TKGaming_11</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"&gt; &lt;img alt="Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5" src="https://preview.redd.it/8yqwic6kvjqg1.jpg?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=9ba0f6d782ffdba621796163b2fa6fbdac9d4c9a" title="Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just got an Nvidia V100 32 Gb mounted on a PCI-Exp GPU kind of card, paid about 500 USD for it (shipping &amp;amp; insurance included) and it’s performing quite well IMO.&lt;/p&gt; &lt;p&gt;Yeah I know there is no more support for it and it’s old, and it’s loud, but it’s hard to beat at that price point. Based on a quick comparaison I’m getting between 20%-100% more token/s than an M3 Ultra, M4 Max (compared with online data) would on the same models, again, not too bad for the price.&lt;/p&gt; &lt;p&gt;Anyone else still using these ? Which models are you running with them ? I’m looking into getting an other 3 and connecting them with those 4xNVLink boards, also looking into pricing for A100 80Gb.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/icepatfork"&gt; /u/icepatfork &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s0fje7"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0pfml/alibaba_confirms_they_are_committed_to/"&gt; &lt;img alt="Alibaba confirms they are committed to continuously open-sourcing new Qwen and Wan models" src="https://preview.redd.it/un4csg5odmqg1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bb330ed84e2ecd4ac6a0406935e425aa2ea955b3" title="Alibaba confirms they are committed to continuously open-sourcing new Qwen and Wan models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://x.com/ModelScope2022/status/2035652120729563290"&gt;https://x.com/ModelScope2022/status/2035652120729563290&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TKGaming_11"&gt; /u/TKGaming_11 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/un4csg5odmqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0pfml/alibaba_confirms_they_are_committed_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0pfml/alibaba_confirms_they_are_committed_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T07:37:27+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0aes8</id>
-    <title>Interesting loop</title>
-    <updated>2026-03-22T02:49:28+00:00</updated>
-    <author>
-      <name>/u/Willing_Reflection57</name>
-      <uri>https://old.reddit.com/user/Willing_Reflection57</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"&gt; &lt;img alt="Interesting loop" src="https://preview.redd.it/syg0d1u6giqg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b91108eb952eb6249f84afa6b8cd089f0f50bd11" title="Interesting loop" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Willing_Reflection57"&gt; /u/Willing_Reflection57 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/syg0d1u6giqg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T02:49:28+00:00</published>
+    <published>2026-03-22T16:02:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1s0aa1y</id>
@@ -268,6 +242,45 @@
     <published>2026-03-22T02:42:56+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s0aes8</id>
+    <title>Interesting loop</title>
+    <updated>2026-03-22T02:49:28+00:00</updated>
+    <author>
+      <name>/u/Willing_Reflection57</name>
+      <uri>https://old.reddit.com/user/Willing_Reflection57</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"&gt; &lt;img alt="Interesting loop" src="https://preview.redd.it/syg0d1u6giqg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b91108eb952eb6249f84afa6b8cd089f0f50bd11" title="Interesting loop" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Willing_Reflection57"&gt; /u/Willing_Reflection57 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/syg0d1u6giqg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0aes8/interesting_loop/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T02:49:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s0fje7</id>
+    <title>Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5</title>
+    <updated>2026-03-22T07:37:27+00:00</updated>
+    <author>
+      <name>/u/icepatfork</name>
+      <uri>https://old.reddit.com/user/icepatfork</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"&gt; &lt;img alt="Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5" src="https://preview.redd.it/8yqwic6kvjqg1.jpg?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=9ba0f6d782ffdba621796163b2fa6fbdac9d4c9a" title="Nvidia V100 32 Gb getting 115 t/s on Qwen Coder 30B A3B Q5" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just got an Nvidia V100 32 Gb mounted on a PCI-Exp GPU kind of card, paid about 500 USD for it (shipping &amp;amp; insurance included) and it’s performing quite well IMO.&lt;/p&gt; &lt;p&gt;Yeah I know there is no more support for it and it’s old, and it’s loud, but it’s hard to beat at that price point. Based on a quick comparaison I’m getting between 20%-100% more token/s than an M3 Ultra, M4 Max (compared with online data) would on the same models, again, not too bad for the price.&lt;/p&gt; &lt;p&gt;Anyone else still using these ? Which models are you running with them ? I’m looking into getting an other 3 and connecting them with those 4xNVLink boards, also looking into pricing for A100 80Gb.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/icepatfork"&gt; /u/icepatfork &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s0fje7"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fje7/nvidia_v100_32_gb_getting_115_ts_on_qwen_coder/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T07:37:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s0fn0e</id>
+    <title>Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-Q4_K_M-GGUF</title>
+    <updated>2026-03-22T07:43:56+00:00</updated>
+    <author>
+      <name>/u/EvilEnginer</name>
+      <uri>https://old.reddit.com/user/EvilEnginer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;em&gt;This is a request merge asked by some people on Reddit and HuggingFace. They don't have powerful GPUs and want to have big context window in uncensored smart local AI.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Base model available here:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Merge with Omnicoder at 1.0 weight available here:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/OmniCoder-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/OmniCoder-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Balanced OmniClaw merge with both creativity and coding capabilities now available:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/OmniClaw-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/OmniClaw-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;OmniClaw contains 0.5 weight of Omnicoder from Tesslate and 0.5 weight of creative writing model from nbeerbower, and 1.0 weight from Base uncensored model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For best model perfomance please use following settings in LM Studio 0.4.7 (build 4):&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Use this System Prompt: &lt;a href="https://pastebin.com/pU25DVnB"&gt;https://pastebin.com/pU25DVnB&lt;/a&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Dataset for System Prompt written by Claude Opus 4.6: &lt;a href="https://pastebin.com/9jcjqCTu"&gt;https://pastebin.com/9jcjqCTu&lt;/a&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Temperature: 0.7&lt;/li&gt; &lt;li&gt;Top K Sampling: 20&lt;/li&gt; &lt;li&gt;Repeat Penalty: (disabled) or 1.0&lt;/li&gt; &lt;li&gt;Presence Penalty: 1.5&lt;/li&gt; &lt;li&gt;Top P Sampling: 0.8&lt;/li&gt; &lt;li&gt;Min P Sampling: 0.0&lt;/li&gt; &lt;li&gt;Seed: 3407&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Finally found a way to merge this amazing model made by Jackrong: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF"&gt;https://huggingface.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;With this uncensored model made by HauhauCS: &lt;a href="https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Omnicoder model from Tesslate: &lt;a href="https://huggingface.co/Tesslate/OmniCoder-9B-GGUF"&gt;https://huggingface.co/Tesslate/OmniCoder-9B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And creative writing model from nbeerbower: &lt;a href="https://huggingface.co/nbeerbower/Qwen3.5-9B-Writing-DPO"&gt;https://huggingface.co/nbeerbower/Qwen3.5-9B-Writing-DPO&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;And preserve all training data and accuracy on Qwen 3.5 9B architecture for weights in tensors via Float32 precision during merging process. I simply pick Q8 quant, dequant it in Float32, merge float32, and re-quantize float32 back to Q4_K_M via llama-quantize binary file from llama.cpp.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Now we have, the smallest, fastest and the smartest uncensored model trained on this dataset: &lt;a href="https://huggingface.co/datasets/Roman1111111/claude-opus-4.6-10000x"&gt;https://huggingface.co/datasets/Roman1111111/claude-opus-4.6-10000x&lt;/a&gt;&lt;/p&gt; &lt;p&gt;On my RTX 3060 I got 42 tokens per second in LM Studio. On, llama-server it can run even more faster.&lt;/p&gt; &lt;p&gt;Enjoy, and share your results ^_^. Don't forget to upvote / repost so more people will test it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EvilEnginer"&gt; /u/EvilEnginer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-22T07:43:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1s0mmsn</id>
     <title>Impressive thread from /r/ChatGPT, where after ChatGPT finds out no 7Zip, tar, py7zr, apt-get, Internet, it just manually parsed and unzipped from hex data of the .7z file. What model + prompts would be able to do this?</title>
     <updated>2026-03-22T14:10:49+00:00</updated>
@@ -279,19 +292,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0mmsn/impressive_thread_from_rchatgpt_where_after/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-22T14:10:49+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0fn0e</id>
-    <title>Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-Q4_K_M-GGUF</title>
-    <updated>2026-03-22T07:43:56+00:00</updated>
-    <author>
-      <name>/u/EvilEnginer</name>
-      <uri>https://old.reddit.com/user/EvilEnginer</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;em&gt;This is a request merge asked by some people on Reddit and HuggingFace. They don't have powerful GPUs and want to have big context window in uncensored smart local AI.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Base model available here:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Merge with Omnicoder at 1.0 weight available here:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/OmniCoder-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/OmniCoder-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Balanced OmniClaw merge with both creativity and coding capabilities now available:&lt;/strong&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/LuffyTheFox/OmniClaw-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF"&gt;https://huggingface.co/LuffyTheFox/OmniClaw-Qwen3.5-9B-Claude-4.6-Opus-Uncensored-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;OmniClaw contains 0.5 weight of Omnicoder from Tesslate and 0.5 weight of creative writing model from nbeerbower, and 1.0 weight from Base uncensored model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For best model perfomance please use following settings in LM Studio 0.4.7 (build 4):&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Use this System Prompt: &lt;a href="https://pastebin.com/pU25DVnB"&gt;https://pastebin.com/pU25DVnB&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Temperature: 0.7&lt;/li&gt; &lt;li&gt;Top K Sampling: 20&lt;/li&gt; &lt;li&gt;Repeat Penalty: (disabled) or 1.0&lt;/li&gt; &lt;li&gt;Presence Penalty: 1.5&lt;/li&gt; &lt;li&gt;Top P Sampling: 0.8&lt;/li&gt; &lt;li&gt;Min P Sampling: 0.0&lt;/li&gt; &lt;li&gt;Seed: 3407&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Finally found a way to merge this amazing model made by Jackrong: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF"&gt;https://huggingface.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;With this uncensored model made by HauhauCS: &lt;a href="https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Omnicoder model from Tesslate: &lt;a href="https://huggingface.co/Tesslate/OmniCoder-9B-GGUF"&gt;https://huggingface.co/Tesslate/OmniCoder-9B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And creative writing model from nbeerbower: &lt;a href="https://huggingface.co/nbeerbower/Qwen3.5-9B-Writing-DPO"&gt;https://huggingface.co/nbeerbower/Qwen3.5-9B-Writing-DPO&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;And preserve all training data and accuracy on Qwen 3.5 9B architecture for weights in tensors via Float32 precision during merging process. I simply pick Q8 quant, dequant it in Float32, merge float32, and re-quantize float32 back to Q4_K_M via llama-quantize binary file from llama.cpp.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Now we have, the smallest, fastest and the smartest uncensored model trained on this dataset: &lt;a href="https://huggingface.co/datasets/Roman1111111/claude-opus-4.6-10000x"&gt;https://huggingface.co/datasets/Roman1111111/claude-opus-4.6-10000x&lt;/a&gt;&lt;/p&gt; &lt;p&gt;On my RTX 3060 I got 42 tokens per second in LM Studio. On, llama-server it can run even more faster.&lt;/p&gt; &lt;p&gt;Enjoy, and share your results ^_^. Don't forget to upvote / repost so more people will test it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EvilEnginer"&gt; /u/EvilEnginer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0fn0e/qwen359bclaude46opusuncensoredv2q4_k_mgguf/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T07:43:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1s0iuxh</id>
