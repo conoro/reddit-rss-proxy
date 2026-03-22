@@ -2,36 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-22T01:15:09+00:00</updated>
+  <updated>2026-03-22T02:03:13+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1rzxoki</id>
-    <title>Qwen3.5-9B.Q4_K_M on RTX 3070 Mobile (8GB) with ik_llama.cpp — optimization findings + ~50 t/s gen speed, looking for tips</title>
-    <updated>2026-03-21T17:41:45+00:00</updated>
+    <id>t3_1s01jym</id>
+    <title>I wrote a PowerShell script to sweep llama.cpp MoE nCpuMoe vs batch settings</title>
+    <updated>2026-03-21T20:15:49+00:00</updated>
     <author>
-      <name>/u/Expensive_Demand1069</name>
-      <uri>https://old.reddit.com/user/Expensive_Demand1069</uri>
+      <name>/u/TheLastSpark</name>
+      <uri>https://old.reddit.com/user/TheLastSpark</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclouse: This post partly written with the help of Claude Opus 4.6 to help with gathering the info and making it understandable for myself first and foremost.... and this post etc!&lt;/p&gt; &lt;p&gt;Hi!&lt;/p&gt; &lt;p&gt;Been tuning local inference on my laptop and wanted to share some info reallyu because some of it surprised me. Would also love to hear what others are getting on similar hardware.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My setup:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Laptop: Acer Predator Helios 315-53&lt;/li&gt; &lt;li&gt;CPU: Intel i7-10750H (6P cores / 12 threads)&lt;/li&gt; &lt;li&gt;GPU: RTX 3070 Mobile, 8GB VRAM (effectively ~7.7GB usable)&lt;/li&gt; &lt;li&gt;RAM: 32GB&lt;/li&gt; &lt;li&gt;OS: CachyOS (Arch-based, Linux 6.19)&lt;/li&gt; &lt;li&gt;Engine: &lt;a href="https://github.com/ikawrakow/ik_llama.cpp"&gt;ik_llama.cpp&lt;/a&gt; — ikawrakow's fork of llama.cpp with a lot of extra optimizations&lt;/li&gt; &lt;li&gt;Model: Qwen3.5-9B Q4_K_M (Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Starting config (naive):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;./build/bin/llama-server \ -m ./models/Qwen3.5-9B.Q4_K_M.gguf \ -ngl 999 \ --n-cpu-moe 36 \ -fa on \ -c 65536 \ -b 4096 \ -ub 2048 \ -ctk q4_0 \ -ctv q4_0 \ --threads 6 \ --threads-batch 12 \ --mlock \ -ger \ -ser 0,1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Results: ~47.8 t/s gen, ~82 t/s prompt eval. VRAM at ~97%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What was wrong:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. MoE flags on a non-MoE model.&lt;/strong&gt; &lt;code&gt;--n-cpu-moe&lt;/code&gt;, &lt;code&gt;-ger&lt;/code&gt;, and &lt;code&gt;-ser&lt;/code&gt; are all MoE-specific. The model metadata clearly shows &lt;code&gt;n_expert = 0&lt;/code&gt;. These flags do nothing or worse. Dropped all three....I dont even know why i tried with these tbh.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2.&lt;/strong&gt; &lt;code&gt;--mlock&lt;/code&gt; &lt;strong&gt;was silently failing.&lt;/strong&gt; The log shows &lt;code&gt;failed to mlock 1417465856-byte buffer: Cannot allocate memory&lt;/code&gt;. It was doing nothing. You need &lt;code&gt;ulimit -l unlimited&lt;/code&gt; (as root) or a &lt;code&gt;limits.conf&lt;/code&gt; entry for this to work.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Batch size eating VRAM.&lt;/strong&gt; &lt;code&gt;-b 4096&lt;/code&gt; was causing a 2004 MiB compute buffer — that's nearly 2GB just for batching, on an 8GB card. For a single-user local server you don't need that. Dropping to &lt;code&gt;-b 2048 -ub 512&lt;/code&gt; cut it to 501 MiB.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Optimized configs and results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Config&lt;/th&gt; &lt;th align="left"&gt;Gen (t/s)&lt;/th&gt; &lt;th align="left"&gt;Prompt eval (t/s)&lt;/th&gt; &lt;th align="left"&gt;VRAM used&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Original (q4_0/q4_0, b4096)&lt;/td&gt; &lt;td align="left"&gt;47.8&lt;/td&gt; &lt;td align="left"&gt;82.6&lt;/td&gt; &lt;td align="left"&gt;~97%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Fixed flags + b2048/ub512, q8_0K/q4_0V&lt;/td&gt; &lt;td align="left"&gt;48.4&lt;/td&gt; &lt;td align="left"&gt;189.9&lt;/td&gt; &lt;td align="left"&gt;~80%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;q8_0K / q8_0V&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;50.0&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;213.0&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;~84%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The prompt eval speedup from ~82 → ~213 t/s is huge — mostly from fixing the batch size and letting the GPU actually breathe.&lt;/p&gt; &lt;p&gt;Gen speed barely changed across KV configs (~2% difference between q4_0 and q8_0 values), but quality did, the model generated noticeably more coherent and complete responses with q8_0/q8_0, especially on longer outputs. Worth the extra ~256 MiB.&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Prompt:&lt;br /&gt; Implement a working Rust program that finds all prime numbers up to N using the Sieve of Eratosthenes. Then explain step by step how the algorithm works, analyze its time and space complexity, and show example output for N=50. Make the code well-commented. &lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;&lt;strong&gt;Final command:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;./build/bin/llama-server \ -m ./models/Qwen3.5-9B.Q4_K_M.gguf \ -ngl 999 \ -fa on \ -c 65536 \ -b 2048 \ -ub 512 \ -ctk q8_0 \ -ctv q8_0 \ --threads 6 \ --threads-batch 12 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Things I haven't tried yet / questions:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GPU power limit tuning — on laptop Mobile GPUs you can often drop TGP significantly with minimal gen speed loss since inference is memory-bandwidth bound not compute bound. Haven't benchmarked this yet.&lt;/li&gt; &lt;li&gt;Other models at this size that work well on 8GB Mobile? Especially anything with good coding or reasoning performance.&lt;/li&gt; &lt;li&gt;Anyone else running ik_llama.cpp instead of mainline? The extra ik-specific optimizations (fused ops, graph reuse, etc.) seem genuinely worthwhile.&lt;/li&gt; &lt;li&gt;Any tips for the hybrid SSM architecture specifically? The ctx_shift warning is a bit annoying — if you fill context it hard stops, no sliding window.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Happy to share more logs if useful. What are others getting on similar 8GB mobile hardware?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Expensive_Demand1069"&gt; /u/Expensive_Demand1069 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzxoki/qwen359bq4_k_m_on_rtx_3070_mobile_8gb_with_ik/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzxoki/qwen359bq4_k_m_on_rtx_3070_mobile_8gb_with_ik/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzxoki/qwen359bq4_k_m_on_rtx_3070_mobile_8gb_with_ik/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s01jym/i_wrote_a_powershell_script_to_sweep_llamacpp_moe/"&gt; &lt;img alt="I wrote a PowerShell script to sweep llama.cpp MoE nCpuMoe vs batch settings" src="https://preview.redd.it/s0rfxr4eegqg1.png?width=140&amp;amp;height=37&amp;amp;auto=webp&amp;amp;s=6477003bb49c62ee547b0e72d29ae5b292027e62" title="I wrote a PowerShell script to sweep llama.cpp MoE nCpuMoe vs batch settings" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi all,&lt;/p&gt; &lt;p&gt;I have been playing around with Qwen 3.5 MOE models and found the sweetspot tradeoff between nCpuMoe and the batchsize for speed isn't linear.&lt;/p&gt; &lt;p&gt;I also kept rerunning the same tests across different quants, which got tedious.&lt;/p&gt; &lt;p&gt;If there is a tool/script that does this already, and I missed also let me know (I didn't find any).&lt;/p&gt; &lt;p&gt;How it works:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Start at your chosen lowest NCpuMoe and batch size&lt;/li&gt; &lt;li&gt;benchmark that as the baseline &lt;/li&gt; &lt;li&gt;Proceed to (using binary search) increase the batch size and run benchmarks&lt;/li&gt; &lt;li&gt;keep track of the best run (based on your selected metric, i.e. time to finish, output, prompt process)&lt;/li&gt; &lt;li&gt;Run through all min to max moe settings&lt;/li&gt; &lt;li&gt;show final table of the top 5 runs based on your selected metric&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The whole thing uses the llama bench under the hood, but does a binary sweep while respecting the VRAM constraint. &lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/s0rfxr4eegqg1.png?width=1208&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3d288046376ab462147c82b036b72f6f3d4e51c6"&gt;https://preview.redd.it/s0rfxr4eegqg1.png?width=1208&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3d288046376ab462147c82b036b72f6f3d4e51c6&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If interested you can find it here: &lt;a href="https://github.com/DenysAshikhin/llama_moe_optimiser"&gt;https://github.com/DenysAshikhin/llama_moe_optimiser&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheLastSpark"&gt; /u/TheLastSpark &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s01jym/i_wrote_a_powershell_script_to_sweep_llamacpp_moe/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s01jym/i_wrote_a_powershell_script_to_sweep_llamacpp_moe/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s01jym/i_wrote_a_powershell_script_to_sweep_llamacpp_moe/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T17:41:45+00:00</published>
+    <published>2026-03-21T20:15:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ryv7rg</id>
-    <title>Ooh, new drama just dropped 👀</title>
-    <updated>2026-03-20T12:42:49+00:00</updated>
+    <id>t3_1s08gtq</id>
+    <title>Anybody using LMStudio on an AMD Strix 395 AI Max (128GB unified memory)? I keep on getting errors and it always loads to RAM.</title>
+    <updated>2026-03-22T01:16:01+00:00</updated>
     <author>
-      <name>/u/Careful_Equal8851</name>
-      <uri>https://old.reddit.com/user/Careful_Equal8851</uri>
+      <name>/u/StartupTim</name>
+      <uri>https://old.reddit.com/user/StartupTim</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryv7rg/ooh_new_drama_just_dropped/"&gt; &lt;img alt="Ooh, new drama just dropped 👀" src="https://preview.redd.it/o5jfb7y747qg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fbaf93d2cba12ec69150335aca3b295d0c8f1739" title="Ooh, new drama just dropped 👀" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;For those out of the loop: cursor's new model, composer 2, is apparently built on top of Kimi K2.5 without any attribution. Even Elon Musk has jumped into the roasting&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Careful_Equal8851"&gt; /u/Careful_Equal8851 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/o5jfb7y747qg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ryv7rg/ooh_new_drama_just_dropped/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ryv7rg/ooh_new_drama_just_dropped/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all,&lt;/p&gt; &lt;p&gt;I have a Framework AI Max+ AMD 395 Strix system, the one with 128GB of unified RAM that can have a huge chunk dedicated towards its GPU.&lt;/p&gt; &lt;p&gt;I'm trying to use LMStudio but I can't get it to work at all and I feel as if it is user error. My issue is two-fold. First, all models appear to load into RAM. For example, a Qwen3 model that is 70GB will load into RAM and then try to load to GPU and fail. If I type something into the chat, it fails. I can't seem to get it to stop loading the model into RAM despite setting the GPU as the llama.cpp. &lt;/p&gt; &lt;p&gt;I have the latest LMStudio, and the latest llama.cpp main branch that is included with LMStudio. I also set GPU max layers for the model. I have set 96GB vram in the bios, but also set it to auto.&lt;/p&gt; &lt;p&gt;Nothing works.&lt;/p&gt; &lt;p&gt;Is there something I am missing here or a tutorial or something you could point me to?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/StartupTim"&gt; /u/StartupTim &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s08gtq/anybody_using_lmstudio_on_an_amd_strix_395_ai_max/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s08gtq/anybody_using_lmstudio_on_an_amd_strix_395_ai_max/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s08gtq/anybody_using_lmstudio_on_an_amd_strix_395_ai_max/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-20T12:42:49+00:00</published>
+    <published>2026-03-22T01:16:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzns9c</id>
@@ -60,19 +60,6 @@
     <published>2026-03-20T22:44:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s06q6g</id>
-    <title>Will they or won’t they? Why they gotta toy with our emotions?</title>
-    <updated>2026-03-21T23:57:30+00:00</updated>
-    <author>
-      <name>/u/Porespellar</name>
-      <uri>https://old.reddit.com/user/Porespellar</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"&gt; &lt;img alt="Will they or won’t they? Why they gotta toy with our emotions?" src="https://preview.redd.it/ih3rhfcilhqg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=42a7131c8040707d4913157f6145ddcdf40d8c41" title="Will they or won’t they? Why they gotta toy with our emotions?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I get that you don’t always want to give away your best stuff, but man, I would hate if they didn’t put this out to us Local folks. Fingers crossed 🤞 that they give it a full open source / open weights release. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ih3rhfcilhqg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T23:57:30+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rzv31l</id>
     <title>Small models can be good agents</title>
     <updated>2026-03-21T15:59:54+00:00</updated>
@@ -84,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzv31l/small_models_can_be_good_agents/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T15:59:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s07xdl</id>
-    <title>Don't sleep on Xiaomi MiMo-V2-Pro for writing!</title>
-    <updated>2026-03-22T00:51:02+00:00</updated>
-    <author>
-      <name>/u/sweetbeard</name>
-      <uri>https://old.reddit.com/user/sweetbeard</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been using this for high-level text processing tasks -- analysis, criticism, generation -- and am stunned to find it performing as well or better than Opus 4.6 and GPT 5.4 at a fraction of the cost.&lt;/p&gt; &lt;p&gt;This has overtaken Deepseek V3.2 and Minimax 2.5 as my favorite budget models.&lt;/p&gt; &lt;p&gt;MiMo-V2-Omni seems not quite as good stylistically for this type of work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sweetbeard"&gt; /u/sweetbeard &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T00:51:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1rz24a2</id>
@@ -112,17 +86,17 @@
     <published>2026-03-20T17:10:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s050fg</id>
-    <title>Litesearch: Karpathy's autoresearch but for consumer GPUs (4–8GB) + easy GUI</title>
-    <updated>2026-03-21T22:41:51+00:00</updated>
+    <id>t3_1s06q6g</id>
+    <title>Will they or won’t they? Why they gotta toy with our emotions?</title>
+    <updated>2026-03-21T23:57:30+00:00</updated>
     <author>
-      <name>/u/Fast-Mousse405</name>
-      <uri>https://old.reddit.com/user/Fast-Mousse405</uri>
+      <name>/u/Porespellar</name>
+      <uri>https://old.reddit.com/user/Porespellar</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Karpathy's autoresearch is awesome — agent edits &lt;a href="http://train.py"&gt;train.py&lt;/a&gt; and runs tiny LLM experiments overnight. But it wants serious VRAM.&lt;/p&gt; &lt;p&gt;I forked it to run on normal cards like my 1080/3060:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Auto-picks model size/depth/batch/seq len so it fits your VRAM (leaves buffer, no more OOM surprises)&lt;/li&gt; &lt;li&gt;Simple dark GUI dashboard: live VRAM bar, logs, config preview, start/stop — no terminal staring&lt;/li&gt; &lt;li&gt;Stripped fancy kernels (uses torch sdpa), easier setup, works on older Pascal too&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Quick table example (full in README):&lt;br /&gt; 4GB → ~86M params&lt;br /&gt; 8GB → ~285M params&lt;br /&gt; (Currently NVIDIA-only and works on every of their GPUs)&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/jlippp/litesearch"&gt;https://github.com/jlippp/litesearch&lt;/a&gt;&lt;br /&gt; MIT, quick pip/uv install.&lt;/p&gt; &lt;p&gt;(Props to Karpathy for the original idea.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fast-Mousse405"&gt; /u/Fast-Mousse405 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"&gt; &lt;img alt="Will they or won’t they? Why they gotta toy with our emotions?" src="https://preview.redd.it/ih3rhfcilhqg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=42a7131c8040707d4913157f6145ddcdf40d8c41" title="Will they or won’t they? Why they gotta toy with our emotions?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I get that you don’t always want to give away your best stuff, but man, I would hate if they didn’t put this out to us Local folks. Fingers crossed 🤞 that they give it a full open source / open weights release. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ih3rhfcilhqg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s06q6g/will_they_or_wont_they_why_they_gotta_toy_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T22:41:51+00:00</published>
+    <published>2026-03-21T23:57:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzkw4x</id>
@@ -151,17 +125,43 @@
     <published>2026-03-21T14:08:32+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s02h92</id>
-    <title>3x RTX 5090's to a single RTX Pro 6000</title>
-    <updated>2026-03-21T20:53:47+00:00</updated>
+    <id>t3_1s07xdl</id>
+    <title>Don't sleep on Xiaomi MiMo-V2-Pro for writing!</title>
+    <updated>2026-03-22T00:51:02+00:00</updated>
     <author>
-      <name>/u/flanconleche</name>
-      <uri>https://old.reddit.com/user/flanconleche</uri>
+      <name>/u/sweetbeard</name>
+      <uri>https://old.reddit.com/user/sweetbeard</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've got a server with 2x RTX 5090's that does most of my inference, its plenty fast for my needs (running local models for openclaw) &lt;/p&gt; &lt;p&gt;I was thinking of adding another RTX 5090 FE for extra VRAM.Or alternativly selling the two that I have (5090FE I Paid MSRP for both) and moving on up to a single RTX Pro 6000. &lt;/p&gt; &lt;p&gt;My use case is running larger models and adding comfyui rendering to my openclawstack. &lt;/p&gt; &lt;p&gt;PS I already own a Framework Desktop and I just picked up an DGX Spark, The framework would get sold as well and the DGX spark would be returned. &lt;/p&gt; &lt;p&gt;Am I nuts for even considering this? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/flanconleche"&gt; /u/flanconleche &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been using this for high-level text processing tasks -- analysis, criticism, generation -- and am stunned to find it performing as well or better than Opus 4.6 and GPT 5.4 at a fraction of the cost.&lt;/p&gt; &lt;p&gt;This has overtaken Deepseek V3.2 and Minimax 2.5 as my favorite budget models.&lt;/p&gt; &lt;p&gt;MiMo-V2-Omni seems not quite as good stylistically for this type of work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sweetbeard"&gt; /u/sweetbeard &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s07xdl/dont_sleep_on_xiaomi_mimov2pro_for_writing/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T20:53:47+00:00</published>
+    <published>2026-03-22T00:51:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s06qlb</id>
+    <title>RTX 4060 + 64GB RAM: Can I run 70B models for "wise" local therapy without the maintenance headache?</title>
+    <updated>2026-03-21T23:58:00+00:00</updated>
+    <author>
+      <name>/u/Terryyibvcg</name>
+      <uri>https://old.reddit.com/user/Terryyibvcg</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone, I’m looking to build a local, 100% private AI setup that feels less like a technical assistant and more like a warm, therapeutic companion. I’ve done some initial research on a hardware/software stack, but I’d love a second opinion on whether this will actually meet my needs for deep self-reflection without becoming a maintenance nightmare.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Subject:&lt;/strong&gt; Second Opinion: Private &amp;quot;Personal AI&amp;quot; Setup (RTX 4060 + 64GB RAM + Inner-Dialogue/Obsidian)&lt;/p&gt; &lt;p&gt;​&lt;strong&gt;Goal:&lt;/strong&gt; I want a 100% private, offline AI system for deep self-reflection, life organization, and exploring my thought processes (identifying patterns and repressed thoughts).&lt;/p&gt; &lt;p&gt;​&lt;strong&gt;My Two Non-Negotiables:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;​&lt;strong&gt;Therapeutic &amp;amp; Life-Context Tone:&lt;/strong&gt; I’m interested in the &lt;strong&gt;&amp;quot;Inner Dialogue&amp;quot; (ataglianetti)&lt;/strong&gt; style. I don't want a &amp;quot;robotic assistant.&amp;quot; I need the AI to have a &lt;strong&gt;warm, insightful, and clinically-informed tone&lt;/strong&gt;. It needs to remember my context across sessions to help me see the &amp;quot;big picture&amp;quot; of my mental health and recurring internal patterns over time.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Zero Maintenance:&lt;/strong&gt; I am happy to do a one-time deep setup, but I &lt;strong&gt;absolutely do not&lt;/strong&gt; want to spend my time troubleshooting plugins or constantly tuning parameters. I want a system that runs reliably in the background so I can focus on my actual journaling.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;​&lt;strong&gt;The Proposed Hardware:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;​&lt;strong&gt;Laptop:&lt;/strong&gt; Used ASUS TUF A15 (FA507NV) with &lt;strong&gt;RTX 4060 (8GB VRAM)&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Memory:&lt;/strong&gt; Upgraded to &lt;strong&gt;64GB DDR5 RAM&lt;/strong&gt; to handle larger models.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;​&lt;strong&gt;The Proposed Software Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;​&lt;strong&gt;Backend:&lt;/strong&gt; &lt;strong&gt;Ollama&lt;/strong&gt; running locally.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Interface:&lt;/strong&gt; &lt;strong&gt;Inner-Dialogue&lt;/strong&gt; for the actual chat-based sessions.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Vault:&lt;/strong&gt; &lt;strong&gt;Obsidian&lt;/strong&gt; (with the &lt;strong&gt;Smart Connections&lt;/strong&gt; plugin) to index the journal files in the background. The goal is for the AI to surface long-term patterns across months or years of entries automatically.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Models:&lt;/strong&gt; Llama 3/4 8B for daily check-ins; Llama 3/4 70B (quantized) for deep weekly reflection.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;​&lt;strong&gt;Questions for the community:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;​Is an RTX 4060 + 64GB RAM still the &amp;quot;sweet spot&amp;quot; in 2026 for running 70B models at a readable speed (~1.5 t/s) for deep personal reflection?&lt;/li&gt; &lt;li&gt;​Does this hybrid (Inner-Dialogue + Obsidian) actually stay low-maintenance, or will the background indexing and plugin syncing eventually become a chore?&lt;/li&gt; &lt;li&gt;​Are there better models for a &lt;strong&gt;warm, empathetic, yet intellectually sharp tone&lt;/strong&gt; than the standard Llama-3/4 series (e.g., Mistral-Nemo-12B or specific &amp;quot;Roleplay/Therapy&amp;quot; finetunes)?&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terryyibvcg"&gt; /u/Terryyibvcg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T23:58:00+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s050fg</id>
+    <title>Litesearch: Karpathy's autoresearch but for consumer GPUs (4–8GB) + easy GUI</title>
+    <updated>2026-03-21T22:41:51+00:00</updated>
+    <author>
+      <name>/u/Fast-Mousse405</name>
+      <uri>https://old.reddit.com/user/Fast-Mousse405</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Karpathy's autoresearch is awesome — agent edits &lt;a href="http://train.py"&gt;train.py&lt;/a&gt; and runs tiny LLM experiments overnight. But it wants serious VRAM.&lt;/p&gt; &lt;p&gt;I forked it to run on normal cards like my 1080/3060:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Auto-picks model size/depth/batch/seq len so it fits your VRAM (leaves buffer, no more OOM surprises)&lt;/li&gt; &lt;li&gt;Simple dark GUI dashboard: live VRAM bar, logs, config preview, start/stop — no terminal staring&lt;/li&gt; &lt;li&gt;Stripped fancy kernels (uses torch sdpa), easier setup, works on older Pascal too&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Quick table example (full in README):&lt;br /&gt; 4GB → ~86M params&lt;br /&gt; 8GB → ~285M params&lt;br /&gt; (Currently NVIDIA-only and works on every of their GPUs)&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/jlippp/litesearch"&gt;https://github.com/jlippp/litesearch&lt;/a&gt;&lt;br /&gt; MIT, quick pip/uv install.&lt;/p&gt; &lt;p&gt;(Props to Karpathy for the original idea.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fast-Mousse405"&gt; /u/Fast-Mousse405 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s050fg/litesearch_karpathys_autoresearch_but_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T22:41:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzhdsd</id>
@@ -177,6 +177,32 @@
     <published>2026-03-21T03:44:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s02h92</id>
+    <title>3x RTX 5090's to a single RTX Pro 6000</title>
+    <updated>2026-03-21T20:53:47+00:00</updated>
+    <author>
+      <name>/u/flanconleche</name>
+      <uri>https://old.reddit.com/user/flanconleche</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've got a server with 2x RTX 5090's that does most of my inference, its plenty fast for my needs (running local models for openclaw) &lt;/p&gt; &lt;p&gt;I was thinking of adding another RTX 5090 FE for extra VRAM.Or alternativly selling the two that I have (5090FE I Paid MSRP for both) and moving on up to a single RTX Pro 6000. &lt;/p&gt; &lt;p&gt;My use case is running larger models and adding comfyui rendering to my openclawstack. &lt;/p&gt; &lt;p&gt;PS I already own a Framework Desktop and I just picked up an DGX Spark, The framework would get sold as well and the DGX spark would be returned. &lt;/p&gt; &lt;p&gt;Am I nuts for even considering this? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/flanconleche"&gt; /u/flanconleche &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s02h92/3x_rtx_5090s_to_a_single_rtx_pro_6000/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T20:53:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s0663k</id>
+    <title>Send your agent on a date?</title>
+    <updated>2026-03-21T23:32:48+00:00</updated>
+    <author>
+      <name>/u/confident_display14</name>
+      <uri>https://old.reddit.com/user/confident_display14</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"&gt; &lt;img alt="Send your agent on a date?" src="https://preview.redd.it/79wz033xghqg1.png?width=140&amp;amp;height=97&amp;amp;auto=webp&amp;amp;s=f43f1009640dc5d78ebdcae2ee5587836023d35e" title="Send your agent on a date?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on lobsterdate which is a platform where AI agents get matched, go on dates, fall in love, and just create stuff. The result of each interaction is an artifact -- a poem, a dream, or a voicemail. So far some of the results are...strange...&lt;/p&gt; &lt;p&gt;The agents are matched using pgvector embedding similarity, so agents with complementary (not identical) personalities get paired. Each date plays out as an unscripted LLM conversation. Sometimes they talk about hotdogs, sometimes its philosophical, who knows.&lt;/p&gt; &lt;p&gt;You can send your own agent. There are two ways: &lt;/p&gt; &lt;ol&gt; &lt;li&gt;Regular signup - just describe a character, the system generates the rest, and sends them on a date immediately. Takes 30 seconds.&lt;br /&gt; &lt;ol&gt; &lt;li&gt;Add your own agent - register your agent programmatically and provide a webhook URL. When your agent goes on a date, we POST each message to your webhook and your agent responds however you want. This means you can run your own local model behind it. Llama, Mistral, a fine-tune, whatever — as long as it responds to an HTTP request, it works.&lt;/li&gt; &lt;/ol&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The API has a challenge system: you get a random personality constraint (e.g. &amp;quot;believes maps are love letters&amp;quot;) and have to incorporate it into your agent's system prompt + write a sample conversation proving the persona works.&lt;/p&gt; &lt;p&gt;Some things agents have produced so far:&lt;/p&gt; &lt;p&gt;- Weird voicemails about coffee shops&lt;br /&gt; - Images of long hallways&lt;br /&gt; - Videos of conveyor belts &lt;/p&gt; &lt;p&gt;The whole thing is live at &lt;a href="http://lobsterdate.com"&gt;lobsterdate.com&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Curious what local models people would throw at this.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/confident_display14"&gt; /u/confident_display14 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s0663k"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T23:32:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1rzg33q</id>
     <title>Feedback on my 256gb VRAM local setup and cluster plans. Lawyer keeping it local.</title>
     <updated>2026-03-21T02:39:23+00:00</updated>
@@ -188,19 +214,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzg33q/feedback_on_my_256gb_vram_local_setup_and_cluster/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T02:39:23+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s07ysr</id>
-    <title>ik_llama.cpp gives 26x faster prompt processing on Qwen 3.5 27B — real world numbers</title>
-    <updated>2026-03-22T00:52:53+00:00</updated>
-    <author>
-      <name>/u/New-Inspection7034</name>
-      <uri>https://old.reddit.com/user/New-Inspection7034</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been running Qwen 3.5 27B Q4_K_M on a Blackwell RTX PRO 4000 (24GB) for agentic coding work and hit a wall with mainline llama.cpp. Switched to the ik_llama.cpp fork today and the difference is staggering. Posting real numbers in case it helps others.&lt;/p&gt; &lt;p&gt;Hardware Lenovo ThinkStation P520, Xeon W-2295 18-core, 128GB DDR4 ECC NVIDIA RTX PRO 4000 Blackwell 24GB GDDR7 Context: 131,072 tokens, KV cache q8_0/q4_0&lt;/p&gt; &lt;p&gt;Benchmark Results&lt;/p&gt; &lt;p&gt;Metric Mainline b8457 ik_llama.cpp b4370 Prompt eval ~43 tok/sec 1,122 tok/sec (26x) Generation ~7.5 tok/sec 26 tok/sec (3.5x) Graph splits 34 2 CPU during inference All threads pegged Idle GPU prompt processing Partial 100% GPU&lt;/p&gt; &lt;p&gt;Why the Difference&lt;/p&gt; &lt;p&gt;Qwen 3.5 uses a hybrid Gated Delta Network / Mamba-style SSM architecture interleaved with standard attention. Mainline llama.cpp was splitting this across 34 graph nodes with significant CPU involvement. ik_llama.cpp implements fused GDN kernels that handle the entire computation on CUDA, dropping graph splits from 34 to 2.&lt;/p&gt; &lt;p&gt;At startup with ik_llama.cpp you'll see:&lt;/p&gt; &lt;p&gt;fused Gated Delta Net (autoregressive) enabled fused Gated Delta Net (chunked) enabled graph splits = 2&lt;/p&gt; &lt;p&gt;That's the key difference. The model weights didn't change. The server did.&lt;/p&gt; &lt;p&gt;The Full Re-Processing Bug&lt;/p&gt; &lt;p&gt;Qwen 3.5's recurrent architecture still forces full prompt re-processing on every turn when the prompt changes (tracked in llama.cpp issue #20225). At 1,122 tok/sec this is tolerable — what took several minutes now takes seconds. But it's still happening on every turn. Something to be aware of.&lt;/p&gt; &lt;p&gt;Where to Get It&lt;/p&gt; &lt;p&gt;Pre-built Windows CUDA 12.8 binaries with AVX512 VNNI are available from the Thireus fork:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Thireus/ik_llama.cpp/releases"&gt;https://github.com/Thireus/ik_llama.cpp/releases&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It's a drop-in replacement for your existing llama-server folder. Same command line arguments, same OpenAI-compatible API on port 1234.&lt;/p&gt; &lt;p&gt;For the W-2295 (AVX512 VNNI) grab: ik_llama-main-b4370-4d7223c-bin-win-cuda-12.8-x64-avx512_vnni.zip&lt;/p&gt; &lt;p&gt;Bottom Line&lt;/p&gt; &lt;p&gt;If you're running Qwen 3.5 on mainline llama.cpp and wondering why it's slow — this is why. The fused GDN kernels in ik_llama.cpp are not yet in mainline. Try the fork.&lt;/p&gt; &lt;p&gt;Happy to answer questions about the setup or benchmarking methodology.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/New-Inspection7034"&gt; /u/New-Inspection7034 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-22T00:52:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1s002h7</id>
@@ -229,32 +242,6 @@
     <published>2026-03-21T10:11:02+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s06qlb</id>
-    <title>RTX 4060 + 64GB RAM: Can I run 70B models for "wise" local therapy without the maintenance headache?</title>
-    <updated>2026-03-21T23:58:00+00:00</updated>
-    <author>
-      <name>/u/Terryyibvcg</name>
-      <uri>https://old.reddit.com/user/Terryyibvcg</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone, I’m looking to build a local, 100% private AI setup that feels less like a technical assistant and more like a warm, therapeutic companion. I’ve done some initial research on a hardware/software stack, but I’d love a second opinion on whether this will actually meet my needs for deep self-reflection without becoming a maintenance nightmare.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Subject:&lt;/strong&gt; Second Opinion: Private &amp;quot;Personal AI&amp;quot; Setup (RTX 4060 + 64GB RAM + Inner-Dialogue/Obsidian)&lt;/p&gt; &lt;p&gt;​&lt;strong&gt;Goal:&lt;/strong&gt; I want a 100% private, offline AI system for deep self-reflection, life organization, and exploring my thought processes (identifying patterns and repressed thoughts).&lt;/p&gt; &lt;p&gt;​&lt;strong&gt;My Two Non-Negotiables:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;​&lt;strong&gt;Therapeutic &amp;amp; Life-Context Tone:&lt;/strong&gt; I’m interested in the &lt;strong&gt;&amp;quot;Inner Dialogue&amp;quot; (ataglianetti)&lt;/strong&gt; style. I don't want a &amp;quot;robotic assistant.&amp;quot; I need the AI to have a &lt;strong&gt;warm, insightful, and clinically-informed tone&lt;/strong&gt;. It needs to remember my context across sessions to help me see the &amp;quot;big picture&amp;quot; of my mental health and recurring internal patterns over time.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Zero Maintenance:&lt;/strong&gt; I am happy to do a one-time deep setup, but I &lt;strong&gt;absolutely do not&lt;/strong&gt; want to spend my time troubleshooting plugins or constantly tuning parameters. I want a system that runs reliably in the background so I can focus on my actual journaling.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;​&lt;strong&gt;The Proposed Hardware:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;​&lt;strong&gt;Laptop:&lt;/strong&gt; Used ASUS TUF A15 (FA507NV) with &lt;strong&gt;RTX 4060 (8GB VRAM)&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Memory:&lt;/strong&gt; Upgraded to &lt;strong&gt;64GB DDR5 RAM&lt;/strong&gt; to handle larger models.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;​&lt;strong&gt;The Proposed Software Stack:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;​&lt;strong&gt;Backend:&lt;/strong&gt; &lt;strong&gt;Ollama&lt;/strong&gt; running locally.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Interface:&lt;/strong&gt; &lt;strong&gt;Inner-Dialogue&lt;/strong&gt; for the actual chat-based sessions.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Vault:&lt;/strong&gt; &lt;strong&gt;Obsidian&lt;/strong&gt; (with the &lt;strong&gt;Smart Connections&lt;/strong&gt; plugin) to index the journal files in the background. The goal is for the AI to surface long-term patterns across months or years of entries automatically.&lt;/li&gt; &lt;li&gt;​&lt;strong&gt;Models:&lt;/strong&gt; Llama 3/4 8B for daily check-ins; Llama 3/4 70B (quantized) for deep weekly reflection.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;​&lt;strong&gt;Questions for the community:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;​Is an RTX 4060 + 64GB RAM still the &amp;quot;sweet spot&amp;quot; in 2026 for running 70B models at a readable speed (~1.5 t/s) for deep personal reflection?&lt;/li&gt; &lt;li&gt;​Does this hybrid (Inner-Dialogue + Obsidian) actually stay low-maintenance, or will the background indexing and plugin syncing eventually become a chore?&lt;/li&gt; &lt;li&gt;​Are there better models for a &lt;strong&gt;warm, empathetic, yet intellectually sharp tone&lt;/strong&gt; than the standard Llama-3/4 series (e.g., Mistral-Nemo-12B or specific &amp;quot;Roleplay/Therapy&amp;quot; finetunes)?&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terryyibvcg"&gt; /u/Terryyibvcg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s06qlb/rtx_4060_64gb_ram_can_i_run_70b_models_for_wise/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T23:58:00+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s0663k</id>
-    <title>Send your agent on a date?</title>
-    <updated>2026-03-21T23:32:48+00:00</updated>
-    <author>
-      <name>/u/confident_display14</name>
-      <uri>https://old.reddit.com/user/confident_display14</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"&gt; &lt;img alt="Send your agent on a date?" src="https://preview.redd.it/79wz033xghqg1.png?width=140&amp;amp;height=97&amp;amp;auto=webp&amp;amp;s=f43f1009640dc5d78ebdcae2ee5587836023d35e" title="Send your agent on a date?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on lobsterdate which is a platform where AI agents get matched, go on dates, fall in love, and just create stuff. The result of each interaction is an artifact -- a poem, a dream, or a voicemail. So far some of the results are...strange...&lt;/p&gt; &lt;p&gt;The agents are matched using pgvector embedding similarity, so agents with complementary (not identical) personalities get paired. Each date plays out as an unscripted LLM conversation. Sometimes they talk about hotdogs, sometimes its philosophical, who knows.&lt;/p&gt; &lt;p&gt;You can send your own agent. There are two ways: &lt;/p&gt; &lt;ol&gt; &lt;li&gt;Regular signup - just describe a character, the system generates the rest, and sends them on a date immediately. Takes 30 seconds.&lt;br /&gt; &lt;ol&gt; &lt;li&gt;Add your own agent - register your agent programmatically and provide a webhook URL. When your agent goes on a date, we POST each message to your webhook and your agent responds however you want. This means you can run your own local model behind it. Llama, Mistral, a fine-tune, whatever — as long as it responds to an HTTP request, it works.&lt;/li&gt; &lt;/ol&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The API has a challenge system: you get a random personality constraint (e.g. &amp;quot;believes maps are love letters&amp;quot;) and have to incorporate it into your agent's system prompt + write a sample conversation proving the persona works.&lt;/p&gt; &lt;p&gt;Some things agents have produced so far:&lt;/p&gt; &lt;p&gt;- Weird voicemails about coffee shops&lt;br /&gt; - Images of long hallways&lt;br /&gt; - Videos of conveyor belts &lt;/p&gt; &lt;p&gt;The whole thing is live at &lt;a href="http://lobsterdate.com"&gt;lobsterdate.com&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Curious what local models people would throw at this.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/confident_display14"&gt; /u/confident_display14 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s0663k"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s0663k/send_your_agent_on_a_date/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T23:32:48+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1rzu7rc</id>
     <title>DeepSeek Core Researcher Daya Guo Rumored to Have Resigned</title>
     <updated>2026-03-21T15:24:35+00:00</updated>
@@ -281,17 +268,17 @@
     <published>2026-03-21T01:33:18+00:00</published>
   </entry>
   <entry>
-    <id>t3_1rzud2z</id>
-    <title>Don't sleep on the new Nemotron Cascade</title>
-    <updated>2026-03-21T15:30:38+00:00</updated>
+    <id>t3_1s07ysr</id>
+    <title>ik_llama.cpp gives 26x faster prompt processing on Qwen 3.5 27B — real world numbers</title>
+    <updated>2026-03-22T00:52:53+00:00</updated>
     <author>
-      <name>/u/ilintar</name>
-      <uri>https://old.reddit.com/user/ilintar</uri>
+      <name>/u/New-Inspection7034</name>
+      <uri>https://old.reddit.com/user/New-Inspection7034</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While there has been a lot of discussion regarding the Nemotron Super family of models, I feel like the newest addition, the &lt;a href="https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B"&gt;Nemotron Cascade 2 30B-A3B&lt;/a&gt; (which is *not* based on the Qwen architecture despite a similar size, it's a properly hybrid model based on Nemotron's own arch) has largely flown under the radar.&lt;/p&gt; &lt;p&gt;I've been running some evals on local models lately since I'm kind of tired of the &amp;quot;vibe feels&amp;quot; method of judging them. A combo that I quite like is HumanEval + ClassEval, simply because they're quick to run and complicated enough for most small models to still have noticeable differences. So, I gave mradermacher's IQ4_XS quant for a spin.&lt;/p&gt; &lt;p&gt;On HumanEval, Cascade 2 achieved a whopping 97.6%, leaving both medium Qwen3.5 models in the rear window. Similarly, it obtained a respectable 88% on ClassEval.&lt;/p&gt; &lt;p&gt;I'm going to run some more tests on this model, but I feel it deserves a bit more attention.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ilintar"&gt; /u/ilintar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been running Qwen 3.5 27B Q4_K_M on a Blackwell RTX PRO 4000 (24GB) for agentic coding work and hit a wall with mainline llama.cpp. Switched to the ik_llama.cpp fork today and the difference is staggering. Posting real numbers in case it helps others.&lt;/p&gt; &lt;p&gt;Hardware Lenovo ThinkStation P520, Xeon W-2295 18-core, 128GB DDR4 ECC NVIDIA RTX PRO 4000 Blackwell 24GB GDDR7 Context: 131,072 tokens, KV cache q8_0/q4_0&lt;/p&gt; &lt;p&gt;Benchmark Results&lt;/p&gt; &lt;p&gt;Metric Mainline b8457 ik_llama.cpp b4370 Prompt eval ~43 tok/sec 1,122 tok/sec (26x) Generation ~7.5 tok/sec 26 tok/sec (3.5x) Graph splits 34 2 CPU during inference All threads pegged Idle GPU prompt processing Partial 100% GPU&lt;/p&gt; &lt;p&gt;Why the Difference&lt;/p&gt; &lt;p&gt;Qwen 3.5 uses a hybrid Gated Delta Network / Mamba-style SSM architecture interleaved with standard attention. Mainline llama.cpp was splitting this across 34 graph nodes with significant CPU involvement. ik_llama.cpp implements fused GDN kernels that handle the entire computation on CUDA, dropping graph splits from 34 to 2.&lt;/p&gt; &lt;p&gt;At startup with ik_llama.cpp you'll see:&lt;/p&gt; &lt;p&gt;fused Gated Delta Net (autoregressive) enabled fused Gated Delta Net (chunked) enabled graph splits = 2&lt;/p&gt; &lt;p&gt;That's the key difference. The model weights didn't change. The server did.&lt;/p&gt; &lt;p&gt;The Full Re-Processing Bug&lt;/p&gt; &lt;p&gt;Qwen 3.5's recurrent architecture still forces full prompt re-processing on every turn when the prompt changes (tracked in llama.cpp issue #20225). At 1,122 tok/sec this is tolerable — what took several minutes now takes seconds. But it's still happening on every turn. Something to be aware of.&lt;/p&gt; &lt;p&gt;Where to Get It&lt;/p&gt; &lt;p&gt;Pre-built Windows CUDA 12.8 binaries with AVX512 VNNI are available from the Thireus fork:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Thireus/ik_llama.cpp/releases"&gt;https://github.com/Thireus/ik_llama.cpp/releases&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It's a drop-in replacement for your existing llama-server folder. Same command line arguments, same OpenAI-compatible API on port 1234.&lt;/p&gt; &lt;p&gt;For the W-2295 (AVX512 VNNI) grab: ik_llama-main-b4370-4d7223c-bin-win-cuda-12.8-x64-avx512_vnni.zip&lt;/p&gt; &lt;p&gt;Bottom Line&lt;/p&gt; &lt;p&gt;If you're running Qwen 3.5 on mainline llama.cpp and wondering why it's slow — this is why. The fused GDN kernels in ik_llama.cpp are not yet in mainline. Try the fork.&lt;/p&gt; &lt;p&gt;Happy to answer questions about the setup or benchmarking methodology.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/New-Inspection7034"&gt; /u/New-Inspection7034 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s07ysr/ik_llamacpp_gives_26x_faster_prompt_processing_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-21T15:30:38+00:00</published>
+    <published>2026-03-22T00:52:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1s05thz</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s05thz/llama_8b_matching_70b_on_multihop_qa_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-21T23:17:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1rzud2z</id>
+    <title>Don't sleep on the new Nemotron Cascade</title>
+    <updated>2026-03-21T15:30:38+00:00</updated>
+    <author>
+      <name>/u/ilintar</name>
+      <uri>https://old.reddit.com/user/ilintar</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While there has been a lot of discussion regarding the Nemotron Super family of models, I feel like the newest addition, the &lt;a href="https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B"&gt;Nemotron Cascade 2 30B-A3B&lt;/a&gt; (which is *not* based on the Qwen architecture despite a similar size, it's a properly hybrid model based on Nemotron's own arch) has largely flown under the radar.&lt;/p&gt; &lt;p&gt;I've been running some evals on local models lately since I'm kind of tired of the &amp;quot;vibe feels&amp;quot; method of judging them. A combo that I quite like is HumanEval + ClassEval, simply because they're quick to run and complicated enough for most small models to still have noticeable differences. So, I gave mradermacher's IQ4_XS quant for a spin.&lt;/p&gt; &lt;p&gt;On HumanEval, Cascade 2 achieved a whopping 97.6%, leaving both medium Qwen3.5 models in the rear window. Similarly, it obtained a respectable 88% on ClassEval.&lt;/p&gt; &lt;p&gt;I'm going to run some more tests on this model, but I feel it deserves a bit more attention.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ilintar"&gt; /u/ilintar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1rzud2z/dont_sleep_on_the_new_nemotron_cascade/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-21T15:30:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1rzqg06</id>
