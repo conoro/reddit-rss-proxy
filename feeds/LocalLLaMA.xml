@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-24T08:02:27+00:00</updated>
+  <updated>2026-03-24T08:32:08+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1s1pujq</id>
-    <title>KLD measurements of 8 different llama.cpp KV cache quantizations over several 8-12B models</title>
-    <updated>2026-03-23T18:52:50+00:00</updated>
-    <author>
-      <name>/u/Velocita84</name>
-      <uri>https://old.reddit.com/user/Velocita84</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s1pujq/kld_measurements_of_8_different_llamacpp_kv_cache/"&gt; &lt;img alt="KLD measurements of 8 different llama.cpp KV cache quantizations over several 8-12B models" src="https://preview.redd.it/c2j8qklk2uqg1.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=048e21364f0b3c30f1ec0d5b823825037f8679b8" title="KLD measurements of 8 different llama.cpp KV cache quantizations over several 8-12B models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A couple of weeks ago i was wondering about the impact of KV quantization, so i tried looking for any PPL or KLD measurements but didn't find anything extensive. I did some of my own and these are the results. Models included: Qwen3.5 9B, Qwen3 VL 8B, Gemma 3 12B, Ministral 3 8B, Irix 12B (Mistral Nemo)&lt;/p&gt; &lt;h1&gt;Disclaimers&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;I am very GPU poor with a meager 6gb of vram, therefore all logits were generated with already quantized models (in this case they're all IQ4_XS), so that i could actually run them. The silver lining is that since KLD measures relative entropy, these numbers will still tell you how different the output logits would be with a quantized KV cache while using the same quantized model.&lt;/li&gt; &lt;li&gt;I'm not 100% sure you can get any meaningful information out of this. Llama-perplexity computes KLD over the latter half of each context window it processes, if it was possible i would've set it up with some real instruct conversations and measure KLD only on the assistant messages, with maybe a separate test targeting tool calls specifically. I actually did run one of the models through a text file made up of stitched RP segments totaling 200k tokens (wikitext-2 is 300k), but all the results i got from it were pretty much exactly the same as wikitext's, so i dropped it for the more standardized option to save time and spare my ssd some suffering.&lt;/li&gt; &lt;li&gt;I couldn't get iq4_nl to run on cuda for some reason so it's not included.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Methodology&lt;/h1&gt; &lt;p&gt;Llama.cpp b8288 (b5fe4559a), built with &lt;code&gt;GGML_CUDA_FA_ALL_QUANTS&lt;/code&gt;. Base logits generated at f16 KV. For the &amp;quot;long&amp;quot; variant of wikitext, all models had their context size cranked up to the highest power of 2 that didn't crash llama-perplexity, which was 16k for Ministral and Irix, 8k for Qwen3.5 and Qwen3 VL, and 4k for Gemma 3. Otherwise the default context size set by llama-perplexity is 512.&lt;/p&gt; &lt;h1&gt;Results&lt;/h1&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/c2j8qklk2uqg1.png?width=1089&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=869500d3542e80dbfe3605181afbe453523db980"&gt;Normal wikitext-2&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/nw8n9oku2uqg1.png?width=1088&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ec581d01345c8cdd3d99b5e0973327aa07833192"&gt;Long wikitext-2&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Before running wikitext i did a bunch of tests on a small (32k tokens) conversation to make sure that everything worked correctly, same context sizes as long wikitext. At this point i saw a thread talking about Bartowski's quants having better KLDs than Unsloth's for Qwen3.5 9B, so i tested both. For wikitext i only used Bartowski's quant. I wouldn't take any of these numbers too seriously considering the low number of samples.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/url9w1hyauqg1.png?width=1335&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=2fb52ab68b9917d2151e9feb2a6c9f947b8f8cc6"&gt;Test conversation&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;More results&lt;/h1&gt; &lt;p&gt;All of the complete results given by llama-perplexity including PPL and token statistics have been uploaded to &lt;a href="https://github.com/flat-pin/KVquantmeasurements"&gt;this repo&lt;/a&gt;, in case you want to inspect them (don't ask me why ± and Δp got turned into japanese characters, the terminal just did that).&lt;/p&gt; &lt;h1&gt;Personal observations&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;The KLD impact from KV quantization in general seems to be a bit lower than &amp;quot;equivalent&amp;quot; weight quants, but i can't really make any conclusions with that because it's unclear how the two are compounded. I'm considering running more tests with a model i can actually load in bf16 (like qwen3.5 2B) to explore this aspect.&lt;/li&gt; &lt;li&gt;Qwen3 VL very much doesn't like having its KV quantized.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Velocita84"&gt; /u/Velocita84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s1pujq/kld_measurements_of_8_different_llamacpp_kv_cache/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s1pujq/kld_measurements_of_8_different_llamacpp_kv_cache/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s1pujq/kld_measurements_of_8_different_llamacpp_kv_cache/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-23T18:52:50+00:00</published>
-  </entry>
   <entry>
     <id>t3_1s22bzm</id>
     <title>Hitting a wall parsing 1,000+ complex scanned PDFs &amp; Excel tables to JSON (CPU-only). AI newbie looking for local parser recommendations (GLM-OCR, FireRed OCR, etc.)</title>
@@ -32,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s22bzm/hitting_a_wall_parsing_1000_complex_scanned_pdfs/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-24T03:03:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s27nsc</id>
+    <title>What's better? 24gb vram with 128gb ddr5 OR 32gb vram with 64gb ddr5?</title>
+    <updated>2026-03-24T08:03:38+00:00</updated>
+    <author>
+      <name>/u/SFsports87</name>
+      <uri>https://old.reddit.com/user/SFsports87</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Have the budget for 1 of 2 upgrade paths. &lt;/p&gt; &lt;p&gt;1) Rtx 4000 pro blackwell with 24gb vram and 128gb ddr5 or 2) Rtx 4500 pro blackwell with 32gb vram and 64gb ddr5&lt;/p&gt; &lt;p&gt;Leaning towards 1) because many of the smaller dense models will fit in 24gb, so not sure 24gb to 32gb vram gains a lot. But in going from 64gb to 128gb ddr5 it opens up the options for some larger MoE models.&lt;/p&gt; &lt;p&gt;And how is the noise levels of the pro blackwell cards? Are they quiet at idle and light loads?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SFsports87"&gt; /u/SFsports87 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s27nsc/whats_better_24gb_vram_with_128gb_ddr5_or_32gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s27nsc/whats_better_24gb_vram_with_128gb_ddr5_or_32gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s27nsc/whats_better_24gb_vram_with_128gb_ddr5_or_32gb/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-24T08:03:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1s1k65x</id>
@@ -60,32 +60,6 @@
     <published>2026-03-23T19:03:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s17afx</id>
-    <title>I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch</title>
-    <updated>2026-03-23T04:31:40+00:00</updated>
-    <author>
-      <name>/u/Altruistic_Heat_9531</name>
-      <uri>https://old.reddit.com/user/Altruistic_Heat_9531</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"&gt; &lt;img alt="I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch" src="https://preview.redd.it/gccmg22z2qqg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3747e9fccec86478d503f344114f1c5b56433cc4" title="I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jokes aside, on a technical level, Google/brave search and vector stores basically work in a very similar way. The main difference is scale. From an LLM point of view, both fall under RAG. You can even ignore embedding models entirely and just use TF-IDF or BM25.&lt;/p&gt; &lt;p&gt;Elastic and OpenSearch (and technically Lucene) are powerhouses when it comes to this kind of retrieval. You can also enable a small BERT model as a vector embedding, around 100 MB (FP32), running in on CPU, within either Elastic or OpenSearch.&lt;/p&gt; &lt;p&gt;If your document set is relatively small (under ~10K) and has good variance, a small BERT model can handle the task well, or you can even skip embeddings entirely. For deeper semantic similarity or closely related documents, more powerful embedding models are usually the go to.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Altruistic_Heat_9531"&gt; /u/Altruistic_Heat_9531 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/gccmg22z2qqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-23T04:31:40+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s270px</id>
-    <title>Two new Qwen3.5 “Neo” fine‑tunes focused on fast, efficient reasoning</title>
-    <updated>2026-03-24T07:22:38+00:00</updated>
-    <author>
-      <name>/u/FabbBr</name>
-      <uri>https://old.reddit.com/user/FabbBr</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Just wanted to share two new community fine‑tunes I came across: &lt;strong&gt;Qwen3.5‑4B‑Neo&lt;/strong&gt; by &lt;em&gt;Jackrong&lt;/em&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Qwen3.5‑4B‑Neo&lt;/strong&gt;&lt;br /&gt; A reasoning‑optimized fine‑tune of Qwen3.5‑4B. It focuses heavily on &lt;em&gt;efficient&lt;/em&gt; chain‑of‑thought: shorter internal reasoning, lower token cost, and higher accuracy.&lt;br /&gt; HF link: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-4B-Neo"&gt;https://huggingface.co/Jackrong/Qwen3.5-4B-Neo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Qwen3.5‑9B‑Neo&lt;/strong&gt;&lt;br /&gt; A larger variant fine‑tuned of Qwen3.5‑9B.&lt;br /&gt; HF link: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-9B-Neo"&gt;https://huggingface.co/Jackrong/Qwen3.5-9B-Neo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GGUF versions are also available&lt;/strong&gt; in the collection here: &lt;a href="https://huggingface.co/collections/Jackrong/qwen35-neo"&gt;https://huggingface.co/collections/Jackrong/qwen35-neo&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FabbBr"&gt; /u/FabbBr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-24T07:22:38+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s24q8x</id>
     <title>NVMe RAID0 at dual-channel DDR5 bandwidth?</title>
     <updated>2026-03-24T05:05:33+00:00</updated>
@@ -97,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s24q8x/nvme_raid0_at_dualchannel_ddr5_bandwidth/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-24T05:05:33+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s17afx</id>
+    <title>I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch</title>
+    <updated>2026-03-23T04:31:40+00:00</updated>
+    <author>
+      <name>/u/Altruistic_Heat_9531</name>
+      <uri>https://old.reddit.com/user/Altruistic_Heat_9531</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"&gt; &lt;img alt="I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch" src="https://preview.redd.it/gccmg22z2qqg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3747e9fccec86478d503f344114f1c5b56433cc4" title="I came from Data Engineering stuff before jumping into LLM stuff, i am surprised that many people in this space never heard Elastic/OpenSearch" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jokes aside, on a technical level, Google/brave search and vector stores basically work in a very similar way. The main difference is scale. From an LLM point of view, both fall under RAG. You can even ignore embedding models entirely and just use TF-IDF or BM25.&lt;/p&gt; &lt;p&gt;Elastic and OpenSearch (and technically Lucene) are powerhouses when it comes to this kind of retrieval. You can also enable a small BERT model as a vector embedding, around 100 MB (FP32), running in on CPU, within either Elastic or OpenSearch.&lt;/p&gt; &lt;p&gt;If your document set is relatively small (under ~10K) and has good variance, a small BERT model can handle the task well, or you can even skip embeddings entirely. For deeper semantic similarity or closely related documents, more powerful embedding models are usually the go to.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Altruistic_Heat_9531"&gt; /u/Altruistic_Heat_9531 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/gccmg22z2qqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s17afx/i_came_from_data_engineering_stuff_before_jumping/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-23T04:31:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1s1t9on</id>
@@ -138,19 +125,6 @@
     <published>2026-03-23T06:42:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s22p9p</id>
-    <title>How was your experience with K2.5 Locally?</title>
-    <updated>2026-03-24T03:20:37+00:00</updated>
-    <author>
-      <name>/u/Felix_455-788</name>
-      <uri>https://old.reddit.com/user/Felix_455-788</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"&gt; &lt;img alt="How was your experience with K2.5 Locally?" src="https://preview.redd.it/ug6t3z86vwqg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3ec2aee5c9efae55aba55e80be1f41425ce9ac87" title="How was your experience with K2.5 Locally?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;as the title say, how was it?&lt;br /&gt; and is there any model that can compete K2.5 with lower requirements?&lt;br /&gt; and Do you see it as the best out for now? or no?&lt;br /&gt; does GLM-5 offer more performance?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Felix_455-788"&gt; /u/Felix_455-788 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ug6t3z86vwqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-24T03:20:37+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s1sec0</id>
     <title>Awesome-Autoresearch (all the things related to Karpathy's Autoresearch)</title>
     <updated>2026-03-23T20:23:15+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s1sec0/awesomeautoresearch_all_the_things_related_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-23T20:23:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s22p9p</id>
+    <title>How was your experience with K2.5 Locally?</title>
+    <updated>2026-03-24T03:20:37+00:00</updated>
+    <author>
+      <name>/u/Felix_455-788</name>
+      <uri>https://old.reddit.com/user/Felix_455-788</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"&gt; &lt;img alt="How was your experience with K2.5 Locally?" src="https://preview.redd.it/ug6t3z86vwqg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3ec2aee5c9efae55aba55e80be1f41425ce9ac87" title="How was your experience with K2.5 Locally?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;as the title say, how was it?&lt;br /&gt; and is there any model that can compete K2.5 with lower requirements?&lt;br /&gt; and Do you see it as the best out for now? or no?&lt;br /&gt; does GLM-5 offer more performance?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Felix_455-788"&gt; /u/Felix_455-788 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ug6t3z86vwqg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s22p9p/how_was_your_experience_with_k25_locally/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-24T03:20:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2181s</id>
@@ -190,17 +177,17 @@
     <published>2026-03-23T10:06:41+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s233xl</id>
-    <title>All the Distills (Claude, Gemini, OpenAI, Deepseek, Kimi...) in ONE: Savant Commander 48B - 4x12B MOE.</title>
-    <updated>2026-03-24T03:40:16+00:00</updated>
+    <id>t3_1s270px</id>
+    <title>Two new Qwen3.5 “Neo” fine‑tunes focused on fast, efficient reasoning</title>
+    <updated>2026-03-24T07:22:38+00:00</updated>
     <author>
-      <name>/u/Dangerous_Fix_5526</name>
-      <uri>https://old.reddit.com/user/Dangerous_Fix_5526</uri>
+      <name>/u/FabbBr</name>
+      <uri>https://old.reddit.com/user/FabbBr</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A custom QWEN moe with hand coded routing consisting of 12 top distills (Claude, Gemini, OpenAI, Deepseek, etc etc) on Qwen 3 - 256K context.&lt;/p&gt; &lt;p&gt;The custom routing isolates each distill for each other, and also allows connections between them at the same time.&lt;/p&gt; &lt;p&gt;You can select (under prompt control) which one(s) you want to activate/use.&lt;/p&gt; &lt;p&gt;You can test and see the differences between different distills using the same prompt(s).&lt;/p&gt; &lt;p&gt;Command and Control functions listed on the repo card. (detailed instructions)&lt;/p&gt; &lt;p&gt;Heretic (uncensored version) -&amp;gt; each model was HERETIC'ed then added to the MOE structure rather than HERETIC'ing the entire moe (negative outcome).&lt;/p&gt; &lt;p&gt;REG / UNCENSORED - GGUF:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill-GGUF"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored-GGUF"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;SOURCE:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dangerous_Fix_5526"&gt; /u/Dangerous_Fix_5526 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Just wanted to share two new community fine‑tunes I came across: &lt;strong&gt;Qwen3.5‑4B‑Neo&lt;/strong&gt; by &lt;em&gt;Jackrong&lt;/em&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Qwen3.5‑4B‑Neo&lt;/strong&gt;&lt;br /&gt; A reasoning‑optimized fine‑tune of Qwen3.5‑4B. It focuses heavily on &lt;em&gt;efficient&lt;/em&gt; chain‑of‑thought: shorter internal reasoning, lower token cost, and higher accuracy.&lt;br /&gt; HF link: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-4B-Neo"&gt;https://huggingface.co/Jackrong/Qwen3.5-4B-Neo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Qwen3.5‑9B‑Neo&lt;/strong&gt;&lt;br /&gt; A larger variant fine‑tuned of Qwen3.5‑9B.&lt;br /&gt; HF link: &lt;a href="https://huggingface.co/Jackrong/Qwen3.5-9B-Neo"&gt;https://huggingface.co/Jackrong/Qwen3.5-9B-Neo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;GGUF versions are also available&lt;/strong&gt; in the collection here: &lt;a href="https://huggingface.co/collections/Jackrong/qwen35-neo"&gt;https://huggingface.co/collections/Jackrong/qwen35-neo&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FabbBr"&gt; /u/FabbBr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s270px/two_new_qwen35_neo_finetunes_focused_on_fast/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-24T03:40:16+00:00</published>
+    <published>2026-03-24T07:22:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1s1p2jo</id>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s1p2jo/another_appreciation_post_for_qwen35_27b_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-23T18:25:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s233xl</id>
+    <title>All the Distills (Claude, Gemini, OpenAI, Deepseek, Kimi...) in ONE: Savant Commander 48B - 4x12B MOE.</title>
+    <updated>2026-03-24T03:40:16+00:00</updated>
+    <author>
+      <name>/u/Dangerous_Fix_5526</name>
+      <uri>https://old.reddit.com/user/Dangerous_Fix_5526</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A custom QWEN moe with hand coded routing consisting of 12 top distills (Claude, Gemini, OpenAI, Deepseek, etc etc) on Qwen 3 - 256K context.&lt;/p&gt; &lt;p&gt;The custom routing isolates each distill for each other, and also allows connections between them at the same time.&lt;/p&gt; &lt;p&gt;You can select (under prompt control) which one(s) you want to activate/use.&lt;/p&gt; &lt;p&gt;You can test and see the differences between different distills using the same prompt(s).&lt;/p&gt; &lt;p&gt;Command and Control functions listed on the repo card. (detailed instructions)&lt;/p&gt; &lt;p&gt;Heretic (uncensored version) -&amp;gt; each model was HERETIC'ed then added to the MOE structure rather than HERETIC'ing the entire moe (negative outcome).&lt;/p&gt; &lt;p&gt;REG / UNCENSORED - GGUF:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill-GGUF"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored-GGUF"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;SOURCE:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-GATED-12x-Closed-Open-Source-Distill&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored"&gt;https://huggingface.co/DavidAU/Qwen3-48B-A4B-Savant-Commander-Distill-12X-Closed-Open-Heretic-Uncensored&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dangerous_Fix_5526"&gt; /u/Dangerous_Fix_5526 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s233xl/all_the_distills_claude_gemini_openai_deepseek/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-24T03:40:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1s1x17j</id>
