@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-25T11:58:55+00:00</updated>
+  <updated>2026-03-25T12:27:52+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -60,19 +60,6 @@
     <published>2026-03-24T12:14:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s36vnk</id>
-    <title>Looking for feedback: Porting Google's TurboQuant (QJL) KV Cache compression to MLX</title>
-    <updated>2026-03-25T10:24:02+00:00</updated>
-    <author>
-      <name>/u/vbenjaminai</name>
-      <uri>https://old.reddit.com/user/vbenjaminai</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;,&lt;/p&gt; &lt;p&gt;I've been working on implementing the concepts from Google Research's recent &lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/"&gt;TurboQuant (QJL) paper&lt;/a&gt; natively in MLX for Apple Silicon. The paper claims massive KV cache compression (down to 1-bit/3-bit) with near-zero accuracy loss.&lt;/p&gt; &lt;p&gt;I've successfully built and deployed a working implementation (&lt;code&gt;TurboKVCacheMLX&lt;/code&gt;) directly into my local &lt;code&gt;mlx_lm&lt;/code&gt; library and just finished a real-world benchmark on a &lt;strong&gt;Llama-3.2-3B&lt;/strong&gt; model.&lt;/p&gt; &lt;p&gt;The results are promising, but I'm hitting the &amp;quot;Python wall&amp;quot; and would love some feedback or pointers on moving parts of this into custom Metal kernels.&lt;/p&gt; &lt;h1&gt;The Implementation &amp;amp; Real-World Results&lt;/h1&gt; &lt;p&gt;I've built a drop-in replacement for the standard KV cache that:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Identifies Outliers:&lt;/strong&gt; Tracks the highest-variance &amp;quot;coordinate outliers&amp;quot; (e.g., 16 dims) and keeps them in FP16.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Sketches Inliers:&lt;/strong&gt; Applies an Orthogonal Projection Matrix to the remaining &amp;quot;inliers.&amp;quot;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Quantizes:&lt;/strong&gt; Compresses those projected inliers to a 1-bit sign representation (&amp;gt; 0).&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;Benchmark: Llama-3.2-3B (28 Layers)&lt;/h1&gt; &lt;p&gt;I ran a test where I started generation in standard FP16 and then &lt;strong&gt;hot-swapped the entire cache&lt;/strong&gt; to TurboQuant mid-generation using a new &lt;code&gt;KVCache.to_turbo()&lt;/code&gt; method.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Standard Cache (FP16):&lt;/strong&gt; 28.00 MB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Turbo Cache (1-bit Keys + FP16 Outliers + FP16 Values):&lt;/strong&gt; 16.30 MB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Overall Memory Savings:&lt;/strong&gt; &lt;strong&gt;41.8% reduction&lt;/strong&gt; in total KV cache footprint (Keys specifically are compressed by ~80%).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Coherence:&lt;/strong&gt; The model maintained perfect coherence after the hot-swap: &lt;em&gt;&amp;quot;universe is approximately 13.8 billion years old. The Big Bang theory is the leading explanation...&amp;quot;&lt;/em&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Conversion Latency:&lt;/strong&gt; Hot-swapping all 28 layers took only &lt;strong&gt;0.01 seconds&lt;/strong&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Where I need help / feedback&lt;/h1&gt; &lt;p&gt;The math works, the GQA routing is solid, and the memory savings are real. However, the bit-packing/unpacking is currently my biggest bottleneck. My &lt;code&gt;_pack_bits&lt;/code&gt; and &lt;code&gt;_unpack_bits&lt;/code&gt; functions use standard &lt;code&gt;mlx.core&lt;/code&gt; boolean arrays and bitwise ops, which is incredibly inefficient on the GPU command queue and prevents the setup from being faster than standard FP16.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Has anyone tackled 1-bit quantization or heavy bit-packing natively in MLX yet?&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Custom Metal Kernels:&lt;/strong&gt; Does anyone have examples or pointers on wrapping custom Metal kernels via &lt;a href="http://mlx.core.fast"&gt;&lt;code&gt;mlx.core.fast&lt;/code&gt;&lt;/a&gt; for this specific type of bit-unpacking during the attention dot product?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;MLX Ops:&lt;/strong&gt; Is there a more &amp;quot;MLX-native&amp;quot; way to handle 1-bit sign projections without exploding intermediate array allocations?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Optimizing the Estimator:&lt;/strong&gt; QJL uses the pre-computed inlier norms to un-bias the 1-bit dot product. Are there better ways to structure this in MLX to maximize throughput?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I've open-sourced the PoC logic and would love any critiques or pointers to relevant repos. Any advice on squeezing more performance out of Metal for these extreme quantization schemes would be a huge help&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vbenjaminai"&gt; /u/vbenjaminai &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T10:24:02+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s34edo</id>
     <title>TurboQuant, KV cache x6 less memory and X8 faster with zero accuracy loss</title>
     <updated>2026-03-25T07:49:17+00:00</updated>
@@ -84,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s34edo/turboquant_kv_cache_x6_less_memory_and_x8_faster/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-25T07:49:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s36vnk</id>
+    <title>Looking for feedback: Porting Google's TurboQuant (QJL) KV Cache compression to MLX</title>
+    <updated>2026-03-25T10:24:02+00:00</updated>
+    <author>
+      <name>/u/vbenjaminai</name>
+      <uri>https://old.reddit.com/user/vbenjaminai</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;,&lt;/p&gt; &lt;p&gt;I've been working on implementing the concepts from Google Research's recent &lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/"&gt;TurboQuant (QJL) paper&lt;/a&gt; natively in MLX for Apple Silicon. The paper claims massive KV cache compression (down to 1-bit/3-bit) with near-zero accuracy loss.&lt;/p&gt; &lt;p&gt;I've successfully built and deployed a working implementation (&lt;code&gt;TurboKVCacheMLX&lt;/code&gt;) directly into my local &lt;code&gt;mlx_lm&lt;/code&gt; library and just finished a real-world benchmark on a &lt;strong&gt;Llama-3.2-3B&lt;/strong&gt; model.&lt;/p&gt; &lt;p&gt;The results are promising, but I'm hitting the &amp;quot;Python wall&amp;quot; and would love some feedback or pointers on moving parts of this into custom Metal kernels.&lt;/p&gt; &lt;h1&gt;The Implementation &amp;amp; Real-World Results&lt;/h1&gt; &lt;p&gt;I've built a drop-in replacement for the standard KV cache that:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Identifies Outliers:&lt;/strong&gt; Tracks the highest-variance &amp;quot;coordinate outliers&amp;quot; (e.g., 16 dims) and keeps them in FP16.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Sketches Inliers:&lt;/strong&gt; Applies an Orthogonal Projection Matrix to the remaining &amp;quot;inliers.&amp;quot;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Quantizes:&lt;/strong&gt; Compresses those projected inliers to a 1-bit sign representation (&amp;gt; 0).&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;Benchmark: Llama-3.2-3B (28 Layers)&lt;/h1&gt; &lt;p&gt;I ran a test where I started generation in standard FP16 and then &lt;strong&gt;hot-swapped the entire cache&lt;/strong&gt; to TurboQuant mid-generation using a new &lt;code&gt;KVCache.to_turbo()&lt;/code&gt; method.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Standard Cache (FP16):&lt;/strong&gt; 28.00 MB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Turbo Cache (1-bit Keys + FP16 Outliers + FP16 Values):&lt;/strong&gt; 16.30 MB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Overall Memory Savings:&lt;/strong&gt; &lt;strong&gt;41.8% reduction&lt;/strong&gt; in total KV cache footprint (Keys specifically are compressed by ~80%).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Coherence:&lt;/strong&gt; The model maintained perfect coherence after the hot-swap: &lt;em&gt;&amp;quot;universe is approximately 13.8 billion years old. The Big Bang theory is the leading explanation...&amp;quot;&lt;/em&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Conversion Latency:&lt;/strong&gt; Hot-swapping all 28 layers took only &lt;strong&gt;0.01 seconds&lt;/strong&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Where I need help / feedback&lt;/h1&gt; &lt;p&gt;The math works, the GQA routing is solid, and the memory savings are real. However, the bit-packing/unpacking is currently my biggest bottleneck. My &lt;code&gt;_pack_bits&lt;/code&gt; and &lt;code&gt;_unpack_bits&lt;/code&gt; functions use standard &lt;code&gt;mlx.core&lt;/code&gt; boolean arrays and bitwise ops, which is incredibly inefficient on the GPU command queue and prevents the setup from being faster than standard FP16.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Has anyone tackled 1-bit quantization or heavy bit-packing natively in MLX yet?&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Custom Metal Kernels:&lt;/strong&gt; Does anyone have examples or pointers on wrapping custom Metal kernels via &lt;a href="http://mlx.core.fast"&gt;&lt;code&gt;mlx.core.fast&lt;/code&gt;&lt;/a&gt; for this specific type of bit-unpacking during the attention dot product?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;MLX Ops:&lt;/strong&gt; Is there a more &amp;quot;MLX-native&amp;quot; way to handle 1-bit sign projections without exploding intermediate array allocations?&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Optimizing the Estimator:&lt;/strong&gt; QJL uses the pre-computed inlier norms to un-bias the 1-bit dot product. Are there better ways to structure this in MLX to maximize throughput?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I've open-sourced the PoC logic and would love any critiques or pointers to relevant repos. Any advice on squeezing more performance out of Metal for these extreme quantization schemes would be a huge help&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vbenjaminai"&gt; /u/vbenjaminai &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s36vnk/looking_for_feedback_porting_googles_turboquant/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T10:24:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2ci9r</id>
@@ -112,17 +112,17 @@
     <published>2026-03-24T14:28:37+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s369rn</id>
-    <title>China bars Manus co-founders from leaving country amid Meta deal review, FT reports</title>
-    <updated>2026-03-25T09:48:41+00:00</updated>
+    <id>t3_1s355o2</id>
+    <title>TurboQuant: Redefining AI efficiency with extreme compression</title>
+    <updated>2026-03-25T08:38:56+00:00</updated>
     <author>
-      <name>/u/kaggleqrdl</name>
-      <uri>https://old.reddit.com/user/kaggleqrdl</uri>
+      <name>/u/DeltaSqueezer</name>
+      <uri>https://old.reddit.com/user/DeltaSqueezer</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;March 25 (Reuters) - China has barred two co-founders of artificial intelligence startup Manus from leaving ​the country as regulators review whether Meta's (META.O), $2 billion ‌acquisition of the firm violated investment rules, the Financial Times reported.&lt;/p&gt; &lt;p&gt;Manus's chief executive Xiao Hong and chief scientist Ji Yichao were ​summoned to a meeting in Beijing with the ​National Development and Reform Commission (NDRC) this month, the ⁠FT said on Wednesday, citing people with knowledge of ​the matter.&lt;/p&gt; &lt;p&gt;Following the meeting, the executives were told they could ​not leave China due to a regulatory review, though they are free to travel within the country, the report said.&lt;/p&gt; &lt;p&gt;Manus is ​actively seeking legal and consulting assistance to help resolve the matter, ​the newspaper said.&lt;/p&gt; &lt;p&gt;&amp;quot;The transaction complied fully with applicable law. We anticipate an ‌appropriate ⁠resolution to the inquiry,&amp;quot; a Meta spokesperson told Reuters in an emailed statement.&lt;/p&gt; &lt;p&gt;China's Ministry of Public Security and Manus did not immediately respond to requests for comment.&lt;/p&gt; &lt;p&gt;Meta announced ​in December that it ​would acquire Manus, which ⁠develops general-purpose AI agents capable of operating as digital employees, performing tasks such as research and ​automation with minimal prompting.&lt;/p&gt; &lt;p&gt;Financial terms of the deal ​were ⁠not disclosed, but a source told Reuters at the time that the deal valued Manus at $2 billion-$3 billion.&lt;/p&gt; &lt;p&gt;Earlier this year, ⁠China's commerce ​ministry had said it would assess and investigate Meta's ​acquisition of Manus.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reuters.com/world/asia-pacific/china-bars-manus-co-founders-leaving-country-it-reviews-sale-meta-ft-reports-2026-03-25/"&gt;https://www.reuters.com/world/asia-pacific/china-bars-manus-co-founders-leaving-country-it-reviews-sale-meta-ft-reports-2026-03-25/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kaggleqrdl"&gt; /u/kaggleqrdl &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt; &lt;img alt="TurboQuant: Redefining AI efficiency with extreme compression" src="https://external-preview.redd.it/Xfy8b5oz8xAgNpbj0L9Mmjzxactj5HdaKRFOmBPu0YE.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c9dad5b13e20f57d64f5fc0bbc7415c9f4186b1d" title="TurboQuant: Redefining AI efficiency with extreme compression" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google releases new research.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DeltaSqueezer"&gt; /u/DeltaSqueezer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/?utm_source=twitter&amp;amp;utm_medium=social&amp;amp;utm_campaign=social_post&amp;amp;utm_content=gr-acct"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T09:48:41+00:00</published>
+    <published>2026-03-25T08:38:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2q4et</id>
@@ -138,17 +138,17 @@
     <published>2026-03-24T20:53:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s355o2</id>
-    <title>TurboQuant: Redefining AI efficiency with extreme compression</title>
-    <updated>2026-03-25T08:38:56+00:00</updated>
+    <id>t3_1s369rn</id>
+    <title>China bars Manus co-founders from leaving country amid Meta deal review, FT reports</title>
+    <updated>2026-03-25T09:48:41+00:00</updated>
     <author>
-      <name>/u/DeltaSqueezer</name>
-      <uri>https://old.reddit.com/user/DeltaSqueezer</uri>
+      <name>/u/kaggleqrdl</name>
+      <uri>https://old.reddit.com/user/kaggleqrdl</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt; &lt;img alt="TurboQuant: Redefining AI efficiency with extreme compression" src="https://external-preview.redd.it/Xfy8b5oz8xAgNpbj0L9Mmjzxactj5HdaKRFOmBPu0YE.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c9dad5b13e20f57d64f5fc0bbc7415c9f4186b1d" title="TurboQuant: Redefining AI efficiency with extreme compression" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google releases new research.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DeltaSqueezer"&gt; /u/DeltaSqueezer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/?utm_source=twitter&amp;amp;utm_medium=social&amp;amp;utm_campaign=social_post&amp;amp;utm_content=gr-acct"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;March 25 (Reuters) - China has barred two co-founders of artificial intelligence startup Manus from leaving ​the country as regulators review whether Meta's (META.O), $2 billion ‌acquisition of the firm violated investment rules, the Financial Times reported.&lt;/p&gt; &lt;p&gt;Manus's chief executive Xiao Hong and chief scientist Ji Yichao were ​summoned to a meeting in Beijing with the ​National Development and Reform Commission (NDRC) this month, the ⁠FT said on Wednesday, citing people with knowledge of ​the matter.&lt;/p&gt; &lt;p&gt;Following the meeting, the executives were told they could ​not leave China due to a regulatory review, though they are free to travel within the country, the report said.&lt;/p&gt; &lt;p&gt;Manus is ​actively seeking legal and consulting assistance to help resolve the matter, ​the newspaper said.&lt;/p&gt; &lt;p&gt;&amp;quot;The transaction complied fully with applicable law. We anticipate an ‌appropriate ⁠resolution to the inquiry,&amp;quot; a Meta spokesperson told Reuters in an emailed statement.&lt;/p&gt; &lt;p&gt;China's Ministry of Public Security and Manus did not immediately respond to requests for comment.&lt;/p&gt; &lt;p&gt;Meta announced ​in December that it ​would acquire Manus, which ⁠develops general-purpose AI agents capable of operating as digital employees, performing tasks such as research and ​automation with minimal prompting.&lt;/p&gt; &lt;p&gt;Financial terms of the deal ​were ⁠not disclosed, but a source told Reuters at the time that the deal valued Manus at $2 billion-$3 billion.&lt;/p&gt; &lt;p&gt;Earlier this year, ⁠China's commerce ​ministry had said it would assess and investigate Meta's ​acquisition of Manus.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reuters.com/world/asia-pacific/china-bars-manus-co-founders-leaving-country-it-reviews-sale-meta-ft-reports-2026-03-25/"&gt;https://www.reuters.com/world/asia-pacific/china-bars-manus-co-founders-leaving-country-it-reviews-sale-meta-ft-reports-2026-03-25/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kaggleqrdl"&gt; /u/kaggleqrdl &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s369rn/china_bars_manus_cofounders_from_leaving_country/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T08:38:56+00:00</published>
+    <published>2026-03-25T09:48:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1s3170r</id>
@@ -164,19 +164,6 @@
     <published>2026-03-25T04:42:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s350sj</id>
-    <title>Implementing TurboQuant to MLX Studio</title>
-    <updated>2026-03-25T08:30:11+00:00</updated>
-    <author>
-      <name>/u/HealthyCommunicat</name>
-      <uri>https://old.reddit.com/user/HealthyCommunicat</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"&gt; &lt;img alt="Implementing TurboQuant to MLX Studio" src="https://preview.redd.it/m8aus9npj5rg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cfcf68dec04b4bddd3d95fa56ba6f58cd30504c0" title="Implementing TurboQuant to MLX Studio" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Really excited to see how other people also use this, it could mean alot in the mobile and small edge devices.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HealthyCommunicat"&gt; /u/HealthyCommunicat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/m8aus9npj5rg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T08:30:11+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s32orn</id>
     <title>Qwen3.5-397B-A17B reaches 20 t/s TG and 700t/s PP with a 5090</title>
     <updated>2026-03-25T06:06:17+00:00</updated>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s32orn/qwen35397ba17b_reaches_20_ts_tg_and_700ts_pp_with/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-25T06:06:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s350sj</id>
+    <title>Implementing TurboQuant to MLX Studio</title>
+    <updated>2026-03-25T08:30:11+00:00</updated>
+    <author>
+      <name>/u/HealthyCommunicat</name>
+      <uri>https://old.reddit.com/user/HealthyCommunicat</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"&gt; &lt;img alt="Implementing TurboQuant to MLX Studio" src="https://preview.redd.it/m8aus9npj5rg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cfcf68dec04b4bddd3d95fa56ba6f58cd30504c0" title="Implementing TurboQuant to MLX Studio" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Really excited to see how other people also use this, it could mean alot in the mobile and small edge devices.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HealthyCommunicat"&gt; /u/HealthyCommunicat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/m8aus9npj5rg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s350sj/implementing_turboquant_to_mlx_studio/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T08:30:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2u2p2</id>
