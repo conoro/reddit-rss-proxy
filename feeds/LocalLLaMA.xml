@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-25T09:34:53+00:00</updated>
+  <updated>2026-03-25T10:05:32+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1s2hfpe</id>
-    <title>Kimi K2.5 knows to wait for apps to load by taking screenshots continuously</title>
-    <updated>2026-03-24T15:44:47+00:00</updated>
-    <author>
-      <name>/u/No-Compote-6794</name>
-      <uri>https://old.reddit.com/user/No-Compote-6794</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s2hfpe/kimi_k25_knows_to_wait_for_apps_to_load_by_taking/"&gt; &lt;img alt="Kimi K2.5 knows to wait for apps to load by taking screenshots continuously" src="https://preview.redd.it/nsgjf9azi0rg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6cd10f5b3c599e60207b495c97dc3b01b6536f62" title="Kimi K2.5 knows to wait for apps to load by taking screenshots continuously" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I basically just gave Kimi K2.5 mouse and keyboard and screenshot tool to let it drive my computer. One thing I worried was not having a wait or cronjob functionality like the claws, and I thought the model might have issue handling pages that take time to load. But surprisingly it was patient enough to just take another look, then another, then another until the page content is up.&lt;/p&gt; &lt;p&gt;I wonder if this is trained behavior. It's like it knows its response is not instant so it leverages that fact to let time pass. &lt;/p&gt; &lt;p&gt;Code is open source if you wanna try yourself: &lt;a href="https://github.com/Emericen/openmnk"&gt;https://github.com/Emericen/openmnk&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No-Compote-6794"&gt; /u/No-Compote-6794 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/nsgjf9azi0rg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s2hfpe/kimi_k25_knows_to_wait_for_apps_to_load_by_taking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s2hfpe/kimi_k25_knows_to_wait_for_apps_to_load_by_taking/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-24T15:44:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s30vs2</id>
-    <title>Took the 48GB flash-moe benchmark and ran it on 128GB M5 Max. Here's what happens.</title>
-    <updated>2026-03-25T04:26:12+00:00</updated>
-    <author>
-      <name>/u/Equivalent-Buy1706</name>
-      <uri>https://old.reddit.com/user/Equivalent-Buy1706</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;Saw Dan Woods (@danveloper) post about running Qwen3.5-397B locally on a MacBook Pro with 48GB RAM at 4.36 tok/s. I have an M5 Max with 128GB so I had to try it. I used the Anemll fork (https://github.com/Anemll/flash-moe) which adds Metal 4 NAX support for M5+ and the --cache-io-split flag. I ran the full cache-io-split sweep to find the actual optimal value. --- ## Speed vs baseline | Config | tok/s | |--------|-------| | M3 Max 48GB, original (Dan Woods) | 4.36 | | M5 Max 128GB, 4-bit, no split | 12.48 | | M5 Max 128GB, 4-bit, cache-io-split 4 | **12.99** | 3x faster than the original on a laptop with no cloud, no Python, just C and Metal shaders. --- ## Full cache-io-split sweep Nobody had published the full curve so I ran every value: | cache-io-split | tok/s | Expert I/O ms/tok | |----------------|-------|-------------------| | 1 (none) | 12.48 | 28.4ms | | 2 | 9.94 | 28.2ms | | 3 | 9.99 | 36.1ms | | **4** | **12.99** | **25.9ms** | | 5 | 12.64 | 27.5ms | | 8 | 12.90 | 26.4ms | Two things stand out. First, on a clean M5 Max with no background processes, the no-split baseline is already fast — 12.48 tok/s. Second, splits 2 and 3 actually make things worse, not better. 4 is a sharp spike that drops Expert I/O by nearly 10ms per token vs no split. 5 and 8 recover somewhat but don't reach 4. My guess is that 4 aligns with the M5 Max SSD controller's internal parallelism. Going above 4 adds scheduling overhead that costs more than it saves. **Bottom line: use --cache-io-split 4 or nothing. 2 and 3 will hurt you.** --- ## 2-bit vs 4-bit 2-bit is not faster than 4-bit on M5 Max. The SSD is fast enough that smaller files don't help, and dequantization overhead cancels any gain. But quality takes a real hit: | Quant | tok/s | PPL (WikiText-2) | |-------|-------|-----------------| | 4-bit | 12.99 | **3.64** | | 2-bit | ~12.65 | 5.71 | 57% worse perplexity for zero speed gain. Use 4-bit. --- ## Sustained performance Speed holds at 11.23 tok/s over 1000 tokens with no degradation. --- ## Hardware MacBook Pro M5 Max, 128GB unified memory Model: mlx-community/Qwen3.5-397B-A17B-4bit Repo: https://github.com/Anemll/flash-moe Note: make sure no other processes are using Metal/GPU when you benchmark. LM Studio running in the background was quietly killing my numbers until I caught it. --- Full credit to Dan Woods for the original flash-moe and the autoresearch methodology, and to the Anemll team for the M5 Max optimizations. Next up: Q3 GGUF experts and a Claude Code autoresearch loop to see if there are M5-specific Metal optimizations still on the table. --- **TL;DR:** ran a 397 billion parameter model locally on a MacBook. no cloud. best config is 4-bit + cache-io-split 4 = 12.99 tok/s. 3x faster than the original 48GB benchmark. splits 2 and 3 make it worse. 2-bit is same speed but worse quality. full data above. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Equivalent-Buy1706"&gt; /u/Equivalent-Buy1706 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s30vs2/took_the_48gb_flashmoe_benchmark_and_ran_it_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s30vs2/took_the_48gb_flashmoe_benchmark_and_ran_it_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s30vs2/took_the_48gb_flashmoe_benchmark_and_ran_it_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T04:26:12+00:00</published>
-  </entry>
   <entry>
     <id>t3_1s2v7xg</id>
     <title>Lemonade SDK on Strix Halo</title>
@@ -45,6 +19,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s2v7xg/lemonade_sdk_on_strix_halo/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-25T00:09:26+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s34tuo</id>
+    <title>In hindsight: a bad choice of a hero message</title>
+    <updated>2026-03-25T08:17:29+00:00</updated>
+    <author>
+      <name>/u/jakecoolguy</name>
+      <uri>https://old.reddit.com/user/jakecoolguy</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34tuo/in_hindsight_a_bad_choice_of_a_hero_message/"&gt; &lt;img alt="In hindsight: a bad choice of a hero message" src="https://external-preview.redd.it/ZzQyaDFkdTloNXJnMZbdtvx1Uvlj7XaDpYWTcB1Ye9KBEyHX4aChi1_aodB9.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3d87ca8ae2a1b4163041dac93c535cd99844ccd8" title="In hindsight: a bad choice of a hero message" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you haven't heard, two versions of LiteLLM got hacked yesterday (1.82.7 and 1.82.8)&lt;/p&gt; &lt;p&gt;That means tons of AI agent projects got compromised if they installed during those 3 hours &lt;/p&gt; &lt;p&gt;Live on PyPI for 3 hours. Downloaded 3.4 million times per day.&lt;/p&gt; &lt;p&gt;Stole SSH keys, credentials, secrets, API keys and crypto wallet seed phrases.&lt;/p&gt; &lt;p&gt;How it happened:&lt;/p&gt; &lt;p&gt;Attackers compromised Trivy (a security scanner) first. When LiteLLM's CI ran Trivy, it leaked their PyPI token. With that token, they published the poisoned versions.&lt;/p&gt; &lt;p&gt;Worst part: version 1.82.8 used a .pth file. The malicious code ran every time Python started. Even when you just ran pip.&lt;/p&gt; &lt;p&gt;There's a few articles popping up about this (and posts here on reddit). Quite a huge deal, as MANY agent toolkits (even one I'm making in a personal project) use LiteLLM behind the scenes.&lt;/p&gt; &lt;p&gt;If you installed either version:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Check for backdoors at ~/.config/sysmon/sysmon.py&lt;/li&gt; &lt;li&gt;Rotate every credential on that machine&lt;/li&gt; &lt;li&gt;Check for suspicious pods: kubectl get pods -A | grep node-setup-&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Safe version: anything ≤ 1.82.6&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jakecoolguy"&gt; /u/jakecoolguy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ee8qe4u9h5rg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34tuo/in_hindsight_a_bad_choice_of_a_hero_message/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s34tuo/in_hindsight_a_bad_choice_of_a_hero_message/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T08:17:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s34edo</id>
+    <title>TurboQuant, KV cache x6 less memory and X8 faster with zero accuracy loss</title>
+    <updated>2026-03-25T07:49:17+00:00</updated>
+    <author>
+      <name>/u/soyalemujica</name>
+      <uri>https://old.reddit.com/user/soyalemujica</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://x.com/i/status/2036533564158910740"&gt;https://x.com/i/status/2036533564158910740&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/soyalemujica"&gt; /u/soyalemujica &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34edo/turboquant_kv_cache_x6_less_memory_and_x8_faster/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34edo/turboquant_kv_cache_x6_less_memory_and_x8_faster/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s34edo/turboquant_kv_cache_x6_less_memory_and_x8_faster/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T07:49:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2yj5n</id>
@@ -60,19 +60,6 @@
     <published>2026-03-25T02:32:33+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s31c8t</id>
-    <title>Last Week in Multimodal AI - Local Edition</title>
-    <updated>2026-03-25T04:50:40+00:00</updated>
-    <author>
-      <name>/u/Vast_Yak_4147</name>
-      <uri>https://old.reddit.com/user/Vast_Yak_4147</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt; &lt;img alt="Last Week in Multimodal AI - Local Edition" src="https://preview.redd.it/0302hw6ch4rg1.png?width=140&amp;amp;height=83&amp;amp;auto=webp&amp;amp;s=ad3c8700d040c5e3614a7229c58d5c1156b3d1e8" title="Last Week in Multimodal AI - Local Edition" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I curate a weekly multimodal AI roundup, here are the local/open-source highlights from the last week:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Holotron-12B — Open Computer-Use Agent Model(Huggingface)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Multimodal computer-use policy model optimized for throughput and long multi-image contexts.&lt;/li&gt; &lt;li&gt;Open alternative for the computer-use agent ecosystem beyond closed APIs.&lt;/li&gt; &lt;li&gt;&lt;a href="https://huggingface.co/blog/Hcompany/holotron-12b"&gt;Blog&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;NVIDIA Nemotron Omni + Isaac GR00T N1.7&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Open Nemotron 3 omni models integrating language + vision + voice in one stack.&lt;/li&gt; &lt;li&gt;GR00T N1.7 vision-language-action model for robotics.&lt;/li&gt; &lt;li&gt;&lt;a href="https://nvidianews.nvidia.com/news/nvidia-expands-open-model-families-to-power-the-next-wave-of-agentic-physical-and-healthcare-ai"&gt;Announcement&lt;/a&gt; | &lt;a href="https://github.com/NVIDIA/Isaac-GR00T"&gt;Github&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;GlyphPrinter — Accurate Text Rendering for Image Gen&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0302hw6ch4rg1.png?width=1456&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=db3efe2d84a1e194b2c8461806b830a4fa155fe8"&gt;https://preview.redd.it/0302hw6ch4rg1.png?width=1456&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=db3efe2d84a1e194b2c8461806b830a4fa155fe8&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Fixes localized spelling errors in AI image generators using Region-Grouped Direct Preference Optimization.&lt;/li&gt; &lt;li&gt;Balances artistic styling with accurate text rendering. Open weights.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/FudanCVL/GlyphPrinter"&gt;GitHub&lt;/a&gt; | &lt;a href="https://huggingface.co/FudanCVL/GlyphPrinter"&gt;Hugging Face&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;SparkVSR&lt;/strong&gt; (&lt;a href="https://sparkvsr.github.io/"&gt;project&lt;/a&gt;) — Google’s video super-resolution model for enhancing video quality and clarity&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/1hi48frah4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/1hi48frah4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;SegviGen — 3D Object Segmentation via Colorization&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/iiu1xazqg4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/iiu1xazqg4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Repurposes 3D image generators for precise object segmentation by framing it as a colorization task.&lt;/li&gt; &lt;li&gt;Uses less than 1% of the training data older methods required. Open code + demo.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/Nelipot-Lee/SegviGen"&gt;GitHub&lt;/a&gt; | &lt;a href="https://huggingface.co/spaces/fenghora/SegviGen"&gt;HF Demo&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;OpenMAIC — Multi-Agent Interactive Classroom&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/phc9jsisg4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/phc9jsisg4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Turns any topic or document into an interactive classroom with AI teachers and classmates.&lt;/li&gt; &lt;li&gt;Multi-agent orchestration generates slides, quizzes, simulations, and discussions.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/THU-MAIC/OpenMAIC"&gt;GitHub&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;SkillNet — Open Infrastructure for AI Agent Skills&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Infrastructure to create, evaluate, and organize AI skills at scale.&lt;/li&gt; &lt;li&gt;Enables agents to transition from transient experience to durable mastery.&lt;/li&gt; &lt;li&gt;&lt;a href="https://arxiv.org/abs/2603.04448"&gt;Paper&lt;/a&gt; | &lt;a href="https://github.com/zjunlp/SkillNet"&gt;GitHub&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Checkout the &lt;a href="https://open.substack.com/pub/thelivingedge/p/last-week-in-multimodal-ai-50-everyone?utm_campaign=post-expanded-share&amp;amp;utm_medium=web"&gt;full roundup&lt;/a&gt; for more demos, papers, and resources.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vast_Yak_4147"&gt; /u/Vast_Yak_4147 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T04:50:40+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s2p8k0</id>
     <title>Nemotrons</title>
     <updated>2026-03-24T20:21:32+00:00</updated>
@@ -84,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s2p8k0/nemotrons/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-24T20:21:32+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s31c8t</id>
+    <title>Last Week in Multimodal AI - Local Edition</title>
+    <updated>2026-03-25T04:50:40+00:00</updated>
+    <author>
+      <name>/u/Vast_Yak_4147</name>
+      <uri>https://old.reddit.com/user/Vast_Yak_4147</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt; &lt;img alt="Last Week in Multimodal AI - Local Edition" src="https://preview.redd.it/0302hw6ch4rg1.png?width=140&amp;amp;height=83&amp;amp;auto=webp&amp;amp;s=ad3c8700d040c5e3614a7229c58d5c1156b3d1e8" title="Last Week in Multimodal AI - Local Edition" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I curate a weekly multimodal AI roundup, here are the local/open-source highlights from the last week:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Holotron-12B — Open Computer-Use Agent Model(Huggingface)&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Multimodal computer-use policy model optimized for throughput and long multi-image contexts.&lt;/li&gt; &lt;li&gt;Open alternative for the computer-use agent ecosystem beyond closed APIs.&lt;/li&gt; &lt;li&gt;&lt;a href="https://huggingface.co/blog/Hcompany/holotron-12b"&gt;Blog&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;NVIDIA Nemotron Omni + Isaac GR00T N1.7&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Open Nemotron 3 omni models integrating language + vision + voice in one stack.&lt;/li&gt; &lt;li&gt;GR00T N1.7 vision-language-action model for robotics.&lt;/li&gt; &lt;li&gt;&lt;a href="https://nvidianews.nvidia.com/news/nvidia-expands-open-model-families-to-power-the-next-wave-of-agentic-physical-and-healthcare-ai"&gt;Announcement&lt;/a&gt; | &lt;a href="https://github.com/NVIDIA/Isaac-GR00T"&gt;Github&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;GlyphPrinter — Accurate Text Rendering for Image Gen&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0302hw6ch4rg1.png?width=1456&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=db3efe2d84a1e194b2c8461806b830a4fa155fe8"&gt;https://preview.redd.it/0302hw6ch4rg1.png?width=1456&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=db3efe2d84a1e194b2c8461806b830a4fa155fe8&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Fixes localized spelling errors in AI image generators using Region-Grouped Direct Preference Optimization.&lt;/li&gt; &lt;li&gt;Balances artistic styling with accurate text rendering. Open weights.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/FudanCVL/GlyphPrinter"&gt;GitHub&lt;/a&gt; | &lt;a href="https://huggingface.co/FudanCVL/GlyphPrinter"&gt;Hugging Face&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;SparkVSR&lt;/strong&gt; (&lt;a href="https://sparkvsr.github.io/"&gt;project&lt;/a&gt;) — Google’s video super-resolution model for enhancing video quality and clarity&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/1hi48frah4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/1hi48frah4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;SegviGen — 3D Object Segmentation via Colorization&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/iiu1xazqg4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/iiu1xazqg4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Repurposes 3D image generators for precise object segmentation by framing it as a colorization task.&lt;/li&gt; &lt;li&gt;Uses less than 1% of the training data older methods required. Open code + demo.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/Nelipot-Lee/SegviGen"&gt;GitHub&lt;/a&gt; | &lt;a href="https://huggingface.co/spaces/fenghora/SegviGen"&gt;HF Demo&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;OpenMAIC — Multi-Agent Interactive Classroom&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1s31c8t/video/phc9jsisg4rg1/player"&gt;https://reddit.com/link/1s31c8t/video/phc9jsisg4rg1/player&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Turns any topic or document into an interactive classroom with AI teachers and classmates.&lt;/li&gt; &lt;li&gt;Multi-agent orchestration generates slides, quizzes, simulations, and discussions.&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/THU-MAIC/OpenMAIC"&gt;GitHub&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;SkillNet — Open Infrastructure for AI Agent Skills&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Infrastructure to create, evaluate, and organize AI skills at scale.&lt;/li&gt; &lt;li&gt;Enables agents to transition from transient experience to durable mastery.&lt;/li&gt; &lt;li&gt;&lt;a href="https://arxiv.org/abs/2603.04448"&gt;Paper&lt;/a&gt; | &lt;a href="https://github.com/zjunlp/SkillNet"&gt;GitHub&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Checkout the &lt;a href="https://open.substack.com/pub/thelivingedge/p/last-week-in-multimodal-ai-50-everyone?utm_campaign=post-expanded-share&amp;amp;utm_medium=web"&gt;full roundup&lt;/a&gt; for more demos, papers, and resources.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vast_Yak_4147"&gt; /u/Vast_Yak_4147 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s31c8t/last_week_in_multimodal_ai_local_edition/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T04:50:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2vvzh</id>
@@ -99,19 +99,6 @@
     <published>2026-03-25T00:37:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s355o2</id>
-    <title>TurboQuant: Redefining AI efficiency with extreme compression</title>
-    <updated>2026-03-25T08:38:56+00:00</updated>
-    <author>
-      <name>/u/DeltaSqueezer</name>
-      <uri>https://old.reddit.com/user/DeltaSqueezer</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt; &lt;img alt="TurboQuant: Redefining AI efficiency with extreme compression" src="https://external-preview.redd.it/Xfy8b5oz8xAgNpbj0L9Mmjzxactj5HdaKRFOmBPu0YE.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c9dad5b13e20f57d64f5fc0bbc7415c9f4186b1d" title="TurboQuant: Redefining AI efficiency with extreme compression" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google releases new research.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DeltaSqueezer"&gt; /u/DeltaSqueezer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/?utm_source=twitter&amp;amp;utm_medium=social&amp;amp;utm_campaign=social_post&amp;amp;utm_content=gr-acct"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T08:38:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s2c1w4</id>
     <title>Litellm 1.82.7 and 1.82.8 on PyPI are compromised, do not update!</title>
     <updated>2026-03-24T12:14:22+00:00</updated>
@@ -125,17 +112,17 @@
     <published>2026-03-24T12:14:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s34173</id>
-    <title>After the supply chain attack, here are some litellm alternatives</title>
-    <updated>2026-03-25T07:26:03+00:00</updated>
+    <id>t3_1s355o2</id>
+    <title>TurboQuant: Redefining AI efficiency with extreme compression</title>
+    <updated>2026-03-25T08:38:56+00:00</updated>
     <author>
-      <name>/u/KissWild</name>
-      <uri>https://old.reddit.com/user/KissWild</uri>
+      <name>/u/DeltaSqueezer</name>
+      <uri>https://old.reddit.com/user/DeltaSqueezer</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"&gt; &lt;img alt="After the supply chain attack, here are some litellm alternatives" src="https://preview.redd.it/4hrn5eh985rg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e3c9b9d898487d798cd45a5552f7df31e4ffa7c9" title="After the supply chain attack, here are some litellm alternatives" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;litellm versions 1.82.7 and 1.82.8 on PyPI were compromised with credential-stealing malware.&lt;/p&gt; &lt;p&gt;And here are a few open-source alternatives:&lt;/p&gt; &lt;p&gt;1. Bifrost: Probably the most direct litellm replacement right now. Written in Go, claims ~50x faster P99 latency than litellm. Apache 2.0 licensed, supports 20+ providers. Migration from litellm only requires a one-line base URL change.&lt;/p&gt; &lt;p&gt;2. Kosong: An LLM abstraction layer open-sourced by Kimi, used in Kimi CLI. More agent-oriented than litellm. it unifies message structures and async tool orchestration with pluggable chat providers. Supports OpenAI, Anthropic, Google Vertex and other API formats.&lt;/p&gt; &lt;p&gt;3. Helicone: An AI gateway with strong analytics and debugging capabilities. Supports 100+ providers. Heavier than the first two but more feature-rich on the observability side.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KissWild"&gt; /u/KissWild &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/4hrn5eh985rg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt; &lt;img alt="TurboQuant: Redefining AI efficiency with extreme compression" src="https://external-preview.redd.it/Xfy8b5oz8xAgNpbj0L9Mmjzxactj5HdaKRFOmBPu0YE.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c9dad5b13e20f57d64f5fc0bbc7415c9f4186b1d" title="TurboQuant: Redefining AI efficiency with extreme compression" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google releases new research.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DeltaSqueezer"&gt; /u/DeltaSqueezer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/?utm_source=twitter&amp;amp;utm_medium=social&amp;amp;utm_campaign=social_post&amp;amp;utm_content=gr-acct"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s355o2/turboquant_redefining_ai_efficiency_with_extreme/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-25T07:26:03+00:00</published>
+    <published>2026-03-25T08:38:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1s2ci9r</id>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s2q4et/opencode_source_code_audit_7_external_domains/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-24T20:53:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s34173</id>
+    <title>After the supply chain attack, here are some litellm alternatives</title>
+    <updated>2026-03-25T07:26:03+00:00</updated>
+    <author>
+      <name>/u/KissWild</name>
+      <uri>https://old.reddit.com/user/KissWild</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"&gt; &lt;img alt="After the supply chain attack, here are some litellm alternatives" src="https://preview.redd.it/4hrn5eh985rg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e3c9b9d898487d798cd45a5552f7df31e4ffa7c9" title="After the supply chain attack, here are some litellm alternatives" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;litellm versions 1.82.7 and 1.82.8 on PyPI were compromised with credential-stealing malware.&lt;/p&gt; &lt;p&gt;And here are a few open-source alternatives:&lt;/p&gt; &lt;p&gt;1. Bifrost: Probably the most direct litellm replacement right now. Written in Go, claims ~50x faster P99 latency than litellm. Apache 2.0 licensed, supports 20+ providers. Migration from litellm only requires a one-line base URL change.&lt;/p&gt; &lt;p&gt;2. Kosong: An LLM abstraction layer open-sourced by Kimi, used in Kimi CLI. More agent-oriented than litellm. it unifies message structures and async tool orchestration with pluggable chat providers. Supports OpenAI, Anthropic, Google Vertex and other API formats.&lt;/p&gt; &lt;p&gt;3. Helicone: An AI gateway with strong analytics and debugging capabilities. Supports 100+ providers. Heavier than the first two but more feature-rich on the observability side.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KissWild"&gt; /u/KissWild &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/4hrn5eh985rg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s34173/after_the_supply_chain_attack_here_are_some/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-25T07:26:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1s350sj</id>
