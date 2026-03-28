@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-28T03:39:28+00:00</updated>
+  <updated>2026-03-28T04:29:50+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1s4lmep</id>
-    <title>Dual DGX Sparks vs Mac Studio M3 Ultra 512GB: Running Qwen3.5 397B locally on both. Here's what I found.</title>
-    <updated>2026-03-26T22:12:06+00:00</updated>
-    <author>
-      <name>/u/trevorbg</name>
-      <uri>https://old.reddit.com/user/trevorbg</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was spending about $2K/month on Claude API tokens for a personal AI assistant I run through Slack. After about 45 days of that cost pain I decided to go local. Bought both a dual DGX Spark setup and a Mac Studio M3 Ultra 512GB, each cost me about $10K after taxes. Same price, completely different machines. Here is what I learned running Qwen3.5 397B A17B on both.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Mac Studio&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;MLX 6 bit quantization, 323GB model loaded into 512GB unified memory. 30 to 40 tok/s generation. The biggest selling point is memory bandwidth at roughly 800 GB/s. That bandwidth is what makes token generation feel smooth on such a massive model in a single box. Setup was easy. Install mlx vlm, point it at the model, done. The weakness is raw compute. Prefill is slow (30+ seconds on a big system prompt with tool definitions) and if you want to do batch embedding alongside inference, you are going to feel it. I also had to write a 500 line async proxy because mlx vlm does not parse tool calls or strip thinking tokens natively.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Dual Sparks&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;INT4 AutoRound quantization, 98GB per node loaded across two 128GB nodes via vLLM TP=2. 27 to 28 tok/s generation. The biggest selling point is processing speed. CUDA tensor cores, vLLM kernels, tensor parallelism. Prefill is noticeably faster than the Mac Studio. Batch embedding that takes days on MLX finishes in hours on CUDA. The entire open source GPU ecosystem just works. The weakness is memory bandwidth at roughly 273 GB/s per node, which is why generation tops out lower than the Mac Studio despite having more compute.&lt;/p&gt; &lt;p&gt;The setup was brutal though. Only one QSFP cable works (the second crashes NCCL). Node2's IP is ephemeral and disappears on reboot. The GPU memory utilization ceiling is 0.88 and you have to binary search for it because going to 0.9 starves the OS and 0.85 OOMs at 262K context. Every wrong guess costs you 15 minutes while checkpoint shards reload. You have to flush page cache on BOTH nodes before every model load or you get mystery OOM failures. Some units thermal throttle within 20 minutes. It took me days to get stable.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why I kept both&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I am building a RAG pipeline with Qwen3 Embedding 8B and Qwen3 Reranker 8B for a personal knowledge base. On the Mac Studio, those models would compete with the main model for the same 512GB memory pool. On the Sparks, they get dedicated CUDA and never touch inference memory.&lt;/p&gt; &lt;p&gt;So the architecture ended up being: Mac Studio handles inference only (full 512GB for the model and KV cache). Sparks handle RAG, embedding, reranking, and everything else. They talk over Tailscale.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Head to head numbers&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;/th&gt; &lt;th align="left"&gt;Mac Studio 512GB&lt;/th&gt; &lt;th align="left"&gt;Dual DGX Spark&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Cost&lt;/td&gt; &lt;td align="left"&gt;$10K&lt;/td&gt; &lt;td align="left"&gt;$10K&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Memory&lt;/td&gt; &lt;td align="left"&gt;512GB unified&lt;/td&gt; &lt;td align="left"&gt;256GB (128×2)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Bandwidth&lt;/td&gt; &lt;td align="left"&gt;~800 GB/s&lt;/td&gt; &lt;td align="left"&gt;~273 GB/s per node&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Quant&lt;/td&gt; &lt;td align="left"&gt;MLX 6 bit (323GB)&lt;/td&gt; &lt;td align="left"&gt;INT4 AutoRound (98GB/node)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Gen speed&lt;/td&gt; &lt;td align="left"&gt;30 to 40 tok/s&lt;/td&gt; &lt;td align="left"&gt;27 to 28 tok/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Max context&lt;/td&gt; &lt;td align="left"&gt;256K tokens&lt;/td&gt; &lt;td align="left"&gt;130K+ tokens&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Setup&lt;/td&gt; &lt;td align="left"&gt;Easy but hands on&lt;/td&gt; &lt;td align="left"&gt;Hard&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Strength&lt;/td&gt; &lt;td align="left"&gt;Bandwidth&lt;/td&gt; &lt;td align="left"&gt;Compute&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Weakness&lt;/td&gt; &lt;td align="left"&gt;Compute&lt;/td&gt; &lt;td align="left"&gt;Bandwidth&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;If you can only buy one&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I cannot tell you which is better because if one were clearly better I would have returned the other. They optimize for different things.&lt;/p&gt; &lt;p&gt;Mac Studio if you want it to just work, you want that 800 GB/s bandwidth for smooth generation, and you are not planning heavy embedding workloads alongside inference. An RTX 6000 Pro build was my third option but I did not want to build a custom PC on top of everything else I was planning on for this.&lt;/p&gt; &lt;p&gt;Dual Sparks if you are comfortable with Linux and Docker, you want CUDA and vLLM natively, you plan to run RAG or embedding alongside inference, and you are willing to spend days on initial setup for a more powerful platform long term.&lt;/p&gt; &lt;p&gt;The Mac Studio gives you 80% of the experience with 20% of the effort. The Sparks give you more capability but they extract a real cost in setup time.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Break even math&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;$2K/month API spend. $20K total hardware. 10 months to break even. After that it is free inference forever with complete privacy and no rate limits.&lt;/p&gt; &lt;p&gt;I wrote a longer version of this with more detail on the full build out at &lt;a href="https://substack.com/home/post/p-192255754"&gt;https://substack.com/home/post/p-192255754&lt;/a&gt; . Building a series covering the full stack including vLLM tuning, RAG without LangChain, and QLoRA fine tuning a 397B MoE. Happy to answer questions.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/trevorbg"&gt; /u/trevorbg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s4lmep/dual_dgx_sparks_vs_mac_studio_m3_ultra_512gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s4lmep/dual_dgx_sparks_vs_mac_studio_m3_ultra_512gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s4lmep/dual_dgx_sparks_vs_mac_studio_m3_ultra_512gb/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-26T22:12:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s5ihdi</id>
-    <title>Trying to sanity check my understanding of “agent” systems.</title>
-    <updated>2026-03-27T22:15:55+00:00</updated>
-    <author>
-      <name>/u/prophetadmin</name>
-      <uri>https://old.reddit.com/user/prophetadmin</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If I strip it down, most implementations seem to be:&lt;/p&gt; &lt;p&gt;a loop&lt;/p&gt; &lt;p&gt;the same model called repeatedly&lt;/p&gt; &lt;p&gt;different prompts for planning / execution / review&lt;/p&gt; &lt;p&gt;shared state passed between steps&lt;/p&gt; &lt;p&gt;So “multi-agent” ends up being something like: planner → worker → critic → repeat&lt;/p&gt; &lt;p&gt;Where I’m unsure is where the real complexity actually lives.&lt;/p&gt; &lt;p&gt;Is it mainly:&lt;/p&gt; &lt;p&gt;state management?&lt;/p&gt; &lt;p&gt;tool integration?&lt;/p&gt; &lt;p&gt;enforcing constraints / completion?&lt;/p&gt; &lt;p&gt;Or am I missing something deeper that actually justifies the “agent” framing?&lt;/p&gt; &lt;p&gt;Genuinely asking — trying to separate what’s real vs what’s just terminology.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/prophetadmin"&gt; /u/prophetadmin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ihdi/trying_to_sanity_check_my_understanding_of_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ihdi/trying_to_sanity_check_my_understanding_of_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ihdi/trying_to_sanity_check_my_understanding_of_agent/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-27T22:15:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s5pdn8</id>
-    <title>i put a 0.5B LLM on a Miyoo A30 handheld. it runs entirely on-device, no internet.</title>
-    <updated>2026-03-28T03:21:31+00:00</updated>
-    <author>
-      <name>/u/Red_Core_1999</name>
-      <uri>https://old.reddit.com/user/Red_Core_1999</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;SpruceChat runs Qwen2.5-0.5B on handheld gaming devices using llama.cpp. no cloud, no wifi needed. the model lives in RAM after first boot and tokens stream in one by one.&lt;/p&gt; &lt;p&gt;runs on: Miyoo A30, Miyoo Flip, Trimui Brick, Trimui Smart Pro&lt;/p&gt; &lt;p&gt;performance on the A30 (Cortex-A7, quad-core): - model load: ~60s first boot - generation: ~1-2 tokens/sec - prompt eval: ~3 tokens/sec&lt;/p&gt; &lt;p&gt;it's not fast but it streams so you watch it think. 64-bit devices are quicker.&lt;/p&gt; &lt;p&gt;the AI has the personality of a spruce tree. patient, unhurried, quietly amazed by everything.&lt;/p&gt; &lt;p&gt;if the device is on wifi you can also hit the llama-server from a browser on your phone/laptop and chat that way with a real keyboard.&lt;/p&gt; &lt;p&gt;repo: &lt;a href="https://github.com/RED-BASE/SpruceChat"&gt;https://github.com/RED-BASE/SpruceChat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;built with help from Claude. got a collaborator already working on expanding device support. first release is up with both armhf and aarch64 binaries + the model included.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Red_Core_1999"&gt; /u/Red_Core_1999 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-28T03:21:31+00:00</published>
-  </entry>
   <entry>
     <id>t3_1s54ipe</id>
     <title>Good job honey, that's a beautiful letter A. I'm very proud of you.</title>
@@ -73,30 +34,17 @@
     <published>2026-03-27T09:13:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s5plrv</id>
-    <title>Anyway to get close to GPT4o on a local model (I know it’s a dumb question)</title>
-    <updated>2026-03-28T03:32:37+00:00</updated>
+    <id>t3_1s5kvia</id>
+    <title>Advice for Working with Agents in YOLO Mode</title>
+    <updated>2026-03-27T23:54:29+00:00</updated>
     <author>
-      <name>/u/octopi917</name>
-      <uri>https://old.reddit.com/user/octopi917</uri>
+      <name>/u/chibop1</name>
+      <uri>https://old.reddit.com/user/chibop1</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;At the risk of getting downvoted to hell, I am a ND user and I used 4o for emotional and nervous system regulation (nothing nsfw). I am also a music pro and I need to upgrade my entire rig. I have roughly $15k to spend and I was wondering if there’s anything I can run that would be similar in style. This machine wouldn’t have to run music software and LLM at the same time but it would need to be able to run both separately. I’m on Macs and need to stay Mac based. I am not tech savvy but I have been doing things like running small models through LM Studio and Silly Tavern etc ok. I’m not great but I can figure things out. Anyway any advice is appreciated. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/octopi917"&gt; /u/octopi917 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Until last November, I used assistant-style workflows, co-writing everything. Then at the beginning of this year, I started using agentic coding tools for small PR-style tasks, but I still reviewed every line and changed if necessary.&lt;/p&gt; &lt;p&gt;Over the past few weeks, I experimented for the first time with developing with agentic coding without writing or reviewing any code, essentially running in fully autonomous mode without asking approvals, and see what happens.&lt;/p&gt; &lt;p&gt;Here is what I have learned so far.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Spec: Instead of firing off a task with a short prompt, discuss and co-write a detailed spec with a to-do list. This forced me to think through edge cases beforehand and come up with clearer instruction for model and better design. The spec.md also served as a nice handoff instruction when I needed to switch models.&lt;/li&gt; &lt;li&gt;Unit tests: I had a model generate unit tests for every feature including GUI and automatically run the full test suite after each revision. This allowed to automate faster and produce more reliable code with minimum breakage. I also kept a few &amp;quot;absolute golden&amp;quot; tests that agents are not allowed to modify in any circumstance, and every revision had to pass the tests.&lt;/li&gt; &lt;li&gt;Backup: I had a model automatically commit revision so I can always start clean and roll back if needed.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I mean these are already good ideas in general, but once I explicitly included these in the default instructions, things went significantly smoother and faster! Especially incorporating the unit tests into the workflow dramatically sped up the process.&lt;/p&gt; &lt;p&gt;What other advice do you guys have for successful agentic coding in fully autonomous (AKA YOLO) mode?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chibop1"&gt; /u/chibop1 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5kvia/advice_for_working_with_agents_in_yolo_mode/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5kvia/advice_for_working_with_agents_in_yolo_mode/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5kvia/advice_for_working_with_agents_in_yolo_mode/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-28T03:32:37+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s5g2zh</id>
-    <title>Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser</title>
-    <updated>2026-03-27T20:44:36+00:00</updated>
-    <author>
-      <name>/u/xenovatech</name>
-      <uri>https://old.reddit.com/user/xenovatech</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"&gt; &lt;img alt="Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser" src="https://external-preview.redd.it/ZDdyZXNjODhlbnJnMV7YmEQBxLfd3xhTgIR39P2RJK1kuBhjlj0WgNa7ZU17.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bc9a139257386f0d968782e64eb7628f0df913b8" title="Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yesterday, Cohere released their first speech-to-text model, which now tops the OpenASR leaderboard (for English, but the model does support 14 different languages).&lt;/p&gt; &lt;p&gt;So, I decided to build a WebGPU demo for it: running the model entirely locally in the browser with Transformers.js. I hope you like it!&lt;/p&gt; &lt;p&gt;Link to demo (+ source code): &lt;a href="https://huggingface.co/spaces/CohereLabs/Cohere-Transcribe-WebGPU"&gt;https://huggingface.co/spaces/CohereLabs/Cohere-Transcribe-WebGPU&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/iwq86a88enrg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-27T20:44:36+00:00</published>
+    <published>2026-03-27T23:54:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1s5idyp</id>
@@ -112,6 +60,32 @@
     <published>2026-03-27T22:12:19+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s5ouyu</id>
+    <title>Why Mistral's Voxtral is the new gold standard for "Day 0" integration (90ms Latency on M4)</title>
+    <updated>2026-03-28T02:56:43+00:00</updated>
+    <author>
+      <name>/u/robotrossart</name>
+      <uri>https://old.reddit.com/user/robotrossart</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ouyu/why_mistrals_voxtral_is_the_new_gold_standard_for/"&gt; &lt;img alt="Why Mistral's Voxtral is the new gold standard for &amp;quot;Day 0&amp;quot; integration (90ms Latency on M4)" src="https://external-preview.redd.it/cm5lZXByb3E2cHJnMbjZPgRw2n7AYyMr8nhsyGa4Mc9AvteGNqgNrmJF6NVa.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e1ca916bafb0c58ad27370caf2b023976879d7c4" title="Why Mistral's Voxtral is the new gold standard for &amp;quot;Day 0&amp;quot; integration (90ms Latency on M4)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The Hour-One Win: We moved from &amp;quot;weights dropped&amp;quot; to &amp;quot;robot talking&amp;quot; in 60 minutes. The API/local implementation is that clean.&lt;/p&gt; &lt;p&gt;Emotional Nuance: Unlike older TTS models, Voxtral doesn't flatten the &amp;quot;personality&amp;quot; of the script. It captures the warmth we wanted for an art-bot.&lt;/p&gt; &lt;p&gt;No Cloud &amp;quot;Cold Starts&amp;quot;: Since it's local, there’s no lag when the agent decides it has something poetic to say.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/UrsushoribilisMusic/bobrossskill"&gt;https://github.com/UrsushoribilisMusic/bobrossskill&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/robotrossart"&gt; /u/robotrossart &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/13g5r36s6prg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ouyu/why_mistrals_voxtral_is_the_new_gold_standard_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5ouyu/why_mistrals_voxtral_is_the_new_gold_standard_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-28T02:56:43+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s5g2zh</id>
+    <title>Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser</title>
+    <updated>2026-03-27T20:44:36+00:00</updated>
+    <author>
+      <name>/u/xenovatech</name>
+      <uri>https://old.reddit.com/user/xenovatech</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"&gt; &lt;img alt="Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser" src="https://external-preview.redd.it/ZDdyZXNjODhlbnJnMV7YmEQBxLfd3xhTgIR39P2RJK1kuBhjlj0WgNa7ZU17.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bc9a139257386f0d968782e64eb7628f0df913b8" title="Cohere Transcribe WebGPU: state-of-the-art multilingual speech recognition in your browser" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Yesterday, Cohere released their first speech-to-text model, which now tops the OpenASR leaderboard (for English, but the model does support 14 different languages).&lt;/p&gt; &lt;p&gt;So, I decided to build a WebGPU demo for it: running the model entirely locally in the browser with Transformers.js. I hope you like it!&lt;/p&gt; &lt;p&gt;Link to demo (+ source code): &lt;a href="https://huggingface.co/spaces/CohereLabs/Cohere-Transcribe-WebGPU"&gt;https://huggingface.co/spaces/CohereLabs/Cohere-Transcribe-WebGPU&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/iwq86a88enrg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5g2zh/cohere_transcribe_webgpu_stateoftheart/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-27T20:44:36+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1s4ydfu</id>
     <title>[Qwen Meetup] Function Calling Harness with Qwen, turning 6.75% to 100%</title>
     <updated>2026-03-27T08:31:30+00:00</updated>
@@ -125,6 +99,19 @@
     <published>2026-03-27T08:31:30+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s5pdn8</id>
+    <title>i put a 0.5B LLM on a Miyoo A30 handheld. it runs entirely on-device, no internet.</title>
+    <updated>2026-03-28T03:21:31+00:00</updated>
+    <author>
+      <name>/u/Red_Core_1999</name>
+      <uri>https://old.reddit.com/user/Red_Core_1999</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;SpruceChat runs Qwen2.5-0.5B on handheld gaming devices using llama.cpp. no cloud, no wifi needed. the model lives in RAM after first boot and tokens stream in one by one.&lt;/p&gt; &lt;p&gt;runs on: Miyoo A30, Miyoo Flip, Trimui Brick, Trimui Smart Pro&lt;/p&gt; &lt;p&gt;performance on the A30 (Cortex-A7, quad-core): - model load: ~60s first boot - generation: ~1-2 tokens/sec - prompt eval: ~3 tokens/sec&lt;/p&gt; &lt;p&gt;it's not fast but it streams so you watch it think. 64-bit devices are quicker.&lt;/p&gt; &lt;p&gt;the AI has the personality of a spruce tree. patient, unhurried, quietly amazed by everything.&lt;/p&gt; &lt;p&gt;if the device is on wifi you can also hit the llama-server from a browser on your phone/laptop and chat that way with a real keyboard.&lt;/p&gt; &lt;p&gt;repo: &lt;a href="https://github.com/RED-BASE/SpruceChat"&gt;https://github.com/RED-BASE/SpruceChat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;built with help from Claude. got a collaborator already working on expanding device support. first release is up with both armhf and aarch64 binaries + the model included.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Red_Core_1999"&gt; /u/Red_Core_1999 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5pdn8/i_put_a_05b_llm_on_a_miyoo_a30_handheld_it_runs/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-28T03:21:31+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1s5jjz8</id>
     <title>Is it worth the upgrade from 48GB to 60GB VRAM?</title>
     <updated>2026-03-27T22:59:35+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5jjz8/is_it_worth_the_upgrade_from_48gb_to_60gb_vram/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-27T22:59:35+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s5plrv</id>
+    <title>Anyway to get close to GPT4o on a local model (I know it’s a dumb question)</title>
+    <updated>2026-03-28T03:32:37+00:00</updated>
+    <author>
+      <name>/u/octopi917</name>
+      <uri>https://old.reddit.com/user/octopi917</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;At the risk of getting downvoted to hell, I am a ND user and I used 4o for emotional and nervous system regulation (nothing nsfw). I am also a music pro and I need to upgrade my entire rig. I have roughly $15k to spend and I was wondering if there’s anything I can run that would be similar in style. This machine wouldn’t have to run music software and LLM at the same time but it would need to be able to run both separately. I’m on Macs and need to stay Mac based. I am not tech savvy but I have been doing things like running small models through LM Studio and Silly Tavern etc ok. I’m not great but I can figure things out. Anyway any advice is appreciated. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/octopi917"&gt; /u/octopi917 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5plrv/anyway_to_get_close_to_gpt4o_on_a_local_model_i/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-28T03:32:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1s5mabx</id>
@@ -242,19 +242,6 @@
     <published>2026-03-27T16:01:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s5np41</id>
-    <title>M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)</title>
-    <updated>2026-03-28T02:01:16+00:00</updated>
-    <author>
-      <name>/u/onil_gova</name>
-      <uri>https://old.reddit.com/user/onil_gova</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"&gt; &lt;img alt="M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)" src="https://preview.redd.it/bu34why90prg1.png?width=140&amp;amp;height=77&amp;amp;auto=webp&amp;amp;s=c1c64266e5352aba06f21376f3d6505ddb9772fe" title="M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ran identical benchmarks on both 16” MacBook Pros with 40 GPU cores and 128GB unified memory across three Qwen 3.5 models (122B-A10B MoE, 35B-A3B MoE, 27B dense) using oMLX v0.2.23.&lt;/p&gt; &lt;p&gt;Quick numbers at pp1024/tg128:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;35B-A3B: 134.5 vs 80.3 tg tok/s (1.7x)&lt;/li&gt; &lt;li&gt;122B-A10B: 65.3 vs 46.1 tg tok/s (1.4x)&lt;/li&gt; &lt;li&gt;27B dense: 32.8 vs 23.0 tg tok/s (1.4x)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The gap widens at longer contexts. At 65K, the 27B dense drops to 6.8 tg tok/s on M3 Max vs 19.6 on M5 Max (2.9x). Prefill advantages are even larger, up to 4x at long context, driven by the M5 Max’s GPU Neural Accelerators.&lt;/p&gt; &lt;p&gt;Batching matters most for agentic workloads. M5 Max scales to 2.54x throughput at 4x batch on the 35B-A3B, while M3 Max batching on dense models degrades (0.80x at 2x batch on the 122B). The 614 GB/s vs 400 GB/s bandwidth gap is significant for multi-step agent loops or parallel tool calls.&lt;/p&gt; &lt;p&gt;MoE efficiency is another takeaway. The 122B model (10B active) generates faster than the 27B dense on both machines. Active parameter count determines speed, not model size. &lt;/p&gt; &lt;p&gt;Full interactive breakdown with all charts and data: &lt;a href="https://claude.ai/public/artifacts/c9fba245-e734-4b3b-be44-a6cabdec6f8f"&gt;https://claude.ai/public/artifacts/c9fba245-e734-4b3b-be44-a6cabdec6f8f&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/onil_gova"&gt; /u/onil_gova &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s5np41"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-28T02:01:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s56q9g</id>
     <title>New Unsloth Studio Release!</title>
     <updated>2026-03-27T15:06:21+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s56q9g/new_unsloth_studio_release/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-27T15:06:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s5np41</id>
+    <title>M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)</title>
+    <updated>2026-03-28T02:01:16+00:00</updated>
+    <author>
+      <name>/u/onil_gova</name>
+      <uri>https://old.reddit.com/user/onil_gova</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"&gt; &lt;img alt="M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)" src="https://preview.redd.it/bu34why90prg1.png?width=140&amp;amp;height=77&amp;amp;auto=webp&amp;amp;s=c1c64266e5352aba06f21376f3d6505ddb9772fe" title="M5 Max vs M3 Max Inference Benchmarks (Qwen3.5, oMLX, 128GB, 40 GPU cores)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ran identical benchmarks on both 16” MacBook Pros with 40 GPU cores and 128GB unified memory across three Qwen 3.5 models (122B-A10B MoE, 35B-A3B MoE, 27B dense) using oMLX v0.2.23.&lt;/p&gt; &lt;p&gt;Quick numbers at pp1024/tg128:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;35B-A3B: 134.5 vs 80.3 tg tok/s (1.7x)&lt;/li&gt; &lt;li&gt;122B-A10B: 65.3 vs 46.1 tg tok/s (1.4x)&lt;/li&gt; &lt;li&gt;27B dense: 32.8 vs 23.0 tg tok/s (1.4x)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The gap widens at longer contexts. At 65K, the 27B dense drops to 6.8 tg tok/s on M3 Max vs 19.6 on M5 Max (2.9x). Prefill advantages are even larger, up to 4x at long context, driven by the M5 Max’s GPU Neural Accelerators.&lt;/p&gt; &lt;p&gt;Batching matters most for agentic workloads. M5 Max scales to 2.54x throughput at 4x batch on the 35B-A3B, while M3 Max batching on dense models degrades (0.80x at 2x batch on the 122B). The 614 GB/s vs 400 GB/s bandwidth gap is significant for multi-step agent loops or parallel tool calls.&lt;/p&gt; &lt;p&gt;MoE efficiency is another takeaway. The 122B model (10B active) generates faster than the 27B dense on both machines. Active parameter count determines speed, not model size. &lt;/p&gt; &lt;p&gt;Full interactive breakdown with all charts and data: &lt;a href="https://claude.ai/public/artifacts/c9fba245-e734-4b3b-be44-a6cabdec6f8f"&gt;https://claude.ai/public/artifacts/c9fba245-e734-4b3b-be44-a6cabdec6f8f&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/onil_gova"&gt; /u/onil_gova &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1s5np41"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s5np41/m5_max_vs_m3_max_inference_benchmarks_qwen35_omlx/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-28T02:01:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1s5l23i</id>
