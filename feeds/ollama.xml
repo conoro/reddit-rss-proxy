@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-03-28T04:29:51+00:00</updated>
+  <updated>2026-03-28T05:09:33+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1s4j73f</id>
-    <title>Fresh install of Ollama, major security threat.. reckless</title>
-    <updated>2026-03-26T20:39:39+00:00</updated>
-    <author>
-      <name>/u/lancer-fiefdom</name>
-      <uri>https://old.reddit.com/user/lancer-fiefdom</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have started going big into LLM DevOps, and have a solid CyberSec background.&lt;/p&gt; &lt;p&gt;After I installed Ollama on my macbook I noticed a significant memory consumption AFTER I closed my command prompt session with /bye&lt;/p&gt; &lt;p&gt;After force quiting unnecessary items, I found that my mac had a web listener running&lt;/p&gt; &lt;p&gt;&lt;a href="http://127.0.0.1:57172/"&gt;http://127.0.0.1:57172/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And I confirmed it was open/listening Ollama session prompt that was not killed when I stopped Ollama (much less told that a hidden listener would start up automatically)&lt;/p&gt; &lt;p&gt;A Claude question confirmed my suspicions&lt;/p&gt; &lt;p&gt;This is expected behavior with how Ollama is set up on macOS. Here's what's happening:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Saying&lt;/strong&gt; &lt;code&gt;/bye&lt;/code&gt; only exits the interactive chat session — it doesn't stop the Ollama server. &lt;strong&gt;Quitting the desktop UI&lt;/strong&gt; (the menu bar app) &lt;em&gt;should&lt;/em&gt; stop the background server, but sometimes the process lingers.&lt;/p&gt; &lt;p&gt;The port 57172 isn't Ollama's main API port (which is 11434) — it's likely an internal helper process or a dynamically assigned port used by Ollama's runtime&lt;/p&gt; &lt;p&gt;The short version: Ollama runs a persistent background server on macOS, and quitting the UI doesn't always fully terminate it. A quick &lt;code&gt;pkill -f ollama&lt;/code&gt; will clean it up. If you want it to stay stopped between reboots, disabling the Launch Agent is the way to go.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My Claude question&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Isnt this a security vulnerabilty? If the port is listening and its an interactive prompt, than couldnt an external threat utilize the listening port, and my compute power (local llm) to their advantage? Research if there is a cybersecurity concern with Ollama installed on personal laptops&lt;/p&gt; &lt;p&gt;Your security instinct is 100% correct. This is a well-documented and actively exploited attack surface. The research findings are frankly alarming.&lt;/p&gt; &lt;h1&gt;Yes — Ollama Is a Real Security Concern on Personal Laptops&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;The core problem:&lt;/strong&gt; Ollama does not have authentication and access control functions by default. &lt;a href="https://nsfocusglobal.com/ollama-unauthorized-access-vulnerability-due-to-misconfiguration-cnvd-2025-04094/"&gt;NSFOCUS&lt;/a&gt; Its API is a fully open REST interface — anyone who can reach it can submit prompts, pull models, push models, read files, and consume your compute. Ollama's inference API does not include native authentication mechanisms. &lt;a href="https://www.indusface.com/blog/exposed-ollama-servers-llm-security-risks/"&gt;Indusface&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;The Threat Vectors That Apply to You&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;1. DNS Rebinding (CVE-2024-28224) — The &amp;quot;localhost isn't safe&amp;quot; attack&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This one is directly relevant to your scenario. NCC Group identified a DNS rebinding vulnerability in Ollama that permits attackers to access its API without authorization, even if the vulnerable system is not configured to expose its API publicly. &lt;a href="https://www.nccgroup.com/research/technical-advisory-ollama-dns-rebinding-attack-cve-2024-28224/"&gt;NCC Group&lt;/a&gt; The attack works like this: attackers direct Ollama users to connect to a malicious web server via a regular web browser, which then performs the DNS rebinding attack to force the browser to interact with the vulnerable Ollama instance on the attacker's behalf. &lt;a href="https://research.nccgroup.com/2024/04/08/technical-advisory-ollama-dns-rebinding-attack-cve-2024-28224/"&gt;NCC Group&lt;/a&gt; So even bound to localhost, simply visiting a malicious webpage while Ollama is running could give an attacker full API access. This was patched in v0.1.29, but it illustrates the class of risk.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Compute Hijacking (&amp;quot;LLMjacking&amp;quot;)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Threat actors actively scan for exposed Ollama servers to hijack computational resources, forcing the victim's hardware to generate spam, run disinformation campaigns, or mine cryptocurrency at zero cost to the attacker. &lt;a href="https://www.threatngsecurity.com/glossary/ollama"&gt;ThreatNG Security&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. File Exfiltration&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Access to the API permits attackers to exfiltrate file data present on the system running Ollama &lt;a href="https://www.nccgroup.com/research/technical-advisory-ollama-dns-rebinding-attack-cve-2024-28224/"&gt;NCC Group&lt;/a&gt; — the API endpoints can read filesystem paths accessible to the Ollama process and push that data to attacker-controlled servers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. Remote Code Execution (CVE-2024-37032 &amp;quot;Probllama&amp;quot;)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A critical path traversal vulnerability allowed attackers to overwrite arbitrary files on the host system or execute malicious code &lt;a href="https://www.threatngsecurity.com/glossary/ollama"&gt;ThreatNG Security&lt;/a&gt; through the model pull API.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Additional CVEs (Oligo Research)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Oligo's research team uncovered 6 vulnerabilities in Ollama that could allow an attacker to carry out DoS attacks, model poisoning, model theft, and more with a single HTTP request. &lt;a href="https://www.oligo.security/blog/more-models-more-probllms"&gt;Oligo Security&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;The Scale of the Problem&lt;/h1&gt; &lt;p&gt;Researchers identified 1,139 vulnerable Ollama instances, with over 1,000 detected within the first 10 minutes of scanning &lt;a href="https://blogs.cisco.com/security/detecting-exposed-llm-servers-shodan-case-study-on-ollama"&gt;Cisco Blogs&lt;/a&gt;, and internet-wide scans have identified 175,000 exposed Ollama servers, many unintentionally accessible&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Bottom line:&lt;/strong&gt; Your instinct was right. A persistent, unauthenticated API listener with filesystem access and no rate limiting is absolutely a security liability on a personal laptop — even when bound to localhost, given the DNS rebinding class of attacks. The safest posture is to treat Ollama like any other local service with elevated privileges: run it on-demand and shut it down when idle&lt;/p&gt; &lt;p&gt;What the fuck.. uninstall asap&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lancer-fiefdom"&gt; /u/lancer-fiefdom &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s4j73f/fresh_install_of_ollama_major_security_threat/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s4j73f/fresh_install_of_ollama_major_security_threat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1s4j73f/fresh_install_of_ollama_major_security_threat/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-03-26T20:39:39+00:00</published>
-  </entry>
   <entry>
     <id>t3_1s4702j</id>
     <title>Openclaw ram hog</title>
@@ -97,6 +84,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1s48xim/amd_ryzen_9_9950x3d2_dual_edition_processor/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-03-26T14:25:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s58dls</id>
+    <title>what llm model would be best for a normal laptop without gpu</title>
+    <updated>2026-03-27T16:05:18+00:00</updated>
+    <author>
+      <name>/u/gameguruji8639</name>
+      <uri>https://old.reddit.com/user/gameguruji8639</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;specs&lt;/p&gt; &lt;p&gt;cpu: AMD Ryzen 5500u/intel i7 13620h&lt;/p&gt; &lt;p&gt;ram: 8/16 gb ram&lt;/p&gt; &lt;p&gt;(i have two laptops)&lt;/p&gt; &lt;p&gt;just curious about ollama and trying to build a mvp for my personal interest&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gameguruji8639"&gt; /u/gameguruji8639 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-03-27T16:05:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1s4sany</id>
@@ -177,19 +177,6 @@
     <published>2026-03-26T14:00:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s58dls</id>
-    <title>what llm model would be best for a normal laptop without gpu</title>
-    <updated>2026-03-27T16:05:18+00:00</updated>
-    <author>
-      <name>/u/gameguruji8639</name>
-      <uri>https://old.reddit.com/user/gameguruji8639</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;specs&lt;/p&gt; &lt;p&gt;cpu: AMD Ryzen 5500u/intel i7 13620h&lt;/p&gt; &lt;p&gt;ram: 8/16 gb ram&lt;/p&gt; &lt;p&gt;(i have two laptops)&lt;/p&gt; &lt;p&gt;just curious about ollama and trying to build a mvp for my personal interest&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gameguruji8639"&gt; /u/gameguruji8639 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1s58dls/what_llm_model_would_be_best_for_a_normal_laptop/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-03-27T16:05:18+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s50o0p</id>
     <title>Added branching + switch logic to my Ollama-based AI workflow builder (v0.7.0)</title>
     <updated>2026-03-27T10:48:45+00:00</updated>
@@ -201,19 +188,6 @@
     <link href="https://old.reddit.com/r/ollama/comments/1s50o0p/added_branching_switch_logic_to_my_ollamabased_ai/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-03-27T10:48:45+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s57bel</id>
-    <title>Need suggestion for annual subscription.</title>
-    <updated>2026-03-27T15:27:34+00:00</updated>
-    <author>
-      <name>/u/DetailPrestigious511</name>
-      <uri>https://old.reddit.com/user/DetailPrestigious511</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Currently, I'm subscribed to the Pro Ollama. I never hit the 5-hour limit itself, and the weekly limit of 50-60% I also didn't hit. I'm putting in a very aggressive workload, so I don't know why I've seen comments about someone hitting the max limit.&lt;/p&gt; &lt;p&gt;I was actually planning to buy the annual subscription, but the problem is I don't know if they might have some rate limiting, like Anti-Gravity did. The only problem I have right now with Ollama's pro plan is tokens per second. Sometimes I'm using GLM-5 cloud models for development and research, like Qwen3.5 or KIMI.&lt;/p&gt; &lt;p&gt;So, I have three concerns:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Slow speed: If I give one simple prompt to GLM, it can take 15 to 20 minutes easily. I'm getting around 50 to 60 tokens per second in GLM.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;⁠Rate limiting is a black box: We don't know how much we're getting. Are we going to get the same next month or next year? I don't know when it's going to end, but right now it's very generous.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;⁠Closed-source models: The recent trend of closed-source models like GLM-5 Turbo means these models are not coming to open source. I'm assuming if they don't come to open source, Ollama won't be able to serve them, and I'll be in big trouble if I commit for the whole year.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Please suggest.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DetailPrestigious511"&gt; /u/DetailPrestigious511 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-03-27T15:27:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1s50d3w</id>
@@ -242,6 +216,19 @@
     <published>2026-03-27T20:31:25+00:00</published>
   </entry>
   <entry>
+    <id>t3_1s57bel</id>
+    <title>Need suggestion for annual subscription.</title>
+    <updated>2026-03-27T15:27:34+00:00</updated>
+    <author>
+      <name>/u/DetailPrestigious511</name>
+      <uri>https://old.reddit.com/user/DetailPrestigious511</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Currently, I'm subscribed to the Pro Ollama. I never hit the 5-hour limit itself, and the weekly limit of 50-60% I also didn't hit. I'm putting in a very aggressive workload, so I don't know why I've seen comments about someone hitting the max limit.&lt;/p&gt; &lt;p&gt;I was actually planning to buy the annual subscription, but the problem is I don't know if they might have some rate limiting, like Anti-Gravity did. The only problem I have right now with Ollama's pro plan is tokens per second. Sometimes I'm using GLM-5 cloud models for development and research, like Qwen3.5 or KIMI.&lt;/p&gt; &lt;p&gt;So, I have three concerns:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Slow speed: If I give one simple prompt to GLM, it can take 15 to 20 minutes easily. I'm getting around 50 to 60 tokens per second in GLM.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;⁠Rate limiting is a black box: We don't know how much we're getting. Are we going to get the same next month or next year? I don't know when it's going to end, but right now it's very generous.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;⁠Closed-source models: The recent trend of closed-source models like GLM-5 Turbo means these models are not coming to open source. I'm assuming if they don't come to open source, Ollama won't be able to serve them, and I'll be in big trouble if I commit for the whole year.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Please suggest.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DetailPrestigious511"&gt; /u/DetailPrestigious511 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1s57bel/need_suggestion_for_annual_subscription/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-03-27T15:27:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1s5gyxi</id>
     <title>Telemetria Ollama</title>
     <updated>2026-03-27T21:18:50+00:00</updated>
@@ -255,19 +242,6 @@
     <published>2026-03-27T21:18:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s52quq</id>
-    <title>Ollama’s Kimi2.5 Cloud version is dumber than a box of rocks.</title>
-    <updated>2026-03-27T12:31:19+00:00</updated>
-    <author>
-      <name>/u/Porespellar</name>
-      <uri>https://old.reddit.com/user/Porespellar</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Y’all, seriously. I’ve been trying Ollama’s Kimi2.5 Cloud with OpenClaw and it’s dumber than snot. Whatever quant they are running seems to be total garbage. &lt;/p&gt; &lt;p&gt;Constantly hallucinates. Absolutely tries the dumbest things possible. Has no idea what it’s doing and just tries to fake-it-until-you-make it in every situation. Vision capabilities seem broken. Very disappointed in whatever quantization they have implemented. &lt;/p&gt; &lt;p&gt;I’m running on the $20 plan with model at full context and standard settings. Is anyone else experiencing this? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-03-27T12:31:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s5f3xz</id>
     <title>New to this. Is qwen35 27.8B going crazy or is this normal</title>
     <updated>2026-03-27T20:07:34+00:00</updated>
@@ -279,6 +253,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1s5f3xz/new_to_this_is_qwen35_278b_going_crazy_or_is_this/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-03-27T20:07:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s52quq</id>
+    <title>Ollama’s Kimi2.5 Cloud version is dumber than a box of rocks.</title>
+    <updated>2026-03-27T12:31:19+00:00</updated>
+    <author>
+      <name>/u/Porespellar</name>
+      <uri>https://old.reddit.com/user/Porespellar</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Y’all, seriously. I’ve been trying Ollama’s Kimi2.5 Cloud with OpenClaw and it’s dumber than snot. Whatever quant they are running seems to be total garbage. &lt;/p&gt; &lt;p&gt;Constantly hallucinates. Absolutely tries the dumbest things possible. Has no idea what it’s doing and just tries to fake-it-until-you-make it in every situation. Vision capabilities seem broken. Very disappointed in whatever quantization they have implemented. &lt;/p&gt; &lt;p&gt;I’m running on the $20 plan with model at full context and standard settings. Is anyone else experiencing this? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1s52quq/ollamas_kimi25_cloud_version_is_dumber_than_a_box/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-03-27T12:31:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1s5ja3b</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1s5jcej/built_a_local_ai_agent_on_top_of_ollama_that_i/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-03-27T22:50:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s5r7lo</id>
+    <title>🛡️ BuildRight: The "Horizontal Layer of Truth" for AI Engineering</title>
+    <updated>2026-03-28T04:54:53+00:00</updated>
+    <author>
+      <name>/u/Equivalent_Pen8241</name>
+      <uri>https://old.reddit.com/user/Equivalent_Pen8241</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1s5r7lo/buildright_the_horizontal_layer_of_truth_for_ai/"&gt; &lt;img alt="🛡️ BuildRight: The &amp;quot;Horizontal Layer of Truth&amp;quot; for AI Engineering" src="https://external-preview.redd.it/g5Wcir1mIgxeW0XpH0wr6OyeyP5mvGuYFjKzjKRnp70.png?width=140&amp;amp;height=73&amp;amp;auto=webp&amp;amp;s=11ffd99702630b3e5b13f9d80d746e98432282b9" title="🛡️ BuildRight: The &amp;quot;Horizontal Layer of Truth&amp;quot; for AI Engineering" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Equivalent_Pen8241"&gt; /u/Equivalent_Pen8241 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/FastBuilderAI/comments/1s5r5y7/buildright_the_horizontal_layer_of_truth_for_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1s5r7lo/buildright_the_horizontal_layer_of_truth_for_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1s5r7lo/buildright_the_horizontal_layer_of_truth_for_ai/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-03-28T04:54:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1s53gkz</id>
