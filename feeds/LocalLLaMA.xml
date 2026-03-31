@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-03-31T07:17:02+00:00</updated>
+  <updated>2026-03-31T07:55:21+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -21,17 +21,17 @@
     <published>2026-03-31T04:21:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s7xnd2</id>
-    <title>llamafile v0.10.0</title>
-    <updated>2026-03-30T17:42:42+00:00</updated>
+    <id>t3_1s7tn5s</id>
+    <title>PSA: Using Claude Code without Anthropic: How to fix the 60-second local KV cache invalidation issue.</title>
+    <updated>2026-03-30T15:23:35+00:00</updated>
     <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
+      <name>/u/One-Cheesecake389</name>
+      <uri>https://old.reddit.com/user/One-Cheesecake389</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"&gt; &lt;img alt="llamafile v0.10.0" src="https://external-preview.redd.it/Z5P1ZY-f5YqQF_282Ah8cFNHhKvhceL09qomsCOBm-U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9e78fb48304219f303e73b180663d50f42325607" title="llamafile v0.10.0" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;llamafile versions starting from 0.10.0 use a new build system&lt;/strong&gt;, aimed at keeping our code more easily aligned with the latest versions of llama.cpp. This means they support more recent models and functionalities&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;New version after 10 months.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/mozilla-ai/llamafile/releases/tag/0.10.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Claude Code injects dynamic telemetry headers and &lt;code&gt;git status&lt;/code&gt; updates into the system prompt on &lt;em&gt;every single request&lt;/em&gt;. If you are using a local inference backend like &lt;code&gt;llama.cpp&lt;/code&gt; downstream &lt;code&gt;llama-server&lt;/code&gt; or &lt;code&gt;LM Studio&lt;/code&gt;, this dynamic injection instantly breaks prefix matching, flushes your entire KV cache, and forces your hardware to re-process a 20K+ token system prompt from scratch for every minor tool call. You can fix this in ~/.claude/settings.json.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Background&lt;/strong&gt; As I have previously posted, &lt;a href="https://www.reddit.com/r/ClaudeCode/comments/1rshmq8/claude_code_isnt_stupid_now_its_being_system/"&gt;Claude Code now inserts anti-reasoning system prompting that cannot be overridden, but only appended by, --system-prompt-file&lt;/a&gt;. I've ultimately given up on Anthropic, canceling my subscription entirely for this kind of corporate behavior and finally taking the step to pivot to open weights models locally using &lt;code&gt;llama-server&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;However, I noticed that llama-server was invalidating its persistent KV cache on every tool call, forcing a 100-token tool call to re-process &lt;em&gt;all&lt;/em&gt; of a minimum 20Ktok of system and tool prompting. The server log explicitly calls out to the effect of, &lt;code&gt;forcing full prompt re-processing due to lack of cache data&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Root Cause&lt;/strong&gt; &lt;code&gt;llama.cpp&lt;/code&gt; relies on exact string matching to use its KV cache. If the beginning of the prompt matches, it reuses the cache and only processes the delta (the new tokens).&lt;/p&gt; &lt;p&gt;Claude Code (&amp;gt;= 2.1.36) is doing two things that mutate the prompt on every turn:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;The Telemetry Hash:&lt;/strong&gt; It injects a billing/telemetry header (&lt;code&gt;x-anthropic-billing-header: cch=xxxxx&lt;/code&gt;) that changes its hash on &lt;em&gt;every single request&lt;/em&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Git Snapshot:&lt;/strong&gt; It injects the output of &lt;code&gt;git status&lt;/code&gt; into the environment block. Every time a file is touched, the prompt changes.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;The Fix&lt;/strong&gt; You cannot always just &lt;code&gt;export&lt;/code&gt; these variables in your terminal, as Claude Code will often swallow them. To fix the unnecessarily-dynamic system prompt and route the CLI to your own hardware, adjust your Claude Code configuration as follows.&lt;/p&gt; &lt;p&gt;Open &lt;code&gt;~/.claude/settings.json&lt;/code&gt; (or your project's local config) and ensure the following is in the &lt;code&gt;env&lt;/code&gt; block:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;includeGitInstructions&amp;quot;: false, &amp;quot;env&amp;quot;: { &amp;quot;ANTHROPIC_BASE_URL&amp;quot;: &amp;quot;&amp;lt;your-llama-server-here&amp;gt;&amp;quot;, &amp;quot;ANTHROPIC_API_KEY&amp;quot;: &amp;quot;&amp;lt;any-string&amp;gt;&amp;quot;, &amp;quot;CLAUDE_CODE_ATTRIBUTION_HEADER&amp;quot;: &amp;quot;0&amp;quot;, &amp;quot;DISABLE_TELEMETRY&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;DISABLE_ERROR_REPORTING&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&amp;quot;: &amp;quot;1&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Once you restart Claude Code and make a tool call, watch your &lt;code&gt;llama-server&lt;/code&gt; or &lt;code&gt;LM Studio&lt;/code&gt; logs. Instead of a 24,000 token prefill taking 60+ seconds, you will see something like this:&lt;/p&gt; &lt;p&gt;&lt;code&gt;selected slot by LCP similarity, sim_best = 0.973...&lt;/code&gt;&lt;/p&gt; &lt;p&gt;...followed not by 2Ktok batches processing, but directly to:&lt;/p&gt; &lt;p&gt;&lt;code&gt;prompt processing progress, n_tokens = 24270, batch.n_tokens = 4&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It recognized 97.3% of the prompt as identical. Instead of reprocessing 24,000 tokens, it only processed a 600-token delta. Local tool calls go from taking over a minute down to ~4 seconds even on my Turing-era Quadro RTX-8000.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; I've had &lt;code&gt;cctrace&lt;/code&gt; recommended to try to address my original Anthropic hardcoded system prompt issue. I'd rather just be done with the frontier subscriptions. What's the next sudden, undocumented, unannounced, unrequested change going to be?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/One-Cheesecake389"&gt; /u/One-Cheesecake389 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-30T17:42:42+00:00</published>
+    <published>2026-03-30T15:23:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1s7qzmi</id>
@@ -47,17 +47,17 @@
     <published>2026-03-30T13:44:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s7tn5s</id>
-    <title>PSA: Using Claude Code without Anthropic: How to fix the 60-second local KV cache invalidation issue.</title>
-    <updated>2026-03-30T15:23:35+00:00</updated>
+    <id>t3_1s7xnd2</id>
+    <title>llamafile v0.10.0</title>
+    <updated>2026-03-30T17:42:42+00:00</updated>
     <author>
-      <name>/u/One-Cheesecake389</name>
-      <uri>https://old.reddit.com/user/One-Cheesecake389</uri>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Claude Code injects dynamic telemetry headers and &lt;code&gt;git status&lt;/code&gt; updates into the system prompt on &lt;em&gt;every single request&lt;/em&gt;. If you are using a local inference backend like &lt;code&gt;llama.cpp&lt;/code&gt; downstream &lt;code&gt;llama-server&lt;/code&gt; or &lt;code&gt;LM Studio&lt;/code&gt;, this dynamic injection instantly breaks prefix matching, flushes your entire KV cache, and forces your hardware to re-process a 20K+ token system prompt from scratch for every minor tool call. You can fix this in ~/.claude/settings.json.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Background&lt;/strong&gt; As I have previously posted, &lt;a href="https://www.reddit.com/r/ClaudeCode/comments/1rshmq8/claude_code_isnt_stupid_now_its_being_system/"&gt;Claude Code now inserts anti-reasoning system prompting that cannot be overridden, but only appended by, --system-prompt-file&lt;/a&gt;. I've ultimately given up on Anthropic, canceling my subscription entirely for this kind of corporate behavior and finally taking the step to pivot to open weights models locally using &lt;code&gt;llama-server&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;However, I noticed that llama-server was invalidating its persistent KV cache on every tool call, forcing a 100-token tool call to re-process &lt;em&gt;all&lt;/em&gt; of a minimum 20Ktok of system and tool prompting. The server log explicitly calls out to the effect of, &lt;code&gt;forcing full prompt re-processing due to lack of cache data&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Root Cause&lt;/strong&gt; &lt;code&gt;llama.cpp&lt;/code&gt; relies on exact string matching to use its KV cache. If the beginning of the prompt matches, it reuses the cache and only processes the delta (the new tokens).&lt;/p&gt; &lt;p&gt;Claude Code (&amp;gt;= 2.1.36) is doing two things that mutate the prompt on every turn:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;The Telemetry Hash:&lt;/strong&gt; It injects a billing/telemetry header (&lt;code&gt;x-anthropic-billing-header: cch=xxxxx&lt;/code&gt;) that changes its hash on &lt;em&gt;every single request&lt;/em&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Git Snapshot:&lt;/strong&gt; It injects the output of &lt;code&gt;git status&lt;/code&gt; into the environment block. Every time a file is touched, the prompt changes.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;The Fix&lt;/strong&gt; You cannot always just &lt;code&gt;export&lt;/code&gt; these variables in your terminal, as Claude Code will often swallow them. To fix the unnecessarily-dynamic system prompt and route the CLI to your own hardware, adjust your Claude Code configuration as follows.&lt;/p&gt; &lt;p&gt;Open &lt;code&gt;~/.claude/settings.json&lt;/code&gt; (or your project's local config) and ensure the following is in the &lt;code&gt;env&lt;/code&gt; block:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;includeGitInstructions&amp;quot;: false, &amp;quot;env&amp;quot;: { &amp;quot;ANTHROPIC_BASE_URL&amp;quot;: &amp;quot;&amp;lt;your-llama-server-here&amp;gt;&amp;quot;, &amp;quot;ANTHROPIC_API_KEY&amp;quot;: &amp;quot;&amp;lt;any-string&amp;gt;&amp;quot;, &amp;quot;CLAUDE_CODE_ATTRIBUTION_HEADER&amp;quot;: &amp;quot;0&amp;quot;, &amp;quot;DISABLE_TELEMETRY&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;DISABLE_ERROR_REPORTING&amp;quot;: &amp;quot;1&amp;quot;, &amp;quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&amp;quot;: &amp;quot;1&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Once you restart Claude Code and make a tool call, watch your &lt;code&gt;llama-server&lt;/code&gt; or &lt;code&gt;LM Studio&lt;/code&gt; logs. Instead of a 24,000 token prefill taking 60+ seconds, you will see something like this:&lt;/p&gt; &lt;p&gt;&lt;code&gt;selected slot by LCP similarity, sim_best = 0.973...&lt;/code&gt;&lt;/p&gt; &lt;p&gt;...followed not by 2Ktok batches processing, but directly to:&lt;/p&gt; &lt;p&gt;&lt;code&gt;prompt processing progress, n_tokens = 24270, batch.n_tokens = 4&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It recognized 97.3% of the prompt as identical. Instead of reprocessing 24,000 tokens, it only processed a 600-token delta. Local tool calls go from taking over a minute down to ~4 seconds even on my Turing-era Quadro RTX-8000.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; I've had &lt;code&gt;cctrace&lt;/code&gt; recommended to try to address my original Anthropic hardcoded system prompt issue. I'd rather just be done with the frontier subscriptions. What's the next sudden, undocumented, unannounced, unrequested change going to be?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/One-Cheesecake389"&gt; /u/One-Cheesecake389 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s7tn5s/psa_using_claude_code_without_anthropic_how_to/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"&gt; &lt;img alt="llamafile v0.10.0" src="https://external-preview.redd.it/Z5P1ZY-f5YqQF_282Ah8cFNHhKvhceL09qomsCOBm-U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9e78fb48304219f303e73b180663d50f42325607" title="llamafile v0.10.0" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;llamafile versions starting from 0.10.0 use a new build system&lt;/strong&gt;, aimed at keeping our code more easily aligned with the latest versions of llama.cpp. This means they support more recent models and functionalities&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;New version after 10 months.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/mozilla-ai/llamafile/releases/tag/0.10.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s7xnd2/llamafile_v0100/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-30T15:23:35+00:00</published>
+    <published>2026-03-30T17:42:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1s7qh70</id>
@@ -138,19 +138,6 @@
     <published>2026-03-31T05:08:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1s88x5g</id>
-    <title>Is Q4_K_M the best practical quantization method</title>
-    <updated>2026-03-31T00:55:30+00:00</updated>
-    <author>
-      <name>/u/More_Chemistry3746</name>
-      <uri>https://old.reddit.com/user/More_Chemistry3746</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Q4_K_M is ollama's default&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/More_Chemistry3746"&gt; /u/More_Chemistry3746 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-03-31T00:55:30+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1s8925x</id>
     <title>People with low VRAM, I have something for you that won't help.</title>
     <updated>2026-03-31T01:01:36+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s7p0u9/running_qwen3527b_locally_as_the_primary_model_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-03-30T12:22:32+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1s88x5g</id>
+    <title>Is Q4_K_M the best practical quantization method</title>
+    <updated>2026-03-31T00:55:30+00:00</updated>
+    <author>
+      <name>/u/More_Chemistry3746</name>
+      <uri>https://old.reddit.com/user/More_Chemistry3746</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Q4_K_M is ollama's default&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/More_Chemistry3746"&gt; /u/More_Chemistry3746 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s88x5g/is_q4_k_m_the_best_practical_quantization_method/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-03-31T00:55:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1s7r9wu</id>
