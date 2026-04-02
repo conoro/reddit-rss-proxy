@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-02T23:15:27+00:00</updated>
+  <updated>2026-04-02T23:45:13+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sapdue</id>
-    <title>700KB embedding model that actually works, built a full family of static models from 0.7MB to 125MB</title>
-    <updated>2026-04-02T18:23:25+00:00</updated>
-    <author>
-      <name>/u/ghgi_</name>
-      <uri>https://old.reddit.com/user/ghgi_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Yesterday I shared some static embedding models I'd been working on using model2vec + tokenlearn. Since then I've been grinding on improvements and ended up with something I think is pretty cool, a full family of models ranging from 125MB down to 700KB, all drop-in compatible with model2vec and sentence-transformers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The lineup:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Model&lt;/th&gt; &lt;th&gt;Avg (25 tasks MTEB)&lt;/th&gt; &lt;th&gt;Size&lt;/th&gt; &lt;th&gt;Speed (CPU)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-2m-512d"&gt;potion-mxbai-2m-512d&lt;/a&gt;&lt;/td&gt; &lt;td&gt;72.13&lt;/td&gt; &lt;td&gt;~125MB&lt;/td&gt; &lt;td&gt;~16K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-256d-v2"&gt;potion-mxbai-256d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;70.98&lt;/td&gt; &lt;td&gt;7.5MB&lt;/td&gt; &lt;td&gt;~15K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-128d-v2"&gt;potion-mxbai-128d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;69.83&lt;/td&gt; &lt;td&gt;3.9MB&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-micro"&gt;potion-mxbai-micro&lt;/a&gt;&lt;/td&gt; &lt;td&gt;68.12&lt;/td&gt; &lt;td&gt;&lt;strong&gt;0.7MB&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Evaluated on 25 tasks (10 STS, 12 Classification, 3 PairClassification), English subsets only. &lt;em&gt;Note: sent/s is sentences/second on my i7-9750H&lt;/em&gt;&lt;/p&gt; &lt;p&gt;These are NOT transformers! they're pure lookup tables. No neural network forward pass at inference. Tokenize, look up embeddings, mean pool, The whole thing runs in numpy.&lt;/p&gt; &lt;p&gt;For context, all-MiniLM-L6-v2 scores 74.65 avg at ~80MB and ~200 sent/sec on the same benchmark. So the 256D model gets ~95% of MiniLM's quality at 10x smaller and 150x faster.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The 700KB micro model&lt;/strong&gt; is the one I'm most excited about. It uses vocabulary quantization (clustering 29K token embeddings down to 2K centroids) and scores 68.12 on the full MTEB English suite.&lt;/p&gt; &lt;h3&gt;But why..?&lt;/h3&gt; &lt;p&gt;Fair question. To be clear, it is a semi-niche usecase, but:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Edge/embedded/WASM&lt;/strong&gt;, try loading a 400MB ONNX model in a browser extension or on an ESP32. These just work anywhere you can run numpy and making a custom lib probably isn't that difficult either.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Batch processing millions of docs&lt;/strong&gt;, when you're embedding your entire corpus, 15K sent/sec on CPU with no GPU means you can process 50M documents overnight on a single core. No GPU scheduling, no batching headaches.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Cost&lt;/strong&gt;, These run on literally anything, reuse any ewaste as a embedding server! (Another project I plan to share here soon is a custom FPGA built to do this with one of these models!)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Startup time&lt;/strong&gt;, transformer models take seconds to load. These load in milliseconds. If you're doing one-off embeddings in a CLI tool or serverless function its great.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Prototyping&lt;/strong&gt;, sometimes you just want semantic search working in 3 lines of code without thinking about infrastructure. Install model2vec, load the model, done, Ive personally already found plenty of use in the larger model for that exact reason.&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How to use them:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;```python from model2vec import StaticModel&lt;/p&gt; &lt;h1&gt;Pick your size&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-256d-v2&amp;quot;)&lt;/p&gt; &lt;h1&gt;or the tiny one&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-micro&amp;quot;)&lt;/p&gt; &lt;p&gt;embeddings = model.encode([&amp;quot;your text here&amp;quot;]) ```&lt;/p&gt; &lt;p&gt;All models are on HuggingFace under &lt;a href="https://huggingface.co/blobbybob"&gt;blobbybob&lt;/a&gt;. Built on top of MinishLab's model2vec and tokenlearn, great projects if you haven't seen them.&lt;/p&gt; &lt;p&gt;Happy to answer questions, Still have a few ideas on the backlog but wanted to share where things are at.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ghgi_"&gt; /u/ghgi_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T18:23:25+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1s9zumi</id>
-    <title>The Bonsai 1-bit models are very good</title>
-    <updated>2026-04-01T22:40:29+00:00</updated>
-    <author>
-      <name>/u/tcarambat</name>
-      <uri>https://old.reddit.com/user/tcarambat</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s9zumi/the_bonsai_1bit_models_are_very_good/"&gt; &lt;img alt="The Bonsai 1-bit models are very good" src="https://external-preview.redd.it/cGxtYm54MmlubnNnMYbVK30RVrq_3gNT0oMfaOm6WaHadY4BrOYb4n1JUk_9.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f2a045665aa3db5407dcbf8782562f23fa7d02de" title="The Bonsai 1-bit models are very good" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Tim from &lt;a href="https://github.com/Mintplex-Labs/anything-llm/issues"&gt;AnythingLLM&lt;/a&gt; and yesterday I saw the &lt;a href="https://prismml.com/news/bonsai-8b"&gt;PrismML Bonsai&lt;/a&gt; post so i had to give it a real shot because 14x smaller models (in size and memory) would actually be a huge game changer for Local models - which is basically all I do.&lt;/p&gt; &lt;p&gt;I personally only ran the &lt;a href="https://huggingface.co/prism-ml/Bonsai-8B-gguf"&gt;Bonsai 8B&lt;/a&gt; model for my tests, which are more practical that anything (chat, document summary, tool calling, web search, etc) so your milage may vary but I was running this on an M4 Max 48GB MacBook Pro and I wasnt even using the MLX model. I do want to see if I can get this running on my old Android S20 with the 1.7B model.&lt;/p&gt; &lt;p&gt;The only downside right now to this is you cannot just load this into llama.cpp directly even though it is a GGUF and instead need to use &lt;a href="https://github.com/PrismML-Eng/llama.cpp"&gt;their fork of llama.cpp&lt;/a&gt; to support the operations for 1-bit. &lt;/p&gt; &lt;p&gt;That fork is really behind llama.cpp and ggerganov just merged in the &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21038"&gt;KV rotation&lt;/a&gt; PR today, which is single part of TurboQuant but supposedly helps with KV accuracy at compression - so I made an upstream fork with 1-bit changes &lt;a href="https://github.com/Mintplex-Labs/prism-ml-llama.cpp"&gt;(no promises it works everywhere lol)&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;I can attest this model is not even on the same planet as the previously available MSFT BitNet models which we basically unusable and purely for research purposes. &lt;/p&gt; &lt;p&gt;I didnt even try to get this running on CUDA but I can confirm the memory pressure is indeed &lt;strong&gt;much lower&lt;/strong&gt; compared to something of a similar size (Qwen3 VL 8B Instruct Q4_K_M) - I know that is not an apples to apples but just trying to give an idea.&lt;/p&gt; &lt;p&gt;Understandably news like this on April fools is not ideal, but its actually not a joke and we finally have a decent 1-bit model series! I am sure these are not easy to train up so maybe we will see others do it soon.&lt;/p&gt; &lt;p&gt;TBH, you would think news like this would shake a memory or GPU stock like TurboQuant did earlier this week but yet here we are with an actual &lt;strong&gt;real&lt;/strong&gt; model that runs incredibly well with less resources out in the wild and like...crickets.&lt;/p&gt; &lt;p&gt;Anyway, lmk if y'all have tried this out yet and thoughts on it. I don't work with PrismML or even know anyone there, just thought it was cool.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tcarambat"&gt; /u/tcarambat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/1o2k0u2innsg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1s9zumi/the_bonsai_1bit_models_are_very_good/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1s9zumi/the_bonsai_1bit_models_are_very_good/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-01T22:40:29+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sat32s</id>
     <title>llama.cpp fixes to run Bonsai 1-bit models on CPU (incl AVX512) and AMD GPUs</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sat32s/llamacpp_fixes_to_run_bonsai_1bit_models_on_cpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T20:40:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sapdue</id>
+    <title>700KB embedding model that actually works, built a full family of static models from 0.7MB to 125MB</title>
+    <updated>2026-04-02T18:23:25+00:00</updated>
+    <author>
+      <name>/u/ghgi_</name>
+      <uri>https://old.reddit.com/user/ghgi_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Yesterday I shared some static embedding models I'd been working on using model2vec + tokenlearn. Since then I've been grinding on improvements and ended up with something I think is pretty cool, a full family of models ranging from 125MB down to 700KB, all drop-in compatible with model2vec and sentence-transformers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The lineup:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Model&lt;/th&gt; &lt;th&gt;Avg (25 tasks MTEB)&lt;/th&gt; &lt;th&gt;Size&lt;/th&gt; &lt;th&gt;Speed (CPU)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-2m-512d"&gt;potion-mxbai-2m-512d&lt;/a&gt;&lt;/td&gt; &lt;td&gt;72.13&lt;/td&gt; &lt;td&gt;~125MB&lt;/td&gt; &lt;td&gt;~16K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-256d-v2"&gt;potion-mxbai-256d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;70.98&lt;/td&gt; &lt;td&gt;7.5MB&lt;/td&gt; &lt;td&gt;~15K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-128d-v2"&gt;potion-mxbai-128d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;69.83&lt;/td&gt; &lt;td&gt;3.9MB&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-micro"&gt;potion-mxbai-micro&lt;/a&gt;&lt;/td&gt; &lt;td&gt;68.12&lt;/td&gt; &lt;td&gt;&lt;strong&gt;0.7MB&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Evaluated on 25 tasks (10 STS, 12 Classification, 3 PairClassification), English subsets only. &lt;em&gt;Note: sent/s is sentences/second on my i7-9750H&lt;/em&gt;&lt;/p&gt; &lt;p&gt;These are NOT transformers! they're pure lookup tables. No neural network forward pass at inference. Tokenize, look up embeddings, mean pool, The whole thing runs in numpy.&lt;/p&gt; &lt;p&gt;For context, all-MiniLM-L6-v2 scores 74.65 avg at ~80MB and ~200 sent/sec on the same benchmark. So the 256D model gets ~95% of MiniLM's quality at 10x smaller and 150x faster.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The 700KB micro model&lt;/strong&gt; is the one I'm most excited about. It uses vocabulary quantization (clustering 29K token embeddings down to 2K centroids) and scores 68.12 on the full MTEB English suite.&lt;/p&gt; &lt;h3&gt;But why..?&lt;/h3&gt; &lt;p&gt;Fair question. To be clear, it is a semi-niche usecase, but:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Edge/embedded/WASM&lt;/strong&gt;, try loading a 400MB ONNX model in a browser extension or on an ESP32. These just work anywhere you can run numpy and making a custom lib probably isn't that difficult either.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Batch processing millions of docs&lt;/strong&gt;, when you're embedding your entire corpus, 15K sent/sec on CPU with no GPU means you can process 50M documents overnight on a single core. No GPU scheduling, no batching headaches.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Cost&lt;/strong&gt;, These run on literally anything, reuse any ewaste as a embedding server! (Another project I plan to share here soon is a custom FPGA built to do this with one of these models!)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Startup time&lt;/strong&gt;, transformer models take seconds to load. These load in milliseconds. If you're doing one-off embeddings in a CLI tool or serverless function its great.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Prototyping&lt;/strong&gt;, sometimes you just want semantic search working in 3 lines of code without thinking about infrastructure. Install model2vec, load the model, done, Ive personally already found plenty of use in the larger model for that exact reason.&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How to use them:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;```python from model2vec import StaticModel&lt;/p&gt; &lt;h1&gt;Pick your size&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-256d-v2&amp;quot;)&lt;/p&gt; &lt;h1&gt;or the tiny one&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-micro&amp;quot;)&lt;/p&gt; &lt;p&gt;embeddings = model.encode([&amp;quot;your text here&amp;quot;]) ```&lt;/p&gt; &lt;p&gt;All models are on HuggingFace under &lt;a href="https://huggingface.co/blobbybob"&gt;blobbybob&lt;/a&gt;. Built on top of MinishLab's model2vec and tokenlearn, great projects if you haven't seen them.&lt;/p&gt; &lt;p&gt;Happy to answer questions, Still have a few ideas on the backlog but wanted to share where things are at.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ghgi_"&gt; /u/ghgi_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T18:23:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1sadadw</id>
@@ -60,17 +47,30 @@
     <published>2026-04-02T10:09:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1saw22g</id>
-    <title>R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!</title>
-    <updated>2026-04-02T22:36:29+00:00</updated>
+    <id>t3_1sawcyr</id>
+    <title>Gemma 4 - 31b abliterated quants</title>
+    <updated>2026-04-02T22:49:26+00:00</updated>
     <author>
-      <name>/u/Downtown-Example-880</name>
-      <uri>https://old.reddit.com/user/Downtown-Example-880</uri>
+      <name>/u/Polymorphic-X</name>
+      <uri>https://old.reddit.com/user/Polymorphic-X</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"&gt; &lt;img alt="R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!" src="https://preview.redd.it/sasc5o8ztusg1.jpg?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=82f124c44ba97571da27f0bd1747bf152d278a5d" title="R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;96gb VRAM with 5080 inference speed and quality for less that a 5090 lolol… shhh don’t tell anyone this!&lt;/p&gt; &lt;p&gt;Ps sorry about the blurry second pic!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Downtown-Example-880"&gt; /u/Downtown-Example-880 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1saw22g"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Got inspired to try and crack this egg without using heretic.&lt;/p&gt; &lt;p&gt;FP16, Q8_0 and Q4_K_M quants, plus the abliteration script for modification/use is here:&lt;br /&gt; &lt;a href="https://huggingface.co/paperscarecrow/Gemma-4-31B-it-abliterated-gguf"&gt;https://huggingface.co/paperscarecrow/Gemma-4-31B-it-abliterated-gguf&lt;/a&gt;&lt;/p&gt; &lt;p&gt;based off of mlabonne's &lt;strong&gt;Orthogonalized Representation Intervention method&lt;/strong&gt;, because I loved his ablits of gemma3 so much.&lt;/p&gt; &lt;p&gt;Edit:&lt;br /&gt; Overestimated my internet speeds, still uploading the models.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Polymorphic-X"&gt; /u/Polymorphic-X &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sawcyr/gemma_4_31b_abliterated_quants/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sawcyr/gemma_4_31b_abliterated_quants/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sawcyr/gemma_4_31b_abliterated_quants/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T22:36:29+00:00</published>
+    <published>2026-04-02T22:49:26+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1saki9z</id>
+    <title>Gemma 4 will have audio input</title>
+    <updated>2026-04-02T15:26:50+00:00</updated>
+    <author>
+      <name>/u/MR_-_501</name>
+      <uri>https://old.reddit.com/user/MR_-_501</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt; &lt;img alt="Gemma 4 will have audio input" src="https://preview.redd.it/xe0cdg6cpssg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=34e8ae5c7f6724e13113990b39b1c14c0f9ffcb3" title="Gemma 4 will have audio input" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/huggingface/transformers.js/pull/1627/changes"&gt;https://github.com/huggingface/transformers.js/pull/1627/changes&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MR_-_501"&gt; /u/MR_-_501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xe0cdg6cpssg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T15:26:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1satqwf</id>
@@ -86,17 +86,17 @@
     <published>2026-04-02T21:05:52+00:00</published>
   </entry>
   <entry>
-    <id>t3_1saki9z</id>
-    <title>Gemma 4 will have audio input</title>
-    <updated>2026-04-02T15:26:50+00:00</updated>
+    <id>t3_1saw22g</id>
+    <title>R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!</title>
+    <updated>2026-04-02T22:36:29+00:00</updated>
     <author>
-      <name>/u/MR_-_501</name>
-      <uri>https://old.reddit.com/user/MR_-_501</uri>
+      <name>/u/Downtown-Example-880</name>
+      <uri>https://old.reddit.com/user/Downtown-Example-880</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt; &lt;img alt="Gemma 4 will have audio input" src="https://preview.redd.it/xe0cdg6cpssg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=34e8ae5c7f6724e13113990b39b1c14c0f9ffcb3" title="Gemma 4 will have audio input" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/huggingface/transformers.js/pull/1627/changes"&gt;https://github.com/huggingface/transformers.js/pull/1627/changes&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MR_-_501"&gt; /u/MR_-_501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xe0cdg6cpssg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"&gt; &lt;img alt="R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!" src="https://preview.redd.it/sasc5o8ztusg1.jpg?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=82f124c44ba97571da27f0bd1747bf152d278a5d" title="R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;96gb VRAM with 5080 inference speed and quality for less that a 5090 lolol… shhh don’t tell anyone this!&lt;/p&gt; &lt;p&gt;Ps sorry about the blurry second pic!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Downtown-Example-880"&gt; /u/Downtown-Example-880 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1saw22g"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T15:26:50+00:00</published>
+    <published>2026-04-02T22:36:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1sakcjw</id>
@@ -125,19 +125,6 @@
     <published>2026-04-02T15:31:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sav3pg</id>
-    <title>Maybe a party-pooper but: A dozen 120B models later, and GPTOSS-120B is still king</title>
-    <updated>2026-04-02T21:58:31+00:00</updated>
-    <author>
-      <name>/u/ParaboloidalCrest</name>
-      <uri>https://old.reddit.com/user/ParaboloidalCrest</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;ul&gt; &lt;li&gt;Never consumes entire context walking in place.&lt;/li&gt; &lt;li&gt;Never fails at tool calling.&lt;/li&gt; &lt;li&gt;Never runs slow regardless the back-end.&lt;/li&gt; &lt;li&gt;Never misses a piece of context in its entire window.&lt;/li&gt; &lt;li&gt;Never slows down no matter how long the prompt is.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;As much as I despise OpenAI, I believe they've done something exceptional with that model. This is the Toyota Tacoma of open models and I see myself using it a 500K more miles.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ParaboloidalCrest"&gt; /u/ParaboloidalCrest &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T21:58:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sa7sfw</id>
     <title>Qwen3.6-Plus</title>
     <updated>2026-04-02T04:41:38+00:00</updated>
@@ -151,17 +138,17 @@
     <published>2026-04-02T04:41:38+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sav9wg</id>
-    <title>Gemma 4 is efficient with thinking tokens, but it will also happily reason for 10+ minutes if you prompt it to do so.</title>
-    <updated>2026-04-02T22:05:05+00:00</updated>
+    <id>t3_1sav3pg</id>
+    <title>Maybe a party-pooper but: A dozen 120B models later, and GPTOSS-120B is still king</title>
+    <updated>2026-04-02T21:58:31+00:00</updated>
     <author>
-      <name>/u/AnticitizenPrime</name>
-      <uri>https://old.reddit.com/user/AnticitizenPrime</uri>
+      <name>/u/ParaboloidalCrest</name>
+      <uri>https://old.reddit.com/user/ParaboloidalCrest</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tested both 26b and 31b in AI Studio.&lt;/p&gt; &lt;p&gt;The task I asked of it was to crack a cypher. The top closed source models can crack this cypher at max thinking parameters, and Kimi 2.5 Thinking and Deepseek 3.2 are the only open source models to crack the cypher without tool use. (Of course, with the closed models you can't rule out 'secret' tool use on the backend.)&lt;/p&gt; &lt;p&gt;When I first asked these models to crack the cypher, they thought for a short amount of time and then both hallucinated false 'translations' of the cypher.&lt;/p&gt; &lt;p&gt;I added this to my prompt:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Spare no effort to solve this, the stakes are high. Increase your thinking length to maximum in order to solve it. Double check and verify your results to rule out hallucination of an incorrect response.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;I did not expect dramatic results (we all laugh at prompting a model to 'make no mistakes' after all). But I was surprised at the result.&lt;/p&gt; &lt;p&gt;The 26B MoE model reasoned for ten minutes before erroring out (I am supposing AI Studio cuts off responses after ten minutes). &lt;/p&gt; &lt;p&gt;The 31B dense model reasoned for just under ten minutes (594 seconds in fact) before throwing in the towel and admitting it couldn't crack it. But most importantly, it did not hallucinate a false answer, which is a 'win' IMO. Part of its reply:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;The message likely follows a directive or a set of coordinates, but without the key to resolve the &amp;quot;BB&amp;quot; and &amp;quot;QQ&amp;quot; anomalies, &lt;strong&gt;any further translation would be a hallucination.&lt;/strong&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;I honestly didn't expect these (relatively) small models to actually crack the cypher without tool use (well, I hoped, a little). It was mostly a test to see how they'd perform. &lt;/p&gt; &lt;p&gt;I'm surprised to report that:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;they can and will do &lt;strong&gt;very&lt;/strong&gt; long form reasoning like Qwen, but only if asked, which is how I prefer things (Qwen tends to overthink by default, and you have to prompt it in the opposite direction). Some models (GPT, Gemini, Claude) allow you to set thinking levels/budgets/effort/whatever via parameters, but with Gemma it seems you can simply &lt;em&gt;ask&lt;/em&gt;.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;it's maybe possible to reduce hallucination via prompting - more testing required here. &lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'll be testing the smaller models locally once the dust clears and the inevitable new release bugs are ironed out.&lt;/p&gt; &lt;p&gt;I'd love to know what sort of prompt these models are given on official benchmarks. Right now Gemma 4 is a little behind Qwen 3.5 (when comparing the similar sized models to each other) in benchmarks, but could it catch up or surpass Qwen when prompted to reason longer (like Qwen does)? If so, then that's a big win.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AnticitizenPrime"&gt; /u/AnticitizenPrime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;ul&gt; &lt;li&gt;Never consumes entire context walking in place.&lt;/li&gt; &lt;li&gt;Never fails at tool calling.&lt;/li&gt; &lt;li&gt;Never runs slow regardless the back-end.&lt;/li&gt; &lt;li&gt;Never misses a piece of context in its entire window.&lt;/li&gt; &lt;li&gt;Never slows down no matter how long the prompt is.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;As much as I despise OpenAI, I believe they've done something exceptional with that model. This is the Toyota Tacoma of open models and I see myself using it a 500K more miles.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ParaboloidalCrest"&gt; /u/ParaboloidalCrest &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sav3pg/maybe_a_partypooper_but_a_dozen_120b_models_later/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T22:05:05+00:00</published>
+    <published>2026-04-02T21:58:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1sak9f6</id>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sap6f9/the_running_doom_of_ai_qwen3527b_on_a_512mb/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T18:15:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sav9wg</id>
+    <title>Gemma 4 is efficient with thinking tokens, but it will also happily reason for 10+ minutes if you prompt it to do so.</title>
+    <updated>2026-04-02T22:05:05+00:00</updated>
+    <author>
+      <name>/u/AnticitizenPrime</name>
+      <uri>https://old.reddit.com/user/AnticitizenPrime</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tested both 26b and 31b in AI Studio.&lt;/p&gt; &lt;p&gt;The task I asked of it was to crack a cypher. The top closed source models can crack this cypher at max thinking parameters, and Kimi 2.5 Thinking and Deepseek 3.2 are the only open source models to crack the cypher without tool use. (Of course, with the closed models you can't rule out 'secret' tool use on the backend.)&lt;/p&gt; &lt;p&gt;When I first asked these models to crack the cypher, they thought for a short amount of time and then both hallucinated false 'translations' of the cypher.&lt;/p&gt; &lt;p&gt;I added this to my prompt:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Spare no effort to solve this, the stakes are high. Increase your thinking length to maximum in order to solve it. Double check and verify your results to rule out hallucination of an incorrect response.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;I did not expect dramatic results (we all laugh at prompting a model to 'make no mistakes' after all). But I was surprised at the result.&lt;/p&gt; &lt;p&gt;The 26B MoE model reasoned for ten minutes before erroring out (I am supposing AI Studio cuts off responses after ten minutes). &lt;/p&gt; &lt;p&gt;The 31B dense model reasoned for just under ten minutes (594 seconds in fact) before throwing in the towel and admitting it couldn't crack it. But most importantly, it did not hallucinate a false answer, which is a 'win' IMO. Part of its reply:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;The message likely follows a directive or a set of coordinates, but without the key to resolve the &amp;quot;BB&amp;quot; and &amp;quot;QQ&amp;quot; anomalies, &lt;strong&gt;any further translation would be a hallucination.&lt;/strong&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;I honestly didn't expect these (relatively) small models to actually crack the cypher without tool use (well, I hoped, a little). It was mostly a test to see how they'd perform. &lt;/p&gt; &lt;p&gt;I'm surprised to report that:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;they can and will do &lt;strong&gt;very&lt;/strong&gt; long form reasoning like Qwen, but only if asked, which is how I prefer things (Qwen tends to overthink by default, and you have to prompt it in the opposite direction). Some models (GPT, Gemini, Claude) allow you to set thinking levels/budgets/effort/whatever via parameters, but with Gemma it seems you can simply &lt;em&gt;ask&lt;/em&gt;.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;it's maybe possible to reduce hallucination via prompting - more testing required here. &lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'll be testing the smaller models locally once the dust clears and the inevitable new release bugs are ironed out.&lt;/p&gt; &lt;p&gt;I'd love to know what sort of prompt these models are given on official benchmarks. Right now Gemma 4 is a little behind Qwen 3.5 (when comparing the similar sized models to each other) in benchmarks, but could it catch up or surpass Qwen when prompted to reason longer (like Qwen does)? If so, then that's a big win.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AnticitizenPrime"&gt; /u/AnticitizenPrime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sav9wg/gemma_4_is_efficient_with_thinking_tokens_but_it/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T22:05:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1sabx6b</id>
@@ -229,19 +229,6 @@
     <published>2026-04-02T18:30:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sausgd</id>
-    <title>One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice.</title>
-    <updated>2026-04-02T21:46:20+00:00</updated>
-    <author>
-      <name>/u/RedParaglider</name>
-      <uri>https://old.reddit.com/user/RedParaglider</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"&gt; &lt;img alt="One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice." src="https://preview.redd.it/10xzds1qkusg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=409638d70082c6be1e83a2293f0250eedd302608" title="One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It seems like every conversation about derestricted models everyone treat you like a pervert. The fact is you can be sensible and be a pervert 😂.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RedParaglider"&gt; /u/RedParaglider &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/10xzds1qkusg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T21:46:20+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sanln7</id>
     <title>p-e-w/gemma-4-E2B-it-heretic-ara: Gemma 4's defenses shredded by Heretic's new ARA method 90 minutes after the official release</title>
     <updated>2026-04-02T17:19:07+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sarlb8/gemma_4_running_on_raspberry_pi5/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T19:44:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sausgd</id>
+    <title>One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice.</title>
+    <updated>2026-04-02T21:46:20+00:00</updated>
+    <author>
+      <name>/u/RedParaglider</name>
+      <uri>https://old.reddit.com/user/RedParaglider</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"&gt; &lt;img alt="One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice." src="https://preview.redd.it/10xzds1qkusg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=409638d70082c6be1e83a2293f0250eedd302608" title="One of the best sensible reasons that I can think of to have an llm downloaded on my cell phone would be emergency advice." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It seems like every conversation about derestricted models everyone treat you like a pervert. The fact is you can be sensible and be a pervert 😂.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RedParaglider"&gt; /u/RedParaglider &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/10xzds1qkusg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T21:46:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1sakdd2</id>
