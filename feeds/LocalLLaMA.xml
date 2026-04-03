@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-03T03:43:45+00:00</updated>
+  <updated>2026-04-03T04:38:12+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1sb01gx</id>
-    <title>I trained a 2.8B Mamba model to reason entirely in its hidden state before outputting a single token — O(1) VRAM, no KV-cache, runs on a 12GB RTX 3060</title>
-    <updated>2026-04-03T01:32:13+00:00</updated>
+    <id>t3_1sb363l</id>
+    <title>A day has passed which is a decade in the ai world - is qwen 3.5 27b q6 still the best model to run on a 5090, or does the new bonsai and gemma models beat it?</title>
+    <updated>2026-04-03T04:01:30+00:00</updated>
     <author>
-      <name>/u/Just-Ad-6488</name>
-      <uri>https://old.reddit.com/user/Just-Ad-6488</uri>
+      <name>/u/ArugulaAnnual1765</name>
+      <uri>https://old.reddit.com/user/ArugulaAnnual1765</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building what I'm calling a &lt;strong&gt;Latent Reasoning Engine&lt;/strong&gt; for the past few weeks. The core idea: instead of generating chain-of-thought tokens that bloat memory like &lt;code&gt;o1&lt;/code&gt;/&lt;code&gt;R1&lt;/code&gt; do, force the model to &amp;quot;think&amp;quot; by spinning a fixed-size continuous state in a loop before decoding.&lt;/p&gt; &lt;p&gt;No visible reasoning tokens. No KV-cache growth. True O(1) memory.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How it works:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The model uses &lt;code&gt;====&lt;/code&gt; spacer tokens as internal clock cycles. Each loop, the SSM state &lt;code&gt;h_t&lt;/code&gt; evolves but no tokens are emitted. A small MLP called the &lt;strong&gt;HaltingHead&lt;/strong&gt; monitors the hidden state geometry and decides when to stop — the model itself decides how much compute to spend.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[LOGIC] X=5. Y=X*2. Z=Y+3. W=Z-X. Output W.====... Loop 1: h_t updates, P(halt) = 0.12 Loop 3: h_t updates, P(halt) = 0.31 Loop 7: h_t updates, P(halt) = 0.74 ← stops → Output: &amp;quot;W = 8&amp;quot; ✅ &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Cut the loops at step 2 (ablation test): it outputs &lt;code&gt;W = 4&lt;/code&gt; ❌. The computation is actually happening in the state, not theater.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Three things I can prove mechanically:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. O(1) VRAM&lt;/strong&gt; — VRAM measured across a 3-turn conversation:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Turn&lt;/th&gt; &lt;th align="left"&gt;VRAM&lt;/th&gt; &lt;th align="left"&gt;Δ&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Baseline&lt;/td&gt; &lt;td align="left"&gt;5,290 MB&lt;/td&gt; &lt;td align="left"&gt;—&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Turn 1&lt;/td&gt; &lt;td align="left"&gt;5,312 MB&lt;/td&gt; &lt;td align="left"&gt;+21 MB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Turn 3&lt;/td&gt; &lt;td align="left"&gt;5,315 MB&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+3 MB&lt;/strong&gt; (Turn 1→3)&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;A 50-turn conversation serializes to a &lt;strong&gt;32 KB file&lt;/strong&gt; on disk.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Adaptive compute (emergent)&lt;/strong&gt; — the HaltingHead was never told about these datasets:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Task&lt;/th&gt; &lt;th align="left"&gt;Loops used&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;HellaSwag (easy completion)&lt;/td&gt; &lt;td align="left"&gt;2.0 avg&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;ARC-Challenge (hard deduction)&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;5.9 avg&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;3× more compute on hard problems. Not programmed — emerged from training.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Zero catastrophic forgetting&lt;/strong&gt; — PIQA score before and after the whole pipeline: &lt;strong&gt;75.2% → 75.2%&lt;/strong&gt;. Gradient surgery on the frozen backbone worked.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware:&lt;/strong&gt; Single RTX 3060 12GB. No cloud. No bitsandbytes. Manual layer freezing in BF16.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Training pipeline:&lt;/strong&gt; 7 phases — dataset formatting, SFT (loss 17.3→10.5), HaltingHead probe (MAE 0.052), tool-use SFT (loss 13.7→0.9), merge, session memory, live bash agent.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🤗 &lt;strong&gt;HuggingFace:&lt;/strong&gt; &lt;a href="https://huggingface.co/batteryphil/mamba-2.8b-latent"&gt;batteryphil/mamba-2.8b-latent&lt;/a&gt; — weights + &lt;a href="http://run.py"&gt;run.py&lt;/a&gt; (one-command runner, handles 4-bit fallback for 8GB GPUs)&lt;/li&gt; &lt;li&gt;💻 &lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="https://github.com/batteryphil/mamba2backbonerecursion"&gt;batteryphil/mamba2backbonerecursion&lt;/a&gt; — full pipeline to reproduce from scratch&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;To run it yourself:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;bashpip install transformers torch mamba-ssm causal-conv1d huggingface_hub einops curl -sO https://huggingface.co/batteryphil/mamba-2.8b-latent/resolve/main/run.py python run.py &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Happy to answer questions. The Crucible test scripts are all in the repo if you want to verify the proofs on your own hardware.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Just-Ad-6488"&gt; /u/Just-Ad-6488 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb01gx/i_trained_a_28b_mamba_model_to_reason_entirely_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb01gx/i_trained_a_28b_mamba_model_to_reason_entirely_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb01gx/i_trained_a_28b_mamba_model_to_reason_entirely_in/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Im specifically interested in coding ability.&lt;/p&gt; &lt;p&gt;I have the q6 version of the claude opus 4.6 distill with 128k context for local coding (Still using claude opus for planning) and it works amazingly.&lt;/p&gt; &lt;p&gt;Im a tech junkie, good enough is never good enough, are these new models better?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ArugulaAnnual1765"&gt; /u/ArugulaAnnual1765 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb363l/a_day_has_passed_which_is_a_decade_in_the_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb363l/a_day_has_passed_which_is_a_decade_in_the_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb363l/a_day_has_passed_which_is_a_decade_in_the_ai/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T01:32:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1saki9z</id>
-    <title>Gemma 4 will have audio input</title>
-    <updated>2026-04-02T15:26:50+00:00</updated>
-    <author>
-      <name>/u/MR_-_501</name>
-      <uri>https://old.reddit.com/user/MR_-_501</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt; &lt;img alt="Gemma 4 will have audio input" src="https://preview.redd.it/xe0cdg6cpssg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=34e8ae5c7f6724e13113990b39b1c14c0f9ffcb3" title="Gemma 4 will have audio input" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/huggingface/transformers.js/pull/1627/changes"&gt;https://github.com/huggingface/transformers.js/pull/1627/changes&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MR_-_501"&gt; /u/MR_-_501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/xe0cdg6cpssg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saki9z/gemma_4_will_have_audio_input/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T15:26:50+00:00</published>
+    <published>2026-04-03T04:01:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1sakcjw</id>
@@ -86,19 +73,6 @@
     <published>2026-04-02T22:49:26+00:00</published>
   </entry>
   <entry>
-    <id>t3_1satqwf</id>
-    <title>Gemma 4 has been abliterated</title>
-    <updated>2026-04-02T21:05:52+00:00</updated>
-    <author>
-      <name>/u/coder3101</name>
-      <uri>https://old.reddit.com/user/coder3101</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"&gt; &lt;img alt="Gemma 4 has been abliterated" src="https://external-preview.redd.it/cyX_v6gqRNP22-HEVTNbhhFoVb8O39HtHBlpAs6qrk8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6aa482f123e5e76d062ee88b5d07c786c7d15b77" title="Gemma 4 has been abliterated" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, &lt;/p&gt; &lt;p&gt;In the middle of the night and in haste I present to you the collection. I might not attempt lower variants but this ARA is truly next level. Huge thanks to p-e-w for this amazin work! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder3101"&gt; /u/coder3101 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/coder3101/gemma-4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T21:05:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1saw22g</id>
     <title>R9700 the beautiful beautiful VRAM gigs of AMD… my ai node future!</title>
     <updated>2026-04-02T22:36:29+00:00</updated>
@@ -112,17 +86,30 @@
     <published>2026-04-02T22:36:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sb1rb9</id>
-    <title>Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec</title>
-    <updated>2026-04-03T02:52:07+00:00</updated>
+    <id>t3_1satqwf</id>
+    <title>Gemma 4 has been abliterated</title>
+    <updated>2026-04-02T21:05:52+00:00</updated>
     <author>
-      <name>/u/Bderken</name>
-      <uri>https://old.reddit.com/user/Bderken</uri>
+      <name>/u/coder3101</name>
+      <uri>https://old.reddit.com/user/coder3101</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"&gt; &lt;img alt="Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec" src="https://preview.redd.it/q161qbff3wsg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=40f3c9d0768b906c10fd493191775794a7b77af4" title="Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Pretty fast! Uses around 114watts at its peak, short bursts as the response is usually pretty fast.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Bderken"&gt; /u/Bderken &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/q161qbff3wsg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"&gt; &lt;img alt="Gemma 4 has been abliterated" src="https://external-preview.redd.it/cyX_v6gqRNP22-HEVTNbhhFoVb8O39HtHBlpAs6qrk8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6aa482f123e5e76d062ee88b5d07c786c7d15b77" title="Gemma 4 has been abliterated" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, &lt;/p&gt; &lt;p&gt;In the middle of the night and in haste I present to you the collection. I might not attempt lower variants but this ARA is truly next level. Huge thanks to p-e-w for this amazin work! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder3101"&gt; /u/coder3101 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/coder3101/gemma-4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1satqwf/gemma_4_has_been_abliterated/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T02:52:07+00:00</published>
+    <published>2026-04-02T21:05:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sb1gx0</id>
+    <title>Gemma-4-E2B-IT seems to be as good or better than Qwen3.5-4B while having massively shorter reasoning times on average</title>
+    <updated>2026-04-03T02:38:27+00:00</updated>
+    <author>
+      <name>/u/ZootAllures9111</name>
+      <uri>https://old.reddit.com/user/ZootAllures9111</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1gx0/gemma4e2bit_seems_to_be_as_good_or_better_than/"&gt; &lt;img alt="Gemma-4-E2B-IT seems to be as good or better than Qwen3.5-4B while having massively shorter reasoning times on average" src="https://preview.redd.it/2ccwmz3u0wsg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=734486d6c6ba71837a0c037f38469d358f003d52" title="Gemma-4-E2B-IT seems to be as good or better than Qwen3.5-4B while having massively shorter reasoning times on average" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZootAllures9111"&gt; /u/ZootAllures9111 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/2ccwmz3u0wsg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1gx0/gemma4e2bit_seems_to_be_as_good_or_better_than/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1gx0/gemma4e2bit_seems_to_be_as_good_or_better_than/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T02:38:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1sak9f6</id>
@@ -151,17 +138,17 @@
     <published>2026-04-02T08:47:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sazp6w</id>
-    <title>Google strongly implies the existence of large Gemma 4 models</title>
-    <updated>2026-04-03T01:16:37+00:00</updated>
+    <id>t3_1sb1rb9</id>
+    <title>Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec</title>
+    <updated>2026-04-03T02:52:07+00:00</updated>
     <author>
-      <name>/u/coder543</name>
-      <uri>https://old.reddit.com/user/coder543</uri>
+      <name>/u/Bderken</name>
+      <uri>https://old.reddit.com/user/Bderken</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In the &lt;a href="https://huggingface.co/google/gemma-4-26B-A4B-it"&gt;huggingface card:&lt;/a&gt;&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Increased Context Window – The small models feature a 128K context window, while the medium models support 256K.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Small and medium... implying at least one large model! 124B confirmed :P&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder543"&gt; /u/coder543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"&gt; &lt;img alt="Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec" src="https://preview.redd.it/q161qbff3wsg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=40f3c9d0768b906c10fd493191775794a7b77af4" title="Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Pretty fast! Uses around 114watts at its peak, short bursts as the response is usually pretty fast.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Bderken"&gt; /u/Bderken &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/q161qbff3wsg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb1rb9/gemma_4_26b_a4b_macbook_pro_m5_max_averaging/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T01:16:37+00:00</published>
+    <published>2026-04-03T02:52:07+00:00</published>
   </entry>
   <entry>
     <id>t3_1sap6f9</id>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sap6f9/the_running_doom_of_ai_qwen3527b_on_a_512mb/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T18:15:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sazp6w</id>
+    <title>Google strongly implies the existence of large Gemma 4 models</title>
+    <updated>2026-04-03T01:16:37+00:00</updated>
+    <author>
+      <name>/u/coder543</name>
+      <uri>https://old.reddit.com/user/coder543</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In the &lt;a href="https://huggingface.co/google/gemma-4-26B-A4B-it"&gt;huggingface card:&lt;/a&gt;&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Increased Context Window – The small models feature a 128K context window, while the medium models support 256K.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Small and medium... implying at least one large model! 124B confirmed :P&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder543"&gt; /u/coder543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T01:16:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1sat48a</id>
@@ -229,6 +229,19 @@
     <published>2026-04-02T17:19:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1san4kd</id>
+    <title>Will Gemma 4 124B MoE open as well?</title>
+    <updated>2026-04-02T17:02:13+00:00</updated>
+    <author>
+      <name>/u/cgs019283</name>
+      <uri>https://old.reddit.com/user/cgs019283</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"&gt; &lt;img alt="Will Gemma 4 124B MoE open as well?" src="https://preview.redd.it/61k8zhnu5tsg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=40547479104fda1eae6118bdc553916c0e2277a0" title="Will Gemma 4 124B MoE open as well?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I do not really like to take X posts as a source, but it's Jeff Dean, maybe there will be more surprises other than what we just got. Thanks, Google!&lt;/p&gt; &lt;p&gt;Edit: Seems like Jeff deleted the mention of 124B. Maybe it's because it exceeded Gemini 3 Flash-Lite on benchmark?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cgs019283"&gt; /u/cgs019283 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/61k8zhnu5tsg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T17:02:13+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1saxvw2</id>
     <title>Gemma 4 E4B + E2B Uncensored (Aggressive) — GGUF + K_P Quants (Multimodal: Vision, Video, Audio)</title>
     <updated>2026-04-02T23:54:50+00:00</updated>
@@ -253,19 +266,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sarlb8/gemma_4_running_on_raspberry_pi5/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T19:44:50+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1san4kd</id>
-    <title>Will Gemma 4 124B MoE open as well?</title>
-    <updated>2026-04-02T17:02:13+00:00</updated>
-    <author>
-      <name>/u/cgs019283</name>
-      <uri>https://old.reddit.com/user/cgs019283</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"&gt; &lt;img alt="Will Gemma 4 124B MoE open as well?" src="https://preview.redd.it/61k8zhnu5tsg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=40547479104fda1eae6118bdc553916c0e2277a0" title="Will Gemma 4 124B MoE open as well?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I do not really like to take X posts as a source, but it's Jeff Dean, maybe there will be more surprises other than what we just got. Thanks, Google!&lt;/p&gt; &lt;p&gt;Edit: Seems like Jeff deleted the mention of 124B. Maybe it's because it exceeded Gemini 3 Flash-Lite on benchmark?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cgs019283"&gt; /u/cgs019283 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/61k8zhnu5tsg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1san4kd/will_gemma_4_124b_moe_open_as_well/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T17:02:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1sav9wg</id>
