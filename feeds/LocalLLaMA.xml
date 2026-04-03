@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-03T01:41:51+00:00</updated>
+  <updated>2026-04-03T02:42:17+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sapdue</id>
-    <title>700KB embedding model that actually works, built a full family of static models from 0.7MB to 125MB</title>
-    <updated>2026-04-02T18:23:25+00:00</updated>
-    <author>
-      <name>/u/ghgi_</name>
-      <uri>https://old.reddit.com/user/ghgi_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Yesterday I shared some static embedding models I'd been working on using model2vec + tokenlearn. Since then I've been grinding on improvements and ended up with something I think is pretty cool, a full family of models ranging from 125MB down to 700KB, all drop-in compatible with model2vec and sentence-transformers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The lineup:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Model&lt;/th&gt; &lt;th&gt;Avg (25 tasks MTEB)&lt;/th&gt; &lt;th&gt;Size&lt;/th&gt; &lt;th&gt;Speed (CPU)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-2m-512d"&gt;potion-mxbai-2m-512d&lt;/a&gt;&lt;/td&gt; &lt;td&gt;72.13&lt;/td&gt; &lt;td&gt;~125MB&lt;/td&gt; &lt;td&gt;~16K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-256d-v2"&gt;potion-mxbai-256d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;70.98&lt;/td&gt; &lt;td&gt;7.5MB&lt;/td&gt; &lt;td&gt;~15K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-128d-v2"&gt;potion-mxbai-128d-v2&lt;/a&gt;&lt;/td&gt; &lt;td&gt;69.83&lt;/td&gt; &lt;td&gt;3.9MB&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;a href="https://huggingface.co/blobbybob/potion-mxbai-micro"&gt;potion-mxbai-micro&lt;/a&gt;&lt;/td&gt; &lt;td&gt;68.12&lt;/td&gt; &lt;td&gt;&lt;strong&gt;0.7MB&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~18K sent/s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Evaluated on 25 tasks (10 STS, 12 Classification, 3 PairClassification), English subsets only. &lt;em&gt;Note: sent/s is sentences/second on my i7-9750H&lt;/em&gt;&lt;/p&gt; &lt;p&gt;These are NOT transformers! they're pure lookup tables. No neural network forward pass at inference. Tokenize, look up embeddings, mean pool, The whole thing runs in numpy.&lt;/p&gt; &lt;p&gt;For context, all-MiniLM-L6-v2 scores 74.65 avg at ~80MB and ~200 sent/sec on the same benchmark. So the 256D model gets ~95% of MiniLM's quality at 10x smaller and 150x faster.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The 700KB micro model&lt;/strong&gt; is the one I'm most excited about. It uses vocabulary quantization (clustering 29K token embeddings down to 2K centroids) and scores 68.12 on the full MTEB English suite.&lt;/p&gt; &lt;h3&gt;But why..?&lt;/h3&gt; &lt;p&gt;Fair question. To be clear, it is a semi-niche usecase, but:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Edge/embedded/WASM&lt;/strong&gt;, try loading a 400MB ONNX model in a browser extension or on an ESP32. These just work anywhere you can run numpy and making a custom lib probably isn't that difficult either.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Batch processing millions of docs&lt;/strong&gt;, when you're embedding your entire corpus, 15K sent/sec on CPU with no GPU means you can process 50M documents overnight on a single core. No GPU scheduling, no batching headaches.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Cost&lt;/strong&gt;, These run on literally anything, reuse any ewaste as a embedding server! (Another project I plan to share here soon is a custom FPGA built to do this with one of these models!)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Startup time&lt;/strong&gt;, transformer models take seconds to load. These load in milliseconds. If you're doing one-off embeddings in a CLI tool or serverless function its great.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;&lt;strong&gt;Prototyping&lt;/strong&gt;, sometimes you just want semantic search working in 3 lines of code without thinking about infrastructure. Install model2vec, load the model, done, Ive personally already found plenty of use in the larger model for that exact reason.&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;How to use them:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;```python from model2vec import StaticModel&lt;/p&gt; &lt;h1&gt;Pick your size&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-256d-v2&amp;quot;)&lt;/p&gt; &lt;h1&gt;or the tiny one&lt;/h1&gt; &lt;p&gt;model = StaticModel.from_pretrained(&amp;quot;blobbybob/potion-mxbai-micro&amp;quot;)&lt;/p&gt; &lt;p&gt;embeddings = model.encode([&amp;quot;your text here&amp;quot;]) ```&lt;/p&gt; &lt;p&gt;All models are on HuggingFace under &lt;a href="https://huggingface.co/blobbybob"&gt;blobbybob&lt;/a&gt;. Built on top of MinishLab's model2vec and tokenlearn, great projects if you haven't seen them.&lt;/p&gt; &lt;p&gt;Happy to answer questions, Still have a few ideas on the backlog but wanted to share where things are at.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ghgi_"&gt; /u/ghgi_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sapdue/700kb_embedding_model_that_actually_works_built_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T18:23:25+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sadadw</id>
     <title>Is 1-bit and TurboQuant the future of OSS? A simulation for Qwen3.5 models.</title>
@@ -47,19 +34,6 @@
     <published>2026-04-02T15:26:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sakcjw</id>
-    <title>GEMMA 4 Release about to happen: ggml-org/llama.cpp adds support for Gemma 4</title>
-    <updated>2026-04-02T15:20:59+00:00</updated>
-    <author>
-      <name>/u/Dry_Theme_7508</name>
-      <uri>https://old.reddit.com/user/Dry_Theme_7508</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/21309"&gt;https://github.com/ggml-org/llama.cpp/pull/21309&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dry_Theme_7508"&gt; /u/Dry_Theme_7508 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T15:20:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sav3pg</id>
     <title>Maybe a party-pooper but: A dozen 120B models later, and GPTOSS-120B is still king</title>
     <updated>2026-04-02T21:58:31+00:00</updated>
@@ -73,17 +47,17 @@
     <published>2026-04-02T21:58:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sakndu</id>
-    <title>Qwen 3.6 will have oss models</title>
-    <updated>2026-04-02T15:31:54+00:00</updated>
+    <id>t3_1sakcjw</id>
+    <title>GEMMA 4 Release about to happen: ggml-org/llama.cpp adds support for Gemma 4</title>
+    <updated>2026-04-02T15:20:59+00:00</updated>
     <author>
-      <name>/u/MR_-_501</name>
-      <uri>https://old.reddit.com/user/MR_-_501</uri>
+      <name>/u/Dry_Theme_7508</name>
+      <uri>https://old.reddit.com/user/Dry_Theme_7508</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"&gt; &lt;img alt="Qwen 3.6 will have oss models" src="https://preview.redd.it/lc27knq8qssg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=02d45354e2e0d8436c0d82a54921e6f2a7964273" title="Qwen 3.6 will have oss models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MR_-_501"&gt; /u/MR_-_501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/lc27knq8qssg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/21309"&gt;https://github.com/ggml-org/llama.cpp/pull/21309&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dry_Theme_7508"&gt; /u/Dry_Theme_7508 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sakcjw/gemma_4_release_about_to_happen_ggmlorgllamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T15:31:54+00:00</published>
+    <published>2026-04-02T15:20:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1sawcyr</id>
@@ -112,6 +86,19 @@
     <published>2026-04-02T04:41:38+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sakndu</id>
+    <title>Qwen 3.6 will have oss models</title>
+    <updated>2026-04-02T15:31:54+00:00</updated>
+    <author>
+      <name>/u/MR_-_501</name>
+      <uri>https://old.reddit.com/user/MR_-_501</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"&gt; &lt;img alt="Qwen 3.6 will have oss models" src="https://preview.redd.it/lc27knq8qssg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=02d45354e2e0d8436c0d82a54921e6f2a7964273" title="Qwen 3.6 will have oss models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MR_-_501"&gt; /u/MR_-_501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/lc27knq8qssg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sakndu/qwen_36_will_have_oss_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T15:31:54+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1satqwf</id>
     <title>Gemma 4 has been abliterated</title>
     <updated>2026-04-02T21:05:52+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saw22g/r9700_the_beautiful_beautiful_vram_gigs_of_amd_my/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T22:36:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sazp6w</id>
+    <title>Google strongly implies the existence of large Gemma 4 models</title>
+    <updated>2026-04-03T01:16:37+00:00</updated>
+    <author>
+      <name>/u/coder543</name>
+      <uri>https://old.reddit.com/user/coder543</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;In the &lt;a href="https://huggingface.co/google/gemma-4-26B-A4B-it"&gt;huggingface card:&lt;/a&gt;&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Increased Context Window – The small models feature a 128K context window, while the medium models support 256K.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Small and medium... implying at least one large model! 124B confirmed :P&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder543"&gt; /u/coder543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sazp6w/google_strongly_implies_the_existence_of_large/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T01:16:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1sak9f6</id>
@@ -177,19 +177,6 @@
     <published>2026-04-02T18:15:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1saxvw2</id>
-    <title>Gemma 4 E4B + E2B Uncensored (Aggressive) — GGUF + K_P Quants (Multimodal: Vision, Video, Audio)</title>
-    <updated>2026-04-02T23:54:50+00:00</updated>
-    <author>
-      <name>/u/hauhau901</name>
-      <uri>https://old.reddit.com/user/hauhau901</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My first Gemma 4 uncensors are out. Two models dropping today, the E4B (4B) and E2B (2B). Both Aggressive variants, both fully multimodal.&lt;/p&gt; &lt;p&gt;Aggressive means no refusals. I don't do any personality changes or alterations. The ORIGINAL Google release, just uncensored.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Gemma 4 E4B (4B):&lt;/strong&gt; &lt;a href="https://huggingface.co/HauhauCS/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Gemma 4 E2B (2B):&lt;/strong&gt; &lt;a href="https://huggingface.co/HauhauCS/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;0/465 refusals&lt;/strong&gt;* on both. Fully unlocked with zero capability loss.&lt;/p&gt; &lt;p&gt;These are natively multimodal so text, image, video, and audio all in one model. The mmproj file is included for vision/audio support.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's included:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;E4B: Q8_K_P, Q6_K_P, Q5_K_P, Q5_K_M, Q4_K_P, Q4_K_M, IQ4_XS, Q3_K_P, Q3_K_M, IQ3_M, Q2_K_P + mmproj&lt;/p&gt; &lt;p&gt;E2B: Q8_K_P, Q6_K_P, Q5_K_P, Q4_K_P, Q3_K_P, IQ3_M, Q2_K_P + mmproj&lt;/p&gt; &lt;p&gt;All quants generated with imatrix. K\_P quants use model-specific analysis to preserve quality where it matters most, effectively 1-2 quant levels better at only ~5-15% larger file size. Fully compatible with llama.cpp, LM Studio, or anything that reads GGUF (Ollama might need tweaking by the user).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Quick specs (both models):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- 42 layers (E4B) / 35 layers (E2B)&lt;/p&gt; &lt;p&gt;- Mixed sliding window + full attention&lt;/p&gt; &lt;p&gt;- 131K native context&lt;/p&gt; &lt;p&gt;- Natively multimodal (text, image, video, audio)&lt;/p&gt; &lt;p&gt;- KV shared layers for memory efficiency&lt;/p&gt; &lt;p&gt;Sampling from Google: temp=1.0, top_p=0.95, top_k=64. Use --jinja flag with llama.cpp.&lt;/p&gt; &lt;p&gt;Note: HuggingFace's hardware compatibility widget doesn't recognize K_P quants so click &amp;quot;View +X variants&amp;quot; or go to Files and versions to see all downloads. K_P showing &amp;quot;?&amp;quot; in LM Studio is cosmetic only, model loads fine.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Coming up next: Gemma 4 E31B (dense) and E26B-A4B (MoE).&lt;/strong&gt; Working on those now and will release them as soon as I'm satisfied with the quality. The small models were straightforward, the big ones need more attention.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;*Google&lt;/strong&gt; is now using techniques similar to NVIDIA's GenRM, generative reward models that act as internal critics, making true, complete uncensoring an increasingly challenging field. These models didn't get as much manual testing time at longer context as my other releases. I expect 99.999% of users won't hit edge cases, but the asterisk is there for honesty. Also: the E2B is a 2B model. Temper expectations accordingly, it's impressive for its size but don't expect it to rival anything above 7B.&lt;/p&gt; &lt;p&gt;All my models: &lt;a href="https://huggingface.co/HauhauCS/models"&gt;HuggingFace-HauhauCS&lt;/a&gt;&lt;/p&gt; &lt;p&gt;As a side-note, currently working on a very cool project, which I will resume as soon I publish the other 2 Gemma models. I can't wait to share them all once I'm done.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hauhau901"&gt; /u/hauhau901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-02T23:54:50+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sat48a</id>
     <title>Gemma 4 on Android phones</title>
     <updated>2026-04-02T20:41:59+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sapl6k/my_first_impression_after_testing_gemma_4_against/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T18:30:42+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1saxvw2</id>
+    <title>Gemma 4 E4B + E2B Uncensored (Aggressive) — GGUF + K_P Quants (Multimodal: Vision, Video, Audio)</title>
+    <updated>2026-04-02T23:54:50+00:00</updated>
+    <author>
+      <name>/u/hauhau901</name>
+      <uri>https://old.reddit.com/user/hauhau901</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My first Gemma 4 uncensors are out. Two models dropping today, the E4B (4B) and E2B (2B). Both Aggressive variants, both fully multimodal.&lt;/p&gt; &lt;p&gt;Aggressive means no refusals. I don't do any personality changes or alterations. The ORIGINAL Google release, just uncensored.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Gemma 4 E4B (4B):&lt;/strong&gt; &lt;a href="https://huggingface.co/HauhauCS/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Gemma 4 E2B (2B):&lt;/strong&gt; &lt;a href="https://huggingface.co/HauhauCS/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;0/465 refusals&lt;/strong&gt;* on both. Fully unlocked with zero capability loss.&lt;/p&gt; &lt;p&gt;These are natively multimodal so text, image, video, and audio all in one model. The mmproj file is included for vision/audio support.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's included:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;E4B: Q8_K_P, Q6_K_P, Q5_K_P, Q5_K_M, Q4_K_P, Q4_K_M, IQ4_XS, Q3_K_P, Q3_K_M, IQ3_M, Q2_K_P + mmproj&lt;/p&gt; &lt;p&gt;E2B: Q8_K_P, Q6_K_P, Q5_K_P, Q4_K_P, Q3_K_P, IQ3_M, Q2_K_P + mmproj&lt;/p&gt; &lt;p&gt;All quants generated with imatrix. K\_P quants use model-specific analysis to preserve quality where it matters most, effectively 1-2 quant levels better at only ~5-15% larger file size. Fully compatible with llama.cpp, LM Studio, or anything that reads GGUF (Ollama might need tweaking by the user).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Quick specs (both models):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- 42 layers (E4B) / 35 layers (E2B)&lt;/p&gt; &lt;p&gt;- Mixed sliding window + full attention&lt;/p&gt; &lt;p&gt;- 131K native context&lt;/p&gt; &lt;p&gt;- Natively multimodal (text, image, video, audio)&lt;/p&gt; &lt;p&gt;- KV shared layers for memory efficiency&lt;/p&gt; &lt;p&gt;Sampling from Google: temp=1.0, top_p=0.95, top_k=64. Use --jinja flag with llama.cpp.&lt;/p&gt; &lt;p&gt;Note: HuggingFace's hardware compatibility widget doesn't recognize K_P quants so click &amp;quot;View +X variants&amp;quot; or go to Files and versions to see all downloads. K_P showing &amp;quot;?&amp;quot; in LM Studio is cosmetic only, model loads fine.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Coming up next: Gemma 4 E31B (dense) and E26B-A4B (MoE).&lt;/strong&gt; Working on those now and will release them as soon as I'm satisfied with the quality. The small models were straightforward, the big ones need more attention.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;*Google&lt;/strong&gt; is now using techniques similar to NVIDIA's GenRM, generative reward models that act as internal critics, making true, complete uncensoring an increasingly challenging field. These models didn't get as much manual testing time at longer context as my other releases. I expect 99.999% of users won't hit edge cases, but the asterisk is there for honesty. Also: the E2B is a 2B model. Temper expectations accordingly, it's impressive for its size but don't expect it to rival anything above 7B.&lt;/p&gt; &lt;p&gt;All my models: &lt;a href="https://huggingface.co/HauhauCS/models"&gt;HuggingFace-HauhauCS&lt;/a&gt;&lt;/p&gt; &lt;p&gt;As a side-note, currently working on a very cool project, which I will resume as soon I publish the other 2 Gemma models. I can't wait to share them all once I'm done.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hauhau901"&gt; /u/hauhau901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1saxvw2/gemma_4_e4b_e2b_uncensored_aggressive_gguf_k_p/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-02T23:54:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1sanln7</id>
