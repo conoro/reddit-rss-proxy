@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-03T16:16:24+00:00</updated>
+  <updated>2026-04-03T16:47:28+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sbekgc</id>
-    <title>Gemma 4 26B-A4B MoE running at 45-60 tok/s on DGX Spark — here's how</title>
-    <updated>2026-04-03T14:06:15+00:00</updated>
-    <author>
-      <name>/u/CoconutMario</name>
-      <uri>https://old.reddit.com/user/CoconutMario</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent half the night on getting google/gemma-4-26B-A4B-it running fast on a single NVIDIA DGX Spark (128GB unified memory, GB10 Blackwell). Some things I learned that might save others time:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;NVFP4 quantization&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The 26B MoE model is ~49GB in BF16 — runs but slowly. NVFP4 brings it down to 16.5GB with 3x compression. The catch: Google stores MoE expert weights as fused 3D tensors that no existing quantization tool handles. NVIDIA's modelopt silently skips them (91% of the model!). I wrote a custom plugin that unfuses the experts into individual layers, quantizes them, then re-exports. Both W4A4 and W4A16 variants work.&lt;/p&gt; &lt;p&gt;Published here:&lt;/p&gt; &lt;p&gt;- W4A4: &lt;a href="https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4"&gt;https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;- W4A16: &lt;a href="https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4A16"&gt;https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4A16&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vLLM serving — what you need&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;You can't just `vllm serve` this model out of the box. Here's what's needed:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;**transformers &amp;gt;= 5.4** — every existing container (NGC vLLM, TensorRT-LLM) ships with 4.57 which doesn't know gemma4. If you're on Spark, use [spark-vllm-docker](&lt;a href="https://github.com/eugr/spark-vllm-docker"&gt;https://github.com/eugr/spark-vllm-docker&lt;/a&gt;) with `--tf5` flag.&lt;/li&gt; &lt;li&gt;**`--moe-backend marlin`** — without this, the MoE expert computation produces wrong results on SM 12.1. This flag is separate from `VLLM_NVFP4_GEMM_BACKEND=marlin` which handles the non-MoE layers.&lt;/li&gt; &lt;li&gt;**`--quantization modelopt`** — tells vLLM to read the NVFP4 checkpoint format.&lt;/li&gt; &lt;li&gt;**A patched gemma4.py** — vLLM's weight loader has a bug mapping NVFP4 scale keys for MoE experts (dot vs underscore in parameter names). Patch included in the HF repo. Mount it with `-v`.&lt;/li&gt; &lt;li&gt;**Use the chat endpoint, not completions** — this is an instruct model. `/v1/completions` with raw text produces repetition loops. Use `/v1/chat/completions` with a messages array. Obvious in hindsight, cost me hours of debugging.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Full serving command:&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;p&gt;docker run -d \&lt;/p&gt; &lt;p&gt; --gpus all --ipc=host --network host \&lt;/p&gt; &lt;p&gt; -e VLLM_NVFP4_GEMM_BACKEND=marlin \&lt;/p&gt; &lt;p&gt; -v ~/.cache/huggingface:/root/.cache/huggingface \&lt;/p&gt; &lt;p&gt; -v ./gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py \&lt;/p&gt; &lt;p&gt; &amp;lt;your-vllm-tf5-image&amp;gt; \&lt;/p&gt; &lt;p&gt; vllm serve bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4 \&lt;/p&gt; &lt;p&gt;--served-model-name gemma-4 \&lt;/p&gt; &lt;p&gt;--host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; --port 8888 \&lt;/p&gt; &lt;p&gt;--quantization modelopt \&lt;/p&gt; &lt;p&gt;--dtype auto --kv-cache-dtype fp8 \&lt;/p&gt; &lt;p&gt;--gpu-memory-utilization 0.40 \&lt;/p&gt; &lt;p&gt;--max-model-len 262144 \&lt;/p&gt; &lt;p&gt;--moe-backend marlin \&lt;/p&gt; &lt;p&gt;--enable-auto-tool-choice \&lt;/p&gt; &lt;p&gt;--tool-call-parser gemma4 \&lt;/p&gt; &lt;p&gt;--trust-remote-code&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;On DGX Spark: ~45-60 tok/s, 16.5GB VRAM, 256K context fits with room to spare. Chat, jokes, reasoning all work well. Tool calling works with the gemma4 parser. Coding is mediocre (that's a base model issue, not quantization — BF16 has the same problem).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issues filed&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- NVIDIA Model Optimizer: [#1173](&lt;a href="https://github.com/NVIDIA/Model-Optimizer/issues/1173"&gt;https://github.com/NVIDIA/Model-Optimizer/issues/1173&lt;/a&gt;) — add native Gemma 4 MoE expert support&lt;/p&gt; &lt;p&gt;- vLLM: [#38912](&lt;a href="https://github.com/vllm-project/vllm/issues/38912"&gt;https://github.com/vllm-project/vllm/issues/38912&lt;/a&gt;) — fix NVFP4 MoE scale key mapping&lt;/p&gt; &lt;p&gt;Quantization script and vLLM patch are both included in the HF repos.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CoconutMario"&gt; /u/CoconutMario &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T14:06:15+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sb1rb9</id>
     <title>Gemma 4 26b a4b - MacBook Pro M5 MAX. Averaging around 81tok/sec</title>
@@ -60,6 +47,19 @@
     <published>2026-04-02T23:54:50+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sb6l3l</id>
+    <title>Ace Step 1.5 XL released</title>
+    <updated>2026-04-03T07:11:22+00:00</updated>
+    <author>
+      <name>/u/seamonn</name>
+      <uri>https://old.reddit.com/user/seamonn</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt; &lt;img alt="Ace Step 1.5 XL released" src="https://external-preview.redd.it/BH-YpWu2WQiyENo7XdV27AA4gfI-Xl4IH-iNPvQBNwA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=591e011940645fed6544945eb9ab918f547501f7" title="Ace Step 1.5 XL released" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/seamonn"&gt; /u/seamonn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ace-step/ACE-Step-1.5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T07:11:22+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sbdr75</id>
     <title>Gemma 4 Architecture Comparison</title>
     <updated>2026-04-03T13:33:44+00:00</updated>
@@ -73,17 +73,17 @@
     <published>2026-04-03T13:33:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sb6l3l</id>
-    <title>Ace Step 1.5 XL released</title>
-    <updated>2026-04-03T07:11:22+00:00</updated>
+    <id>t3_1sbekgc</id>
+    <title>Gemma 4 26B-A4B MoE running at 45-60 tok/s on DGX Spark — here's how</title>
+    <updated>2026-04-03T14:06:15+00:00</updated>
     <author>
-      <name>/u/seamonn</name>
-      <uri>https://old.reddit.com/user/seamonn</uri>
+      <name>/u/CoconutMario</name>
+      <uri>https://old.reddit.com/user/CoconutMario</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt; &lt;img alt="Ace Step 1.5 XL released" src="https://external-preview.redd.it/BH-YpWu2WQiyENo7XdV27AA4gfI-Xl4IH-iNPvQBNwA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=591e011940645fed6544945eb9ab918f547501f7" title="Ace Step 1.5 XL released" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/seamonn"&gt; /u/seamonn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ace-step/ACE-Step-1.5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent half the night on getting google/gemma-4-26B-A4B-it running fast on a single NVIDIA DGX Spark (128GB unified memory, GB10 Blackwell). Some things I learned that might save others time:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;NVFP4 quantization&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The 26B MoE model is ~49GB in BF16 — runs but slowly. NVFP4 brings it down to 16.5GB with 3x compression. The catch: Google stores MoE expert weights as fused 3D tensors that no existing quantization tool handles. NVIDIA's modelopt silently skips them (91% of the model!). I wrote a custom plugin that unfuses the experts into individual layers, quantizes them, then re-exports. Both W4A4 and W4A16 variants work.&lt;/p&gt; &lt;p&gt;Published here:&lt;/p&gt; &lt;p&gt;- W4A4: &lt;a href="https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4"&gt;https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;- W4A16: &lt;a href="https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4A16"&gt;https://huggingface.co/bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4A16&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;vLLM serving — what you need&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;You can't just `vllm serve` this model out of the box. Here's what's needed:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;**transformers &amp;gt;= 5.4** — every existing container (NGC vLLM, TensorRT-LLM) ships with 4.57 which doesn't know gemma4. If you're on Spark, use [spark-vllm-docker](&lt;a href="https://github.com/eugr/spark-vllm-docker"&gt;https://github.com/eugr/spark-vllm-docker&lt;/a&gt;) with `--tf5` flag.&lt;/li&gt; &lt;li&gt;**`--moe-backend marlin`** — without this, the MoE expert computation produces wrong results on SM 12.1. This flag is separate from `VLLM_NVFP4_GEMM_BACKEND=marlin` which handles the non-MoE layers.&lt;/li&gt; &lt;li&gt;**`--quantization modelopt`** — tells vLLM to read the NVFP4 checkpoint format.&lt;/li&gt; &lt;li&gt;**A patched gemma4.py** — vLLM's weight loader has a bug mapping NVFP4 scale keys for MoE experts (dot vs underscore in parameter names). Patch included in the HF repo. Mount it with `-v`.&lt;/li&gt; &lt;li&gt;**Use the chat endpoint, not completions** — this is an instruct model. `/v1/completions` with raw text produces repetition loops. Use `/v1/chat/completions` with a messages array. Obvious in hindsight, cost me hours of debugging.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Full serving command:&lt;/p&gt; &lt;p&gt;```bash&lt;/p&gt; &lt;p&gt;docker run -d \&lt;/p&gt; &lt;p&gt; --gpus all --ipc=host --network host \&lt;/p&gt; &lt;p&gt; -e VLLM_NVFP4_GEMM_BACKEND=marlin \&lt;/p&gt; &lt;p&gt; -v ~/.cache/huggingface:/root/.cache/huggingface \&lt;/p&gt; &lt;p&gt; -v ./gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py \&lt;/p&gt; &lt;p&gt; &amp;lt;your-vllm-tf5-image&amp;gt; \&lt;/p&gt; &lt;p&gt; vllm serve bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4 \&lt;/p&gt; &lt;p&gt;--served-model-name gemma-4 \&lt;/p&gt; &lt;p&gt;--host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; --port 8888 \&lt;/p&gt; &lt;p&gt;--quantization modelopt \&lt;/p&gt; &lt;p&gt;--dtype auto --kv-cache-dtype fp8 \&lt;/p&gt; &lt;p&gt;--gpu-memory-utilization 0.40 \&lt;/p&gt; &lt;p&gt;--max-model-len 262144 \&lt;/p&gt; &lt;p&gt;--moe-backend marlin \&lt;/p&gt; &lt;p&gt;--enable-auto-tool-choice \&lt;/p&gt; &lt;p&gt;--tool-call-parser gemma4 \&lt;/p&gt; &lt;p&gt;--trust-remote-code&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;On DGX Spark: ~45-60 tok/s, 16.5GB VRAM, 256K context fits with room to spare. Chat, jokes, reasoning all work well. Tool calling works with the gemma4 parser. Coding is mediocre (that's a base model issue, not quantization — BF16 has the same problem).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issues filed&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- NVIDIA Model Optimizer: [#1173](&lt;a href="https://github.com/NVIDIA/Model-Optimizer/issues/1173"&gt;https://github.com/NVIDIA/Model-Optimizer/issues/1173&lt;/a&gt;) — add native Gemma 4 MoE expert support&lt;/p&gt; &lt;p&gt;- vLLM: [#38912](&lt;a href="https://github.com/vllm-project/vllm/issues/38912"&gt;https://github.com/vllm-project/vllm/issues/38912&lt;/a&gt;) — fix NVFP4 MoE scale key mapping&lt;/p&gt; &lt;p&gt;Quantization script and vLLM patch are both included in the HF repos.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CoconutMario"&gt; /u/CoconutMario &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbekgc/gemma_4_26ba4b_moe_running_at_4560_toks_on_dgx/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T07:11:22+00:00</published>
+    <published>2026-04-03T14:06:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1sbeoka</id>
@@ -112,19 +112,6 @@
     <published>2026-04-02T22:05:05+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sbec70</id>
-    <title>Qwen3.5 vs Gemma 4: Benchmarks vs real world use?</title>
-    <updated>2026-04-03T13:57:26+00:00</updated>
-    <author>
-      <name>/u/AppealSame4367</name>
-      <uri>https://old.reddit.com/user/AppealSame4367</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just tested Gemma 4 2B locally on old rtx2060 6GB VRAM and used Qwen3.5 in all sizes intensively, in customer projects before.&lt;/p&gt; &lt;p&gt;First impression from Gemma 4 2B: It's better, faster, uses less memory than q3.5 2B. More agentic, better mermaid charts, better chat output, better structured output.&lt;/p&gt; &lt;p&gt;It seems like either q3.5 are benchmaxed (although they really were much better than the competition) or google is playing it down. Gemma 4 2B &amp;quot;seems&amp;quot; / &amp;quot;feels&amp;quot; more like Q3.5 9B to me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AppealSame4367"&gt; /u/AppealSame4367 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T13:57:26+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1saoyj7</id>
     <title>Gemma 4 and Qwen3.5 on shared benchmarks</title>
     <updated>2026-04-02T18:07:30+00:00</updated>
@@ -149,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sausgd/one_of_the_best_sensible_reasons_that_i_can_think/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-02T21:46:20+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sbec70</id>
+    <title>Qwen3.5 vs Gemma 4: Benchmarks vs real world use?</title>
+    <updated>2026-04-03T13:57:26+00:00</updated>
+    <author>
+      <name>/u/AppealSame4367</name>
+      <uri>https://old.reddit.com/user/AppealSame4367</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just tested Gemma 4 2B locally on old rtx2060 6GB VRAM and used Qwen3.5 in all sizes intensively, in customer projects before.&lt;/p&gt; &lt;p&gt;First impression from Gemma 4 2B: It's better, faster, uses less memory than q3.5 2B. More agentic, better mermaid charts, better chat output, better structured output.&lt;/p&gt; &lt;p&gt;It seems like either q3.5 are benchmaxed (although they really were much better than the competition) or google is playing it down. Gemma 4 2B &amp;quot;seems&amp;quot; / &amp;quot;feels&amp;quot; more like Q3.5 9B to me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AppealSame4367"&gt; /u/AppealSame4367 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbec70/qwen35_vs_gemma_4_benchmarks_vs_real_world_use/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T13:57:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1sbaack</id>
@@ -190,19 +190,6 @@
     <published>2026-04-03T13:04:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sb80yv</id>
-    <title>VRAM optimization for gemma 4</title>
-    <updated>2026-04-03T08:40:26+00:00</updated>
-    <author>
-      <name>/u/Sadman782</name>
-      <uri>https://old.reddit.com/user/Sadman782</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TLDR: add -np 1 to your llama.cpp launch command if you are the only user, cuts SWA cache VRAM by 3x instantly&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So I was messing around with Gemma 4 and noticed the dense model hogs a massive chunk of VRAM before you even start generating anything. If you are on 16GB you might be hitting OOM and wondering why.&lt;/p&gt; &lt;p&gt;The culprit is the SWA (Sliding Window Attention) KV cache. It allocates in F16 and does not get quantized like the rest of the KV cache. A couple days ago ggerganov merged a PR that accidentally made this worse by keeping the SWA portion unquantized even when you have KV cache quantization enabled. It got reverted about 2 hours later here &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21332"&gt;https://github.com/ggml-org/llama.cpp/pull/21332&lt;/a&gt; so make sure you are on a recent build.&lt;/p&gt; &lt;p&gt;A few things that actually help with VRAM:&lt;/p&gt; &lt;p&gt;The SWA cache size is calculated as roughly (sliding window size × number of parallel sequences) + micro batch size. So if your server is defaulting to 4 parallel slots you are paying 3x the memory compared to a single user setup. Adding &lt;strong&gt;-np 1&lt;/strong&gt; to your launch command if you are just chatting solo cuts the SWA cache from around &lt;strong&gt;900MB down to about 300MB&lt;/strong&gt; on the 26B model and &lt;strong&gt;3200MB to just 1200MB&lt;/strong&gt; for the 31B dense model&lt;/p&gt; &lt;p&gt;Also watch out for &lt;strong&gt;-ub&lt;/strong&gt; (ubatch size). The default is 512 and that is fine. If you or some guide told you to set -ub 4096 for speed, that bloats the SWA buffer massively. Just leave it at default unless you have VRAM to burn.&lt;/p&gt; &lt;p&gt;On 16GB with the dense 31B model you can still run decent context with IQ3 or Q3_K quantization but you will likely need to drop the mmproj (vision) to fit 30K+ context(fp16). With -np 1 and default ubatch it becomes much more manageable.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sadman782"&gt; /u/Sadman782 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T08:40:26+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1salgre</id>
     <title>Gemma 4 has been released</title>
     <updated>2026-04-02T16:01:58+00:00</updated>
@@ -216,17 +203,17 @@
     <published>2026-04-02T16:01:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sbe40t</id>
-    <title>My biggest Issue with the Gemma-4 Models is the Massive KV Cache!!</title>
-    <updated>2026-04-03T13:48:13+00:00</updated>
+    <id>t3_1sb80yv</id>
+    <title>VRAM optimization for gemma 4</title>
+    <updated>2026-04-03T08:40:26+00:00</updated>
     <author>
-      <name>/u/Iory1998</name>
-      <uri>https://old.reddit.com/user/Iory1998</uri>
+      <name>/u/Sadman782</name>
+      <uri>https://old.reddit.com/user/Sadman782</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I mean, I have 40GB of Vram and I still cannot fit the entire Unsloth Gemma-4-31B-it-UD-Q8 (35GB) even at 2K context size unless I quantize KV to Q4 with 2K context size? WTF? For comparison, I can fit the entire UD-Q8 Qwen3.5-27B at full context without KV quantization! &lt;/p&gt; &lt;p&gt;If I have to run a Q4 Gemma-4-31B-it-UD with a Q8 KV cache, then I am better off just using Qwen3.5-27B. After all, the latter beats the former in basically all benchmarks.&lt;/p&gt; &lt;p&gt;What's your experience with the Gemma-4 models so far?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Iory1998"&gt; /u/Iory1998 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TLDR: add -np 1 to your llama.cpp launch command if you are the only user, cuts SWA cache VRAM by 3x instantly&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So I was messing around with Gemma 4 and noticed the dense model hogs a massive chunk of VRAM before you even start generating anything. If you are on 16GB you might be hitting OOM and wondering why.&lt;/p&gt; &lt;p&gt;The culprit is the SWA (Sliding Window Attention) KV cache. It allocates in F16 and does not get quantized like the rest of the KV cache. A couple days ago ggerganov merged a PR that accidentally made this worse by keeping the SWA portion unquantized even when you have KV cache quantization enabled. It got reverted about 2 hours later here &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21332"&gt;https://github.com/ggml-org/llama.cpp/pull/21332&lt;/a&gt; so make sure you are on a recent build.&lt;/p&gt; &lt;p&gt;A few things that actually help with VRAM:&lt;/p&gt; &lt;p&gt;The SWA cache size is calculated as roughly (sliding window size × number of parallel sequences) + micro batch size. So if your server is defaulting to 4 parallel slots you are paying 3x the memory compared to a single user setup. Adding &lt;strong&gt;-np 1&lt;/strong&gt; to your launch command if you are just chatting solo cuts the SWA cache from around &lt;strong&gt;900MB down to about 300MB&lt;/strong&gt; on the 26B model and &lt;strong&gt;3200MB to just 1200MB&lt;/strong&gt; for the 31B dense model&lt;/p&gt; &lt;p&gt;Also watch out for &lt;strong&gt;-ub&lt;/strong&gt; (ubatch size). The default is 512 and that is fine. If you or some guide told you to set -ub 4096 for speed, that bloats the SWA buffer massively. Just leave it at default unless you have VRAM to burn.&lt;/p&gt; &lt;p&gt;On 16GB with the dense 31B model you can still run decent context with IQ3 or Q3_K quantization but you will likely need to drop the mmproj (vision) to fit 30K+ context(fp16). With -np 1 and default ubatch it becomes much more manageable.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sadman782"&gt; /u/Sadman782 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb80yv/vram_optimization_for_gemma_4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T13:48:13+00:00</published>
+    <published>2026-04-03T08:40:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1sb4gzj</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sb73ar/gemma_4_is_good/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-03T07:42:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sbe40t</id>
+    <title>My biggest Issue with the Gemma-4 Models is the Massive KV Cache!!</title>
+    <updated>2026-04-03T13:48:13+00:00</updated>
+    <author>
+      <name>/u/Iory1998</name>
+      <uri>https://old.reddit.com/user/Iory1998</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I mean, I have 40GB of Vram and I still cannot fit the entire Unsloth Gemma-4-31B-it-UD-Q8 (35GB) even at 2K context size unless I quantize KV to Q4 with 2K context size? WTF? For comparison, I can fit the entire UD-Q8 Qwen3.5-27B at full context without KV quantization! &lt;/p&gt; &lt;p&gt;If I have to run a Q4 Gemma-4-31B-it-UD with a Q8 KV cache, then I am better off just using Qwen3.5-27B. After all, the latter beats the former in basically all benchmarks.&lt;/p&gt; &lt;p&gt;What's your experience with the Gemma-4 models so far?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Iory1998"&gt; /u/Iory1998 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbe40t/my_biggest_issue_with_the_gemma4_models_is_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-03T13:48:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1sba46z</id>
