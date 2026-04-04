@@ -2,49 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-04T17:14:51+00:00</updated>
+  <updated>2026-04-04T17:32:04+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1sc157b</id>
-    <title>Monarch v3: 78% Faster LLM Inference with NES-Inspired KV Paging</title>
-    <updated>2026-04-04T05:50:02+00:00</updated>
+    <id>t3_1scd562</id>
+    <title>Am I misunderstanding RAG? I thought it basically meant separate retrieval + generation</title>
+    <updated>2026-04-04T16:08:02+00:00</updated>
     <author>
-      <name>/u/Inevitable_Back3319</name>
-      <uri>https://old.reddit.com/user/Inevitable_Back3319</uri>
+      <name>/u/shironekoooo</name>
+      <uri>https://old.reddit.com/user/shironekoooo</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Monarch v3: 78% Faster LLM Inference with NES-Inspired KV Paging&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; We implemented NES-inspired memory paging for transformers. On a 1.1B parameter model, inference is now &lt;strong&gt;78% faster&lt;/strong&gt; (17.01 → 30.42 tok/sec) with nearly zero VRAM overhead. The algorithm is open source, fully benchmarked, and ready to use.&lt;/p&gt; &lt;h1&gt;The Problem&lt;/h1&gt; &lt;p&gt;KV cache grows linearly with sequence length. By 4K tokens, most of it sits unused—recent tokens matter far more than old ones, yet we keep everything in VRAM at full precision.&lt;/p&gt; &lt;p&gt;Standard approaches (quantization, pruning, distillation) are invasive. We wanted something simpler: just move the old stuff out of the way.&lt;/p&gt; &lt;h1&gt;The Solution: NES-Inspired Paging&lt;/h1&gt; &lt;p&gt;Think of it like a Game Boy's memory banking system. The cache is split into a &lt;strong&gt;hot region&lt;/strong&gt; (recent tokens, full precision) and a &lt;strong&gt;cold region&lt;/strong&gt; (older tokens, compressed). As new tokens arrive, old ones get evicted from hot storage and compressed into cold storage. When a token is promoted (high attention weight), it moves back to hot.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Key trade-off:&lt;/strong&gt; We only compute full attention against the hot window. Cold tokens are only accessed on explicit promotion. This is fundamentally different from standard attention—it assumes that recent tokens dominate, which is true for many tasks but not all.&lt;/p&gt; &lt;p&gt;Four components work together:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Windowed Attention&lt;/strong&gt; (the speedup engine) &lt;ul&gt; &lt;li&gt;Attention only over hot window (default ~512 tokens)&lt;/li&gt; &lt;li&gt;Older tokens can still be promoted if they're accessed&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Assumption:&lt;/strong&gt; Recency is a strong signal for attention&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Not validated:&lt;/strong&gt; Full generation quality impact vs. baseline&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;TurboQuant Compression&lt;/strong&gt; (~97% size reduction for cold KV) &lt;ul&gt; &lt;li&gt;Quantize cold KV to 4-bit integers&lt;/li&gt; &lt;li&gt;Polar encoding (radius + angle bins) for similarity&lt;/li&gt; &lt;li&gt;Residual correction (1 bit per value)&lt;/li&gt; &lt;li&gt;Decode on access with minimal overhead&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Sliding Window Eviction&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;Recent N tokens stay hot by default&lt;/li&gt; &lt;li&gt;Old tokens compress to cold storage&lt;/li&gt; &lt;li&gt;No need to know &amp;quot;important&amp;quot; tokens in advance&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Attention-Weighted Promotion&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;High-attention tokens can move back to hot&lt;/li&gt; &lt;li&gt;Sticky mechanism prevents thrashing&lt;/li&gt; &lt;li&gt;Threshold-based to avoid spurious promotions&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;Benchmark Results&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Setup:&lt;/strong&gt; TinyLlama-1.1B fp16, 50 generated tokens, windowed attention enabled&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Mode&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Throughput&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;VRAM&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Hot Window&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Standard (full attention)&lt;/td&gt; &lt;td align="left"&gt;17.01 tok/s&lt;/td&gt; &lt;td align="left"&gt;2112 MB&lt;/td&gt; &lt;td align="left"&gt;—&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Monarch-v3 (windowed)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;30.42 tok/s&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;2131 MB&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;512 tokens&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Gain&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+78.7%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+0.9%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;—&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The huge speedup comes from computing attention only over recent tokens. The compression saves a little VRAM but isn't the primary win.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Important caveat:&lt;/strong&gt; This benchmark measures throughput, not generation quality. We haven't validated whether windowed attention + promotion produces text indistinguishable from full attention. The recency assumption works well for many tasks, but may fail on retrieval-heavy or context-dependent queries.&lt;/p&gt; &lt;h1&gt;How It Works (Simplified Decode Loop)&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;for step in 1..100: q = project_query(next_token) # Standard: compute attention over ALL cached tokens # Monarch: compute attention only over HOT window scores_hot = q @ kv_hot.T # ~512 tokens instead of 4096+ # Optional: Check if cold tokens should be promoted # (only if attention scores suggest they matter) if promotion_enabled and max(scores_hot) &amp;lt; promotion_threshold: kv_cold_promoted = decompress(cold_pages) scores_cold = q @ kv_cold_promoted.T if max(scores_cold) &amp;gt; threshold: promote_cold_to_hot() # Softmax over [hot + promoted], apply attention # Old tokens fall out of hot window if len(kv_hot) &amp;gt; window_size: compress_to_cold() &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The speedup: you skip computing attention for most old tokens. Whether this preserves generation quality is the open question.&lt;/p&gt; &lt;h1&gt;Current Status&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Implementation:&lt;/strong&gt; Working on Hugging Face Transformers with custom cache backend&lt;br /&gt; &lt;strong&gt;Benchmarks:&lt;/strong&gt; Full validation on multiple sequence lengths&lt;br /&gt; &lt;strong&gt;Open Source:&lt;/strong&gt; Apache 2.0, ready to fork&lt;br /&gt; &lt;strong&gt;Paper:&lt;/strong&gt; Full technical spec (NES-inspired paging, compression schemes, evaluation methodology)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Next:&lt;/strong&gt; CUDA kernel fusion for cold decompression (would push gains further)&lt;/p&gt; &lt;h1&gt;Try It&lt;/h1&gt; &lt;p&gt;Clone and run:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;git clone https://github.com/JohannaWeb/Monarch.git cd Monarch # Install deps pip install -r requirements.txt # Train TinyLlama on Project Falcon knowledge python train_tinyllama_fp16.py # Benchmark standard vs paged inference python src/benchmark_monarch.py \ --model models/tinyllama_fp16 \ --mode both \ --max-new-tokens 100 \ --promotion-threshold 0.15 \ --sticky-threshold 3 \ --json &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;What We Know &amp;amp; Don't Know&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Validated:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Throughput improvement (+78.7% on short sequences)&lt;/li&gt; &lt;li&gt;VRAM overhead is minimal (+0.9%)&lt;/li&gt; &lt;li&gt;Implementation is stable and doesn't crash&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Assumed but not validated:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Generation quality is preserved with windowed attention&lt;/li&gt; &lt;li&gt;The recency hypothesis holds for diverse tasks&lt;/li&gt; &lt;li&gt;Gains transfer to longer sequences and larger models&lt;/li&gt; &lt;li&gt;Promotion mechanism correctly identifies important cold tokens&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Not implemented:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Full BLEU/perplexity evaluation vs. baseline&lt;/li&gt; &lt;li&gt;Longer sequence benchmarks (&amp;gt;1000 tokens)&lt;/li&gt; &lt;li&gt;Quality evaluation on retrieval-heavy tasks&lt;/li&gt; &lt;li&gt;Multi-token batch decoding (single-sequence only)&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;FAQ&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Q: Does windowed attention degrade generation quality?&lt;/strong&gt;&lt;br /&gt; A: Unknown. We benchmark throughput and VRAM, not output quality. The recency hypothesis is plausible (recent context matters most), but we haven't run BLEU/perplexity benchmarks against baseline. This is a real gap in validation.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Q: What about KV cache quantization papers?&lt;/strong&gt;&lt;br /&gt; A: We quantize cold tokens, not hot ones. Hot tokens stay full-precision. But the main speedup is from windowed attention, not compression.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Q: What tasks is this good for?&lt;/strong&gt;&lt;br /&gt; A: Likely: chat, summarization, RAG where recent context dominates. Unlikely: needle-in-haystack retrieval or memory-heavy tasks where old tokens matter.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Q: What about batched inference?&lt;/strong&gt;&lt;br /&gt; A: Current implementation is single-sequence. Batching requires careful page management (left as future work).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Q: Can I use this with vLLM or SGLang?&lt;/strong&gt;&lt;br /&gt; A: Not yet. This is a proof-of-concept on standard Transformers. Integration would require those systems to adopt the custom cache backend.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Built by Johanna with Claude (AI pair programming)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/JohannaWeb/Monarch"&gt;https://github.com/JohannaWeb/Monarch&lt;/a&gt;&lt;br /&gt; Paper: See &lt;code&gt;monarch_nes_paper.html&lt;/code&gt; in the repo&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Inevitable_Back3319"&gt; /u/Inevitable_Back3319 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc157b/monarch_v3_78_faster_llm_inference_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc157b/monarch_v3_78_faster_llm_inference_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc157b/monarch_v3_78_faster_llm_inference_with/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclaimer: sorry if this post comes out weirdly worded, English is not my main language.&lt;/p&gt; &lt;p&gt;I’m a bit confused by how people use the term RAG.&lt;/p&gt; &lt;p&gt;I thought the basic idea was:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;use an embedding model / retriever to find relevant chunks&lt;/li&gt; &lt;li&gt;maybe rerank them&lt;/li&gt; &lt;li&gt;pass those chunks into the main LLM&lt;/li&gt; &lt;li&gt;let the LLM generate the final answer&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So in my head, RAG is mostly about having a retrieval component and a generator component, often with different models doing different jobs.&lt;/p&gt; &lt;p&gt;But then I see people talk about RAG as if it also implies extra steps like summarization, compression, query rewriting, context fusion, etc.&lt;/p&gt; &lt;p&gt;So what’s the practical definition people here use?&lt;/p&gt; &lt;p&gt;Is “normal RAG” basically just:&lt;br /&gt; retrieve --&amp;gt; rerank --&amp;gt; stuff chunks into prompt --&amp;gt; answer&lt;/p&gt; &lt;p&gt;And are the other things just enhancements on top?&lt;/p&gt; &lt;p&gt;Also, if a model just searches the web or calls tools, does that count as RAG too, or not really?&lt;/p&gt; &lt;p&gt;Curious what people who actually build local setups consider the real baseline.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shironekoooo"&gt; /u/shironekoooo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scd562/am_i_misunderstanding_rag_i_thought_it_basically/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scd562/am_i_misunderstanding_rag_i_thought_it_basically/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1scd562/am_i_misunderstanding_rag_i_thought_it_basically/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-04T05:50:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sbik5l</id>
-    <title>Visual Guide to Gemma 4</title>
-    <updated>2026-04-03T16:36:46+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbik5l/visual_guide_to_gemma_4/"&gt; &lt;img alt="Visual Guide to Gemma 4" src="https://preview.redd.it/nbsmjvho60tg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=33d08d5f997d53e7e6fbc9abf8f50b46c57e7163" title="Visual Guide to Gemma 4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;source: &lt;a href="https://x.com/osanseviero/status/2040105484061954349"&gt;https://x.com/osanseviero/status/2040105484061954349&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-gemma-4"&gt;https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-gemma-4&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/nbsmjvho60tg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sbik5l/visual_guide_to_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sbik5l/visual_guide_to_gemma_4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-03T16:36:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sc727j</id>
-    <title>Help running Qwen3-Coder-Next TurboQuant (TQ3) model</title>
-    <updated>2026-04-04T11:41:16+00:00</updated>
-    <author>
-      <name>/u/UnluckyTeam3478</name>
-      <uri>https://old.reddit.com/user/UnluckyTeam3478</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I found a TQ3-quantized version of Qwen3-Coder-Next here:&lt;br /&gt; &lt;a href="https://huggingface.co/edwardyoon79/Qwen3-Coder-Next-TQ3_0"&gt;https://huggingface.co/edwardyoon79/Qwen3-Coder-Next-TQ3_0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;According to the page, this model requires a compatible inference engine that supports TurboQuant. It also provides a command, but it doesn’t clearly specify which version or fork of llama.cpp should be used (or maybe I missed it).&lt;code&gt;llama-server&lt;/code&gt;&lt;/p&gt; &lt;p&gt;I’ve tried the following llama.cpp forks that claim to support TQ3, but none of them worked for me:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://github.com/TheTom/llama-cpp-turboquant"&gt;https://github.com/TheTom/llama-cpp-turboquant&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/turbo-tan/llama.cpp-tq3"&gt;https://github.com/turbo-tan/llama.cpp-tq3&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/drdotdot/llama.cpp-turbo3-tq3"&gt;https://github.com/drdotdot/llama.cpp-turbo3-tq3&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If anyone has successfully run this model, I’d really appreciate it if you could share how you did it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/UnluckyTeam3478"&gt; /u/UnluckyTeam3478 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc727j/help_running_qwen3codernext_turboquant_tq3_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc727j/help_running_qwen3codernext_turboquant_tq3_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc727j/help_running_qwen3codernext_turboquant_tq3_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-04T11:41:16+00:00</published>
+    <published>2026-04-04T16:08:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1sc2s2a</id>
@@ -73,6 +47,19 @@
     <published>2026-04-04T08:38:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1scdgol</id>
+    <title>Why do coding agents default to killing existing processes instead of finding an open port?</title>
+    <updated>2026-04-04T16:20:36+00:00</updated>
+    <author>
+      <name>/u/bs6</name>
+      <uri>https://old.reddit.com/user/bs6</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I always add instructions to find an open one but if I forget it kills processes that I had up for a reason 🤦‍♂️&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bs6"&gt; /u/bs6 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scdgol/why_do_coding_agents_default_to_killing_existing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scdgol/why_do_coding_agents_default_to_killing_existing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1scdgol/why_do_coding_agents_default_to_killing_existing/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-04T16:20:36+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sccjq2</id>
     <title>Is Turboquant really a game changer?</title>
     <updated>2026-04-04T15:44:29+00:00</updated>
@@ -84,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sccjq2/is_turboquant_really_a_game_changer/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-04T15:44:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1scf1x8</id>
+    <title>Don’t buy the DGX Spark: NVFP4 Still Missing After 6 Months</title>
+    <updated>2026-04-04T17:22:19+00:00</updated>
+    <author>
+      <name>/u/Secure_Archer_1529</name>
+      <uri>https://old.reddit.com/user/Secure_Archer_1529</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This post was written in my own words, but AI assistance.&lt;/p&gt; &lt;p&gt;I own two DGX Sparks myself, and the lack of NVFP4 has been a real pain in the ass.&lt;/p&gt; &lt;p&gt;The reason the product made sense in the first place was the Blackwell + NVFP4 combo on a local AI machine with a proper NVIDIA software stack around it. Without that, Spark becomes much harder to justify, especially given the bandwidth limitations and the compromises that comes with it.&lt;/p&gt; &lt;p&gt;The DGX Spark was presented like a finished, premium system where NVFP4 was supposed to work out of the box. It was not marketed like an experimental dev kit where buyers should expect to spend months switching backends, testing builds, setting flags, and relying on community or hardcore fan fixes just to make a core feature work properly.&lt;/p&gt; &lt;p&gt;More than six months in, NVFP4 is still not properly delivered on the Spark. Yes, you can get things somewhat running. But there is a big difference between a feature technically existing and a feature being delivered as a mature, stable, and supported experience.&lt;/p&gt; &lt;p&gt;Right now, NVFP4 on Spark is much closer to the first than the second.&lt;/p&gt; &lt;p&gt;The hardware itself is not the main issue. Spark has potential, and in some scenarios it can perform well. But the overall experience does not match what was implied. At this point, it no longer feels like normal early friction. It feels like NVIDIA pushed the story before the software was actually ready.&lt;/p&gt; &lt;p&gt;So the takeaway is simple:&lt;/p&gt; &lt;p&gt;Do not buy DGX Spark assuming NVFP4 is already delivered as a polished, mature, supported feature.&lt;/p&gt; &lt;p&gt;NVIDIA overpromised and underdelivered on DGX Spark.&lt;/p&gt; &lt;p&gt;Rant over and out.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Secure_Archer_1529"&gt; /u/Secure_Archer_1529 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scf1x8/dont_buy_the_dgx_spark_nvfp4_still_missing_after/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scf1x8/dont_buy_the_dgx_spark_nvfp4_still_missing_after/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1scf1x8/dont_buy_the_dgx_spark_nvfp4_still_missing_after/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-04T17:22:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1sbtr5i</id>
@@ -138,19 +138,6 @@
     <published>2026-04-04T13:51:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1scbpmo</id>
-    <title>so…. Qwen3.5 or Gemma 4?</title>
-    <updated>2026-04-04T15:11:02+00:00</updated>
-    <author>
-      <name>/u/MLExpert000</name>
-      <uri>https://old.reddit.com/user/MLExpert000</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Is there a winner yet?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MLExpert000"&gt; /u/MLExpert000 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-04T15:11:02+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sc1bhe</id>
     <title>Quantizers appriciation post</title>
     <updated>2026-04-04T05:59:39+00:00</updated>
@@ -164,17 +151,17 @@
     <published>2026-04-04T05:59:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sc8mwc</id>
-    <title>Recently I did a little performance test of several LLMs on PC with 16GB VRAM</title>
-    <updated>2026-04-04T13:00:12+00:00</updated>
+    <id>t3_1scbpmo</id>
+    <title>so…. Qwen3.5 or Gemma 4?</title>
+    <updated>2026-04-04T15:11:02+00:00</updated>
     <author>
-      <name>/u/rosaccord</name>
-      <uri>https://old.reddit.com/user/rosaccord</uri>
+      <name>/u/MLExpert000</name>
+      <uri>https://old.reddit.com/user/MLExpert000</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt; &lt;img alt="Recently I did a little performance test of several LLMs on PC with 16GB VRAM" src="https://preview.redd.it/ylafftgx76tg1.png?width=140&amp;amp;height=106&amp;amp;auto=webp&amp;amp;s=555d4f2d84d6ca8317516caa3a060ae2dd33a62c" title="Recently I did a little performance test of several LLMs on PC with 16GB VRAM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Qwen 3.5, Gemma-4, Nemotron Cascade 2 and GLM 4.7 flash.&lt;/p&gt; &lt;p&gt;Tested to see how performance (speed) degrades with the context increase.&lt;/p&gt; &lt;p&gt;used llama.cpp and some nice quants better fitting for 16GB VRAM in my RTX 4080.&lt;/p&gt; &lt;p&gt;Here is a result comparison table. Hope you find it useful.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ylafftgx76tg1.png?width=827&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=16d030952f1ea710cd3cef65b76e5ad2c3fd1cd3"&gt;https://preview.redd.it/ylafftgx76tg1.png?width=827&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=16d030952f1ea710cd3cef65b76e5ad2c3fd1cd3&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rosaccord"&gt; /u/rosaccord &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Is there a winner yet?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MLExpert000"&gt; /u/MLExpert000 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1scbpmo/so_qwen35_or_gemma_4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-04T13:00:12+00:00</published>
+    <published>2026-04-04T15:11:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1sc9ucc</id>
@@ -188,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc9ucc/found_how_to_toggle_reasoning_mode_for_gemma_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-04T13:53:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sc8mwc</id>
+    <title>Recently I did a little performance test of several LLMs on PC with 16GB VRAM</title>
+    <updated>2026-04-04T13:00:12+00:00</updated>
+    <author>
+      <name>/u/rosaccord</name>
+      <uri>https://old.reddit.com/user/rosaccord</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt; &lt;img alt="Recently I did a little performance test of several LLMs on PC with 16GB VRAM" src="https://preview.redd.it/ylafftgx76tg1.png?width=140&amp;amp;height=106&amp;amp;auto=webp&amp;amp;s=555d4f2d84d6ca8317516caa3a060ae2dd33a62c" title="Recently I did a little performance test of several LLMs on PC with 16GB VRAM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Qwen 3.5, Gemma-4, Nemotron Cascade 2 and GLM 4.7 flash.&lt;/p&gt; &lt;p&gt;Tested to see how performance (speed) degrades with the context increase.&lt;/p&gt; &lt;p&gt;used llama.cpp and some nice quants better fitting for 16GB VRAM in my RTX 4080.&lt;/p&gt; &lt;p&gt;Here is a result comparison table. Hope you find it useful.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/ylafftgx76tg1.png?width=827&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=16d030952f1ea710cd3cef65b76e5ad2c3fd1cd3"&gt;https://preview.redd.it/ylafftgx76tg1.png?width=827&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=16d030952f1ea710cd3cef65b76e5ad2c3fd1cd3&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rosaccord"&gt; /u/rosaccord &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8mwc/recently_i_did_a_little_performance_test_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-04T13:00:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1scb558</id>
@@ -268,19 +268,6 @@
     <published>2026-04-04T01:56:37+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sccpbj</id>
-    <title>We absolutely need Qwen3.6-397B-A17B to be open source</title>
-    <updated>2026-04-04T15:50:40+00:00</updated>
-    <author>
-      <name>/u/True_Requirement_891</name>
-      <uri>https://old.reddit.com/user/True_Requirement_891</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The benchmarks may not show it but it's a substantial improvement over 3.5 for real world tasks. This model is performing better than GLM-5.1 and Kimi-k2.5 for me, and the biggest area of improvement has been reliability. &lt;/p&gt; &lt;p&gt;It feels as reliable as claude in getting shit done end to end and not mess up half way and waste hours. This is the first OS model that has actually felt like I can compare it to Claude Sonnet.&lt;/p&gt; &lt;p&gt;We have been comparing OS models with claude sonnet and opus left and right months now, they do show that they are close in benchmarks but fall apart in the real world, the models that are claimed to be close to opus haven't even been able to achieve Sonnet level quality in my real world usage.&lt;/p&gt; &lt;p&gt;This is the first model I can confidently say very closely matches Sonnet.&lt;br /&gt; And before some of you come at me that nobody will be able to run it locally yes, most of us might not be able to run it on our laptops, but &lt;/p&gt; &lt;p&gt;- there are us who rent gpus in the cloud to do things we would never be able to with the closed models &lt;/p&gt; &lt;p&gt;- you get 50 other inference providers hosting the model for dirt cheap prices&lt;/p&gt; &lt;p&gt;- Removing censorship and freedom to use this mode and modify it however you want&lt;/p&gt; &lt;p&gt;- and many other things&lt;/p&gt; &lt;p&gt;Big open source models that are actually decent are necessary.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/True_Requirement_891"&gt; /u/True_Requirement_891 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-04T15:50:40+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sc4gui</id>
     <title>Gemma 4 fixes in llama.cpp</title>
     <updated>2026-04-04T09:07:33+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sc8kdg/running_gemma4_26b_a4b_on_the_rockchip_npu_using/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-04T12:56:55+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sccpbj</id>
+    <title>We absolutely need Qwen3.6-397B-A17B to be open source</title>
+    <updated>2026-04-04T15:50:40+00:00</updated>
+    <author>
+      <name>/u/True_Requirement_891</name>
+      <uri>https://old.reddit.com/user/True_Requirement_891</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The benchmarks may not show it but it's a substantial improvement over 3.5 for real world tasks. This model is performing better than GLM-5.1 and Kimi-k2.5 for me, and the biggest area of improvement has been reliability. &lt;/p&gt; &lt;p&gt;It feels as reliable as claude in getting shit done end to end and not mess up half way and waste hours. This is the first OS model that has actually felt like I can compare it to Claude Sonnet.&lt;/p&gt; &lt;p&gt;We have been comparing OS models with claude sonnet and opus left and right months now, they do show that they are close in benchmarks but fall apart in the real world, the models that are claimed to be close to opus haven't even been able to achieve Sonnet level quality in my real world usage.&lt;/p&gt; &lt;p&gt;This is the first model I can confidently say very closely matches Sonnet.&lt;br /&gt; And before some of you come at me that nobody will be able to run it locally yes, most of us might not be able to run it on our laptops, but &lt;/p&gt; &lt;p&gt;- there are us who rent gpus in the cloud to do things we would never be able to with the closed models &lt;/p&gt; &lt;p&gt;- you get 50 other inference providers hosting the model for dirt cheap prices&lt;/p&gt; &lt;p&gt;- Removing censorship and freedom to use this mode and modify it however you want&lt;/p&gt; &lt;p&gt;- and many other things&lt;/p&gt; &lt;p&gt;Big open source models that are actually decent are necessary.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/True_Requirement_891"&gt; /u/True_Requirement_891 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sccpbj/we_absolutely_need_qwen36397ba17b_to_be_open/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-04T15:50:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1sc7uwa</id>
