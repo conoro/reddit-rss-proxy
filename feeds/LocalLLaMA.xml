@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-06T22:13:48+00:00</updated>
+  <updated>2026-04-06T22:31:28+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,32 +34,6 @@
     <published>2026-04-06T17:32:25+00:00</published>
   </entry>
   <entry>
-    <id>t3_1se8ezw</id>
-    <title>llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments</title>
-    <updated>2026-04-06T19:13:30+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"&gt; &lt;img alt="llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments" src="https://external-preview.redd.it/GwlOQgLHzOGQCEzWB5XEtjdBka8fT6C67pLALkCLQVA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fb68e4a7876c08b9015d1cfd70c75bcdfa9c07e9" title="llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Was expecting this for sometime. This is available &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b8679"&gt;b8679&lt;/a&gt; onwards.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/21304"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T19:13:30+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sebwz2</id>
-    <title>Got Gemma 4 running locally on CUDA, both float and GGUF quantized, with benchmarks</title>
-    <updated>2026-04-06T21:18:02+00:00</updated>
-    <author>
-      <name>/u/_w4nderlust_</name>
-      <uri>https://old.reddit.com/user/_w4nderlust_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent the last week getting Gemma 4 working on CUDA with both full-precision (BF16) and GGUF quantized inference. Here's a video of it running. Sharing some findings because this model has some quirks that aren't obvious.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance (Gemma4 E2B, RTX 3090):&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;| Config | BF16 Float | Q4_K_M GGUF | |-------------------------|------------|-------------| | short gen (p=1, g=32) | 110 tok/s | 170 tok/s | | long gen (p=512, g=128) | 72 tok/s | 93 tok/s | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The precision trap nobody warns you about&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Honestly making it work was harder than I though.&lt;/p&gt; &lt;p&gt;Gemma 4 uses &lt;code&gt;attention_scale=1.0&lt;/code&gt; (QK-norm instead of the usual 1/sqrt(d_k) scaling). This makes it roughly &lt;strong&gt;22x more sensitive to precision errors&lt;/strong&gt; than standard transformers. Things that work fine on LLaMA or Qwen will silently produce garbage on Gemma 4:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;F16 KV cache? Precision loss compounds across decode steps and output degenerates after ~50 tokens&lt;/li&gt; &lt;li&gt;Fused attention kernels? Token divergence after ~4 steps&lt;/li&gt; &lt;li&gt;Flash attention v1 with head_dim=512? All-zero logits (kernel bug)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The rule I landed on: &lt;strong&gt;no dtype conversion at the KV cache boundary&lt;/strong&gt;. BF16 model = BF16 KV cache with F32 internal attention math. F32 GGUF = F32 KV cache. Mixing dtypes between model weights and cache is where things break.&lt;/p&gt; &lt;p&gt;Once I got the precision right, output matches Python transformers token-for-token (verified first 30 tokens against HF fixtures).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Other things worth knowing:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The hybrid attention (sliding window local + full global with head_dim=512) means you can't just drop in standard SDPA, as Metal's SDPA caps at head_dim=256, and Flash Attention v1 has a kernel bug at 512&lt;/li&gt; &lt;li&gt;KV cache sharing across the last N layers saves ~57% KV memory, nice for fitting on consumer cards&lt;/li&gt; &lt;li&gt;The architecture is genuinely novel (dual RoPE configs, per-layer embeddings, sandwich norms), not just another LLaMA variant, which is cool. Still wish the attention scaling was there so that precision was not so much an issue&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Anyone else running Gemma 4 locally? Curious if others hit the same precision issues or found workarounds I missed.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player"&gt;https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_w4nderlust_"&gt; /u/_w4nderlust_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T21:18:02+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sdqn13</id>
     <title>Qwen3.5-4B GGUF quants comparison (KLD vs speed) - Lunar Lake</title>
     <updated>2026-04-06T06:04:00+00:00</updated>
@@ -71,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sdqn13/qwen354b_gguf_quants_comparison_kld_vs_speed/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T06:04:00+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1se8ezw</id>
+    <title>llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments</title>
+    <updated>2026-04-06T19:13:30+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"&gt; &lt;img alt="llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments" src="https://external-preview.redd.it/GwlOQgLHzOGQCEzWB5XEtjdBka8fT6C67pLALkCLQVA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fb68e4a7876c08b9015d1cfd70c75bcdfa9c07e9" title="llama.cpp - llama-bench: add `-fitc` and `-fitt` to arguments" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Was expecting this for sometime. This is available &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b8679"&gt;b8679&lt;/a&gt; onwards.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/21304"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se8ezw/llamacpp_llamabench_add_fitc_and_fitt_to_arguments/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T19:13:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1seageq</id>
@@ -125,6 +112,19 @@
     <published>2026-04-05T19:30:02+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sebwz2</id>
+    <title>Got Gemma 4 running locally on CUDA, both float and GGUF quantized, with benchmarks</title>
+    <updated>2026-04-06T21:18:02+00:00</updated>
+    <author>
+      <name>/u/_w4nderlust_</name>
+      <uri>https://old.reddit.com/user/_w4nderlust_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent the last week getting Gemma 4 working on CUDA with both full-precision (BF16) and GGUF quantized inference. Here's a video of it running. Sharing some findings because this model has some quirks that aren't obvious.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance (Gemma4 E2B, RTX 3090):&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;| Config | BF16 Float | Q4_K_M GGUF | |-------------------------|------------|-------------| | short gen (p=1, g=32) | 110 tok/s | 170 tok/s | | long gen (p=512, g=128) | 72 tok/s | 93 tok/s | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The precision trap nobody warns you about&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Honestly making it work was harder than I though.&lt;/p&gt; &lt;p&gt;Gemma 4 uses &lt;code&gt;attention_scale=1.0&lt;/code&gt; (QK-norm instead of the usual 1/sqrt(d_k) scaling). This makes it roughly &lt;strong&gt;22x more sensitive to precision errors&lt;/strong&gt; than standard transformers. Things that work fine on LLaMA or Qwen will silently produce garbage on Gemma 4:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;F16 KV cache? Precision loss compounds across decode steps and output degenerates after ~50 tokens&lt;/li&gt; &lt;li&gt;Fused attention kernels? Token divergence after ~4 steps&lt;/li&gt; &lt;li&gt;Flash attention v1 with head_dim=512? All-zero logits (kernel bug)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The rule I landed on: &lt;strong&gt;no dtype conversion at the KV cache boundary&lt;/strong&gt;. BF16 model = BF16 KV cache with F32 internal attention math. F32 GGUF = F32 KV cache. Mixing dtypes between model weights and cache is where things break.&lt;/p&gt; &lt;p&gt;Once I got the precision right, output matches Python transformers token-for-token (verified first 30 tokens against HF fixtures).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Other things worth knowing:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The hybrid attention (sliding window local + full global with head_dim=512) means you can't just drop in standard SDPA, as Metal's SDPA caps at head_dim=256, and Flash Attention v1 has a kernel bug at 512&lt;/li&gt; &lt;li&gt;KV cache sharing across the last N layers saves ~57% KV memory, nice for fitting on consumer cards&lt;/li&gt; &lt;li&gt;The architecture is genuinely novel (dual RoPE configs, per-layer embeddings, sandwich norms), not just another LLaMA variant, which is cool. Still wish the attention scaling was there so that precision was not so much an issue&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Anyone else running Gemma 4 locally? Curious if others hit the same precision issues or found workarounds I missed.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player"&gt;https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_w4nderlust_"&gt; /u/_w4nderlust_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T21:18:02+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1seax26</id>
     <title>Decided to try out Google's Edge Gallery app...</title>
     <updated>2026-04-06T20:41:25+00:00</updated>
@@ -151,19 +151,6 @@
     <published>2026-04-06T19:28:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1se9d9x</id>
-    <title>[llama.cpp] 3.1x Q8_0 speedup on Intel Arc GPUs - reorder optimization fix (PR submitted)</title>
-    <updated>2026-04-06T19:46:13+00:00</updated>
-    <author>
-      <name>/u/Katostrofik</name>
-      <uri>https://old.reddit.com/user/Katostrofik</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;TL;DR&lt;/em&gt;&lt;/strong&gt;: Q8_0 quantization on Intel Xe2 (Battlemage/Arc B-series) GPUs was achieving only 21% of theoretical memory bandwidth. My AI Agent and I found the root cause and submitted a fix that brings it to 66% - a 3.1x speedup in token generation.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The problem&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;On Intel Arc Pro B70, Q8_0 models ran at 4.88 t/s while Q4_K_M ran at 20.56 t/s; a 4x gap that shouldn't exist since Q8_0 only has 1.7x more data. After ruling out VRAM pressure, drivers, and backend issues, we traced it to the SYCL kernel dispatch path.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Root cause&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;llama.cpp's SYCL backend has a &amp;quot;reorder&amp;quot; optimization that separates quantization scale factors from weight data for coalesced GPU memory access. This was implemented for Q4_0, Q4_K, and Q6_K - but Q8_0 was never added. Q8_0's 34-byte blocks (not power-of-2) make the non-reordered layout especially bad for GPU cache performance.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Sooo, the fix&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;~200 lines of code extending the existing reorder framework to Q8_0. The most critical bug was actually a single line - Q8_0 tensors weren't getting the &amp;quot;extra&amp;quot; struct allocated during buffer init, so the reorder flag was silently never set.&lt;/p&gt; &lt;p&gt;Results on Qwen3.5-27B (Intel Arc Pro B70):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Q8_0 before: 4.88 t/s (21% bandwidth)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;**Q8_0 after: 15.24 t/s (66% bandwidth) - 3.1x faster*\&lt;/strong&gt;*&lt;/li&gt; &lt;li&gt;Q4_K_M: 20.12 t/s (unchanged)&lt;/li&gt; &lt;li&gt;Q6_K: 13.83 t/s (no reorder)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Q8_0 is now &lt;strong&gt;faster than Q6_K&lt;/strong&gt; (15.24 vs 13.83 t/s) in my testing; while providing higher quality.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Validation&lt;/strong&gt;: Before writing the fix, we binary-patched Intel's closed-source IPEX-LLM to run on my GPU (it doesn't support B70's PCI device ID). Their optimized Q8_0 kernels achieved 61% bandwidth, confirming the problem was solvable. My open-source implementation achieves 66%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;PR&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21527"&gt;https://github.com/ggml-org/llama.cpp/pull/21527&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issue&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/issues/21517"&gt;https://github.com/ggml-org/llama.cpp/issues/21517&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware&lt;/strong&gt;: Intel Arc Pro B70, 32 GB GDDR6, 608 GB/s bandwidth&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Katostrofik"&gt; /u/Katostrofik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T19:46:13+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sdz71b</id>
     <title>Gemma4:26b's reasoning capabilities are crazy.</title>
     <updated>2026-04-06T13:41:08+00:00</updated>
@@ -175,19 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sdz71b/gemma426bs_reasoning_capabilities_are_crazy/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T13:41:08+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1se4m16</id>
-    <title>Qwen3.5-397B is shockingly useful at Q2</title>
-    <updated>2026-04-06T16:59:20+00:00</updated>
-    <author>
-      <name>/u/EmPips</name>
-      <uri>https://old.reddit.com/user/EmPips</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick specs, this is a workstation that was morphed into something LocalLLaMa friendly over time:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;3950x&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;96GB DDR4 (dual channel, running at 3000mhz)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;w6800 + Rx6800 (48GB of VRAM at ~512GB/s)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;most tests done with ~20k context; kv-cache at q8_0&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;llama cpp main branch with ROCM&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model used was the &lt;strong&gt;UD_IQ2_M&lt;/strong&gt; weights from Unsloth which is &lt;strong&gt;~122GB on disk&lt;/strong&gt;. I have not had success with Q2 levels of quantization since Qwen3-235B - so I was assuming that this test would be a throwaway like all of my recent tests, but it turns out it's &lt;em&gt;REALLY&lt;/em&gt; good and somewhat usable.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For Performance:&lt;/strong&gt; , after allowing it to warm up (like 2-3 minutes of token gen) I'm getting:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;~11 tokens/second token-gen&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;~43 tokens/second prompt-processing for shorter prompts and about 120t/s longer prompts (I did not record PP speeds on very long agentic workflows to see what caching benefits might look like)&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That prompt-processing is a bit under the bar for interactive coding sessions, but for 24/7 agent loops I have it can get a lot done.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For the output quality:&lt;/strong&gt; It codes incredibly well and is beating Qwen3.5 27B (full), Qwen3.5 122B (Q4), MiniMax M2.5 (Q4) GPT-OSS-120B (full), and Gemma 4 31B (full) in coding and knowledge tasks (I keep a long set of trivia questions that can have different levels of correctness). I can catch hallucinations in the reasoning output (I don't think any Q2 is immune to this) but it quickly steers itself back on course. &lt;strong&gt;I had some fun using it without reasoning budget as well&lt;/strong&gt; - but it cannot correct any hallucinations so I wouldn't advise it to be used without reasoning tokens.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The point of this post:&lt;/strong&gt; Basically everything Q2 and under I've found to be unusable for the last several months. I wanted to point a few people towards Qwen3.5-397B and recommend giving it a chance. It's suddenly the strongest model my system can run and might be good for you too.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EmPips"&gt; /u/EmPips &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T16:59:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1se636i</id>
@@ -203,6 +177,32 @@
     <published>2026-04-06T17:50:52+00:00</published>
   </entry>
   <entry>
+    <id>t3_1se9d9x</id>
+    <title>[llama.cpp] 3.1x Q8_0 speedup on Intel Arc GPUs - reorder optimization fix (PR submitted)</title>
+    <updated>2026-04-06T19:46:13+00:00</updated>
+    <author>
+      <name>/u/Katostrofik</name>
+      <uri>https://old.reddit.com/user/Katostrofik</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;TL;DR&lt;/em&gt;&lt;/strong&gt;: Q8_0 quantization on Intel Xe2 (Battlemage/Arc B-series) GPUs was achieving only 21% of theoretical memory bandwidth. My AI Agent and I found the root cause and submitted a fix that brings it to 66% - a 3.1x speedup in token generation.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The problem&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;On Intel Arc Pro B70, Q8_0 models ran at 4.88 t/s while Q4_K_M ran at 20.56 t/s; a 4x gap that shouldn't exist since Q8_0 only has 1.7x more data. After ruling out VRAM pressure, drivers, and backend issues, we traced it to the SYCL kernel dispatch path.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Root cause&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;llama.cpp's SYCL backend has a &amp;quot;reorder&amp;quot; optimization that separates quantization scale factors from weight data for coalesced GPU memory access. This was implemented for Q4_0, Q4_K, and Q6_K - but Q8_0 was never added. Q8_0's 34-byte blocks (not power-of-2) make the non-reordered layout especially bad for GPU cache performance.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Sooo, the fix&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;~200 lines of code extending the existing reorder framework to Q8_0. The most critical bug was actually a single line - Q8_0 tensors weren't getting the &amp;quot;extra&amp;quot; struct allocated during buffer init, so the reorder flag was silently never set.&lt;/p&gt; &lt;p&gt;Results on Qwen3.5-27B (Intel Arc Pro B70):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Q8_0 before: 4.88 t/s (21% bandwidth)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;**Q8_0 after: 15.24 t/s (66% bandwidth) - 3.1x faster*\&lt;/strong&gt;*&lt;/li&gt; &lt;li&gt;Q4_K_M: 20.12 t/s (unchanged)&lt;/li&gt; &lt;li&gt;Q6_K: 13.83 t/s (no reorder)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Q8_0 is now &lt;strong&gt;faster than Q6_K&lt;/strong&gt; (15.24 vs 13.83 t/s) in my testing; while providing higher quality.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Validation&lt;/strong&gt;: Before writing the fix, we binary-patched Intel's closed-source IPEX-LLM to run on my GPU (it doesn't support B70's PCI device ID). Their optimized Q8_0 kernels achieved 61% bandwidth, confirming the problem was solvable. My open-source implementation achieves 66%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;PR&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21527"&gt;https://github.com/ggml-org/llama.cpp/pull/21527&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issue&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/issues/21517"&gt;https://github.com/ggml-org/llama.cpp/issues/21517&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware&lt;/strong&gt;: Intel Arc Pro B70, 32 GB GDDR6, 608 GB/s bandwidth&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Katostrofik"&gt; /u/Katostrofik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T19:46:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1se4m16</id>
+    <title>Qwen3.5-397B is shockingly useful at Q2</title>
+    <updated>2026-04-06T16:59:20+00:00</updated>
+    <author>
+      <name>/u/EmPips</name>
+      <uri>https://old.reddit.com/user/EmPips</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick specs, this is a workstation that was morphed into something LocalLLaMa friendly over time:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;3950x&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;96GB DDR4 (dual channel, running at 3000mhz)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;w6800 + Rx6800 (48GB of VRAM at ~512GB/s)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;most tests done with ~20k context; kv-cache at q8_0&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;llama cpp main branch with ROCM&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model used was the &lt;strong&gt;UD_IQ2_M&lt;/strong&gt; weights from Unsloth which is &lt;strong&gt;~122GB on disk&lt;/strong&gt;. I have not had success with Q2 levels of quantization since Qwen3-235B - so I was assuming that this test would be a throwaway like all of my recent tests, but it turns out it's &lt;em&gt;REALLY&lt;/em&gt; good and somewhat usable.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For Performance:&lt;/strong&gt; , after allowing it to warm up (like 2-3 minutes of token gen) I'm getting:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;~11 tokens/second token-gen&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;~43 tokens/second prompt-processing for shorter prompts and about 120t/s longer prompts (I did not record PP speeds on very long agentic workflows to see what caching benefits might look like)&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That prompt-processing is a bit under the bar for interactive coding sessions, but for 24/7 agent loops I have it can get a lot done.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;For the output quality:&lt;/strong&gt; It codes incredibly well and is beating Qwen3.5 27B (full), Qwen3.5 122B (Q4), MiniMax M2.5 (Q4) GPT-OSS-120B (full), and Gemma 4 31B (full) in coding and knowledge tasks (I keep a long set of trivia questions that can have different levels of correctness). I can catch hallucinations in the reasoning output (I don't think any Q2 is immune to this) but it quickly steers itself back on course. &lt;strong&gt;I had some fun using it without reasoning budget as well&lt;/strong&gt; - but it cannot correct any hallucinations so I wouldn't advise it to be used without reasoning tokens.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The point of this post:&lt;/strong&gt; Basically everything Q2 and under I've found to be unusable for the last several months. I wanted to point a few people towards Qwen3.5-397B and recommend giving it a chance. It's suddenly the strongest model my system can run and might be good for you too.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EmPips"&gt; /u/EmPips &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se4m16/qwen35397b_is_shockingly_useful_at_q2/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T16:59:20+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1se6t2a</id>
     <title>MiniMax-M2.7 .... this weekend for sure</title>
     <updated>2026-04-06T18:15:36+00:00</updated>
@@ -216,19 +216,6 @@
     <published>2026-04-06T18:15:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1se2kna</id>
-    <title>4Chan data can almost certainly improve model capabilities.</title>
-    <updated>2026-04-06T15:45:53+00:00</updated>
-    <author>
-      <name>/u/Sicarius_The_First</name>
-      <uri>https://old.reddit.com/user/Sicarius_The_First</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt; &lt;img alt="4Chan data can almost certainly improve model capabilities." src="https://preview.redd.it/6u0vsqmccltg1.png?width=140&amp;amp;height=74&amp;amp;auto=webp&amp;amp;s=820c3df108268da94c2ff9ed30723c3125d270b0" title="4Chan data can almost certainly improve model capabilities." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The previous post was probably automoded or something, so I'll give you the TL;DR and point you to search for the model card yourself. Tbh, it's sad that bot posts / posts made by an AI gets prompted, while human made one gets banned.&lt;/p&gt; &lt;p&gt;I trained 8B on 4chan data, and it outperform the base model, did the same for 70B and it also outperformed the base model. This is quite rare.&lt;/p&gt; &lt;p&gt;You could read about it in the linked threads. (and there's links to the reddit posts in the model cards).&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/6u0vsqmccltg1.png?width=3790&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=324f71031e00d99af4e9d3884ee9b8a8855a44af"&gt;https://preview.redd.it/6u0vsqmccltg1.png?width=3790&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=324f71031e00d99af4e9d3884ee9b8a8855a44af&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sicarius_The_First"&gt; /u/Sicarius_The_First &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T15:45:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1se81a5</id>
     <title>I benchmarked 37 LLMs on MacBook Air M5 32GB — full results + open-source tool to benchmark your own Mac</title>
     <updated>2026-04-06T19:00:28+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se81a5/i_benchmarked_37_llms_on_macbook_air_m5_32gb_full/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T19:00:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1se2kna</id>
+    <title>4Chan data can almost certainly improve model capabilities.</title>
+    <updated>2026-04-06T15:45:53+00:00</updated>
+    <author>
+      <name>/u/Sicarius_The_First</name>
+      <uri>https://old.reddit.com/user/Sicarius_The_First</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt; &lt;img alt="4Chan data can almost certainly improve model capabilities." src="https://preview.redd.it/6u0vsqmccltg1.png?width=140&amp;amp;height=74&amp;amp;auto=webp&amp;amp;s=820c3df108268da94c2ff9ed30723c3125d270b0" title="4Chan data can almost certainly improve model capabilities." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The previous post was probably automoded or something, so I'll give you the TL;DR and point you to search for the model card yourself. Tbh, it's sad that bot posts / posts made by an AI gets prompted, while human made one gets banned.&lt;/p&gt; &lt;p&gt;I trained 8B on 4chan data, and it outperform the base model, did the same for 70B and it also outperformed the base model. This is quite rare.&lt;/p&gt; &lt;p&gt;You could read about it in the linked threads. (and there's links to the reddit posts in the model cards).&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/6u0vsqmccltg1.png?width=3790&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=324f71031e00d99af4e9d3884ee9b8a8855a44af"&gt;https://preview.redd.it/6u0vsqmccltg1.png?width=3790&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=324f71031e00d99af4e9d3884ee9b8a8855a44af&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sicarius_The_First"&gt; /u/Sicarius_The_First &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se2kna/4chan_data_can_almost_certainly_improve_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T15:45:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1se1cbk</id>
