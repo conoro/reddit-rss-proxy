@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-07T16:53:04+00:00</updated>
+  <updated>2026-04-07T17:25:52+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -60,6 +60,32 @@
     <published>2026-04-07T07:59:06+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sf182p</id>
+    <title>Gemma 4 on LocalAI: Vulkan vs ROCm</title>
+    <updated>2026-04-07T16:38:25+00:00</updated>
+    <author>
+      <name>/u/pipould</name>
+      <uri>https://old.reddit.com/user/pipould</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf182p/gemma_4_on_localai_vulkan_vs_rocm/"&gt; &lt;img alt="Gemma 4 on LocalAI: Vulkan vs ROCm" src="https://preview.redd.it/3w84rp5cqstg1.png?width=140&amp;amp;height=82&amp;amp;auto=webp&amp;amp;s=14492bc160139c907dd915a9beb150824ee01b04" title="Gemma 4 on LocalAI: Vulkan vs ROCm" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Gemma 4 on LocalAI: Vulkan vs ROCm&lt;/h1&gt; &lt;p&gt;Hey everyone! 👋&lt;/p&gt; &lt;p&gt;Just finished running a bunch of benchmarks on the new Gemma 4 models using LocalAI and figured I'd share the results. I was curious how &lt;strong&gt;Vulkan&lt;/strong&gt; and &lt;strong&gt;ROCm&lt;/strong&gt; backends stack up against each other, and how the &lt;strong&gt;26B MoE&lt;/strong&gt; (only ~4B active params) compares to the full &lt;strong&gt;31B dense&lt;/strong&gt; model in practice.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;Three model variants, each on both Vulkan and ROCm:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Model&lt;/th&gt; &lt;th&gt;Type&lt;/th&gt; &lt;th&gt;Quant&lt;/th&gt; &lt;th&gt;Source&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;gemma-4-26B-A4B-it-APEX&lt;/td&gt; &lt;td&gt;MoE (4B active)&lt;/td&gt; &lt;td&gt;APEX Balanced&lt;/td&gt; &lt;td&gt;mudler&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;gemma-4-26B-A4B-it&lt;/td&gt; &lt;td&gt;MoE (4B active)&lt;/td&gt; &lt;td&gt;Q5_K_XL GGUF&lt;/td&gt; &lt;td&gt;unsloth&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;gemma-4-31B-it&lt;/td&gt; &lt;td&gt;Dense (31B)&lt;/td&gt; &lt;td&gt;Q5_K_XL GGUF&lt;/td&gt; &lt;td&gt;unsloth&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Tool:&lt;/strong&gt; &lt;code&gt;llama-benchy&lt;/code&gt; (via &lt;code&gt;uvx&lt;/code&gt;), with prefix caching enabled, generation latency mode, adaptive prompts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Context depths tested:&lt;/strong&gt; 0, 4K, 8K, 16K, 32K, 65K, and 100K tokens.&lt;/p&gt; &lt;h2&gt;System Environment&lt;/h2&gt; &lt;p&gt;&lt;strong&gt;Lemonade Version:&lt;/strong&gt; 10.1.0&lt;br /&gt; &lt;strong&gt;OS:&lt;/strong&gt; Linux-6.19.10-061910-generic (Ubuntu 25.10)&lt;br /&gt; &lt;strong&gt;CPU:&lt;/strong&gt; AMD RYZEN AI MAX+ 395 w/ Radeon 8060S&lt;br /&gt; &lt;strong&gt;Shared GPU memory:&lt;/strong&gt; 118.1 GB&lt;br /&gt; &lt;strong&gt;TDP:&lt;/strong&gt; 85W &lt;/p&gt; &lt;p&gt;```text vulkan : 'b8681' rocm : 'b1232' cpu : 'b8681'&lt;/p&gt; &lt;h2&gt;```&lt;/h2&gt; &lt;h2&gt;The results&lt;/h2&gt; &lt;h3&gt;1. Gemma 4 26B-A4B — APEX Balanced (mudler)&lt;/h3&gt; &lt;p&gt;&lt;em&gt;(See charts 1 &amp;amp; 2)&lt;/em&gt;&lt;/p&gt; &lt;p&gt;This one's the star of the show. On &lt;strong&gt;token generation&lt;/strong&gt;, Vulkan consistently beats ROCm by about 5–15%, starting around &lt;strong&gt;~49 t/s&lt;/strong&gt; at zero context and gracefully degrading to &lt;strong&gt;~32 t/s&lt;/strong&gt; at 100K. Both backends land in roughly the same place at very long contexts though — the gap closes.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Prompt processing&lt;/strong&gt; is more interesting: ROCm actually spikes higher at low context (peaking near &lt;strong&gt;~990 t/s&lt;/strong&gt; at 4K!) but Vulkan holds steadier. They converge around 32K and beyond, with ROCm slightly ahead at 100K.&lt;/p&gt; &lt;p&gt;Honestly, either backend works great here. Vulkan if you care about generation speed, ROCm if you're doing a lot of long-prompt ingestion.&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;2. Gemma 4 26B-A4B — Q5_K_XL GGUF (unsloth)&lt;/h3&gt; &lt;p&gt;&lt;em&gt;(See charts 3 &amp;amp; 4)&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Pretty similar story to the APEX quant, but a few t/s slower on generation (~40 t/s baseline vs ~49 for APEX). The two backends are basically &lt;strong&gt;neck and neck&lt;/strong&gt; on generation once you ignore the weird Vulkan spike at 4K context (that ~170 t/s outlier is almost certainly a measurement artifact — everything around it is ~40 t/s).&lt;/p&gt; &lt;p&gt;On &lt;strong&gt;prompt processing&lt;/strong&gt;, ROCm takes a clear lead at shorter contexts — hitting &lt;strong&gt;~1075 t/s&lt;/strong&gt; at 4K compared to Vulkan's ~900 t/s. They converge again past 32K.&lt;/p&gt; &lt;hr /&gt; &lt;h3&gt;3. Gemma 4 31B Dense — Q5_K_XL GGUF (unsloth)&lt;/h3&gt; &lt;p&gt;&lt;em&gt;(See charts 5 &amp;amp; 6)&lt;/em&gt;&lt;/p&gt; &lt;p&gt;And here's where things get... humbling. The dense 31B model is running at &lt;strong&gt;~8–9 t/s on generation&lt;/strong&gt;. That's it. Compare that to the MoE's 40–49 t/s and you really feel the difference. Every single parameter fires on every token — no free lunch.&lt;/p&gt; &lt;p&gt;Vulkan has a tiny edge on generation speed (~0.3–0.5 t/s faster), but it &lt;strong&gt;couldn't even complete the 65K and 100K context tests&lt;/strong&gt; — likely ran out of memory or timed out.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Prompt processing&lt;/strong&gt; is where ROCm absolutely dominates this model: &lt;strong&gt;~264 t/s vs ~174 t/s&lt;/strong&gt; at 4K context, and the gap only grows. At 32K, ROCm is doing &lt;strong&gt;~153 t/s&lt;/strong&gt; while Vulkan crawls at &lt;strong&gt;~64 t/s&lt;/strong&gt;. Not even close.&lt;/p&gt; &lt;p&gt;If you're running the 31B dense model, ROCm is the way to go. But honestly... maybe just run the MoE instead? 😅&lt;/p&gt; &lt;hr /&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;&lt;/th&gt; &lt;th&gt;Gen Speed Winner&lt;/th&gt; &lt;th&gt;Prompt Processing Winner&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;&lt;strong&gt;26B MoE APEX&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;Vulkan (small lead)&lt;/td&gt; &lt;td&gt;Mixed — ROCm at low ctx&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;strong&gt;26B MoE Q5_K_XL&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;Basically tied&lt;/td&gt; &lt;td&gt;ROCm&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;&lt;strong&gt;31B Dense Q5_K_XL&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;Vulkan (tiny)&lt;/td&gt; &lt;td&gt;ROCm (by a mile)&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Big picture:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🔧 &lt;strong&gt;Vulkan slightly favors generation, ROCm slightly favors prompt processing.&lt;/strong&gt; Pick your priority.&lt;/li&gt; &lt;li&gt;📏 &lt;strong&gt;Past ~32K context, both backends converge&lt;/strong&gt; — you're memory-bandwidth-bound either way.&lt;/li&gt; &lt;li&gt;🎯 &lt;strong&gt;APEX quant edges out Q5_K_XL&lt;/strong&gt; on the MoE model (~49 vs ~40 t/s peak gen), so mudler's APEX variant is worth a look if quality holds up for your use case.&lt;/li&gt; &lt;li&gt;🧊 &lt;strong&gt;Prefix caching was on&lt;/strong&gt; for all tests, so prompt processing numbers at higher depths may benefit from that.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For day-to-day use, the &lt;strong&gt;26B-A4B MoE on Vulkan&lt;/strong&gt; is my pick. Fast, responsive, and handles 100K context without breaking a sweat.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;em&gt;Benchmarks done with &lt;a href="https://github.com/mudler/llama-benchy"&gt;llama-benchy&lt;/a&gt;. Happy to share raw numbers if anyone wants them. Let me know if you've seen different results on your hardware!&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pipould"&gt; /u/pipould &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1sf182p"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf182p/gemma_4_on_localai_vulkan_vs_rocm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sf182p/gemma_4_on_localai_vulkan_vs_rocm/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T16:38:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sf1u2g</id>
+    <title>GLM 5.1 Benchmarks</title>
+    <updated>2026-04-07T16:59:55+00:00</updated>
+    <author>
+      <name>/u/Fantastic-Emu-3819</name>
+      <uri>https://old.reddit.com/user/Fantastic-Emu-3819</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1u2g/glm_51_benchmarks/"&gt; &lt;img alt="GLM 5.1 Benchmarks" src="https://preview.redd.it/yfot2i1iustg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=31b118c37fbb535a5acaa725860283849b36e279" title="GLM 5.1 Benchmarks" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;GLM 5.1&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fantastic-Emu-3819"&gt; /u/Fantastic-Emu-3819 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/yfot2i1iustg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1u2g/glm_51_benchmarks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1u2g/glm_51_benchmarks/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T16:59:55+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1seymdx</id>
     <title>You guys seen this? beats turboquant by 18%</title>
     <updated>2026-04-07T15:05:55+00:00</updated>
@@ -71,19 +97,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1seymdx/you_guys_seen_this_beats_turboquant_by_18/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-07T15:05:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sf0uts</id>
-    <title>Tried 5 scraping tools, here's the only one i kept</title>
-    <updated>2026-04-07T16:25:24+00:00</updated>
-    <author>
-      <name>/u/Big-Tomatillo7958</name>
-      <uri>https://old.reddit.com/user/Big-Tomatillo7958</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"&gt; &lt;img alt="Tried 5 scraping tools, here's the only one i kept" src="https://preview.redd.it/r1am5ai7ostg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=69b8bf835892f5c8fe4cd3ad15c2161cc9d6112c" title="Tried 5 scraping tools, here's the only one i kept" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;not a data engineer. just someone who keeps needing to pull data from websites for different projects and kept hitting the same walls over and over.&lt;/p&gt; &lt;p&gt;here's what i tried before i found something that stuck.&lt;/p&gt; &lt;p&gt;1- beautifulsoup: fine for basic stuff. the second a site uses javascript it returns nothing useful. spent more time figuring out why it wasn't working than actually using it.&lt;/p&gt; &lt;p&gt;2- scrapy: powerful but felt like overkill. setting it up for a simple project felt like way too much work. gave up after two days.&lt;/p&gt; &lt;p&gt;3- selenium: worked but slow as hell. also kept breaking whenever a site updated its layout. every time a site updated something it just bro &lt;/p&gt; &lt;p&gt;4- apify: actually decent but the pricing crept up fast once i started scraping at any real volume. got a bill i didn't expect and just stopped using it.&lt;/p&gt; &lt;p&gt;5- firecrawl: been using this for the past few months. one api call, get back clean markdown, javascript rendering handled, no extra parsing. the stuff that used to take me days to set up now takes an hour. using it for a couple of ai projects where i need clean web data going into an llm and i just get the data and move on.&lt;/p&gt; &lt;p&gt;not saying the others are bad. scrapy and apify are solid for certain things. but for the kind of projects i build, one person, moving fast, needing clean data for ai pipelines, firecrawl is the only one i didn't eventually abandon.&lt;/p&gt; &lt;p&gt;would love to know which tools you’re using these days btw&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Big-Tomatillo7958"&gt; /u/Big-Tomatillo7958 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/r1am5ai7ostg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T16:25:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1set32u</id>
@@ -125,6 +138,19 @@
     <published>2026-04-07T11:16:01+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sf0uts</id>
+    <title>Tried 5 scraping tools, here's the only one i kept</title>
+    <updated>2026-04-07T16:25:24+00:00</updated>
+    <author>
+      <name>/u/Big-Tomatillo7958</name>
+      <uri>https://old.reddit.com/user/Big-Tomatillo7958</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"&gt; &lt;img alt="Tried 5 scraping tools, here's the only one i kept" src="https://preview.redd.it/r1am5ai7ostg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=69b8bf835892f5c8fe4cd3ad15c2161cc9d6112c" title="Tried 5 scraping tools, here's the only one i kept" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;not a data engineer. just someone who keeps needing to pull data from websites for different projects and kept hitting the same walls over and over.&lt;/p&gt; &lt;p&gt;here's what i tried before i found something that stuck.&lt;/p&gt; &lt;p&gt;1- beautifulsoup: fine for basic stuff. the second a site uses javascript it returns nothing useful. spent more time figuring out why it wasn't working than actually using it.&lt;/p&gt; &lt;p&gt;2- scrapy: powerful but felt like overkill. setting it up for a simple project felt like way too much work. gave up after two days.&lt;/p&gt; &lt;p&gt;3- selenium: worked but slow as hell. also kept breaking whenever a site updated its layout. every time a site updated something it just bro &lt;/p&gt; &lt;p&gt;4- apify: actually decent but the pricing crept up fast once i started scraping at any real volume. got a bill i didn't expect and just stopped using it.&lt;/p&gt; &lt;p&gt;5- firecrawl: been using this for the past few months. one api call, get back clean markdown, javascript rendering handled, no extra parsing. the stuff that used to take me days to set up now takes an hour. using it for a couple of ai projects where i need clean web data going into an llm and i just get the data and move on.&lt;/p&gt; &lt;p&gt;not saying the others are bad. scrapy and apify are solid for certain things. but for the kind of projects i build, one person, moving fast, needing clean data for ai pipelines, firecrawl is the only one i didn't eventually abandon.&lt;/p&gt; &lt;p&gt;would love to know which tools you’re using these days btw&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Big-Tomatillo7958"&gt; /u/Big-Tomatillo7958 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/r1am5ai7ostg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sf0uts/tried_5_scraping_tools_heres_the_only_one_i_kept/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T16:25:24+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1set1n3</id>
     <title>M5 Max 128GB Owners - What's your honest take?</title>
     <updated>2026-04-07T11:17:40+00:00</updated>
@@ -151,19 +177,6 @@
     <published>2026-04-07T11:38:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sethlj</id>
-    <title>From Twitter/X: DeepSeek is rolling out a limited V4 gray release.</title>
-    <updated>2026-04-07T11:39:44+00:00</updated>
-    <author>
-      <name>/u/jmorant555</name>
-      <uri>https://old.reddit.com/user/jmorant555</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"&gt; &lt;img alt="From Twitter/X: DeepSeek is rolling out a limited V4 gray release." src="https://preview.redd.it/w417zygd9rtg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a27523f07613e003f35146fa5409cfbfcb6a78e5" title="From Twitter/X: DeepSeek is rolling out a limited V4 gray release." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://x.com/i/status/2041458478569689589"&gt;https://x.com/i/status/2041458478569689589&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jmorant555"&gt; /u/jmorant555 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/w417zygd9rtg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T11:39:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1segstx</id>
     <title>Gemma 4 26b A3B is mindblowingly good , if configured right</title>
     <updated>2026-04-07T00:35:21+00:00</updated>
@@ -177,30 +190,30 @@
     <published>2026-04-07T00:35:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1serbdw</id>
-    <title>Built an open source memory layer for local AI agents, runs fully offline, no cloud needed</title>
-    <updated>2026-04-07T09:42:51+00:00</updated>
+    <id>t3_1sethlj</id>
+    <title>From Twitter/X: DeepSeek is rolling out a limited V4 gray release.</title>
+    <updated>2026-04-07T11:39:44+00:00</updated>
     <author>
-      <name>/u/Powerful-One4265</name>
-      <uri>https://old.reddit.com/user/Powerful-One4265</uri>
+      <name>/u/jmorant555</name>
+      <uri>https://old.reddit.com/user/jmorant555</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1serbdw/built_an_open_source_memory_layer_for_local_ai/"&gt; &lt;img alt="Built an open source memory layer for local AI agents, runs fully offline, no cloud needed" src="https://external-preview.redd.it/OGpxanQxMzFvcXRnMZpZYHSUeRB-sLUb0eF3mPzVNbMWzIK596utQMoyEOD4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=55d7bc7d0cd8c538b1b96e85196f022af32812c8" title="Built an open source memory layer for local AI agents, runs fully offline, no cloud needed" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built an open source memory layer for AI agents called Octopoda. Runs entirely locally, no cloud, no API keys, no external services. Everything stays on your machine.&lt;/p&gt; &lt;p&gt;The problem is pretty simple. Agents forget everything between sessions. Every time you restart your agent it starts from scratch like you never talked to it. I kept building hacky workarounds for this so eventually I just built a proper solution.&lt;/p&gt; &lt;p&gt;It gives your agents persistent memory that survives restarts and crashes, semantic search so they can find memories by meaning not just exact keys, loop detection that catches when an agent is stuck doing the same thing over and over, messaging between agents so they can actually coordinate, crash recovery with snapshots you can roll back to, version history on every memory so you can see exactly how your agents knowledge changed over time, and shared memory spaces so multiple agents can work from the same knowledge base.&lt;/p&gt; &lt;p&gt;It also has Ollama integration for fact extraction if you want smarter memory, and semantic search runs locally with a small 33MB embedding model on CPU. So the whole stack can run completely offline on your own hardware which I know matters to people here.&lt;/p&gt; &lt;p&gt;There's integrations for LangChain CrewAI AutoGen and OpenAI Agents SDK, and an MCP server with 25 tools if you use Claude or Cursor.&lt;/p&gt; &lt;p&gt;MIT licensed, been getting some great feedback today from other subs and would really love to hear what this community thinks. What would make this actually useful for your local setups?&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/RyjoxTechnologies/Octopoda-OS"&gt;https://github.com/RyjoxTechnologies/Octopoda-OS&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="http://www.octopodas.com"&gt;www.octopodas.com&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Powerful-One4265"&gt; /u/Powerful-One4265 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ahpjfe21oqtg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1serbdw/built_an_open_source_memory_layer_for_local_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1serbdw/built_an_open_source_memory_layer_for_local_ai/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"&gt; &lt;img alt="From Twitter/X: DeepSeek is rolling out a limited V4 gray release." src="https://preview.redd.it/w417zygd9rtg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a27523f07613e003f35146fa5409cfbfcb6a78e5" title="From Twitter/X: DeepSeek is rolling out a limited V4 gray release." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://x.com/i/status/2041458478569689589"&gt;https://x.com/i/status/2041458478569689589&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jmorant555"&gt; /u/jmorant555 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/w417zygd9rtg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sethlj/from_twitterx_deepseek_is_rolling_out_a_limited/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T09:42:51+00:00</published>
+    <published>2026-04-07T11:39:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sevwek</id>
-    <title>TurboQuant - Extreme KV Cache Quantization · ggml-org/llama.cpp · Discussion #20969</title>
-    <updated>2026-04-07T13:24:08+00:00</updated>
+    <id>t3_1sf1icy</id>
+    <title>Every day I wake up and thank God for having me be born 23 minutes away from a MicroCenter</title>
+    <updated>2026-04-07T16:48:31+00:00</updated>
     <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
+      <name>/u/gigaflops_</name>
+      <uri>https://old.reddit.com/user/gigaflops_</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;14+ independent validators now across Metal, CUDA, HIP, Vulkan, and MLX. Apple Silicon, NVIDIA (4090, 5090, H100, A100, V100, 1080 Ti), AMD (RX 9070 XT, RX 6600). from M1 to Blackwell.&lt;br /&gt; this is what open source research looks like. the data converges.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;- &lt;a href="/u/Pidtom"&gt;u/Pidtom&lt;/a&gt;&lt;/p&gt; &lt;p&gt;That's an all-in-one thread to check all discussions &amp;amp; benchmarks on TurboQuant.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/discussions/20969"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sevwek/turboquant_extreme_kv_cache_quantization/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sevwek/turboquant_extreme_kv_cache_quantization/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1icy/every_day_i_wake_up_and_thank_god_for_having_me/"&gt; &lt;img alt="Every day I wake up and thank God for having me be born 23 minutes away from a MicroCenter" src="https://preview.redd.it/vcr5vsvgsstg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f040cfdec2030f9cffcde791ad6dd8b6fe5abcf1" title="Every day I wake up and thank God for having me be born 23 minutes away from a MicroCenter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gigaflops_"&gt; /u/gigaflops_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vcr5vsvgsstg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1icy/every_day_i_wake_up_and_thank_god_for_having_me/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sf1icy/every_day_i_wake_up_and_thank_god_for_having_me/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T13:24:08+00:00</published>
+    <published>2026-04-07T16:48:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1seo2rq</id>
@@ -216,17 +229,17 @@
     <published>2026-04-07T06:26:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1seyrda</id>
-    <title>GLM-5.1 - a zai-org Collection</title>
-    <updated>2026-04-07T15:10:58+00:00</updated>
+    <id>t3_1sevwek</id>
+    <title>TurboQuant - Extreme KV Cache Quantization · ggml-org/llama.cpp · Discussion #20969</title>
+    <updated>2026-04-07T13:24:08+00:00</updated>
     <author>
-      <name>/u/adefa</name>
-      <uri>https://old.reddit.com/user/adefa</uri>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seyrda/glm51_a_zaiorg_collection/"&gt; &lt;img alt="GLM-5.1 - a zai-org Collection" src="https://external-preview.redd.it/83xxWcgWzy5GbwaTWIR-XB6FhCgE6oZEafTg-_LuYPk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6f745a12594d79dccc3b544a089ff1c6c108922f" title="GLM-5.1 - a zai-org Collection" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Empty collection so far :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/adefa"&gt; /u/adefa &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/zai-org/glm-51"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seyrda/glm51_a_zaiorg_collection/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1seyrda/glm51_a_zaiorg_collection/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;14+ independent validators now across Metal, CUDA, HIP, Vulkan, and MLX. Apple Silicon, NVIDIA (4090, 5090, H100, A100, V100, 1080 Ti), AMD (RX 9070 XT, RX 6600). from M1 to Blackwell.&lt;br /&gt; this is what open source research looks like. the data converges.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;- &lt;a href="/u/Pidtom"&gt;u/Pidtom&lt;/a&gt;&lt;/p&gt; &lt;p&gt;That's an all-in-one thread to check all discussions &amp;amp; benchmarks on TurboQuant.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/discussions/20969"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sevwek/turboquant_extreme_kv_cache_quantization/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sevwek/turboquant_extreme_kv_cache_quantization/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T15:10:58+00:00</published>
+    <published>2026-04-07T13:24:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1sey6vv</id>
@@ -242,19 +255,6 @@
     <published>2026-04-07T14:50:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sexsvd</id>
-    <title>DFlash: Block Diffusion for Flash Speculative Decoding.</title>
-    <updated>2026-04-07T14:36:19+00:00</updated>
-    <author>
-      <name>/u/Total-Resort-3120</name>
-      <uri>https://old.reddit.com/user/Total-Resort-3120</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"&gt; &lt;img alt="DFlash: Block Diffusion for Flash Speculative Decoding." src="https://external-preview.redd.it/ZTZkM240eHQ0c3RnMZI13AQFv_cArELk-iGDFaNwxgq94MBAMYO1EjkqpY0n.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c7c300f9899990be58a0ebaf00f297a068fd519f" title="DFlash: Block Diffusion for Flash Speculative Decoding." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://z-lab.ai/projects/dflash/"&gt;https://z-lab.ai/projects/dflash/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/z-lab/dflash"&gt;https://github.com/z-lab/dflash&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/z-lab/dflash"&gt;https://huggingface.co/collections/z-lab/dflash&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Total-Resort-3120"&gt; /u/Total-Resort-3120 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/99sostwt4stg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T14:36:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1seua77</id>
     <title>Gemma 4 31B GGUF quants ranked by KL divergence (unsloth, bartowski, lmstudio-community, ggml-org)</title>
     <updated>2026-04-07T12:16:51+00:00</updated>
@@ -268,17 +268,17 @@
     <published>2026-04-07T12:16:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1seztbf</id>
-    <title>GLM-5.1 on HF</title>
-    <updated>2026-04-07T15:49:05+00:00</updated>
+    <id>t3_1sexsvd</id>
+    <title>DFlash: Block Diffusion for Flash Speculative Decoding.</title>
+    <updated>2026-04-07T14:36:19+00:00</updated>
     <author>
-      <name>/u/Soft-Wedding4595</name>
-      <uri>https://old.reddit.com/user/Soft-Wedding4595</uri>
+      <name>/u/Total-Resort-3120</name>
+      <uri>https://old.reddit.com/user/Total-Resort-3120</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seztbf/glm51_on_hf/"&gt; &lt;img alt="GLM-5.1 on HF" src="https://external-preview.redd.it/83xxWcgWzy5GbwaTWIR-XB6FhCgE6oZEafTg-_LuYPk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6f745a12594d79dccc3b544a089ff1c6c108922f" title="GLM-5.1 on HF" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;GLM 5.1 will come out any second lads&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Soft-Wedding4595"&gt; /u/Soft-Wedding4595 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/zai-org/glm-51"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seztbf/glm51_on_hf/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1seztbf/glm51_on_hf/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"&gt; &lt;img alt="DFlash: Block Diffusion for Flash Speculative Decoding." src="https://external-preview.redd.it/ZTZkM240eHQ0c3RnMZI13AQFv_cArELk-iGDFaNwxgq94MBAMYO1EjkqpY0n.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c7c300f9899990be58a0ebaf00f297a068fd519f" title="DFlash: Block Diffusion for Flash Speculative Decoding." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://z-lab.ai/projects/dflash/"&gt;https://z-lab.ai/projects/dflash/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/z-lab/dflash"&gt;https://github.com/z-lab/dflash&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/z-lab/dflash"&gt;https://huggingface.co/collections/z-lab/dflash&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Total-Resort-3120"&gt; /u/Total-Resort-3120 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/99sostwt4stg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sexsvd/dflash_block_diffusion_for_flash_speculative/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T15:49:05+00:00</published>
+    <published>2026-04-07T14:36:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1seqblr</id>
