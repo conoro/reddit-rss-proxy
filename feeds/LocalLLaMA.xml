@@ -2,63 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-07T11:08:23+00:00</updated>
+  <updated>2026-04-07T11:35:05+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sesb7r</id>
-    <title>Reframing Tokenisers &amp; Building Vocabulary</title>
-    <updated>2026-04-07T10:39:16+00:00</updated>
-    <author>
-      <name>/u/Extreme-Question-430</name>
-      <uri>https://old.reddit.com/user/Extreme-Question-430</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sesb7r/reframing_tokenisers_building_vocabulary/"&gt; &lt;img alt="Reframing Tokenisers &amp;amp; Building Vocabulary" src="https://preview.redd.it/9llmk2gfyqtg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fa80bcb99b3dfe27296dad16926202bbeefcc5da" title="Reframing Tokenisers &amp;amp; Building Vocabulary" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I personally feel that Tokenisers are one of the least discussed aspects of LM training. Especially considering how big of an impact they have. &lt;/p&gt; &lt;p&gt;We talk about the same (in quite some detail) in our new article &amp;quot;Reframing Tokenisers &amp;amp; Building Vocabulary&amp;quot;.&lt;/p&gt; &lt;p&gt;&lt;a href="https://longformthoughts.substack.com/p/reframing-the-processes-of-tokenisers"&gt;https://longformthoughts.substack.com/p/reframing-the-processes-of-tokenisers&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Extreme-Question-430"&gt; /u/Extreme-Question-430 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/9llmk2gfyqtg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sesb7r/reframing_tokenisers_building_vocabulary/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sesb7r/reframing_tokenisers_building_vocabulary/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T10:39:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sebwz2</id>
-    <title>Got Gemma 4 running locally on CUDA, both float and GGUF quantized, with benchmarks</title>
-    <updated>2026-04-06T21:18:02+00:00</updated>
-    <author>
-      <name>/u/_w4nderlust_</name>
-      <uri>https://old.reddit.com/user/_w4nderlust_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent the last week getting Gemma 4 working on CUDA with both full-precision (BF16) and GGUF quantized inference. Here's a video of it running. Sharing some findings because this model has some quirks that aren't obvious.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance (Gemma4 E2B, RTX 3090):&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;| Config | BF16 Float | Q4_K_M GGUF | |-------------------------|------------|-------------| | short gen (p=1, g=32) | 110 tok/s | 170 tok/s | | long gen (p=512, g=128) | 72 tok/s | 93 tok/s | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The precision trap nobody warns you about&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Honestly making it work was harder than I though.&lt;/p&gt; &lt;p&gt;Gemma 4 uses &lt;code&gt;attention_scale=1.0&lt;/code&gt; (QK-norm instead of the usual 1/sqrt(d_k) scaling). This makes it roughly &lt;strong&gt;22x more sensitive to precision errors&lt;/strong&gt; than standard transformers. Things that work fine on LLaMA or Qwen will silently produce garbage on Gemma 4:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;F16 KV cache? Precision loss compounds across decode steps and output degenerates after ~50 tokens&lt;/li&gt; &lt;li&gt;Fused attention kernels? Token divergence after ~4 steps&lt;/li&gt; &lt;li&gt;Flash attention v1 with head_dim=512? All-zero logits (kernel bug)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The rule I landed on: &lt;strong&gt;no dtype conversion at the KV cache boundary&lt;/strong&gt;. BF16 model = BF16 KV cache with F32 internal attention math. F32 GGUF = F32 KV cache. Mixing dtypes between model weights and cache is where things break.&lt;/p&gt; &lt;p&gt;Once I got the precision right, output matches Python transformers token-for-token (verified first 30 tokens against HF fixtures).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Other things worth knowing:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The hybrid attention (sliding window local + full global with head_dim=512) means you can't just drop in standard SDPA, as Metal's SDPA caps at head_dim=256, and Flash Attention v1 has a kernel bug at 512&lt;/li&gt; &lt;li&gt;KV cache sharing across the last N layers saves ~57% KV memory, nice for fitting on consumer cards&lt;/li&gt; &lt;li&gt;The architecture is genuinely novel (dual RoPE configs, per-layer embeddings, sandwich norms), not just another LLaMA variant, which is cool. Still wish the attention scaling was there so that precision was not so much an issue&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Anyone else running Gemma 4 locally? Curious if others hit the same precision issues or found workarounds I missed.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player"&gt;https://reddit.com/link/1sebwz2/video/9zbou0jvzmtg1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_w4nderlust_"&gt; /u/_w4nderlust_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sebwz2/got_gemma_4_running_locally_on_cuda_both_float/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T21:18:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1se9d9x</id>
-    <title>[llama.cpp] 3.1x Q8_0 speedup on Intel Arc GPUs - reorder optimization fix (PR submitted)</title>
-    <updated>2026-04-06T19:46:13+00:00</updated>
-    <author>
-      <name>/u/Katostrofik</name>
-      <uri>https://old.reddit.com/user/Katostrofik</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;TL;DR&lt;/em&gt;&lt;/strong&gt;: Q8_0 quantization on Intel Xe2 (Battlemage/Arc B-series) GPUs was achieving only 21% of theoretical memory bandwidth. My AI Agent and I found the root cause and submitted a fix that brings it to 66% - a 3.1x speedup in token generation.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The problem&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;On Intel Arc Pro B70, Q8_0 models ran at 4.88 t/s while Q4_K_M ran at 20.56 t/s; a 4x gap that shouldn't exist since Q8_0 only has 1.7x more data. After ruling out VRAM pressure, drivers, and backend issues, we traced it to the SYCL kernel dispatch path.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Root cause&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;llama.cpp's SYCL backend has a &amp;quot;reorder&amp;quot; optimization that separates quantization scale factors from weight data for coalesced GPU memory access. This was implemented for Q4_0, Q4_K, and Q6_K - but Q8_0 was never added. Q8_0's 34-byte blocks (not power-of-2) make the non-reordered layout especially bad for GPU cache performance.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Sooo, the fix&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;~200 lines of code extending the existing reorder framework to Q8_0. The most critical bug was actually a single line - Q8_0 tensors weren't getting the &amp;quot;extra&amp;quot; struct allocated during buffer init, so the reorder flag was silently never set.&lt;/p&gt; &lt;p&gt;Results on Qwen3.5-27B (Intel Arc Pro B70):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Q8_0 before: 4.88 t/s (21% bandwidth)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;**Q8_0 after: 15.24 t/s (66% bandwidth) - 3.1x faster*\&lt;/strong&gt;*&lt;/li&gt; &lt;li&gt;Q4_K_M: 20.12 t/s (unchanged)&lt;/li&gt; &lt;li&gt;Q6_K: 13.83 t/s (no reorder)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Q8_0 is now &lt;strong&gt;faster than Q6_K&lt;/strong&gt; (15.24 vs 13.83 t/s) in my testing; while providing higher quality.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Validation&lt;/strong&gt;: Before writing the fix, we binary-patched Intel's closed-source IPEX-LLM to run on my GPU (it doesn't support B70's PCI device ID). Their optimized Q8_0 kernels achieved 61% bandwidth, confirming the problem was solvable. My open-source implementation achieves 66%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;PR&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21527"&gt;https://github.com/ggml-org/llama.cpp/pull/21527&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Issue&lt;/strong&gt;: &lt;a href="https://github.com/ggml-org/llama.cpp/issues/21517"&gt;https://github.com/ggml-org/llama.cpp/issues/21517&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware&lt;/strong&gt;: Intel Arc Pro B70, 32 GB GDDR6, 608 GB/s bandwidth&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Katostrofik"&gt; /u/Katostrofik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se9d9x/llamacpp_31x_q8_0_speedup_on_intel_arc_gpus/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T19:46:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1se6t2a</id>
-    <title>MiniMax-M2.7 .... this weekend for sure</title>
-    <updated>2026-04-06T18:15:36+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se6t2a/minimaxm27_this_weekend_for_sure/"&gt; &lt;img alt="MiniMax-M2.7 .... this weekend for sure" src="https://preview.redd.it/uxnuux7y1mtg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=84254f796928eab4c13903a891349a181b69ff02" title="MiniMax-M2.7 .... this weekend for sure" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;&lt;a href="https://huggingface.co/MiniMaxAI/MiniMax-M2.5/discussions/53#69d3e884ba6f6793d723f30e"&gt;Sorry to all OOS developers. I underestimated the workload required for open-sourcing. We still have some infrastructure adaptation work in progress. M2.7 is expected to be released this weekend. Thank you for your understanding.&lt;/a&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/uxnuux7y1mtg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se6t2a/minimaxm27_this_weekend_for_sure/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se6t2a/minimaxm27_this_weekend_for_sure/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T18:15:36+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sdz71b</id>
     <title>Gemma4:26b's reasoning capabilities are crazy.</title>
@@ -110,6 +58,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sdv3lo/pokeclaw_first_working_app_that_uses_gemma_4_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T10:31:42+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ses7om</id>
+    <title>Ace step 1.5 XL is out!</title>
+    <updated>2026-04-07T10:33:51+00:00</updated>
+    <author>
+      <name>/u/Uncle___Marty</name>
+      <uri>https://old.reddit.com/user/Uncle___Marty</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-turbo"&gt;https://huggingface.co/ACE-Step/acestep-v15-xl-turbo&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-base"&gt;https://huggingface.co/ACE-Step/acestep-v15-xl-base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-sft"&gt;https://huggingface.co/ACE-Step/acestep-v15-xl-sft&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Have fun all!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Uncle___Marty"&gt; /u/Uncle___Marty &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ses7om/ace_step_15_xl_is_out/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ses7om/ace_step_15_xl_is_out/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ses7om/ace_step_15_xl_is_out/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T10:33:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1se2kna</id>
@@ -177,6 +138,19 @@
     <published>2026-04-06T03:36:04+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sesxvn</id>
+    <title>MeowLLM: A tiny LM that speaks like a cat</title>
+    <updated>2026-04-07T11:12:21+00:00</updated>
+    <author>
+      <name>/u/Dismal_Beginning_486</name>
+      <uri>https://old.reddit.com/user/Dismal_Beginning_486</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dismal_Beginning_486"&gt; /u/Dismal_Beginning_486 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/phanii9/MeowLLM"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sesxvn/meowllm_a_tiny_lm_that_speaks_like_a_cat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sesxvn/meowllm_a_tiny_lm_that_speaks_like_a_cat/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T11:12:21+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1seqmsn</id>
     <title>A TurboQuant ready llamacpp with gfx906 optimizations for gfx906 users.</title>
     <updated>2026-04-07T09:01:30+00:00</updated>
@@ -188,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1seqmsn/a_turboquant_ready_llamacpp_with_gfx906/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-07T09:01:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1set0hw</id>
+    <title>GLM-5.1 incoming — vLLM image already tagged</title>
+    <updated>2026-04-07T11:16:01+00:00</updated>
+    <author>
+      <name>/u/Acceptable-State-271</name>
+      <uri>https://old.reddit.com/user/Acceptable-State-271</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1set0hw/glm51_incoming_vllm_image_already_tagged/"&gt; &lt;img alt="GLM-5.1 incoming — vLLM image already tagged" src="https://preview.redd.it/hqk2wp1w4rtg1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=6e114fc9e31226c8471b35f3c6615a0b6c68327b" title="GLM-5.1 incoming — vLLM image already tagged" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/hqk2wp1w4rtg1.png?width=1123&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=bb21da2721c8f13b02a8b815870358a69154c19e"&gt;https://preview.redd.it/hqk2wp1w4rtg1.png?width=1123&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=bb21da2721c8f13b02a8b815870358a69154c19e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GLM-5.1 incoming — vLLM image already tagged 20minutes ago&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable-State-271"&gt; /u/Acceptable-State-271 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1set0hw/glm51_incoming_vllm_image_already_tagged/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1set0hw/glm51_incoming_vllm_image_already_tagged/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1set0hw/glm51_incoming_vllm_image_already_tagged/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T11:16:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1se65ul</id>
@@ -203,17 +190,17 @@
     <published>2026-04-06T17:53:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sepmtm</id>
-    <title>Why MoE models keep converging on ~10B active parameters</title>
-    <updated>2026-04-07T07:59:06+00:00</updated>
+    <id>t3_1set1n3</id>
+    <title>M5 Max 128GB Owners - What's your honest take?</title>
+    <updated>2026-04-07T11:17:40+00:00</updated>
     <author>
-      <name>/u/Spare_Pair_9198</name>
-      <uri>https://old.reddit.com/user/Spare_Pair_9198</uri>
+      <name>/u/_derpiii_</name>
+      <uri>https://old.reddit.com/user/_derpiii_</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Interesting pattern: despite wildly different total sizes, many recent MoE models land around 10B active params. Qwen 3.5 122B activates 10B. MiniMax M2.7 runs 230B total with 10B active via Top 2 routing.&lt;/p&gt; &lt;p&gt;Training cost scales as C ≈ 6 × N_active × T. At 10B active and 15T tokens, you get ~9e23 FLOPs, roughly 1/7th of a dense 70B on equivalent data. The economics practically force this convergence.&lt;/p&gt; &lt;p&gt;Has anyone measured real inference memory scaling when expert count increases but active params stay fixed? KV cache seems to dominate past 32k context regardless.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Spare_Pair_9198"&gt; /u/Spare_Pair_9198 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What models are you running and favoring?&lt;br /&gt; Any honest disappointments or surprises? &lt;/p&gt; &lt;p&gt;I'm very tempted to pick one up, but I think my expectations are going to be a bit naive.&lt;/p&gt; &lt;p&gt;And yes I understand local models cannot compete with frontier model with trillions of parameters. &lt;/p&gt; &lt;p&gt;So I'm wondering what use cases are you 100% happy you got the M5 Max 128GB?&lt;/p&gt; &lt;p&gt;Something something pineapple pancakes to prove this is not AI writing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_derpiii_"&gt; /u/_derpiii_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1set1n3/m5_max_128gb_owners_whats_your_honest_take/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1set1n3/m5_max_128gb_owners_whats_your_honest_take/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1set1n3/m5_max_128gb_owners_whats_your_honest_take/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T07:59:06+00:00</published>
+    <published>2026-04-07T11:17:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1semfx5</id>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se8175/minimax_27_good_news/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T19:00:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sepmtm</id>
+    <title>Why MoE models keep converging on ~10B active parameters</title>
+    <updated>2026-04-07T07:59:06+00:00</updated>
+    <author>
+      <name>/u/Spare_Pair_9198</name>
+      <uri>https://old.reddit.com/user/Spare_Pair_9198</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Interesting pattern: despite wildly different total sizes, many recent MoE models land around 10B active params. Qwen 3.5 122B activates 10B. MiniMax M2.7 runs 230B total with 10B active via Top 2 routing.&lt;/p&gt; &lt;p&gt;Training cost scales as C ≈ 6 × N_active × T. At 10B active and 15T tokens, you get ~9e23 FLOPs, roughly 1/7th of a dense 70B on equivalent data. The economics practically force this convergence.&lt;/p&gt; &lt;p&gt;Has anyone measured real inference memory scaling when expert count increases but active params stay fixed? KV cache seems to dominate past 32k context regardless.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Spare_Pair_9198"&gt; /u/Spare_Pair_9198 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sepmtm/why_moe_models_keep_converging_on_10b_active/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T07:59:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1sehamp</id>
