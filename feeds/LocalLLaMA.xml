@@ -2,49 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-07T05:25:08+00:00</updated>
+  <updated>2026-04-07T06:03:34+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1se5m1h</id>
-    <title>daVinci-LLM-3B</title>
-    <updated>2026-04-06T17:34:31+00:00</updated>
+    <id>t3_1semwnm</id>
+    <title>thinking about running Gemma4 E2B as a preprocessor before every Claude Code API call. anyone see obvious problems with this?</title>
+    <updated>2026-04-07T05:20:12+00:00</updated>
     <author>
-      <name>/u/Aaaaaaaaaeeeee</name>
-      <uri>https://old.reddit.com/user/Aaaaaaaaaeeeee</uri>
+      <name>/u/yeoung</name>
+      <uri>https://old.reddit.com/user/yeoung</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se5m1h/davincillm3b/"&gt; &lt;img alt="daVinci-LLM-3B" src="https://external-preview.redd.it/iwi9rz1NgfCPGT42_sH9gyzZSxYpgSVRo7ieGm-5ZaE.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=61eced3f1085ca058ff9f9f64a80181fb402141a" title="daVinci-LLM-3B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;- &lt;a href="https://huggingface.co/SII-GAIR-NLP/davinci-llm-model"&gt;https://huggingface.co/SII-GAIR-NLP/davinci-llm-model&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Overview&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;daVinci-LLM-3B&lt;/strong&gt; is a 3B-parameter base language model presented in &lt;a href="https://huggingface.co/papers/2603.27164"&gt;daV&lt;/a&gt;&lt;a href="https://huggingface.co/papers/2603.27164"&gt;inci-LLM: Towards the Science of Pretraining&lt;/a&gt;. This project aims to make the pretraining process a transparent and reproducible scientific endeavor.&lt;/p&gt; &lt;p&gt;We release not only the final weights but also training trajectories, intermediate checkpoints, data processing decisions, and 200+ ablation studies covering data quality, mixture design, training dynamics, and evaluation validity.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="https://github.com/GAIR-NLP/daVinci-LLM"&gt;GAIR-NLP/daVinci-LLM&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Paper:&lt;/strong&gt; &lt;a href="https://arxiv.org/abs/2603.27164"&gt;arXiv:2603.27164&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Dataset:&lt;/strong&gt; &lt;a href="https://huggingface.co/datasets/SII-GAIR-NLP/davinci-llm-data"&gt;davinci-llm-data&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The model follows a two-stage curriculum over ~8T tokens:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Stage 1 (6T tokens):&lt;/strong&gt; broad pretraining over diverse web-scale corpora.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Stage 2 (2T tokens):&lt;/strong&gt; structured QA and reasoning-heavy data to amplify math and code reasoning.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Aaaaaaaaaeeeee"&gt; /u/Aaaaaaaaaeeeee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/SII-GAIR-NLP/davinci-llm-model"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se5m1h/davincillm3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se5m1h/davincillm3b/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;background: I write mostly in Korean and my Claude API bill is kind of embarrassing. Korean tokenizes really inefficiently compared to English for the same meaning, so a chunk of the cost is basically just encoding overhead.&lt;/p&gt; &lt;p&gt;the idea is a small proxy in Bun that sits in front of the Claude API. Claude Code talks to localhost, doesn't know anything changed. before each request goes out, Gemma4 E2B (llama.cpp, local) would do:&lt;/p&gt; &lt;p&gt;- translate Korean input to English. response still comes back in Korean, just the outbound prompt is English&lt;/p&gt; &lt;p&gt;- trim context that's probably not relevant to the current turn&lt;/p&gt; &lt;p&gt;- for requests that look like they need reasoning, have Gemma4 do the thinking first and pass the result along — so the paid model hopefully skips some of that work and uses fewer reasoning tokens&lt;/p&gt; &lt;p&gt;planning to cache with SQLite in WAL mode to avoid read/write contention on every request.&lt;/p&gt; &lt;p&gt;one thing I'm genuinely unsure about before I start building: does pre-supplying reasoning actually save anything, or does the model just redo it internally anyway and charge you for it regardless.&lt;/p&gt; &lt;p&gt;the bigger concern is speed. the whole point breaks down if Gemma4 adds more latency than it saves money. has anyone actually run Gemma4 E2B on an Intel Mac? curious what kind of tokens/sec you're getting with llama.cpp on that hardware specifically — Apple Silicon numbers are everywhere but Intel is harder to find&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/yeoung"&gt; /u/yeoung &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semwnm/thinking_about_running_gemma4_e2b_as_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semwnm/thinking_about_running_gemma4_e2b_as_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1semwnm/thinking_about_running_gemma4_e2b_as_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T17:34:31+00:00</published>
+    <published>2026-04-07T05:20:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sef3gm</id>
-    <title>iPhone 17 pro runs gemma 4 the fastest out of all phones</title>
-    <updated>2026-04-06T23:23:10+00:00</updated>
+    <id>t3_1sej4zw</id>
+    <title>OpenAI, Anthropic, Google Unite to Combat Model Copying in China</title>
+    <updated>2026-04-07T02:17:37+00:00</updated>
     <author>
-      <name>/u/Optimal_League_1419</name>
-      <uri>https://old.reddit.com/user/Optimal_League_1419</uri>
+      <name>/u/whysee0</name>
+      <uri>https://old.reddit.com/user/whysee0</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sef3gm/iphone_17_pro_runs_gemma_4_the_fastest_out_of_all/"&gt; &lt;img alt="iPhone 17 pro runs gemma 4 the fastest out of all phones" src="https://preview.redd.it/sjs027a6mntg1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=240d636aa496a34adf06fa80225363b9bfb7c931" title="iPhone 17 pro runs gemma 4 the fastest out of all phones" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Gemma 4 e2b only runs at 13tk/s on my google pixel 10 pro while it runs at 40 tk/s on iPhone 17 pro.&lt;br /&gt; People underestimate how fast apple silicon is.&lt;/p&gt; &lt;p&gt;Hopefully android catches up.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/sjs027a6mntg1.png?width=1174&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f4941817f36c53a74b0ac43edaeba5a89421d097"&gt;https://preview.redd.it/sjs027a6mntg1.png?width=1174&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f4941817f36c53a74b0ac43edaeba5a89421d097&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Optimal_League_1419"&gt; /u/Optimal_League_1419 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sef3gm/iphone_17_pro_runs_gemma_4_the_fastest_out_of_all/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sef3gm/iphone_17_pro_runs_gemma_4_the_fastest_out_of_all/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sef3gm/iphone_17_pro_runs_gemma_4_the_fastest_out_of_all/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sej4zw/openai_anthropic_google_unite_to_combat_model/"&gt; &lt;img alt="OpenAI, Anthropic, Google Unite to Combat Model Copying in China" src="https://external-preview.redd.it/YHlYKyDCMoQfV4iHSjvAsftBnnVdATPoXvn2EijXOXA.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=088e2108306c9c8e3af727199999ac413e138cd7" title="OpenAI, Anthropic, Google Unite to Combat Model Copying in China" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here we go again.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/whysee0"&gt; /u/whysee0 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.bloomberg.com/news/articles/2026-04-06/openai-anthropic-google-unite-to-combat-model-copying-in-china?embedded-checkout=true"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sej4zw/openai_anthropic_google_unite_to_combat_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sej4zw/openai_anthropic_google_unite_to_combat_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T23:23:10+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1seax26</id>
-    <title>Decided to try out Google's Edge Gallery app...</title>
-    <updated>2026-04-06T20:41:25+00:00</updated>
-    <author>
-      <name>/u/YourNightmar31</name>
-      <uri>https://old.reddit.com/user/YourNightmar31</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seax26/decided_to_try_out_googles_edge_gallery_app/"&gt; &lt;img alt="Decided to try out Google's Edge Gallery app..." src="https://preview.redd.it/tvf2mdz3tmtg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5b19f37757f4f6bcc2bc4fc5eec2f3c0bc100929" title="Decided to try out Google's Edge Gallery app..." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Great first impression :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/YourNightmar31"&gt; /u/YourNightmar31 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/tvf2mdz3tmtg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1seax26/decided_to_try_out_googles_edge_gallery_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1seax26/decided_to_try_out_googles_edge_gallery_app/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T20:41:25+00:00</published>
+    <published>2026-04-07T02:17:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1sebwz2</id>
@@ -138,6 +125,19 @@
     <published>2026-04-06T19:28:24+00:00</published>
   </entry>
   <entry>
+    <id>t3_1se1cbk</id>
+    <title>We aren’t even close to AGI</title>
+    <updated>2026-04-06T15:01:21+00:00</updated>
+    <author>
+      <name>/u/CrimsonShikabane</name>
+      <uri>https://old.reddit.com/user/CrimsonShikabane</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Supposedly we’ve reached AGI according to Jensen Huang and Marc Andreessen.&lt;/p&gt; &lt;p&gt;What a load of shit. I tried to get Claude code with Opus 4.6 max plan to play Elden Ring. Couldn’t even get past the first room. It made it past the character creator, but couldn’t leave the original chapel.&lt;/p&gt; &lt;p&gt;If it can’t play a game that millions have beat, if it can’t even get past the first room, how are we even close to Artificial GENERAL Intelligence?&lt;/p&gt; &lt;p&gt;I understand that this isn’t in its training data but that’s the entire point. Artificial general intelligence is supposed to be able to reason and think outside of its training data.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CrimsonShikabane"&gt; /u/CrimsonShikabane &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-06T15:01:21+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sdv3lo</id>
     <title>[PokeClaw] First working app that uses Gemma 4 to autonomously control an Android phone. Fully on-device, no cloud.</title>
     <updated>2026-04-06T10:31:42+00:00</updated>
@@ -164,32 +164,6 @@
     <published>2026-04-06T15:45:53+00:00</published>
   </entry>
   <entry>
-    <id>t3_1se1cbk</id>
-    <title>We aren’t even close to AGI</title>
-    <updated>2026-04-06T15:01:21+00:00</updated>
-    <author>
-      <name>/u/CrimsonShikabane</name>
-      <uri>https://old.reddit.com/user/CrimsonShikabane</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Supposedly we’ve reached AGI according to Jensen Huang and Marc Andreessen.&lt;/p&gt; &lt;p&gt;What a load of shit. I tried to get Claude code with Opus 4.6 max plan to play Elden Ring. Couldn’t even get past the first room. It made it past the character creator, but couldn’t leave the original chapel.&lt;/p&gt; &lt;p&gt;If it can’t play a game that millions have beat, if it can’t even get past the first room, how are we even close to Artificial GENERAL Intelligence?&lt;/p&gt; &lt;p&gt;I understand that this isn’t in its training data but that’s the entire point. Artificial general intelligence is supposed to be able to reason and think outside of its training data.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CrimsonShikabane"&gt; /u/CrimsonShikabane &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se1cbk/we_arent_even_close_to_agi/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-06T15:01:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1semfx5</id>
-    <title>Ace Step 1.5 XL Models Available</title>
-    <updated>2026-04-07T04:55:33+00:00</updated>
-    <author>
-      <name>/u/seamonn</name>
-      <uri>https://old.reddit.com/user/seamonn</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt;After releasing last week and forgetting to release the models&lt;/a&gt;, the Ace Step team has released the Ace Step 1.5 XL Models: &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-turbo"&gt;ACE-Step 1.5 XL — Turbo&lt;/a&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-base"&gt;ACE-Step 1.5 XL — Base&lt;/a&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-sft"&gt;ACE-Step 1.5 XL — SFT&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/seamonn"&gt; /u/seamonn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T04:55:33+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1se81a5</id>
     <title>I benchmarked 37 LLMs on MacBook Air M5 32GB — full results + open-source tool to benchmark your own Mac</title>
     <updated>2026-04-06T19:00:28+00:00</updated>
@@ -214,6 +188,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sdnw7l/i_technically_got_an_llm_running_locally_on_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T03:36:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sellby</id>
+    <title>Tested TurboQuant KV compression with Gemma 4 31B — 5.80x compression, perfect long-context recall, JSON output preserved</title>
+    <updated>2026-04-07T04:11:42+00:00</updated>
+    <author>
+      <name>/u/No_Appearance_3041</name>
+      <uri>https://old.reddit.com/user/No_Appearance_3041</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick experiment: I implemented Google Research's TurboQuant paper (arXiv 2504.19874) as a Python package and tested it with Google's brand new Gemma 4 31B model. The results exceeded the paper's claims.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Hardware: RTX PRO 6000 Blackwell (96GB VRAM)&lt;/li&gt; &lt;li&gt;Model: google/gemma-4-31B-it (BF16, 64 layers)&lt;/li&gt; &lt;li&gt;Compression: TurboQuant turbo3 (3-bit PolarQuant + QJL residual)&lt;/li&gt; &lt;li&gt;Backend: HuggingFace Transformers with custom past_key_values interception&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Compression results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Metric&lt;/th&gt; &lt;th align="left"&gt;Value&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;FP16 baseline (222 tokens)&lt;/td&gt; &lt;td align="left"&gt;218.23 MB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;TurboQuant compressed&lt;/td&gt; &lt;td align="left"&gt;37.62 MB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Compression ratio&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;5.80x&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Paper theoretical (turbo3)&lt;/td&gt; &lt;td align="left"&gt;4.9x&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;The 5.80x exceeds the paper's 4.9x claim — likely because Gemma 4's architecture has fewer outliers in the K/V distributions than the synthetic data used in the paper.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Functional validation:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Multi-turn fact recall&lt;/strong&gt; (the critical test): Told Gemma 4 &amp;quot;the secret project code is PHOENIX-42&amp;quot;, then asked in turn 2 &amp;quot;what is the secret code?&amp;quot; — after a full TurboQuant compress/decompress cycle of the KV cache. Response: &amp;quot;PHOENIX-42.&amp;quot; Perfect.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Long-context needle-in-haystack&lt;/strong&gt; (~500 tokens): Hid &amp;quot;BLUE-DOLPHIN-7&amp;quot; inside filler text, asked to retrieve it. Response: &amp;quot;The activation phrase mentioned above is BLUE-DOLPHIN-7.&amp;quot; Compression during this test: 5.80x.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Agentic JSON output&lt;/strong&gt;: Asked Gemma 4 to extract entities into structured JSON ({people, places, organizations}) — Gemma 4's signature agentic feature. The structured output remained valid JSON after KV compression. The bridge preserves the model's ability to produce structured output.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Heterogeneous KV shapes:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;One interesting finding — Gemma 4 has interleaved attention with different KV head counts across layers (similar to Gemma 3's local/global pattern). My first implementation crashed because it assumed uniform shapes. The fix was per-layer quantizer instances with shape detection at runtime via a dummy forward pass. If anyone else is implementing custom KV cache logic for Gemma 4, watch out for this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How it works (technical):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The paper specifies two algorithms:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Algorithm 1 (PolarQuant)&lt;/strong&gt;: Random rotation → Lloyd-Max scalar quantization on Beta-distributed coordinates → inverse rotation. MSE-optimal.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Algorithm 2 (QJL residual)&lt;/strong&gt;: Apply Algorithm 1 at b-1 bits, then encode residual with sign(S·r). Inner-product unbiased.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;K-cache uses Algorithm 1 (minimizes ||K - K_hat||² → optimal for attention scores Q·K^T). V-cache uses Algorithm 2 (unbiased inner-product → optimal for attention output attn_weights · V).&lt;/p&gt; &lt;p&gt;The native turboquant-kv library handles the math but stores indices as int64 and signs as float32 — defeating the compression. I added a bit-packing layer on top: 2-bit indices + 1-bit signs packed into bytes, plus float16 norms/gammas. That's where the real 5.80x comes from.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;One-line setup:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pip install turboagent-ai[torch,native] from turboagent import TurboAgent agent = TurboAgent(&amp;quot;google/gemma-4-31B-it&amp;quot;) response = agent.run(&amp;quot;Your prompt here&amp;quot;) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The package handles backend selection, hardware detection, KV bridge plumbing, and the bit-packing automatically.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Code: &lt;a href="https://github.com/TurboAgentAI/turboagent"&gt;https://github.com/TurboAgentAI/turboagent&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Paper: &lt;a href="https://arxiv.org/abs/2504.19874"&gt;https://arxiv.org/abs/2504.19874&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Site: &lt;a href="https://turboagent.to/"&gt;https://turboagent.to&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;MIT licensed. Honest feedback welcome — particularly interested in hearing if anyone has tried this on other recent models or spotted issues with the bit-packing approach.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Appearance_3041"&gt; /u/No_Appearance_3041 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sellby/tested_turboquant_kv_compression_with_gemma_4_31b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sellby/tested_turboquant_kv_compression_with_gemma_4_31b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sellby/tested_turboquant_kv_compression_with_gemma_4_31b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T04:11:42+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1semfx5</id>
+    <title>Ace Step 1.5 XL Models Available</title>
+    <updated>2026-04-07T04:55:33+00:00</updated>
+    <author>
+      <name>/u/seamonn</name>
+      <uri>https://old.reddit.com/user/seamonn</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1sb6l3l/ace_step_15_xl_released/"&gt;After releasing last week and forgetting to release the models&lt;/a&gt;, the Ace Step team has released the Ace Step 1.5 XL Models: &lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-turbo"&gt;ACE-Step 1.5 XL — Turbo&lt;/a&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-base"&gt;ACE-Step 1.5 XL — Base&lt;/a&gt;&lt;br /&gt; &lt;a href="https://huggingface.co/ACE-Step/acestep-v15-xl-sft"&gt;ACE-Step 1.5 XL — SFT&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/seamonn"&gt; /u/seamonn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1semfx5/ace_step_15_xl_models_available/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T04:55:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1se65ul</id>
@@ -281,19 +281,6 @@
     <published>2026-04-06T19:00:25+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sema2v</id>
-    <title>Open-Source Models Recently:</title>
-    <updated>2026-04-07T04:46:57+00:00</updated>
-    <author>
-      <name>/u/Fresh_Sun_1017</name>
-      <uri>https://old.reddit.com/user/Fresh_Sun_1017</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"&gt; &lt;img alt="Open-Source Models Recently:" src="https://preview.redd.it/jm6fhy587ptg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b7bed596df3c977a9ef3fe0eacff398cd4c3b330" title="Open-Source Models Recently:" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What happened to Wan?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fresh_Sun_1017"&gt; /u/Fresh_Sun_1017 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jm6fhy587ptg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-07T04:46:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1segstx</id>
     <title>Gemma 4 26b A3B is mindblowingly good , if configured right</title>
     <updated>2026-04-07T00:35:21+00:00</updated>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1se6nq5/what_it_took_to_launch_google_deepminds_gemma_4/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-06T18:10:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sema2v</id>
+    <title>Open-Source Models Recently:</title>
+    <updated>2026-04-07T04:46:57+00:00</updated>
+    <author>
+      <name>/u/Fresh_Sun_1017</name>
+      <uri>https://old.reddit.com/user/Fresh_Sun_1017</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"&gt; &lt;img alt="Open-Source Models Recently:" src="https://preview.redd.it/jm6fhy587ptg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b7bed596df3c977a9ef3fe0eacff398cd4c3b330" title="Open-Source Models Recently:" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What happened to Wan?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fresh_Sun_1017"&gt; /u/Fresh_Sun_1017 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jm6fhy587ptg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sema2v/opensource_models_recently/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-07T04:46:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpk2va</id>
