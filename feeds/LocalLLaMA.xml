@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-09T09:34:15+00:00</updated>
+  <updated>2026-04-09T10:10:53+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sge45s</id>
-    <title>Mamba 1 &amp; 2 to Mamba 3 Architectural Upgrade</title>
-    <updated>2026-04-09T03:16:07+00:00</updated>
-    <author>
-      <name>/u/Just-Ad-6488</name>
-      <uri>https://old.reddit.com/user/Just-Ad-6488</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This repository contains the methodology and scripts to bypass training from scratch by structurally transplanting weights from the Mamba-1/Mamba-2 architectures directly into Mamba-3 gates.&lt;/p&gt; &lt;p&gt;It handles the mathematical misalignments between the generations and provides a two-phase structural recovery training pipeline capable of bringing the Mamba-3 model back to coherence within a &lt;strong&gt;strict 12GB VRAM envelope&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;The Methodology&lt;/h1&gt; &lt;p&gt;When transplanting a sequence block from Mamba 1 to Mamba 3, three critical mathematical mismatches must be resolved to prevent the model from outputting pure gibberish:&lt;/p&gt; &lt;h1&gt;1. The [x, z] vs [z, x] Sequence Inversion&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-1's &lt;code&gt;in_proj&lt;/code&gt; splits the dimension into the main branch (x) followed by the gating branch (z). Mamba-3 expects &lt;code&gt;[z, x]&lt;/code&gt;. If the weights are blind-copied, the network's forward logic will be physically reversed.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The &lt;code&gt;mamba1_to_mamba3_converter.py&lt;/code&gt; script mathematically slices the &lt;code&gt;in_proj&lt;/code&gt; weight matrices exactly at &lt;code&gt;d_inner&lt;/code&gt; and inverts the upper and lower halves before injection.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. Dimensionality Collapse (dt_bias, D)&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-1 scales the structural &lt;code&gt;D&lt;/code&gt; (skip connection) and &lt;code&gt;dt_bias&lt;/code&gt; across the entire sequence length. Mamba-3 pools these into specifically sized &lt;code&gt;nheads&lt;/code&gt; header groups.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The script executes an active dimension pooling process (e.g. averaging chunks of 5120 down to 64 pools) to preserve the original structural signal scale.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. Inverse-Softplus Reparameterization&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-3 kernel variables require specific scaling logic. The raw bias values map differently through the Triton softplus activation layer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The script maps &lt;code&gt;torch.log(torch.exp(weights) - 1.0)&lt;/code&gt; on the translated &lt;code&gt;dt_bias&lt;/code&gt; values to maintain numerical equivalence.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;12GB VRAM Optimization&lt;/h1&gt; &lt;p&gt;A 2.8B model normally requires ~18GB VRAM to train. Because standard activation checkpointing often clashes with the custom Mamba-3 Triton kernel, VRAM is optimized via two methods in &lt;code&gt;mamba3_recovery_trainer.py&lt;/code&gt;:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Per-Sample Micro-Backwards:&lt;/strong&gt; Instead of &lt;code&gt;loss.backward()&lt;/code&gt; over a batched block, the loops drop down to:for sample in batch: loss.backward() graph.free() Gradients accumulate safely, but the graph is instantly freed per step, crushing memory spikes.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Phase A Selective Freezing:&lt;/strong&gt; We freeze 99% of the transplanted model weights representing the &amp;quot;associative memory&amp;quot;, unfrosting only the newly added Mamba-3 parameter gates.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;The Recovery Pipeline&lt;/h1&gt; &lt;p&gt;The transplanted model behaves like an intelligent engine that forgot how to speak. The recovery pipeline adapts the new gates to the old logic.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;PHASE A (150 steps):&lt;/strong&gt; Everything is frozen in the 2.8B model except the newly integrated Mamba-3 specific gates (&lt;code&gt;B_bias&lt;/code&gt;, &lt;code&gt;C_bias&lt;/code&gt;, etc.). Loss rapidly collapses as the gates calibrate to the legacy matrices.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;PHASE B (&amp;gt;1000 steps):&lt;/strong&gt; The model injects Low-Rank Adapter (LoRA) matrices cleanly on the outputs and unlocks full reasoning, stabilizing its capabilities.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Usage&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Place your base Mamba &lt;code&gt;.safetensors&lt;/code&gt; or &lt;code&gt;.bin&lt;/code&gt; checkpoint in the correct directory.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;python mamba1_to_mamba3_converter.py&lt;/code&gt; to create the initial transplanted shell checkpoint.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;python mamba3_recovery_trainer.py&lt;/code&gt; to structurally heal the model architecture via Phase A/Phase B training loop. &lt;a href="https://github.com/batteryphil/mamba1and2-to-3.git"&gt;https://github.com/batteryphil/mamba1and2-to-3.git&lt;/a&gt;&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Just-Ad-6488"&gt; /u/Just-Ad-6488 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:16:07+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sgkrve</id>
-    <title>Why you should not hold off your computer purchases</title>
-    <updated>2026-04-09T09:29:07+00:00</updated>
-    <author>
-      <name>/u/StandardLovers</name>
-      <uri>https://old.reddit.com/user/StandardLovers</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The strait of Hormuz is closed again, but it does not only affect Oil. &lt;/p&gt; &lt;p&gt;Also Helium, helium is needed in all of semi-conductor industry. Helium can't be stored (it leaks). If this continues the whole industry will not be able to make parts.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/StandardLovers"&gt; /u/StandardLovers &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkrve/why_you_should_not_hold_off_your_computer/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkrve/why_you_should_not_hold_off_your_computer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkrve/why_you_should_not_hold_off_your_computer/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T09:29:07+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sgjyyz</id>
     <title>Worth investing in hardware now? If so what?</title>
@@ -47,17 +21,17 @@
     <published>2026-04-09T08:39:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sfxs7f</id>
-    <title>Liquid AI releases LFM2.5-VL-450M - structured visual understanding at 240ms</title>
-    <updated>2026-04-08T16:27:06+00:00</updated>
+    <id>t3_1sglde2</id>
+    <title>ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp</title>
+    <updated>2026-04-09T10:04:27+00:00</updated>
     <author>
-      <name>/u/PauLabartaBajo</name>
-      <uri>https://old.reddit.com/user/PauLabartaBajo</uri>
+      <name>/u/FullstackSensei</name>
+      <uri>https://old.reddit.com/user/FullstackSensei</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sfxs7f/liquid_ai_releases_lfm25vl450m_structured_visual/"&gt; &lt;img alt="Liquid AI releases LFM2.5-VL-450M - structured visual understanding at 240ms" src="https://preview.redd.it/fnq05zfitztg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=48788246476e3aaf6b62c9f51b2f0cf4ce9c6d25" title="Liquid AI releases LFM2.5-VL-450M - structured visual understanding at 240ms" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Today, we release LFM2.5-VL-450M our most capable vision-language model for edge deployment. It processes a 512×512 image in 240ms and it is fast enough to reason about every frame in a 4 FPS video stream. It builds on LFM2-VL-450M with three new capabilities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;bounding box prediction (81.28 on RefCOCO-M)&lt;/li&gt; &lt;li&gt;multilingual visual understanding across 9 languages (MMMB: 54.29 → 68.09), and&lt;/li&gt; &lt;li&gt;function calling support.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Most production vision systems are still multi-stage: a detector, a classifier, heuristic logic on top. This model does it in one pass:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;locating objects&lt;/li&gt; &lt;li&gt;reasoning about context, and&lt;/li&gt; &lt;li&gt;returning structured outputs directly on-device.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It runs on Jetson Orin, Samsung S25 Ultra, and AMD 395+ Max. Open-weight, available now on Hugging Face, LEAP, and our Playground. &lt;/p&gt; &lt;p&gt;HF model checkpoint: &lt;a href="https://huggingface.co/LiquidAI/LFM2.5-VL-450M"&gt;https://huggingface.co/LiquidAI/LFM2.5-VL-450M&lt;/a&gt;&lt;br /&gt; Blog post: &lt;a href="https://www.liquid.ai/blog/lfm2-5-vl-450m"&gt;https://www.liquid.ai/blog/lfm2-5-vl-450m&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PauLabartaBajo"&gt; /u/PauLabartaBajo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/fnq05zfitztg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sfxs7f/liquid_ai_releases_lfm25vl450m_structured_visual/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sfxs7f/liquid_ai_releases_lfm25vl450m_structured_visual/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt; &lt;img alt="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" src="https://external-preview.redd.it/oDV6qKfCBLpY0OqDyYRfdqrXne-7zS4he2ILipJ1HCs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c799756491207221c063deefcd70d75fcb1026f0" title="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Greganov approved the tensor parallelism PR!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullstackSensei"&gt; /u/FullstackSensei &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/19378#pullrequestreview-4080561077"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T16:27:06+00:00</published>
+    <published>2026-04-09T10:04:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg37af</id>
@@ -112,19 +86,6 @@
     <published>2026-04-08T15:34:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sg91vd</id>
-    <title>What is Meta even doing right now?</title>
-    <updated>2026-04-08T23:27:52+00:00</updated>
-    <author>
-      <name>/u/Ok-Internal9317</name>
-      <uri>https://old.reddit.com/user/Ok-Internal9317</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Three years ago this sub was full of llama2 distillation discussions&lt;/p&gt; &lt;p&gt;then llama3.2, phi3&lt;/p&gt; &lt;p&gt;What happened to them?&lt;/p&gt; &lt;p&gt;Last thing I remember about llama was llama4 scout or something that didn't beat gemma, then I saw it no more :(&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Internal9317"&gt; /u/Ok-Internal9317 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T23:27:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sgdt7t</id>
     <title>My experience with the Intel Arc Pro B70 for local LLMs: Fast, but a complete mess (for now)</title>
     <updated>2026-04-09T03:02:10+00:00</updated>
@@ -136,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-09T03:02:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sg91vd</id>
+    <title>What is Meta even doing right now?</title>
+    <updated>2026-04-08T23:27:52+00:00</updated>
+    <author>
+      <name>/u/Ok-Internal9317</name>
+      <uri>https://old.reddit.com/user/Ok-Internal9317</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Three years ago this sub was full of llama2 distillation discussions&lt;/p&gt; &lt;p&gt;then llama3.2, phi3&lt;/p&gt; &lt;p&gt;What happened to them?&lt;/p&gt; &lt;p&gt;Last thing I remember about llama was llama4 scout or something that didn't beat gemma, then I saw it no more :(&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Internal9317"&gt; /u/Ok-Internal9317 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-08T23:27:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg076h</id>
@@ -177,17 +151,17 @@
     <published>2026-04-08T14:55:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sg9kax</id>
-    <title>Why do companies build open source models?</title>
-    <updated>2026-04-08T23:50:00+00:00</updated>
+    <id>t3_1sgkf3g</id>
+    <title>Gemma 4 models feel very different depending on size (26B vs 31B)</title>
+    <updated>2026-04-09T09:07:00+00:00</updated>
     <author>
-      <name>/u/Excellent_Koala769</name>
-      <uri>https://old.reddit.com/user/Excellent_Koala769</uri>
+      <name>/u/still_debugging_note</name>
+      <uri>https://old.reddit.com/user/still_debugging_note</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, &lt;/p&gt; &lt;p&gt;Why do companies create open source models? They must allocate lots of resources toward this, but for what profit? If anything, doesn't it just take users off of using their paid for/proprietary models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Koala769"&gt; /u/Excellent_Koala769 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent a few hours trying out the new Gemma 4 models, and one thing that stood out pretty quickly — the difference between sizes is more noticeable than I expected.&lt;/p&gt; &lt;p&gt;Didn’t run any formal benchmarks, just hands-on usage.&lt;/p&gt; &lt;p&gt;Tested:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Gemma-4-26B-A4B-it&lt;/li&gt; &lt;li&gt;Gemma-4-31B-it&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Mostly used them for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;some coding (Python + small scripts)&lt;/li&gt; &lt;li&gt;general prompts&lt;/li&gt; &lt;li&gt;a bit of longer / slightly more complex instructions&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;🧠 31B (Gemma-4-31B-it)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This one feels a lot more stable once prompts get even a little complex.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Better at following multi-step instructions&lt;/li&gt; &lt;li&gt;Less likely to drift or “lose the thread”&lt;/li&gt; &lt;li&gt;Coding outputs were more consistent&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For simple stuff, it doesn’t feel massively different. But as soon as you stack a few requirements together, the gap shows up pretty clearly.&lt;/p&gt; &lt;p&gt;Downside is just what you’d expect: slower and more expensive.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;⚡ 26B (Gemma-4-26B-A4B-it)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This one actually surprised me.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Very fast and responsive&lt;/li&gt; &lt;li&gt;Totally fine for most day-to-day use&lt;/li&gt; &lt;li&gt;Feels good for quick testing / iteration&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It does start to break down a bit on more layered prompts or when you need tighter reasoning, but nothing unexpected.&lt;/p&gt; &lt;p&gt;I ran both in a hosted notebook setup just to save time on local config.&lt;/p&gt; &lt;p&gt;Curious if others are seeing the same kind of gap, or if this depends a lot on the setup/use case.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/still_debugging_note"&gt; /u/still_debugging_note &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkf3g/gemma_4_models_feel_very_different_depending_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkf3g/gemma_4_models_feel_very_different_depending_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgkf3g/gemma_4_models_feel_very_different_depending_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T23:50:00+00:00</published>
+    <published>2026-04-09T09:07:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfxlpj</id>
@@ -203,6 +177,19 @@
     <published>2026-04-08T16:20:48+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sg9kax</id>
+    <title>Why do companies build open source models?</title>
+    <updated>2026-04-08T23:50:00+00:00</updated>
+    <author>
+      <name>/u/Excellent_Koala769</name>
+      <uri>https://old.reddit.com/user/Excellent_Koala769</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, &lt;/p&gt; &lt;p&gt;Why do companies create open source models? They must allocate lots of resources toward this, but for what profit? If anything, doesn't it just take users off of using their paid for/proprietary models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Koala769"&gt; /u/Excellent_Koala769 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-08T23:50:00+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sg29tl</id>
     <title>Opus, Gemini and Chatpt top models all disappeared from the Arena, is this the reason?</title>
     <updated>2026-04-08T19:06:10+00:00</updated>
@@ -216,19 +203,6 @@
     <published>2026-04-08T19:06:10+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sg89kl</id>
-    <title>New TTS Model: VoxCPM2</title>
-    <updated>2026-04-08T22:54:24+00:00</updated>
-    <author>
-      <name>/u/foldl-li</name>
-      <uri>https://old.reddit.com/user/foldl-li</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;VoxCPM2 — Three Modes of Speech Generation:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;🎨 &lt;strong&gt;Voice Design&lt;/strong&gt; — Create a brand-new voice &lt;/p&gt; &lt;p&gt;🎛️ &lt;strong&gt;Controllable Cloning&lt;/strong&gt; — Clone a voice with optional style guidance &lt;/p&gt; &lt;p&gt;🎙️ &lt;strong&gt;Ultimate Cloning&lt;/strong&gt; — Reproduce every vocal nuance through audio continuation &lt;/p&gt; &lt;h1&gt;Demo&lt;/h1&gt; &lt;p&gt;&lt;a href="https://huggingface.co/spaces/openbmb/VoxCPM-Demo"&gt;https://huggingface.co/spaces/openbmb/VoxCPM-Demo&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Performance&lt;/h1&gt; &lt;p&gt;VoxCPM2 achieves state-of-the-art or competitive results on major zero-shot and controllable TTS benchmarks.&lt;/p&gt; &lt;p&gt;See the &lt;a href="https://github.com/OpenBMB/VoxCPM#-performance"&gt;GitHub repo&lt;/a&gt; for full benchmark tables (Seed-TTS-eval, CV3-eval, InstructTTSEval, MiniMax Multilingual Test).&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/openbmb/VoxCPM2"&gt;https://huggingface.co/openbmb/VoxCPM2&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/foldl-li"&gt; /u/foldl-li &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T22:54:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sfrrgz</id>
     <title>It looks like we’ll need to download the new Gemma 4 GGUFs</title>
     <updated>2026-04-08T12:43:36+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sfrrgz/it_looks_like_well_need_to_download_the_new_gemma/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T12:43:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sg89kl</id>
+    <title>New TTS Model: VoxCPM2</title>
+    <updated>2026-04-08T22:54:24+00:00</updated>
+    <author>
+      <name>/u/foldl-li</name>
+      <uri>https://old.reddit.com/user/foldl-li</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;VoxCPM2 — Three Modes of Speech Generation:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;🎨 &lt;strong&gt;Voice Design&lt;/strong&gt; — Create a brand-new voice &lt;/p&gt; &lt;p&gt;🎛️ &lt;strong&gt;Controllable Cloning&lt;/strong&gt; — Clone a voice with optional style guidance &lt;/p&gt; &lt;p&gt;🎙️ &lt;strong&gt;Ultimate Cloning&lt;/strong&gt; — Reproduce every vocal nuance through audio continuation &lt;/p&gt; &lt;h1&gt;Demo&lt;/h1&gt; &lt;p&gt;&lt;a href="https://huggingface.co/spaces/openbmb/VoxCPM-Demo"&gt;https://huggingface.co/spaces/openbmb/VoxCPM-Demo&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Performance&lt;/h1&gt; &lt;p&gt;VoxCPM2 achieves state-of-the-art or competitive results on major zero-shot and controllable TTS benchmarks.&lt;/p&gt; &lt;p&gt;See the &lt;a href="https://github.com/OpenBMB/VoxCPM#-performance"&gt;GitHub repo&lt;/a&gt; for full benchmark tables (Seed-TTS-eval, CV3-eval, InstructTTSEval, MiniMax Multilingual Test).&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/openbmb/VoxCPM2"&gt;https://huggingface.co/openbmb/VoxCPM2&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/foldl-li"&gt; /u/foldl-li &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-08T22:54:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfzdrv</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-09T03:55:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sgl3qz</id>
+    <title>Gemma 4 on Llama.cpp should be stable now</title>
+    <updated>2026-04-09T09:48:52+00:00</updated>
+    <author>
+      <name>/u/ilintar</name>
+      <uri>https://old.reddit.com/user/ilintar</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With the merging of &lt;a href="https://github.com/ggml-org/llama.cpp/pull/21534"&gt;https://github.com/ggml-org/llama.cpp/pull/21534&lt;/a&gt;, all of the fixes to known Gemma 4 issues in Llama.cpp have been resolved. I've been running Gemma 4 31B on Q5 quants for some time now with no issues.&lt;/p&gt; &lt;p&gt;Runtime hints:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;remember to run with `--chat-template-file` with the interleaved template Aldehir has prepared (it's in the llama.cpp code under models/templates)&lt;/li&gt; &lt;li&gt;I strongly encourage running with `--cache-ram 2048 -ctxcp 2` to avoid system RAM problems&lt;/li&gt; &lt;li&gt;running KV cache with Q5 K and Q4 V has shown no large performance degradation, of course YMMV&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Have fun :)&lt;/p&gt; &lt;p&gt;(oh yeah, important remark - when I talk about llama.cpp here, I mean the *source code*, not the releases which lag behind - this refers to the code built from current master)&lt;/p&gt; &lt;p&gt;Important note about building: DO NOT currently use CUDA 13.2 as it is CONFIRMED BROKEN (the NVidia people are on the case already) and will generate builds that will not work correctly.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ilintar"&gt; /u/ilintar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T09:48:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1sgc8ir</id>
