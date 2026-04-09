@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-09T05:16:53+00:00</updated>
+  <updated>2026-04-09T06:04:06+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -21,6 +21,19 @@
     <published>2026-04-08T12:18:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sge45s</id>
+    <title>Mamba 1 &amp; 2 to Mamba 3 Architectural Upgrade</title>
+    <updated>2026-04-09T03:16:07+00:00</updated>
+    <author>
+      <name>/u/Just-Ad-6488</name>
+      <uri>https://old.reddit.com/user/Just-Ad-6488</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This repository contains the methodology and scripts to bypass training from scratch by structurally transplanting weights from the Mamba-1/Mamba-2 architectures directly into Mamba-3 gates.&lt;/p&gt; &lt;p&gt;It handles the mathematical misalignments between the generations and provides a two-phase structural recovery training pipeline capable of bringing the Mamba-3 model back to coherence within a &lt;strong&gt;strict 12GB VRAM envelope&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;The Methodology&lt;/h1&gt; &lt;p&gt;When transplanting a sequence block from Mamba 1 to Mamba 3, three critical mathematical mismatches must be resolved to prevent the model from outputting pure gibberish:&lt;/p&gt; &lt;h1&gt;1. The [x, z] vs [z, x] Sequence Inversion&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-1's &lt;code&gt;in_proj&lt;/code&gt; splits the dimension into the main branch (x) followed by the gating branch (z). Mamba-3 expects &lt;code&gt;[z, x]&lt;/code&gt;. If the weights are blind-copied, the network's forward logic will be physically reversed.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The &lt;code&gt;mamba1_to_mamba3_converter.py&lt;/code&gt; script mathematically slices the &lt;code&gt;in_proj&lt;/code&gt; weight matrices exactly at &lt;code&gt;d_inner&lt;/code&gt; and inverts the upper and lower halves before injection.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. Dimensionality Collapse (dt_bias, D)&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-1 scales the structural &lt;code&gt;D&lt;/code&gt; (skip connection) and &lt;code&gt;dt_bias&lt;/code&gt; across the entire sequence length. Mamba-3 pools these into specifically sized &lt;code&gt;nheads&lt;/code&gt; header groups.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The script executes an active dimension pooling process (e.g. averaging chunks of 5120 down to 64 pools) to preserve the original structural signal scale.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. Inverse-Softplus Reparameterization&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Problem:&lt;/strong&gt; Mamba-3 kernel variables require specific scaling logic. The raw bias values map differently through the Triton softplus activation layer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The Solution:&lt;/strong&gt; The script maps &lt;code&gt;torch.log(torch.exp(weights) - 1.0)&lt;/code&gt; on the translated &lt;code&gt;dt_bias&lt;/code&gt; values to maintain numerical equivalence.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;12GB VRAM Optimization&lt;/h1&gt; &lt;p&gt;A 2.8B model normally requires ~18GB VRAM to train. Because standard activation checkpointing often clashes with the custom Mamba-3 Triton kernel, VRAM is optimized via two methods in &lt;code&gt;mamba3_recovery_trainer.py&lt;/code&gt;:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Per-Sample Micro-Backwards:&lt;/strong&gt; Instead of &lt;code&gt;loss.backward()&lt;/code&gt; over a batched block, the loops drop down to:for sample in batch: loss.backward() graph.free() Gradients accumulate safely, but the graph is instantly freed per step, crushing memory spikes.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Phase A Selective Freezing:&lt;/strong&gt; We freeze 99% of the transplanted model weights representing the &amp;quot;associative memory&amp;quot;, unfrosting only the newly added Mamba-3 parameter gates.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;The Recovery Pipeline&lt;/h1&gt; &lt;p&gt;The transplanted model behaves like an intelligent engine that forgot how to speak. The recovery pipeline adapts the new gates to the old logic.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;PHASE A (150 steps):&lt;/strong&gt; Everything is frozen in the 2.8B model except the newly integrated Mamba-3 specific gates (&lt;code&gt;B_bias&lt;/code&gt;, &lt;code&gt;C_bias&lt;/code&gt;, etc.). Loss rapidly collapses as the gates calibrate to the legacy matrices.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;PHASE B (&amp;gt;1000 steps):&lt;/strong&gt; The model injects Low-Rank Adapter (LoRA) matrices cleanly on the outputs and unlocks full reasoning, stabilizing its capabilities.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Usage&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Place your base Mamba &lt;code&gt;.safetensors&lt;/code&gt; or &lt;code&gt;.bin&lt;/code&gt; checkpoint in the correct directory.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;python mamba1_to_mamba3_converter.py&lt;/code&gt; to create the initial transplanted shell checkpoint.&lt;/li&gt; &lt;li&gt;Run &lt;code&gt;python mamba3_recovery_trainer.py&lt;/code&gt; to structurally heal the model architecture via Phase A/Phase B training loop. &lt;a href="https://github.com/batteryphil/mamba1and2-to-3.git"&gt;https://github.com/batteryphil/mamba1and2-to-3.git&lt;/a&gt;&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Just-Ad-6488"&gt; /u/Just-Ad-6488 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sge45s/mamba_1_2_to_mamba_3_architectural_upgrade/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T03:16:07+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sg8lfr</id>
     <title>Turbo-OCR for high-volume image and PDF processing</title>
     <updated>2026-04-08T23:08:06+00:00</updated>
@@ -32,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg8lfr/turboocr_for_highvolume_image_and_pdf_processing/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T23:08:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sge96n</id>
-    <title>I think my Gemma4 is having a breakdown</title>
-    <updated>2026-04-09T03:22:48+00:00</updated>
-    <author>
-      <name>/u/MrSilencerbob</name>
-      <uri>https://old.reddit.com/user/MrSilencerbob</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"&gt; &lt;img alt="I think my Gemma4 is having a breakdown" src="https://preview.redd.it/91penx7i23ug1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=300d4d27afbbe8c48e9c24eb265abda88ff55c66" title="I think my Gemma4 is having a breakdown" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrSilencerbob"&gt; /u/MrSilencerbob &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/91penx7i23ug1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:22:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfyacf</id>
@@ -60,19 +60,6 @@
     <published>2026-04-08T16:44:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sgdt7t</id>
-    <title>My experience with the Intel Arc Pro B70 for local LLMs: Fast, but a complete mess (for now)</title>
-    <updated>2026-04-09T03:02:10+00:00</updated>
-    <author>
-      <name>/u/Icy_Gur6890</name>
-      <uri>https://old.reddit.com/user/Icy_Gur6890</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;full disclaimer using ai to help clean up my mess of thoughts. i have a tendency of not being coherent once i get many words out.&lt;/p&gt; &lt;p&gt;​TL;DR: Bought a B70 on launch day. Achieved an impressive 235 t/s with Gemma 3 27B on vLLM(100 requests), but the software stack is a nightmare. MoE is barely supported, quantifying new architectures is incredibly fragile, and you will fight the environment every step of the way. Definitely not for the faint of heart.&lt;/p&gt; &lt;p&gt;​Hey everyone,&lt;/p&gt; &lt;p&gt;​I ordered the Intel Arc Pro B70 on the 27th right when it released. I’ve previously wrestled with ROCm on my 7840HS, so my thought process was, &amp;quot;How much worse could it really be?&amp;quot; Turns out, it can be a complete mess.&lt;/p&gt; &lt;p&gt;​To be totally fair, I have to admit that a good chunk of my pain is entirely self-inflicted. I used this hardware upgrade as an excuse to completely overhaul my environment:&lt;/p&gt; &lt;p&gt;​OS: Moved from Ubuntu 25.10 (with a GUI) to Fedora 43 Server.&lt;/p&gt; &lt;p&gt;​Engine: Transitioned from Ollama -&amp;gt; llama.cpp -&amp;gt; vLLM. (Intel is heavily supporting vLLM, and I’m optimizing for request density, so this seemed like a no-brainer).&lt;/p&gt; &lt;p&gt;​Deployment: Moved everything over to containers and IaC.&lt;/p&gt; &lt;p&gt;​I figured going the container/IaC route would make things more stable and repeatable. I’ve even been cheating my way through some of it by utilizing Claude Code to help build out my containers. But at every turn, running new models has been a massive headache.&lt;/p&gt; &lt;p&gt;​The Good&lt;/p&gt; &lt;p&gt;​When it actually works, the throughput is fantastic. I was able to run a Gemma 3 27B Intel AutoRound quant. Running a vLLM benchmark, I managed to generate 235 t/s across 100 requests. For a local deployment prioritizing request density, those numbers are exactly what I was hoping for.&lt;/p&gt; &lt;p&gt;​The Bad &amp;amp; The Gotchas&lt;/p&gt; &lt;p&gt;​The ecosystem just isn't ready for a frictionless experience yet:&lt;/p&gt; &lt;p&gt;​MoE Support: Mixture of Experts models are still only partially supported and incredibly finicky.&lt;/p&gt; &lt;p&gt;​Quantization Nightmares: I'm currently trying to run a quant through AutoRound for Gemma 4 26B. I’ve watched it blow up at least 30 times. The new architecture and dynamic attention heads just do not play nicely with the current tooling.&lt;/p&gt; &lt;p&gt;​Container Friction: I've run into at least 7 distinct &amp;quot;gotchas&amp;quot; just trying to get the Intel drivers and vLLM to play nicely inside containerized environments.&lt;/p&gt; &lt;p&gt;​I haven't even tried spinning up llama.cpp on this card yet, but based on the vLLM experience, I'm bracing myself.&lt;/p&gt; &lt;p&gt;​Final Thoughts&lt;/p&gt; &lt;p&gt;​My background is as a Cloud Engineer. I’ve spent a lot of time hosting SaaS apps across Windows and Linux environments, so while I'm not a pure developer, I am very comfortable with dev-adjacent workflows and troubleshooting infrastructure. Even with that background, getting this B70 to do what I want has been an uphill battle.&lt;/p&gt; &lt;p&gt;​If you are looking for a plug-and-play experience, stay far away. But if you have the patience to fight the stack, the raw performance metrics are definitely there hiding under the bugs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gur6890"&gt; /u/Icy_Gur6890 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:02:10+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sg8r4l</id>
     <title>Gemma 4 seems to work best with high temperature for coding</title>
     <updated>2026-04-08T23:14:55+00:00</updated>
@@ -84,6 +71,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg8r4l/gemma_4_seems_to_work_best_with_high_temperature/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T23:14:55+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sgdt7t</id>
+    <title>My experience with the Intel Arc Pro B70 for local LLMs: Fast, but a complete mess (for now)</title>
+    <updated>2026-04-09T03:02:10+00:00</updated>
+    <author>
+      <name>/u/Icy_Gur6890</name>
+      <uri>https://old.reddit.com/user/Icy_Gur6890</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;full disclaimer using ai to help clean up my mess of thoughts. i have a tendency of not being coherent once i get many words out.&lt;/p&gt; &lt;p&gt;​TL;DR: Bought a B70 on launch day. Achieved an impressive 235 t/s with Gemma 3 27B on vLLM(100 requests), but the software stack is a nightmare. MoE is barely supported, quantifying new architectures is incredibly fragile, and you will fight the environment every step of the way. Definitely not for the faint of heart.&lt;/p&gt; &lt;p&gt;​Hey everyone,&lt;/p&gt; &lt;p&gt;​I ordered the Intel Arc Pro B70 on the 27th right when it released. I’ve previously wrestled with ROCm on my 7840HS, so my thought process was, &amp;quot;How much worse could it really be?&amp;quot; Turns out, it can be a complete mess.&lt;/p&gt; &lt;p&gt;​To be totally fair, I have to admit that a good chunk of my pain is entirely self-inflicted. I used this hardware upgrade as an excuse to completely overhaul my environment:&lt;/p&gt; &lt;p&gt;​OS: Moved from Ubuntu 25.10 (with a GUI) to Fedora 43 Server.&lt;/p&gt; &lt;p&gt;​Engine: Transitioned from Ollama -&amp;gt; llama.cpp -&amp;gt; vLLM. (Intel is heavily supporting vLLM, and I’m optimizing for request density, so this seemed like a no-brainer).&lt;/p&gt; &lt;p&gt;​Deployment: Moved everything over to containers and IaC.&lt;/p&gt; &lt;p&gt;​I figured going the container/IaC route would make things more stable and repeatable. I’ve even been cheating my way through some of it by utilizing Claude Code to help build out my containers. But at every turn, running new models has been a massive headache.&lt;/p&gt; &lt;p&gt;​The Good&lt;/p&gt; &lt;p&gt;​When it actually works, the throughput is fantastic. I was able to run a Gemma 3 27B Intel AutoRound quant. Running a vLLM benchmark, I managed to generate 235 t/s across 100 requests. For a local deployment prioritizing request density, those numbers are exactly what I was hoping for.&lt;/p&gt; &lt;p&gt;​The Bad &amp;amp; The Gotchas&lt;/p&gt; &lt;p&gt;​The ecosystem just isn't ready for a frictionless experience yet:&lt;/p&gt; &lt;p&gt;​MoE Support: Mixture of Experts models are still only partially supported and incredibly finicky.&lt;/p&gt; &lt;p&gt;​Quantization Nightmares: I'm currently trying to run a quant through AutoRound for Gemma 4 26B. I’ve watched it blow up at least 30 times. The new architecture and dynamic attention heads just do not play nicely with the current tooling.&lt;/p&gt; &lt;p&gt;​Container Friction: I've run into at least 7 distinct &amp;quot;gotchas&amp;quot; just trying to get the Intel drivers and vLLM to play nicely inside containerized environments.&lt;/p&gt; &lt;p&gt;​I haven't even tried spinning up llama.cpp on this card yet, but based on the vLLM experience, I'm bracing myself.&lt;/p&gt; &lt;p&gt;​Final Thoughts&lt;/p&gt; &lt;p&gt;​My background is as a Cloud Engineer. I’ve spent a lot of time hosting SaaS apps across Windows and Linux environments, so while I'm not a pure developer, I am very comfortable with dev-adjacent workflows and troubleshooting infrastructure. Even with that background, getting this B70 to do what I want has been an uphill battle.&lt;/p&gt; &lt;p&gt;​If you are looking for a plug-and-play experience, stay far away. But if you have the patience to fight the stack, the raw performance metrics are definitely there hiding under the bugs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gur6890"&gt; /u/Icy_Gur6890 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T03:02:10+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfxs7f</id>
@@ -99,6 +99,19 @@
     <published>2026-04-08T16:27:06+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sge96n</id>
+    <title>I think my Gemma4 is having a breakdown</title>
+    <updated>2026-04-09T03:22:48+00:00</updated>
+    <author>
+      <name>/u/MrSilencerbob</name>
+      <uri>https://old.reddit.com/user/MrSilencerbob</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"&gt; &lt;img alt="I think my Gemma4 is having a breakdown" src="https://preview.redd.it/91penx7i23ug1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=300d4d27afbbe8c48e9c24eb265abda88ff55c66" title="I think my Gemma4 is having a breakdown" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrSilencerbob"&gt; /u/MrSilencerbob &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/91penx7i23ug1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sge96n/i_think_my_gemma4_is_having_a_breakdown/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T03:22:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sg37af</id>
     <title>pi.dev coding agent is moving to Earendil</title>
     <updated>2026-04-08T19:39:43+00:00</updated>
@@ -112,19 +125,6 @@
     <published>2026-04-08T19:39:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sg9kax</id>
-    <title>Why do companies build open source models?</title>
-    <updated>2026-04-08T23:50:00+00:00</updated>
-    <author>
-      <name>/u/Excellent_Koala769</name>
-      <uri>https://old.reddit.com/user/Excellent_Koala769</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, &lt;/p&gt; &lt;p&gt;Why do companies create open source models? They must allocate lots of resources toward this, but for what profit? If anything, doesn't it just take users off of using their paid for/proprietary models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Koala769"&gt; /u/Excellent_Koala769 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T23:50:00+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sfwauj</id>
     <title>Qwen3.5-35B-A3B-Uncensored-FernflowerAI-GGUF</title>
     <updated>2026-04-08T15:34:22+00:00</updated>
@@ -136,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sfwauj/qwen3535ba3buncensoredfernfloweraigguf/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T15:34:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sg9kax</id>
+    <title>Why do companies build open source models?</title>
+    <updated>2026-04-08T23:50:00+00:00</updated>
+    <author>
+      <name>/u/Excellent_Koala769</name>
+      <uri>https://old.reddit.com/user/Excellent_Koala769</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, &lt;/p&gt; &lt;p&gt;Why do companies create open source models? They must allocate lots of resources toward this, but for what profit? If anything, doesn't it just take users off of using their paid for/proprietary models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Koala769"&gt; /u/Excellent_Koala769 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg9kax/why_do_companies_build_open_source_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-08T23:50:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg91vd</id>
@@ -175,19 +188,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg89kl/new_tts_model_voxcpm2/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T22:54:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sgex6u</id>
-    <title>New Model! LGAI-EXAONE/EXAONE-4.5-33B</title>
-    <updated>2026-04-09T03:55:27+00:00</updated>
-    <author>
-      <name>/u/KvAk_AKPlaysYT</name>
-      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"&gt; &lt;img alt="New Model! LGAI-EXAONE/EXAONE-4.5-33B" src="https://external-preview.redd.it/7qLtkiyUVlAOxDRKIh7WLp9_UJt0Vz6xd8oXWk6JVCs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a259a74ef71f279a4cb4475a94cb3f94c5bf82e6" title="New Model! LGAI-EXAONE/EXAONE-4.5-33B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/LGAI-EXAONE/EXAONE-4.5-33B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:55:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfv6t5</id>
@@ -242,6 +242,19 @@
     <published>2026-04-08T12:43:36+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sgex6u</id>
+    <title>New Model! LGAI-EXAONE/EXAONE-4.5-33B</title>
+    <updated>2026-04-09T03:55:27+00:00</updated>
+    <author>
+      <name>/u/KvAk_AKPlaysYT</name>
+      <uri>https://old.reddit.com/user/KvAk_AKPlaysYT</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"&gt; &lt;img alt="New Model! LGAI-EXAONE/EXAONE-4.5-33B" src="https://external-preview.redd.it/7qLtkiyUVlAOxDRKIh7WLp9_UJt0Vz6xd8oXWk6JVCs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a259a74ef71f279a4cb4475a94cb3f94c5bf82e6" title="New Model! LGAI-EXAONE/EXAONE-4.5-33B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/KvAk_AKPlaysYT"&gt; /u/KvAk_AKPlaysYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/LGAI-EXAONE/EXAONE-4.5-33B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgex6u/new_model_lgaiexaoneexaone4533b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T03:55:27+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sfzdrv</id>
     <title>Meta has not given up on open-source</title>
     <updated>2026-04-08T17:23:00+00:00</updated>
@@ -266,19 +279,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgc8ir/exaone_45_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-09T01:49:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sge93l</id>
-    <title>Nothing ever happens</title>
-    <updated>2026-04-09T03:22:42+00:00</updated>
-    <author>
-      <name>/u/GWGSYT</name>
-      <uri>https://old.reddit.com/user/GWGSYT</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge93l/nothing_ever_happens/"&gt; &lt;img alt="Nothing ever happens" src="https://preview.redd.it/vtucghpb13ug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e6ad80940c83750ebf730da85016f36b7572b8b9" title="Nothing ever happens" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Unpopular opinion: Claude Mythos isn't doing magic. Drop GPT 5.2 Codex or Kimi 2.5 into a good enough agentic loop with full source code access, and they'll flag 20 critical bugs while you're getting coffee. Calling it 'too dangerous to release' is just a great cover story for 'too expensive to run.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GWGSYT"&gt; /u/GWGSYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vtucghpb13ug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sge93l/nothing_ever_happens/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sge93l/nothing_ever_happens/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:22:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg2686</id>
