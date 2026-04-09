@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-09T13:57:55+00:00</updated>
+  <updated>2026-04-09T14:43:39+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sfv6t5</id>
-    <title>HF moves safetensors to the PyTorch Foundation</title>
-    <updated>2026-04-08T14:55:01+00:00</updated>
-    <author>
-      <name>/u/jikkii</name>
-      <uri>https://old.reddit.com/user/jikkii</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey local llamas, Lysandre from Hugging Face here. &lt;/p&gt; &lt;p&gt;Today we're officially moving Safetensors under the PyTorch Foundation, alongside PyTorch (of course), vLLM, DeepSpeed, Ray, and the recently-announced Helion. Concretely this means the trademark and repo are now held by the Linux Foundation rather than Hugging Face: neutral stewardship and open governance. &lt;/p&gt; &lt;p&gt;For local inference nothing changes today. Its the same format, same APIs, same Hub compatibility; we're working with the PyTorch team directly to see how to best integrate within PyTorch core. &lt;/p&gt; &lt;p&gt;What this unlocks is the ability to work more openly with the broader ecosystem on some further optimizations; more than a file format, there are some good opportunities for speedups across the board within the python/pytorch ecosystem: device-aware loading on different accelerators, tp/pp optimized loading, and of course new quantization/data types support. &lt;/p&gt; &lt;p&gt;We're currently refining our roadmap for the next few months/years and we'd be happy to work on it with you. Happy to answer questions about any of this, or the governance side. &lt;/p&gt; &lt;p&gt;PS: we wrote a blogpost here which has a few more details: &lt;a href="https://huggingface.co/blog/safetensors-joins-pytorch-foundation"&gt;https://huggingface.co/blog/safetensors-joins-pytorch-foundation&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jikkii"&gt; /u/jikkii &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sfv6t5/hf_moves_safetensors_to_the_pytorch_foundation/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sfv6t5/hf_moves_safetensors_to_the_pytorch_foundation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sfv6t5/hf_moves_safetensors_to_the_pytorch_foundation/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T14:55:01+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sg076h</id>
-    <title>I tracked a major cache reuse issue down to Qwen 3.5’s chat template</title>
-    <updated>2026-04-08T17:51:56+00:00</updated>
-    <author>
-      <name>/u/onil_gova</name>
-      <uri>https://old.reddit.com/user/onil_gova</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Over the last week, I’ve been investigating cache misses while optimizing local agent workflows on my M5 Max.&lt;/p&gt; &lt;p&gt;My setup used &lt;a href="http://oMLX.ai"&gt;oMLX.ai&lt;/a&gt; as a backend with agents like &lt;a href="http://OpenCode.ai"&gt;OpenCode.ai&lt;/a&gt; and &lt;a href="http://Pi.dev"&gt;Pi.dev&lt;/a&gt;, but I reproduced the same behavior with other backends like llama.cpp too. At first, I assumed this was an inference engine issue or a cache implementation bug.&lt;/p&gt; &lt;p&gt;What I kept seeing was frustrating:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;the model would read a large amount of context&lt;/li&gt; &lt;li&gt;it would make a chain of tool or function calls&lt;/li&gt; &lt;li&gt;I’d ask a simple follow-up question&lt;/li&gt; &lt;li&gt;and instead of reusing the prompt prefix, a large chunk of the conversation would get reprocessed from much earlier in the history&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In practice, a follow-up turn after a tool-heavy interaction could end up redoing tens of thousands of tokens for no good reason.&lt;/p&gt; &lt;p&gt;I first found a separate issue related to multimodal / first-image transitions, and I already have an &lt;a href="https://github.com/jundot/omlx/pull/637"&gt;oMLX PR&lt;/a&gt; for that.&lt;/p&gt; &lt;p&gt;But the bigger text-only issue turned out to be the Qwen3.5 chat template.&lt;/p&gt; &lt;p&gt;After tracing prompt fingerprints and comparing rendered prompts across requests, I found that the template was emitting empty historical `&lt;code&gt;&amp;lt;think&amp;gt;...&amp;lt;/think&amp;gt;&lt;/code&gt;` blocks for prior assistant turns even when there was no reasoning content. That caused equivalent conversation history to serialize differently across requests, especially after tool use.&lt;/p&gt; &lt;p&gt;The template itself was introducing unnecessary prompt drift.&lt;/p&gt; &lt;p&gt;That matters because prompt drift hurts prefix-cache reuse, which means extra token processing, more latency, and wasted compute.&lt;/p&gt; &lt;p&gt;The fix is really simple one-line change in the template:&lt;/p&gt; &lt;p&gt;from:&lt;/p&gt; &lt;p&gt;{&lt;code&gt;%- if loop.index0 &amp;gt; ns.last_query_index %}&lt;/code&gt;&lt;/p&gt; &lt;p&gt;to:&lt;/p&gt; &lt;p&gt;&lt;code&gt;{%- if loop.index0 &amp;gt; ns.last_query_index and reasoning_content %}&lt;/code&gt;&lt;/p&gt; &lt;p&gt;If you’re serving Qwen3.5 locally and relying on prefix caching, this may be quietly costing you performance. If you’ve noticed long follow-up turns getting unexpectedly reprocessed after tool use, this may be the reason.&lt;/p&gt; &lt;p&gt;I reproduced this across different agents and backends. The common factor was the shipped template.&lt;/p&gt; &lt;p&gt;If you’re debugging cache misses on Qwen3.5, check the chat template before adding more cache-layer workarounds.&lt;/p&gt; &lt;p&gt;I’ve opened PRs on the official Qwen3.5 model repos. For example:&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/Qwen3.5-122B-A10B/discussions/22"&gt;https://huggingface.co/Qwen/Qwen3.5-122B-A10B/discussions/22&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you’ve seen similar behavior, help spread the word so this gets patched upstream.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; I traced a major cache reuse problem in Qwen 3.5 back to the shipped chat template, not the inference engine. The template emits empty historical `&amp;lt;think&amp;gt;...&amp;lt;/think&amp;gt;` blocks even when there is no reasoning content, which creates prompt drift, hurts prefix-cache reuse, and causes unnecessary reprocessing of large contexts after tool use. The fix is a one-line template change, and I’ve opened PRs on the official Qwen 3.5 model repos.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/onil_gova"&gt; /u/onil_gova &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg076h/i_tracked_a_major_cache_reuse_issue_down_to_qwen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sg076h/i_tracked_a_major_cache_reuse_issue_down_to_qwen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg076h/i_tracked_a_major_cache_reuse_issue_down_to_qwen/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-08T17:51:56+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sgp423</id>
-    <title>Have the GB10 devices become the current "best value" for LLMs?</title>
-    <updated>2026-04-09T13:07:01+00:00</updated>
-    <author>
-      <name>/u/DiscombobulatedAdmin</name>
-      <uri>https://old.reddit.com/user/DiscombobulatedAdmin</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want to buy some real hardware because I feel like I'm falling behind. 3090s are &amp;gt;$1000 on ebay, and building out the server would be very expensive with current memory and storage prices. Macs are backordered for the next 5 months. I have no idea on the status of AMD products or Intel, but I don't want to fight driver and compatibility issues on top of trying to get models and harnesses running.&lt;/p&gt; &lt;p&gt;Are the GB10 variants the best value if you want to buy now? Is it better to try to wait on the M5 releases in 2-4 months? That seems like forever in today's fast-moving environment.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DiscombobulatedAdmin"&gt; /u/DiscombobulatedAdmin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T13:07:01+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sg91vd</id>
     <title>What is Meta even doing right now?</title>
@@ -58,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sg91vd/what_is_meta_even_doing_right_now/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T23:27:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sgdt7t</id>
-    <title>My experience with the Intel Arc Pro B70 for local LLMs: Fast, but a complete mess (for now)</title>
-    <updated>2026-04-09T03:02:10+00:00</updated>
-    <author>
-      <name>/u/Icy_Gur6890</name>
-      <uri>https://old.reddit.com/user/Icy_Gur6890</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;full disclaimer using ai to help clean up my mess of thoughts. i have a tendency of not being coherent once i get many words out.&lt;/p&gt; &lt;p&gt;​TL;DR: Bought a B70 on launch day. Achieved an impressive 235 t/s with Gemma 3 27B on vLLM(100 requests), but the software stack is a nightmare. MoE is barely supported, quantifying new architectures is incredibly fragile, and you will fight the environment every step of the way. Definitely not for the faint of heart.&lt;/p&gt; &lt;p&gt;​Hey everyone,&lt;/p&gt; &lt;p&gt;​I ordered the Intel Arc Pro B70 on the 27th right when it released. I’ve previously wrestled with ROCm on my 7840HS, so my thought process was, &amp;quot;How much worse could it really be?&amp;quot; Turns out, it can be a complete mess.&lt;/p&gt; &lt;p&gt;​To be totally fair, I have to admit that a good chunk of my pain is entirely self-inflicted. I used this hardware upgrade as an excuse to completely overhaul my environment:&lt;/p&gt; &lt;p&gt;​OS: Moved from Ubuntu 25.10 (with a GUI) to Fedora 43 Server.&lt;/p&gt; &lt;p&gt;​Engine: Transitioned from Ollama -&amp;gt; llama.cpp -&amp;gt; vLLM. (Intel is heavily supporting vLLM, and I’m optimizing for request density, so this seemed like a no-brainer).&lt;/p&gt; &lt;p&gt;​Deployment: Moved everything over to containers and IaC.&lt;/p&gt; &lt;p&gt;​I figured going the container/IaC route would make things more stable and repeatable. I’ve even been cheating my way through some of it by utilizing Claude Code to help build out my containers. But at every turn, running new models has been a massive headache.&lt;/p&gt; &lt;p&gt;​The Good&lt;/p&gt; &lt;p&gt;​When it actually works, the throughput is fantastic. I was able to run a Gemma 3 27B Intel AutoRound quant. Running a vLLM benchmark, I managed to generate 235 t/s across 100 requests. For a local deployment prioritizing request density, those numbers are exactly what I was hoping for.&lt;/p&gt; &lt;p&gt;​The Bad &amp;amp; The Gotchas&lt;/p&gt; &lt;p&gt;​The ecosystem just isn't ready for a frictionless experience yet:&lt;/p&gt; &lt;p&gt;​MoE Support: Mixture of Experts models are still only partially supported and incredibly finicky.&lt;/p&gt; &lt;p&gt;​Quantization Nightmares: I'm currently trying to run a quant through AutoRound for Gemma 4 26B. I’ve watched it blow up at least 30 times. The new architecture and dynamic attention heads just do not play nicely with the current tooling.&lt;/p&gt; &lt;p&gt;​Container Friction: I've run into at least 7 distinct &amp;quot;gotchas&amp;quot; just trying to get the Intel drivers and vLLM to play nicely inside containerized environments.&lt;/p&gt; &lt;p&gt;​I haven't even tried spinning up llama.cpp on this card yet, but based on the vLLM experience, I'm bracing myself.&lt;/p&gt; &lt;p&gt;​Final Thoughts&lt;/p&gt; &lt;p&gt;​My background is as a Cloud Engineer. I’ve spent a lot of time hosting SaaS apps across Windows and Linux environments, so while I'm not a pure developer, I am very comfortable with dev-adjacent workflows and troubleshooting infrastructure. Even with that background, getting this B70 to do what I want has been an uphill battle.&lt;/p&gt; &lt;p&gt;​If you are looking for a plug-and-play experience, stay far away. But if you have the patience to fight the stack, the raw performance metrics are definitely there hiding under the bugs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gur6890"&gt; /u/Icy_Gur6890 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T03:02:10+00:00</published>
   </entry>
   <entry>
     <id>t3_1sfxlpj</id>
@@ -86,30 +34,30 @@
     <published>2026-04-08T16:20:48+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sgq19k</id>
-    <title>Gemma4 8B model shows up on ollama as gemma4:latest?</title>
-    <updated>2026-04-09T13:44:08+00:00</updated>
+    <id>t3_1sglu08</id>
+    <title>We just shipped Gemma 4 support in Off Grid 🔥- open-source mobile app, on-device inference, zero cloud. Android live, iOS coming soon.</title>
+    <updated>2026-04-09T10:30:47+00:00</updated>
     <author>
-      <name>/u/k_means_clusterfuck</name>
-      <uri>https://old.reddit.com/user/k_means_clusterfuck</uri>
+      <name>/u/CamusCave</name>
+      <uri>https://old.reddit.com/user/CamusCave</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"&gt; &lt;img alt="Gemma4 8B model shows up on ollama as gemma4:latest?" src="https://preview.redd.it/wqju7q1d56ug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=751ba6bd3d7562018a2d4a5e1065176411d98523" title="Gemma4 8B model shows up on ollama as gemma4:latest?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://ollama.com/library/gemma4:latest"&gt;https://ollama.com/library/gemma4:latest&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Is this a new model or just an error?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/k_means_clusterfuck"&gt; /u/k_means_clusterfuck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/wqju7q1d56ug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;We shipped Gemma 4 (E2B and E4B edge variants) in Off Grid today — our open-source, offline-first AI app for Android and iOS. What makes this different from other local LLM setups: → No server, no Python, no laptop. Runs entirely on your phone's NPU/CPU. → Gemma 4's 128K context window, fully on-device — finally useful for long docs and code on mobile. → Native vision: point your camera at anything and ask Gemma 4 about it. → Whisper speech-to-text, Stable Diffusion image gen, tool calling — all in one app. → ~15–30 tok/s on Snapdragon 8 Gen 3 / Apple A17 Pro. → Apache 2.0 model, MIT app — genuinely open all the way down. Gemma 4's E2B variant running in under 1.5GB RAM on a phone is honestly wild. The E4B with 128K context + vision is what we've been waiting for. Android (live now): https://play.google.com/store/apps/details?id=ai.offgridmobile iOS: coming soon GitHub (MIT): https://github.com/alichherawalla/off-grid-mobile-ai Would love to hear tok/s numbers people are seeing across different devices. Drop them below. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CamusCave"&gt; /u/CamusCave &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglu08/we_just_shipped_gemma_4_support_in_off_grid/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglu08/we_just_shipped_gemma_4_support_in_off_grid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sglu08/we_just_shipped_gemma_4_support_in_off_grid/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T13:44:08+00:00</published>
+    <published>2026-04-09T10:30:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sgq6h9</id>
-    <title>Hugging Face launches a new repo type: Kernels</title>
-    <updated>2026-04-09T13:49:48+00:00</updated>
+    <id>t3_1sgdt7t</id>
+    <title>My experience with the Intel Arc Pro B70 for local LLMs: Fast, but a complete mess (for now)</title>
+    <updated>2026-04-09T03:02:10+00:00</updated>
     <author>
-      <name>/u/clem59480</name>
-      <uri>https://old.reddit.com/user/clem59480</uri>
+      <name>/u/Icy_Gur6890</name>
+      <uri>https://old.reddit.com/user/Icy_Gur6890</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"&gt; &lt;img alt="Hugging Face launches a new repo type: Kernels" src="https://preview.redd.it/hvxhmmza66ug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f15aba3b0c5befb433552006e635f270410656cd" title="Hugging Face launches a new repo type: Kernels" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/clem59480"&gt; /u/clem59480 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hvxhmmza66ug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;full disclaimer using ai to help clean up my mess of thoughts. i have a tendency of not being coherent once i get many words out.&lt;/p&gt; &lt;p&gt;​TL;DR: Bought a B70 on launch day. Achieved an impressive 235 t/s with Gemma 3 27B on vLLM(100 requests), but the software stack is a nightmare. MoE is barely supported, quantifying new architectures is incredibly fragile, and you will fight the environment every step of the way. Definitely not for the faint of heart.&lt;/p&gt; &lt;p&gt;​Hey everyone,&lt;/p&gt; &lt;p&gt;​I ordered the Intel Arc Pro B70 on the 27th right when it released. I’ve previously wrestled with ROCm on my 7840HS, so my thought process was, &amp;quot;How much worse could it really be?&amp;quot; Turns out, it can be a complete mess.&lt;/p&gt; &lt;p&gt;​To be totally fair, I have to admit that a good chunk of my pain is entirely self-inflicted. I used this hardware upgrade as an excuse to completely overhaul my environment:&lt;/p&gt; &lt;p&gt;​OS: Moved from Ubuntu 25.10 (with a GUI) to Fedora 43 Server.&lt;/p&gt; &lt;p&gt;​Engine: Transitioned from Ollama -&amp;gt; llama.cpp -&amp;gt; vLLM. (Intel is heavily supporting vLLM, and I’m optimizing for request density, so this seemed like a no-brainer).&lt;/p&gt; &lt;p&gt;​Deployment: Moved everything over to containers and IaC.&lt;/p&gt; &lt;p&gt;​I figured going the container/IaC route would make things more stable and repeatable. I’ve even been cheating my way through some of it by utilizing Claude Code to help build out my containers. But at every turn, running new models has been a massive headache.&lt;/p&gt; &lt;p&gt;​The Good&lt;/p&gt; &lt;p&gt;​When it actually works, the throughput is fantastic. I was able to run a Gemma 3 27B Intel AutoRound quant. Running a vLLM benchmark, I managed to generate 235 t/s across 100 requests. For a local deployment prioritizing request density, those numbers are exactly what I was hoping for.&lt;/p&gt; &lt;p&gt;​The Bad &amp;amp; The Gotchas&lt;/p&gt; &lt;p&gt;​The ecosystem just isn't ready for a frictionless experience yet:&lt;/p&gt; &lt;p&gt;​MoE Support: Mixture of Experts models are still only partially supported and incredibly finicky.&lt;/p&gt; &lt;p&gt;​Quantization Nightmares: I'm currently trying to run a quant through AutoRound for Gemma 4 26B. I’ve watched it blow up at least 30 times. The new architecture and dynamic attention heads just do not play nicely with the current tooling.&lt;/p&gt; &lt;p&gt;​Container Friction: I've run into at least 7 distinct &amp;quot;gotchas&amp;quot; just trying to get the Intel drivers and vLLM to play nicely inside containerized environments.&lt;/p&gt; &lt;p&gt;​I haven't even tried spinning up llama.cpp on this card yet, but based on the vLLM experience, I'm bracing myself.&lt;/p&gt; &lt;p&gt;​Final Thoughts&lt;/p&gt; &lt;p&gt;​My background is as a Cloud Engineer. I’ve spent a lot of time hosting SaaS apps across Windows and Linux environments, so while I'm not a pure developer, I am very comfortable with dev-adjacent workflows and troubleshooting infrastructure. Even with that background, getting this B70 to do what I want has been an uphill battle.&lt;/p&gt; &lt;p&gt;​If you are looking for a plug-and-play experience, stay far away. But if you have the patience to fight the stack, the raw performance metrics are definitely there hiding under the bugs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Icy_Gur6890"&gt; /u/Icy_Gur6890 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgdt7t/my_experience_with_the_intel_arc_pro_b70_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T13:49:48+00:00</published>
+    <published>2026-04-09T03:02:10+00:00</published>
   </entry>
   <entry>
     <id>t3_1sge96n</id>
@@ -125,6 +73,19 @@
     <published>2026-04-09T03:22:48+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sgp423</id>
+    <title>Have the GB10 devices become the current "best value" for LLMs?</title>
+    <updated>2026-04-09T13:07:01+00:00</updated>
+    <author>
+      <name>/u/DiscombobulatedAdmin</name>
+      <uri>https://old.reddit.com/user/DiscombobulatedAdmin</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I want to buy some real hardware because I feel like I'm falling behind. 3090s are &amp;gt;$1000 on ebay, and building out the server would be very expensive with current memory and storage prices. Macs are backordered for the next 5 months. I have no idea on the status of AMD products or Intel, but I don't want to fight driver and compatibility issues on top of trying to get models and harnesses running.&lt;/p&gt; &lt;p&gt;Are the GB10 variants the best value if you want to buy now? Is it better to try to wait on the M5 releases in 2-4 months? That seems like forever in today's fast-moving environment.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DiscombobulatedAdmin"&gt; /u/DiscombobulatedAdmin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgp423/have_the_gb10_devices_become_the_current_best/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T13:07:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sfrrgz</id>
     <title>It looks like we’ll need to download the new Gemma 4 GGUFs</title>
     <updated>2026-04-08T12:43:36+00:00</updated>
@@ -136,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sfrrgz/it_looks_like_well_need_to_download_the_new_gemma/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-08T12:43:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sgrfp1</id>
+    <title>Local (small) LLMs found the same vulnerabilities as Mythos</title>
+    <updated>2026-04-09T14:36:58+00:00</updated>
+    <author>
+      <name>/u/CyberAttacked</name>
+      <uri>https://old.reddit.com/user/CyberAttacked</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgrfp1/local_small_llms_found_the_same_vulnerabilities/"&gt; &lt;img alt="Local (small) LLMs found the same vulnerabilities as Mythos" src="https://external-preview.redd.it/Q1drIgNVQBK_HtgTE1ZevLY80454Se_TSMLVZl1XnTw.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=192dc549fabb133f4bda30ee868a7bea626b012b" title="Local (small) LLMs found the same vulnerabilities as Mythos" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CyberAttacked"&gt; /u/CyberAttacked &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://aisle.com/blog/ai-cybersecurity-after-mythos-the-jagged-frontier"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgrfp1/local_small_llms_found_the_same_vulnerabilities/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgrfp1/local_small_llms_found_the_same_vulnerabilities/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T14:36:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg29tl</id>
@@ -190,6 +164,19 @@
     <published>2026-04-08T22:54:24+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sgq19k</id>
+    <title>Gemma4 8B model shows up on ollama as gemma4:latest?</title>
+    <updated>2026-04-09T13:44:08+00:00</updated>
+    <author>
+      <name>/u/k_means_clusterfuck</name>
+      <uri>https://old.reddit.com/user/k_means_clusterfuck</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"&gt; &lt;img alt="Gemma4 8B model shows up on ollama as gemma4:latest?" src="https://preview.redd.it/wqju7q1d56ug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=751ba6bd3d7562018a2d4a5e1065176411d98523" title="Gemma4 8B model shows up on ollama as gemma4:latest?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://ollama.com/library/gemma4:latest"&gt;https://ollama.com/library/gemma4:latest&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Is this a new model or just an error?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/k_means_clusterfuck"&gt; /u/k_means_clusterfuck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/wqju7q1d56ug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq19k/gemma4_8b_model_shows_up_on_ollama_as_gemma4latest/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T13:44:08+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sfzdrv</id>
     <title>Meta has not given up on open-source</title>
     <updated>2026-04-08T17:23:00+00:00</updated>
@@ -216,19 +203,6 @@
     <published>2026-04-09T03:55:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sglde2</id>
-    <title>ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp</title>
-    <updated>2026-04-09T10:04:27+00:00</updated>
-    <author>
-      <name>/u/FullstackSensei</name>
-      <uri>https://old.reddit.com/user/FullstackSensei</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt; &lt;img alt="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" src="https://external-preview.redd.it/oDV6qKfCBLpY0OqDyYRfdqrXne-7zS4he2ILipJ1HCs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c799756491207221c063deefcd70d75fcb1026f0" title="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Greganov approved the tensor parallelism PR!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullstackSensei"&gt; /u/FullstackSensei &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/19378#pullrequestreview-4080561077"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T10:04:27+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sgc8ir</id>
     <title>EXAONE 4.5 released</title>
     <updated>2026-04-09T01:49:46+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgc8ir/exaone_45_released/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-09T01:49:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sglde2</id>
+    <title>ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp</title>
+    <updated>2026-04-09T10:04:27+00:00</updated>
+    <author>
+      <name>/u/FullstackSensei</name>
+      <uri>https://old.reddit.com/user/FullstackSensei</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt; &lt;img alt="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" src="https://external-preview.redd.it/oDV6qKfCBLpY0OqDyYRfdqrXne-7zS4he2ILipJ1HCs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c799756491207221c063deefcd70d75fcb1026f0" title="ggml: backend-agnostic tensor parallelism by JohannesGaessler · Pull Request #19378 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Greganov approved the tensor parallelism PR!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullstackSensei"&gt; /u/FullstackSensei &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/19378#pullrequestreview-4080561077"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sglde2/ggml_backendagnostic_tensor_parallelism_by/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T10:04:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1sg2686</id>
@@ -281,17 +268,17 @@
     <published>2026-04-08T13:54:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sgoy17</id>
-    <title>The Mythos Preview "Safety" Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this.</title>
-    <updated>2026-04-09T13:00:17+00:00</updated>
+    <id>t3_1sgq6h9</id>
+    <title>Hugging Face launches a new repo type: Kernels</title>
+    <updated>2026-04-09T13:49:48+00:00</updated>
     <author>
-      <name>/u/GWGSYT</name>
-      <uri>https://old.reddit.com/user/GWGSYT</uri>
+      <name>/u/clem59480</name>
+      <uri>https://old.reddit.com/user/clem59480</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"&gt; &lt;img alt="The Mythos Preview &amp;quot;Safety&amp;quot; Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this." src="https://preview.redd.it/67o8l7uat5ug1.png?width=140&amp;amp;height=122&amp;amp;auto=webp&amp;amp;s=12f0c53e691cce7fda0b6610a1335631b249f10a" title="The Mythos Preview &amp;quot;Safety&amp;quot; Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;To save you from digging through their 244-page system card, I highly recommend checking out this video breakdown [Link:&lt;a href="https://www.youtube.com/watch?v=PQsDXTPyxUg"&gt;https://www.youtube.com/watch?v=PQsDXTPyxUg&lt;/a&gt;]—it perfectly breaks down why the &amp;quot;safety risk&amp;quot; excuse in my meme above is really just about astronomical compute costs.&lt;/p&gt; &lt;p&gt;Anthropic is heavily pushing the narrative that Claude Mythos Preview is a god-tier model that is simply &amp;quot;too dangerous&amp;quot; to release because it can find zero-days in OpenBSD. But if you swipe to the second image (page 21 of their system doc), the illusion falls apart.&lt;/p&gt; &lt;p&gt;They didn't just ask Mythos a question. They used uncensored checkpoints, stripped the guardrails, gave it extended thinking time, strapped it to domain-specific tools, and brute-forced it thousands of times at a massive compute cost (reportedly ~$50 per run). The single-shot probability of it finding a bug is likely fractions of a percent.&lt;/p&gt; &lt;p&gt;This isn't a &amp;quot;dangerous&amp;quot; model; it's just an unscalable API cost wrapped in a PR campaign. We are already seeing this exact same agentic scaling in the open-source and local communities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GLM-5.1:&lt;/strong&gt; Z.ai’s latest open model is already pulling off 600+ iteration optimization loops locally via OpenClaw. It doesn't quit; it just keeps grinding.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Kimi 2.5:&lt;/strong&gt; Moonshot’s MoE model literally has an &amp;quot;agent swarm&amp;quot; mode that spins up 100 helper agents executing 1,500 parallel tool calls.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Even in the closed-source space, if you drop OpenAI's GPT-5.4 into the Codex app on the xhigh reasoning tier and let it run autonomously for 8+ hours with full codebase access, it is going to brute-force its way to 20 critical bugs while you sleep.&lt;/p&gt; &lt;p&gt;Finding zero-days in 2026 is a factor of agentic tooling and massive compute budgets, not a magical leap in raw model intelligence. Don't let Anthropic's &amp;quot;extinction-level threat&amp;quot; marketing convince you that the open-source community is falling behind.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GWGSYT"&gt; /u/GWGSYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1sgoy17"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"&gt; &lt;img alt="Hugging Face launches a new repo type: Kernels" src="https://preview.redd.it/hvxhmmza66ug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f15aba3b0c5befb433552006e635f270410656cd" title="Hugging Face launches a new repo type: Kernels" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/clem59480"&gt; /u/clem59480 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hvxhmmza66ug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgq6h9/hugging_face_launches_a_new_repo_type_kernels/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-09T13:00:17+00:00</published>
+    <published>2026-04-09T13:49:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1sgd7fp</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgd7fp/its_insane_how_lobotomized_opus_46_is_right_now/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-09T02:34:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sgoy17</id>
+    <title>The Mythos Preview "Safety" Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this.</title>
+    <updated>2026-04-09T13:00:17+00:00</updated>
+    <author>
+      <name>/u/GWGSYT</name>
+      <uri>https://old.reddit.com/user/GWGSYT</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"&gt; &lt;img alt="The Mythos Preview &amp;quot;Safety&amp;quot; Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this." src="https://preview.redd.it/67o8l7uat5ug1.png?width=140&amp;amp;height=122&amp;amp;auto=webp&amp;amp;s=12f0c53e691cce7fda0b6610a1335631b249f10a" title="The Mythos Preview &amp;quot;Safety&amp;quot; Gaslight: Anthropic is just hiding insane compute costs. Open models are already doing this." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;To save you from digging through their 244-page system card, I highly recommend checking out this video breakdown [Link:&lt;a href="https://www.youtube.com/watch?v=PQsDXTPyxUg"&gt;https://www.youtube.com/watch?v=PQsDXTPyxUg&lt;/a&gt;]—it perfectly breaks down why the &amp;quot;safety risk&amp;quot; excuse in my meme above is really just about astronomical compute costs.&lt;/p&gt; &lt;p&gt;Anthropic is heavily pushing the narrative that Claude Mythos Preview is a god-tier model that is simply &amp;quot;too dangerous&amp;quot; to release because it can find zero-days in OpenBSD. But if you swipe to the second image (page 21 of their system doc), the illusion falls apart.&lt;/p&gt; &lt;p&gt;They didn't just ask Mythos a question. They used uncensored checkpoints, stripped the guardrails, gave it extended thinking time, strapped it to domain-specific tools, and brute-forced it thousands of times at a massive compute cost (reportedly ~$50 per run). The single-shot probability of it finding a bug is likely fractions of a percent.&lt;/p&gt; &lt;p&gt;This isn't a &amp;quot;dangerous&amp;quot; model; it's just an unscalable API cost wrapped in a PR campaign. We are already seeing this exact same agentic scaling in the open-source and local communities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GLM-5.1:&lt;/strong&gt; Z.ai’s latest open model is already pulling off 600+ iteration optimization loops locally via OpenClaw. It doesn't quit; it just keeps grinding.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Kimi 2.5:&lt;/strong&gt; Moonshot’s MoE model literally has an &amp;quot;agent swarm&amp;quot; mode that spins up 100 helper agents executing 1,500 parallel tool calls.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Even in the closed-source space, if you drop OpenAI's GPT-5.4 into the Codex app on the xhigh reasoning tier and let it run autonomously for 8+ hours with full codebase access, it is going to brute-force its way to 20 critical bugs while you sleep.&lt;/p&gt; &lt;p&gt;Finding zero-days in 2026 is a factor of agentic tooling and massive compute budgets, not a magical leap in raw model intelligence. Don't let Anthropic's &amp;quot;extinction-level threat&amp;quot; marketing convince you that the open-source community is falling behind.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GWGSYT"&gt; /u/GWGSYT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1sgoy17"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sgoy17/the_mythos_preview_safety_gaslight_anthropic_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-09T13:00:17+00:00</published>
   </entry>
   <entry>
     <id>t3_1sgl3qz</id>
