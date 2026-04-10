@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-04-10T18:24:07+00:00</updated>
+  <updated>2026-04-10T18:48:39+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1sh98em</id>
-    <title>I built a benchmark for MCP tool use and the most important fix wasn't the math. It was the error messages.</title>
-    <updated>2026-04-10T01:56:44+00:00</updated>
-    <author>
-      <name>/u/Fresh_Quit390</name>
-      <uri>https://old.reddit.com/user/Fresh_Quit390</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm building Euclid, a set of deterministic computation tools exposed via MCP (Model Context Protocol) for AI agents. Think: calculate, convert, statistics, datetime, finance, geo, color, regex, validate. 10 domains, all backed by battle-tested libraries.&lt;/p&gt; &lt;p&gt;To prove the tools actually help, I built EuclidBench. 240 problems across all 10 domains, including 80 multi-tool chain problems. Every ground truth answer is verified by running it through Euclid itself. Three scenarios: raw LLM (no tools), provider tools (code_interpreter), and Euclid MCP.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The results on gpt-5.4-nano:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Scenario&lt;/th&gt; &lt;th align="left"&gt;Accuracy&lt;/th&gt; &lt;th align="left"&gt;Errors&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Raw LLM&lt;/td&gt; &lt;td align="left"&gt;37.9%&lt;/td&gt; &lt;td align="left"&gt;149/240&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Provider tools&lt;/td&gt; &lt;td align="left"&gt;56.7%&lt;/td&gt; &lt;td align="left"&gt;104/240&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Euclid MCP&lt;/td&gt; &lt;td align="left"&gt;74.2%&lt;/td&gt; &lt;td align="left"&gt;62/240&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Some domains were more interesting than others:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;calculate&lt;/strong&gt;: Raw 89.5% → Euclid 100% (nano is decent at basic arithmetic, but Euclid eliminates the remaining errors)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;statistics&lt;/strong&gt;: Raw 28.6% → Provider 90.5% → Euclid 100% (provider tools help a lot here too, but Euclid gets the last 10%)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;finance&lt;/strong&gt;: Raw 4.8% → Provider 38.1% → Euclid 76.2% (LLMs are terrible at compound interest and amortization)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;datetime&lt;/strong&gt;: Raw 13.3% → Provider 40% → Euclid 60% (date arithmetic is genuinely hard: business days, leap years, edge cases)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;chain problems&lt;/strong&gt; (multi-tool): Raw 20% → Provider 35% → Euclid 56.2% (orchestrating multiple tool calls is where everyone struggles)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;The most important finding:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;When I first ran the full 240-problem dataset with &lt;a href="https://www.euclidtools.com/"&gt;Euclid&lt;/a&gt;, accuracy was 0%. Not a single correct answer. The model wasn't even making tool calls.&lt;/p&gt; &lt;p&gt;The problem: gpt-5.4-nano sends ALL schema parameters to every operation. Call &lt;code&gt;base64_encode&lt;/code&gt;? It also sends &lt;code&gt;output_encoding&lt;/code&gt;, &lt;code&gt;key&lt;/code&gt;, and &lt;code&gt;algorithm&lt;/code&gt;. Call regex &lt;code&gt;test&lt;/code&gt;? It sends &lt;code&gt;replacement=&amp;quot;&amp;quot;&lt;/code&gt;. The server was rejecting these as invalid params, the model was retrying with the same params, and this looped 6-10 times per problem.&lt;/p&gt; &lt;p&gt;The fix was applying Postel's Law: be liberal in what you accept. Instead of erroring, the server now:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Silently strips irrelevant params&lt;/li&gt; &lt;li&gt;Includes &lt;code&gt;ignored_params&lt;/code&gt; in the response (so the agent sees what was stripped)&lt;/li&gt; &lt;li&gt;Includes &lt;code&gt;param_hint&lt;/code&gt; explaining what the operation actually accepts&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;After this fix: 0% → 74.2%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I took from this:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;If you're building MCP tools, your error responses and parameter tolerance matter more than the computation itself. The agent will get things wrong. The question is whether your tool helps it recover or sends it into a retry death spiral.&lt;/p&gt; &lt;p&gt;I'm also fixing the benchmark itself as I go. 34 false-failures from scoring issues (tolerance, case sensitivity, coordinate format parsing). Building benchmarks that are actually correct is its own challenge.&lt;/p&gt; &lt;p&gt;Happy to answer questions about the approach. Planning to run this across more models (Sonnet, Haiku, GPT-5.4-mini, Gemini Flash) and publish the full dataset.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fresh_Quit390"&gt; /u/Fresh_Quit390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1sh98em/i_built_a_benchmark_for_mcp_tool_use_and_the_most/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1sh98em/i_built_a_benchmark_for_mcp_tool_use_and_the_most/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1sh98em/i_built_a_benchmark_for_mcp_tool_use_and_the_most/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-10T01:56:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1she33b</id>
     <title>PDF Export for AI Agents – Well-designed PDFs from a single prompt. Describe what you need, get a professional document.</title>
@@ -242,19 +229,6 @@
     <published>2026-04-10T18:00:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1shnxs3</id>
-    <title>your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base</title>
-    <updated>2026-04-10T14:21:01+00:00</updated>
-    <author>
-      <name>/u/mate_0107</name>
-      <uri>https://old.reddit.com/user/mate_0107</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt; &lt;img alt="your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base" src="https://external-preview.redd.it/FepN1SWmvaifTIGnDRKeznzX6GBwsRH2BmlE2qlOz6s.png?width=140&amp;amp;height=73&amp;amp;auto=webp&amp;amp;s=8ec259a565f2d56d3bbf51e5ca5a091d02d842a3" title="your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://i.redd.it/qjrku4vxpcug1.gif"&gt;https://i.redd.it/qjrku4vxpcug1.gif&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Andrej Karpathy recently shared his setup for building a personal LLM knowledge base - raw docs, LLM compiles them into a structured wiki, then queries the wiki for answers.&lt;/p&gt; &lt;p&gt;I've been building something similar for the past year, except it's not a set of scripts - it's a mcp you can install in 2 minutes in any AI provider.&lt;/p&gt; &lt;p&gt;The idea: every conversation you have in claude/cursor/codex (or any MCP-compatible AI agent like openclaw) gets compacted into a memory episode. Think of it like Karpathy's wiki articles. But then it goes a layer deeper, it also extracts structured facts and entities with timestamps that helps in search of the right document. It also handles contradiction so when a fact changes (you switched from REST to GraphQL, or your pricing went from $99 to $149), the old fact gets marked as superseded automatically. No manual cleanup.&lt;/p&gt; &lt;p&gt;What actually changed for me:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Before:&lt;/strong&gt; Every new Claude Code session I'd re-explain my project architecture or claude used to grep and search more files than needed.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;After:&lt;/strong&gt; I ask &amp;quot;what architecture decisions did I make for the auth service?&amp;quot; and it pulls the exact context from 3 weeks ago with the outdated stuff already filtered out.&lt;/p&gt; &lt;p&gt;So now, it's pretty easy to build a knowledge base from your agent conversations that you feed back to any agent, it becomes your unified knowledge base shareable across any AI tool that you use.&lt;/p&gt; &lt;p&gt;Setup is pretty simple: Install the core mcp for claude/cursor and plugin for claude code/openclaw.&lt;/p&gt; &lt;p&gt;Full guide&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://docs.getcore.me/providers/claude-code"&gt;https://docs.getcore.me/providers/claude-code&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://docs.getcore.me/providers/claude"&gt;https://docs.getcore.me/providers/claude&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It's fully open source - you can self-host it locally and run it with any model you want. If you don't want to deal with infra, the cloud version has a free tier with 3,000 credits to test it out.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="http://github.com/RedPlanetHQ/core"&gt;github.com/RedPlanetHQ/core&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mate_0107"&gt; /u/mate_0107 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-10T14:21:01+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1shgmpa</id>
     <title>Built an MCP server where agents can crowdfund real campaigns by humans with USDC on Base</title>
     <updated>2026-04-10T08:29:03+00:00</updated>
@@ -268,6 +242,19 @@
     <published>2026-04-10T08:29:03+00:00</published>
   </entry>
   <entry>
+    <id>t3_1shv7ly</id>
+    <title>I can't connect my WSL gemini-cli to Windows Docker-Desktop's MCP Toolkit</title>
+    <updated>2026-04-10T18:39:06+00:00</updated>
+    <author>
+      <name>/u/Upbeat-Ground3526</name>
+      <uri>https://old.reddit.com/user/Upbeat-Ground3526</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I can't connect my WSL gemini-cli to Windows Docker-Desktop's MCP Toolkit&lt;br /&gt; I tried lots of way like using Stdio, I have WSL integration enabled btw.&lt;/p&gt; &lt;p&gt;I tried lots of things but Docker-Desktop can't see my gemini-cli, while my gemini-cli can create mcp containers on docker but not connect to MCP toolkit itself&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Upbeat-Ground3526"&gt; /u/Upbeat-Ground3526 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shv7ly/i_cant_connect_my_wsl_geminicli_to_windows/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shv7ly/i_cant_connect_my_wsl_geminicli_to_windows/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1shv7ly/i_cant_connect_my_wsl_geminicli_to_windows/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-10T18:39:06+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1shmd1p</id>
     <title>[Showcase] Agent-dispatch - MCP server for delegating tasks between Claude Code agents</title>
     <updated>2026-04-10T13:20:05+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1shmd1p/showcase_agentdispatch_mcp_server_for_delegating/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-04-10T13:20:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1shnxs3</id>
+    <title>your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base</title>
+    <updated>2026-04-10T14:21:01+00:00</updated>
+    <author>
+      <name>/u/mate_0107</name>
+      <uri>https://old.reddit.com/user/mate_0107</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt; &lt;img alt="your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base" src="https://external-preview.redd.it/FepN1SWmvaifTIGnDRKeznzX6GBwsRH2BmlE2qlOz6s.png?width=140&amp;amp;height=73&amp;amp;auto=webp&amp;amp;s=8ec259a565f2d56d3bbf51e5ca5a091d02d842a3" title="your claude, codex, cursor doesn't need a better memory, it needs a self-evolving knowledge base" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://i.redd.it/qjrku4vxpcug1.gif"&gt;https://i.redd.it/qjrku4vxpcug1.gif&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Andrej Karpathy recently shared his setup for building a personal LLM knowledge base - raw docs, LLM compiles them into a structured wiki, then queries the wiki for answers.&lt;/p&gt; &lt;p&gt;I've been building something similar for the past year, except it's not a set of scripts - it's a mcp you can install in 2 minutes in any AI provider.&lt;/p&gt; &lt;p&gt;The idea: every conversation you have in claude/cursor/codex (or any MCP-compatible AI agent like openclaw) gets compacted into a memory episode. Think of it like Karpathy's wiki articles. But then it goes a layer deeper, it also extracts structured facts and entities with timestamps that helps in search of the right document. It also handles contradiction so when a fact changes (you switched from REST to GraphQL, or your pricing went from $99 to $149), the old fact gets marked as superseded automatically. No manual cleanup.&lt;/p&gt; &lt;p&gt;What actually changed for me:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Before:&lt;/strong&gt; Every new Claude Code session I'd re-explain my project architecture or claude used to grep and search more files than needed.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;After:&lt;/strong&gt; I ask &amp;quot;what architecture decisions did I make for the auth service?&amp;quot; and it pulls the exact context from 3 weeks ago with the outdated stuff already filtered out.&lt;/p&gt; &lt;p&gt;So now, it's pretty easy to build a knowledge base from your agent conversations that you feed back to any agent, it becomes your unified knowledge base shareable across any AI tool that you use.&lt;/p&gt; &lt;p&gt;Setup is pretty simple: Install the core mcp for claude/cursor and plugin for claude code/openclaw.&lt;/p&gt; &lt;p&gt;Full guide&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://docs.getcore.me/providers/claude-code"&gt;https://docs.getcore.me/providers/claude-code&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://docs.getcore.me/providers/claude"&gt;https://docs.getcore.me/providers/claude&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It's fully open source - you can self-host it locally and run it with any model you want. If you don't want to deal with infra, the cloud version has a free tier with 3,000 credits to test it out.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="http://github.com/RedPlanetHQ/core"&gt;github.com/RedPlanetHQ/core&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mate_0107"&gt; /u/mate_0107 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1shnxs3/your_claude_codex_cursor_doesnt_need_a_better/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-10T14:21:01+00:00</published>
   </entry>
   <entry>
     <id>t3_1shozzs</id>
