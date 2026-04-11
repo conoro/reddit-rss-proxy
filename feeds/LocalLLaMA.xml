@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-11T13:28:03+00:00</updated>
+  <updated>2026-04-11T13:52:53+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1shyczh</id>
-    <title>Stanford: Self improving Meta-Harness</title>
-    <updated>2026-04-10T20:33:47+00:00</updated>
+    <id>t3_1si5lc4</id>
+    <title>Sanity check on Milla Jovovich's MemPalace: Mixed metrics, bypassed judges, and that 96.6% LongMemEval score</title>
+    <updated>2026-04-11T01:35:50+00:00</updated>
     <author>
-      <name>/u/GodComplecs</name>
-      <uri>https://old.reddit.com/user/GodComplecs</uri>
+      <name>/u/DepthOk4115</name>
+      <uri>https://old.reddit.com/user/DepthOk4115</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shyczh/stanford_self_improving_metaharness/"&gt; &lt;img alt="Stanford: Self improving Meta-Harness" src="https://preview.redd.it/bpsazafbbfug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=78ba308e51ea055d319a89910fcf2ec860f5a067" title="Stanford: Self improving Meta-Harness" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We had Prompt engineering, then Context engineering, then Agents and Harness. Now we have Meta Harness, a harness that auto corrects its agentic mistakes and improves performance and uses less context:&lt;br /&gt; &lt;a href="https://arxiv.org/abs/2603.28052"&gt;https://arxiv.org/abs/2603.28052&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;The performance of large language model (LLM) systems depends not only on model weights, but also on their harness: the code that determines what information to store, retrieve, and present to the model. Yet harnesses are still designed largely by hand, and existing text optimizers are poorly matched to this setting because they compress feedback too aggressively. We introduce Meta-Harness, an outer-loop system that searches over harness code for LLM applications. It uses an agentic proposer that accesses the source code, scores, and execution traces of all prior candidates through a filesystem. On online text classification, Meta-Harness improves over a state-of-the-art context management system by 7.7 points while using 4x fewer context tokens. On retrieval-augmented math reasoning, a single discovered harness improves accuracy on 200 IMO-level problems by 4.7 points on average across five held-out models. On agentic coding, discovered harnesses surpass the best hand-engineered baselines on TerminalBench-2. Together, these results show that richer access to prior experience can enable automated harness engineering.&amp;quot;&lt;/p&gt; &lt;p&gt;Looks like an easy performance gain for local LLMs since you can have it running after main tasks are done to improve on mistakes, opencode or the project itself here: &lt;a href="https://github.com/stanford-iris-lab/meta-harness-tbench2-artifact"&gt;https://github.com/stanford-iris-lab/meta-harness-tbench2-artifact&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GodComplecs"&gt; /u/GodComplecs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/bpsazafbbfug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shyczh/stanford_self_improving_metaharness/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shyczh/stanford_self_improving_metaharness/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure up front: I work on a different open-source memory system (bitterbot-desktop, ~125 stars vs MemPalace's ~40k so calibrate accordingly). We're trying to solve the same problem from different angles, and I went and read MemPalace's benchmark code specifically because their headline number is so much higher than the rest of the field, and I wanted to understand the gap.&lt;/p&gt; &lt;p&gt;What I found left me genuinely uncertain about how to read it, and I'd like a sanity check from people who know LongMemEval better than I do.&lt;/p&gt; &lt;p&gt;Here's where I get stuck:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;The comparison table is mixing two different metrics&lt;/p&gt; &lt;p&gt;The README claims: MemPal raw 96.6% &amp;gt; Mastra 94.87% &amp;gt; Hindsight 91.4%.&lt;/p&gt; &lt;p&gt;If you open benchmarks/longmemeval_bench.py, MemPalace explicitly reimplements its own metrics to avoid the LongMemEval dependency. It skips the answer-generation step and never calls the GPT-4o judge. Here's the entire&lt;/p&gt; &lt;p&gt;scoring function:&lt;/p&gt; &lt;p&gt;def evaluate_retrieval(rankings, correct_ids, corpus_ids, k):&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;quot;&amp;quot;&amp;quot;Evaluate retrieval at rank k.&amp;quot;&amp;quot;&amp;quot;&lt;/p&gt; &lt;p&gt;top_k_ids = set(corpus_ids[idx] for idx in rankings[:k])&lt;/p&gt; &lt;p&gt;recall_any = float(any(cid in top_k_ids for cid in correct_ids))&lt;/p&gt; &lt;p&gt;recall_all = float(all(cid in top_k_ids for cid in correct_ids))&lt;/p&gt; &lt;p&gt;ndcg_score = ndcg(rankings, correct_ids, corpus_ids, k)&lt;/p&gt; &lt;p&gt;return recall_any, recall_all, ndcg_score&lt;/p&gt; &lt;p&gt;That's it. No answer generation, no LLM judge, no QA scoring. recall_any@5 is the headline number.&lt;/p&gt; &lt;p&gt;So:&lt;/p&gt; &lt;p&gt;- MemPalace's 96.6% is Recall@5: &amp;quot;Did the gold-evidence session appear in the top 5 retrieved sessions?&amp;quot;&lt;/p&gt; &lt;p&gt;- Mastra's 94.87% and Hindsight's 91.4% are end-to-end QA accuracy: &amp;quot;Did the model produce the right answer to the question, judged by an LLM?&amp;quot;&lt;/p&gt; &lt;p&gt;We know the competitors are reporting QA accuracy because their own research blogs cite scores that vary by which LLM they use as the answer model. Mastra reports 84.23% with GPT-4o and 94.87% with GPT-5-mini (&lt;a href="https://mastra.ai/research/observational-memory"&gt;https://mastra.ai/research/observational-memory&lt;/a&gt;). Hindsight reports 91.4% with Gemini-3 Pro, 89.0% with OSS-120B, and 83.6% with OSS-20B. That variance only happens if you're actually generating answers and judging them, it's not a thing for pure retrieval scores.&lt;/p&gt; &lt;p&gt;Putting Recall@5 next to end-to-end QA accuracy in a comparison table without an asterisk is a structural mismatch, and the README doesn't flag it. Worth noting: MemPalace published a dated retraction note on April 7 acknowledging several other issues (the AAAK token-savings example was wrong, AAAK actually regresses retrieval, the &amp;quot;+34% palace boost&amp;quot; is just metadata filtering) but the metric-mismatch in the comparison table isn't mentioned. Either nobody has raised it yet, or they don't see it as one. I'd like to know which.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The deeper issue: retrieval may not be the bottleneck anymore&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Mastra's research blog explicitly notes that their QA accuracy outperforms the oracle (a configuration given only the gold-evidence conversations, no retrieval needed at all). That's a meaningful claim, it implies that for top-tier systems on LongMemEval, the bottleneck is no longer retrieval. It's reading, reasoning, temporal inference, and abstention.&lt;/p&gt; &lt;p&gt;The structural implication: MemPalace is reporting on a part of the benchmark that's no longer the field's bottleneck, then comparing that number against systems being measured on the part that is. We don't know what MemPalace would score under the QA judge, they haven't run it, but the comparison table reads as if the numbers are commensurable when they aren't. They're measuring different halves of the problem.&lt;/p&gt; &lt;p&gt;Where credit is due&lt;/p&gt; &lt;p&gt;I went in hoping to validate MemPalace's actual core finding: that raw verbatim text + ChromaDB default embeddings beats extraction-based memory systems like Mem0, Mastra, and Supermemory at the retrieval step. MemPalace just keeps everything verbatim and lets cosine search find it. If that result holds up and the 96.6% R@5 has been independently reproduced on M2 Ultra (&lt;a href="https://github.com/milla-jovovich/mempalace/issues/39"&gt;https://github.com/milla-jovovich/mempalace/issues/39&lt;/a&gt;) then the entire &amp;quot;use an LLM to manage memory&amp;quot; paradigm may be over-engineered. That's a real negative result against a lot of work in the space, including, candidly, parts of my own. It deserves more attention than the leaderboard ranking does, regardless of how the headline is framed.&lt;/p&gt; &lt;p&gt;The engineering is real, and public self-correction (like the AAAK retraction) is rare and good. I just want to make sure we're actually comparing apples to apples before the field updates its priors based on a mixed-metric leaderboard.&lt;/p&gt; &lt;p&gt;What I'm doing about it&lt;/p&gt; &lt;p&gt;I'm working on a retrieval-only runner so I can post a true 1:1 R@5 number against my own system. First attempt is hitting embeddings timeouts, so it'll be a few days, but I'll come back with results either way they land.&lt;/p&gt; &lt;p&gt;The actual question&lt;/p&gt; &lt;p&gt;Specifically: am I right that evaluate_retrieval in benchmarks/longmemeval_bench.py never calls an LLM and never compares hypothesized answers to gold answers? And am I right that Mastra and Hindsight are reporting QA accuracy on the same longmemeval_s split, which is a different metric?&lt;/p&gt; &lt;p&gt;If anyone has read the script and the linked competitor blogs and disagrees with that reading, I want to be told.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DepthOk4115"&gt; /u/DepthOk4115 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-10T20:33:47+00:00</published>
+    <published>2026-04-11T01:35:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1shcgf5</id>
@@ -45,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-11T10:05:38+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1siisn2</id>
-    <title>I compared harrier-27b vs voyage-4 vs zembed-1 across 24 datasets. 27B parameters</title>
-    <updated>2026-04-11T13:14:33+00:00</updated>
-    <author>
-      <name>/u/Veronildo</name>
-      <uri>https://old.reddit.com/user/Veronildo</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been running embedding model evals for a while now, and Microsoft's Harrier family dropped a new model. btw harrier-27b hit #1 on binary MTEB at launch. That's not nothing. So I put it through the same graded evaluation pipeline I use for everything else - &lt;strong&gt;24 datasets, three independent LLM judges&lt;/strong&gt;, &lt;strong&gt;continuous relevance scores 0–10&lt;/strong&gt;. No binary pass/fail.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The global numbers&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;NDCG@10&lt;/th&gt; &lt;th align="left"&gt;Recall@100&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;zembed-1&lt;/td&gt; &lt;td align="left"&gt;0.701&lt;/td&gt; &lt;td align="left"&gt;0.750&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;voyage-4&lt;/td&gt; &lt;td align="left"&gt;0.699&lt;/td&gt; &lt;td align="left"&gt;0.731&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;harrier-27b&lt;/td&gt; &lt;td align="left"&gt;0.699&lt;/td&gt; &lt;td align="left"&gt;0.728&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;On NDCG@10, it's basically a three-way tie at the top. harrier-27b is legitimately competitive I won't pretend otherwise. But NDCG@10 isn't the whole story, especially in RAG pipelines.&lt;/p&gt; &lt;p&gt;The number that actually matters operationally is [Recall@100](mailto:Recall@100). That's whether a relevant document even survives to your reranker. Your reranker can reorder whatever the embedder surfaces, but it cannot conjure up a document the embedder dropped. zembed-1 leads by +2.2 points over harrier-27b here. That gap compounds downstream.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Where reranking amplifies the recall advantage&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;When I stacked each embedder with a reranker, the recall-to-precision conversion rates told an even clearer story:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Method&lt;/th&gt; &lt;th align="left"&gt;Top-10 lift range&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;harrier-27b + reranker&lt;/td&gt; &lt;td align="left"&gt;+4.2% to +4.4%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;voyage-4 + reranker&lt;/td&gt; &lt;td align="left"&gt;+4.5% to +4.9%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;zembed-1 + reranker&lt;/td&gt; &lt;td align="left"&gt;+5.2% to +6.6%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;zembed-1 consistently extracts more signal from the reranking step because it hands the reranker a better candidate pool to begin with. harrier-27b's ceiling is lower at every threshold tested.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;harrier-27b vs voyage-4: the real fight for second place&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I expected harrier-27b with its 27B parameters and #1 MTEB debut to comfortably displace voyage-4 from the #2 spot. It didn't.&lt;/p&gt; &lt;p&gt;They're dead even on NDCG@10 at 0.699. voyage-4 edges ahead on Recall@100 (0.731 vs 0.728) and wins 12 datasets to harrier's 11 in the head-to-head. &lt;/p&gt; &lt;p&gt;What actually differentiates them is deployment: voyage-4 is API-only and proprietary, harrier-27b is MIT-licensed and self-hostable. If you need open weights with no API dependency, harrier-27b wins that argument regardless of the quality tie. If your workload skews multilingual, harrier also has a real edge trained across 94 languages with GPT-5 synthetic data, and it shows on non-English reranking tasks.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Dataset-by-dataset: harrier-27b vs zembed-1&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I went dataset by dataset across the full 24. zembed-1 beats harrier-27b on 14 of them. The pattern is telling:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;zembed-1 dominates on &lt;strong&gt;instruction retrieval&lt;/strong&gt; (Core17, News21, Robust04) tasks requiring parsed query intent, not keyword overlap and on &lt;strong&gt;legal and medical&lt;/strong&gt; corpora (LegalBench, CovidRetrieval, TRECCOVID).&lt;/li&gt; &lt;li&gt;harrier-27b shows genuine strength on &lt;strong&gt;multilingual reranking&lt;/strong&gt; RuBQReranking (Russian), TwitterHjerne (Danish). If your use case is multilingual and reranking-heavy, this is worth knowing.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Among the three top models, zembed-1 takes 1st place on 11 of 23 datasets vs. 6 each for voyage-4 and harrier-27b. It's not just the average that's better it's the most consistently top-ranked model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The efficiency problem&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;harrier-27b: 27B parameters, 5,376-dimensional vectors. zembed-1: 4B parameters, 2,560-dimensional vectors.&lt;/p&gt; &lt;p&gt;~7x the compute, 2x the storage, for 0.2% worse NDCG@10 and 2.2 points worse [Recall@100](mailto:Recall@100). In a batch job, maybe you absorb that. In a real-time RAG system, you're paying a serious penalty for strictly worse results.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My take&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;harrier-27b is a legitimate top-three model the strongest new entrant since voyage-4. For multilingual workloads or teams that need self-hostable open weights, it's worth serious evaluation, and it's genuinely competitive with voyage-4 on those terms.&lt;/p&gt; &lt;p&gt;But it doesn't change the leaderboard. zembed-1 wins 14 of 24 datasets head-to-head, leads on Recall@100, and does it at a fraction of the compute.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Veronildo"&gt; /u/Veronildo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T13:14:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1si7xzy</id>
@@ -112,17 +99,30 @@
     <published>2026-04-10T11:48:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sigg35</id>
-    <title>Curated 550+ free LLM tools for builders (APIs, local models, RAG, agents, IDEs)</title>
-    <updated>2026-04-11T11:22:38+00:00</updated>
+    <id>t3_1sige8s</id>
+    <title>update on my ai waifu app, can use web search react to images even picture of herself</title>
+    <updated>2026-04-11T11:19:52+00:00</updated>
     <author>
-      <name>/u/Axintwo</name>
-      <uri>https://old.reddit.com/user/Axintwo</uri>
+      <name>/u/aziib</name>
+      <uri>https://old.reddit.com/user/aziib</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the whole day putting together a big list of &lt;strong&gt;free or cheap LLM tools&lt;/strong&gt; that are actually useful if you’re building stuff.&lt;/p&gt; &lt;p&gt;Tried to focus more on &lt;strong&gt;local models + dev tools&lt;/strong&gt; instead of those generic “1000 AI websites” type lists.&lt;/p&gt; &lt;p&gt;It includes:&lt;/p&gt; &lt;p&gt;• local models (Ollama, Qwen, Llama etc)&lt;br /&gt; • free LLM APIs (OpenRouter, Groq, Gemini etc)&lt;br /&gt; • coding IDEs + CLI tools (Cursor, Qwen Code, Gemini CLI etc)&lt;br /&gt; • RAG stack tools (vector DBs, embeddings, frameworks)&lt;br /&gt; • agent frameworks and automation tools&lt;br /&gt; • realtime / speech / image / video APIs&lt;br /&gt; • some ready-to-use stack combos&lt;/p&gt; &lt;p&gt;Main goal was to make something practical so people can experiment or build projects without needing to spend $100-200/month on subscriptions.&lt;/p&gt; &lt;p&gt;Right now it has &lt;strong&gt;550+ items&lt;/strong&gt; (counting model variants too).&lt;/p&gt; &lt;p&gt;This space moves fast so some info might already be outdated — honestly one of the main reasons I’m posting here is to get suggestions on:&lt;/p&gt; &lt;p&gt;• good local models I might have missed&lt;br /&gt; • OSS tools worth adding&lt;br /&gt; • better RAG tools&lt;br /&gt; • new free inference providers&lt;/p&gt; &lt;p&gt;PRs or corrections are very welcome.&lt;/p&gt; &lt;p&gt;Repo:&lt;br /&gt; &lt;a href="https://github.com/ShaikhWarsi/free-ai-tools"&gt;https://github.com/ShaikhWarsi/free-ai-tools&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you know something useful that should be in the list, lmk and I’ll add it&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Axintwo"&gt; /u/Axintwo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt; &lt;img alt="update on my ai waifu app, can use web search react to images even picture of herself" src="https://external-preview.redd.it/MDBhbGxyc2NvanVnMQII9NWACal0b1W-VaIrPDQyK3fa6tsFfcaqvR4uOVK-.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4e2104897a83ceec26ba3e3d0089ff0592f3b366" title="update on my ai waifu app, can use web search react to images even picture of herself" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;using qwen 3 VL for the llm and the vision (really good for recognize popular characters and even recognize their appearances)&lt;/p&gt; &lt;p&gt;using SerpApi for the web search&lt;/p&gt; &lt;p&gt;the tts is using omnivoice tts (support 600+ languages) that i make a custom api that i recently open source it, get it here: &lt;a href="https://github.com/aziib/omnivoice-tts-api"&gt;https://github.com/aziib/omnivoice-tts-api&lt;/a&gt;&lt;/p&gt; &lt;p&gt;my ai waifu project stil in work in progress, i just hope there is free web search api, SerpApi has some search limit usage per month.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aziib"&gt; /u/aziib &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/996hylrcojug1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T11:22:38+00:00</published>
+    <published>2026-04-11T11:19:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1siisn2</id>
+    <title>I compared harrier-27b vs voyage-4 vs zembed-1 across 24 datasets. 27B parameters</title>
+    <updated>2026-04-11T13:14:33+00:00</updated>
+    <author>
+      <name>/u/Veronildo</name>
+      <uri>https://old.reddit.com/user/Veronildo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been running embedding model evals for a while now, and Microsoft's Harrier family dropped a new model. btw harrier-27b hit #1 on binary MTEB at launch. That's not nothing. So I put it through the same graded evaluation pipeline I use for everything else - &lt;strong&gt;24 datasets, three independent LLM judges&lt;/strong&gt;, &lt;strong&gt;continuous relevance scores 0–10&lt;/strong&gt;. No binary pass/fail.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The global numbers&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;NDCG@10&lt;/th&gt; &lt;th align="left"&gt;Recall@100&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;zembed-1&lt;/td&gt; &lt;td align="left"&gt;0.701&lt;/td&gt; &lt;td align="left"&gt;0.750&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;voyage-4&lt;/td&gt; &lt;td align="left"&gt;0.699&lt;/td&gt; &lt;td align="left"&gt;0.731&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;harrier-27b&lt;/td&gt; &lt;td align="left"&gt;0.699&lt;/td&gt; &lt;td align="left"&gt;0.728&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;On NDCG@10, it's basically a three-way tie at the top. harrier-27b is legitimately competitive I won't pretend otherwise. But NDCG@10 isn't the whole story, especially in RAG pipelines.&lt;/p&gt; &lt;p&gt;The number that actually matters operationally is [Recall@100](mailto:Recall@100). That's whether a relevant document even survives to your reranker. Your reranker can reorder whatever the embedder surfaces, but it cannot conjure up a document the embedder dropped. zembed-1 leads by +2.2 points over harrier-27b here. That gap compounds downstream.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Where reranking amplifies the recall advantage&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;When I stacked each embedder with a reranker, the recall-to-precision conversion rates told an even clearer story:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Method&lt;/th&gt; &lt;th align="left"&gt;Top-10 lift range&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;harrier-27b + reranker&lt;/td&gt; &lt;td align="left"&gt;+4.2% to +4.4%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;voyage-4 + reranker&lt;/td&gt; &lt;td align="left"&gt;+4.5% to +4.9%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;zembed-1 + reranker&lt;/td&gt; &lt;td align="left"&gt;+5.2% to +6.6%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;zembed-1 consistently extracts more signal from the reranking step because it hands the reranker a better candidate pool to begin with. harrier-27b's ceiling is lower at every threshold tested.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;harrier-27b vs voyage-4: the real fight for second place&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I expected harrier-27b with its 27B parameters and #1 MTEB debut to comfortably displace voyage-4 from the #2 spot. It didn't.&lt;/p&gt; &lt;p&gt;They're dead even on NDCG@10 at 0.699. voyage-4 edges ahead on Recall@100 (0.731 vs 0.728) and wins 12 datasets to harrier's 11 in the head-to-head. &lt;/p&gt; &lt;p&gt;What actually differentiates them is deployment: voyage-4 is API-only and proprietary, harrier-27b is MIT-licensed and self-hostable. If you need open weights with no API dependency, harrier-27b wins that argument regardless of the quality tie. If your workload skews multilingual, harrier also has a real edge trained across 94 languages with GPT-5 synthetic data, and it shows on non-English reranking tasks.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Dataset-by-dataset: harrier-27b vs zembed-1&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I went dataset by dataset across the full 24. zembed-1 beats harrier-27b on 14 of them. The pattern is telling:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;zembed-1 dominates on &lt;strong&gt;instruction retrieval&lt;/strong&gt; (Core17, News21, Robust04) tasks requiring parsed query intent, not keyword overlap and on &lt;strong&gt;legal and medical&lt;/strong&gt; corpora (LegalBench, CovidRetrieval, TRECCOVID).&lt;/li&gt; &lt;li&gt;harrier-27b shows genuine strength on &lt;strong&gt;multilingual reranking&lt;/strong&gt; RuBQReranking (Russian), TwitterHjerne (Danish). If your use case is multilingual and reranking-heavy, this is worth knowing.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Among the three top models, zembed-1 takes 1st place on 11 of 23 datasets vs. 6 each for voyage-4 and harrier-27b. It's not just the average that's better it's the most consistently top-ranked model.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The efficiency problem&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;harrier-27b: 27B parameters, 5,376-dimensional vectors. zembed-1: 4B parameters, 2,560-dimensional vectors.&lt;/p&gt; &lt;p&gt;~7x the compute, 2x the storage, for 0.2% worse NDCG@10 and 2.2 points worse [Recall@100](mailto:Recall@100). In a batch job, maybe you absorb that. In a real-time RAG system, you're paying a serious penalty for strictly worse results.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My take&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;harrier-27b is a legitimate top-three model the strongest new entrant since voyage-4. For multilingual workloads or teams that need self-hostable open weights, it's worth serious evaluation, and it's genuinely competitive with voyage-4 on those terms.&lt;/p&gt; &lt;p&gt;But it doesn't change the leaderboard. zembed-1 wins 14 of 24 datasets head-to-head, leads on Recall@100, and does it at a fraction of the compute.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Veronildo"&gt; /u/Veronildo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1siisn2/i_compared_harrier27b_vs_voyage4_vs_zembed1/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T13:14:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1sidnz6</id>
@@ -138,17 +138,17 @@
     <published>2026-04-11T08:41:03+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sigb2v</id>
-    <title>Why is my ollama gemma4 replying in Japanese?</title>
-    <updated>2026-04-11T11:15:16+00:00</updated>
+    <id>t3_1sigg35</id>
+    <title>Curated 550+ free LLM tools for builders (APIs, local models, RAG, agents, IDEs)</title>
+    <updated>2026-04-11T11:22:38+00:00</updated>
     <author>
-      <name>/u/Houston_NeverMind</name>
-      <uri>https://old.reddit.com/user/Houston_NeverMind</uri>
+      <name>/u/Axintwo</name>
+      <uri>https://old.reddit.com/user/Axintwo</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"&gt; &lt;img alt="Why is my ollama gemma4 replying in Japanese?" src="https://preview.redd.it/8hcs53lcojug1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83258e1698f6590a854176dffc466d9c7a8ec252" title="Why is my ollama gemma4 replying in Japanese?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Do I have to set some parameters or configuration? Sorry, I'm new to this.&lt;/p&gt; &lt;p&gt;Edit: People who are downvoting, please care to explain. If you think this is some stupid mistake on my part, please comment it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Houston_NeverMind"&gt; /u/Houston_NeverMind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8hcs53lcojug1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the whole day putting together a big list of &lt;strong&gt;free or cheap LLM tools&lt;/strong&gt; that are actually useful if you’re building stuff.&lt;/p&gt; &lt;p&gt;Tried to focus more on &lt;strong&gt;local models + dev tools&lt;/strong&gt; instead of those generic “1000 AI websites” type lists.&lt;/p&gt; &lt;p&gt;It includes:&lt;/p&gt; &lt;p&gt;• local models (Ollama, Qwen, Llama etc)&lt;br /&gt; • free LLM APIs (OpenRouter, Groq, Gemini etc)&lt;br /&gt; • coding IDEs + CLI tools (Cursor, Qwen Code, Gemini CLI etc)&lt;br /&gt; • RAG stack tools (vector DBs, embeddings, frameworks)&lt;br /&gt; • agent frameworks and automation tools&lt;br /&gt; • realtime / speech / image / video APIs&lt;br /&gt; • some ready-to-use stack combos&lt;/p&gt; &lt;p&gt;Main goal was to make something practical so people can experiment or build projects without needing to spend $100-200/month on subscriptions.&lt;/p&gt; &lt;p&gt;Right now it has &lt;strong&gt;550+ items&lt;/strong&gt; (counting model variants too).&lt;/p&gt; &lt;p&gt;This space moves fast so some info might already be outdated — honestly one of the main reasons I’m posting here is to get suggestions on:&lt;/p&gt; &lt;p&gt;• good local models I might have missed&lt;br /&gt; • OSS tools worth adding&lt;br /&gt; • better RAG tools&lt;br /&gt; • new free inference providers&lt;/p&gt; &lt;p&gt;PRs or corrections are very welcome.&lt;/p&gt; &lt;p&gt;Repo:&lt;br /&gt; &lt;a href="https://github.com/ShaikhWarsi/free-ai-tools"&gt;https://github.com/ShaikhWarsi/free-ai-tools&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you know something useful that should be in the list, lmk and I’ll add it&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Axintwo"&gt; /u/Axintwo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sigg35/curated_550_free_llm_tools_for_builders_apis/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T11:15:16+00:00</published>
+    <published>2026-04-11T11:22:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1shus54</id>
@@ -177,6 +177,19 @@
     <published>2026-04-10T16:52:36+00:00</published>
   </entry>
   <entry>
+    <id>t3_1shq4ty</id>
+    <title>GLM 5.1 tops the code arena rankings for open models</title>
+    <updated>2026-04-10T15:40:17+00:00</updated>
+    <author>
+      <name>/u/Auralore</name>
+      <uri>https://old.reddit.com/user/Auralore</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"&gt; &lt;img alt="GLM 5.1 tops the code arena rankings for open models" src="https://preview.redd.it/ienycmczudug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=573d99ac13883363685f13b982920998c7bb0e43" title="GLM 5.1 tops the code arena rankings for open models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Auralore"&gt; /u/Auralore &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ienycmczudug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-10T15:40:17+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1siffos</id>
     <title>How long until surveillance?</title>
     <updated>2026-04-11T10:26:59+00:00</updated>
@@ -190,30 +203,17 @@
     <published>2026-04-11T10:26:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sige8s</id>
-    <title>update on my ai waifu app, can use web search react to images even picture of herself</title>
-    <updated>2026-04-11T11:19:52+00:00</updated>
+    <id>t3_1sigb2v</id>
+    <title>Why is my ollama gemma4 replying in Japanese?</title>
+    <updated>2026-04-11T11:15:16+00:00</updated>
     <author>
-      <name>/u/aziib</name>
-      <uri>https://old.reddit.com/user/aziib</uri>
+      <name>/u/Houston_NeverMind</name>
+      <uri>https://old.reddit.com/user/Houston_NeverMind</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt; &lt;img alt="update on my ai waifu app, can use web search react to images even picture of herself" src="https://external-preview.redd.it/MDBhbGxyc2NvanVnMQII9NWACal0b1W-VaIrPDQyK3fa6tsFfcaqvR4uOVK-.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4e2104897a83ceec26ba3e3d0089ff0592f3b366" title="update on my ai waifu app, can use web search react to images even picture of herself" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;using qwen 3 VL for the llm and the vision (really good for recognize popular characters and even recognize their appearances)&lt;/p&gt; &lt;p&gt;using SerpApi for the web search&lt;/p&gt; &lt;p&gt;the tts is using omnivoice tts (support 600+ languages) that i make a custom api that i recently open source it, get it here: &lt;a href="https://github.com/aziib/omnivoice-tts-api"&gt;https://github.com/aziib/omnivoice-tts-api&lt;/a&gt;&lt;/p&gt; &lt;p&gt;my ai waifu project stil in work in progress, i just hope there is free web search api, SerpApi has some search limit usage per month.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aziib"&gt; /u/aziib &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/996hylrcojug1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"&gt; &lt;img alt="Why is my ollama gemma4 replying in Japanese?" src="https://preview.redd.it/8hcs53lcojug1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83258e1698f6590a854176dffc466d9c7a8ec252" title="Why is my ollama gemma4 replying in Japanese?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Do I have to set some parameters or configuration? Sorry, I'm new to this.&lt;/p&gt; &lt;p&gt;Edit: People who are downvoting, please care to explain. If you think this is some stupid mistake on my part, please comment it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Houston_NeverMind"&gt; /u/Houston_NeverMind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8hcs53lcojug1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sigb2v/why_is_my_ollama_gemma4_replying_in_japanese/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T11:19:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1shq4ty</id>
-    <title>GLM 5.1 tops the code arena rankings for open models</title>
-    <updated>2026-04-10T15:40:17+00:00</updated>
-    <author>
-      <name>/u/Auralore</name>
-      <uri>https://old.reddit.com/user/Auralore</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"&gt; &lt;img alt="GLM 5.1 tops the code arena rankings for open models" src="https://preview.redd.it/ienycmczudug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=573d99ac13883363685f13b982920998c7bb0e43" title="GLM 5.1 tops the code arena rankings for open models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Auralore"&gt; /u/Auralore &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ienycmczudug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shq4ty/glm_51_tops_the_code_arena_rankings_for_open/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-10T15:40:17+00:00</published>
+    <published>2026-04-11T11:15:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1siar7y</id>
@@ -229,19 +229,6 @@
     <published>2026-04-11T05:52:23+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sidx4w</id>
-    <title>Did z.ai just raise GLM Coding Plan prices or am I losing it?</title>
-    <updated>2026-04-11T08:56:51+00:00</updated>
-    <author>
-      <name>/u/burakodokus</name>
-      <uri>https://old.reddit.com/user/burakodokus</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt; &lt;img alt="Did z.ai just raise GLM Coding Plan prices or am I losing it?" src="https://preview.redd.it/osxi0enrziug1.png?width=140&amp;amp;height=74&amp;amp;auto=webp&amp;amp;s=bddc38a34ecc091e29747fb3ece50681767188c6" title="Did z.ai just raise GLM Coding Plan prices or am I losing it?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was about to subscribe to the GLM Coding Plan on &lt;a href="http://z.ai"&gt;z.ai&lt;/a&gt; to try it with Claude Code. Pretty sure the tiers were Lite $10 / Pro $30 / Max $80 yesterday. Now I'm seeing $18 / $72 / $160. Did they just silently double the prices or am I experiencing a Mandela effect? Anyone else notice this?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/osxi0enrziug1.png?width=1663&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=867a008d1d5f71e63ee2433b5353a7884d9f4dcb"&gt;https://preview.redd.it/osxi0enrziug1.png?width=1663&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=867a008d1d5f71e63ee2433b5353a7884d9f4dcb&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/burakodokus"&gt; /u/burakodokus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T08:56:51+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1si1qjk</id>
     <title>What happened to Deepseek?</title>
     <updated>2026-04-10T22:46:27+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1si1qjk/what_happened_to_deepseek/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-10T22:46:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sidx4w</id>
+    <title>Did z.ai just raise GLM Coding Plan prices or am I losing it?</title>
+    <updated>2026-04-11T08:56:51+00:00</updated>
+    <author>
+      <name>/u/burakodokus</name>
+      <uri>https://old.reddit.com/user/burakodokus</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt; &lt;img alt="Did z.ai just raise GLM Coding Plan prices or am I losing it?" src="https://preview.redd.it/osxi0enrziug1.png?width=140&amp;amp;height=74&amp;amp;auto=webp&amp;amp;s=bddc38a34ecc091e29747fb3ece50681767188c6" title="Did z.ai just raise GLM Coding Plan prices or am I losing it?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was about to subscribe to the GLM Coding Plan on &lt;a href="http://z.ai"&gt;z.ai&lt;/a&gt; to try it with Claude Code. Pretty sure the tiers were Lite $10 / Pro $30 / Max $80 yesterday. Now I'm seeing $18 / $72 / $160. Did they just silently double the prices or am I experiencing a Mandela effect? Anyone else notice this?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/osxi0enrziug1.png?width=1663&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=867a008d1d5f71e63ee2433b5353a7884d9f4dcb"&gt;https://preview.redd.it/osxi0enrziug1.png?width=1663&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=867a008d1d5f71e63ee2433b5353a7884d9f4dcb&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/burakodokus"&gt; /u/burakodokus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sidx4w/did_zai_just_raise_glm_coding_plan_prices_or_am_i/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T08:56:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1sia1w6</id>
@@ -294,19 +294,6 @@
     <published>2026-04-11T12:34:56+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sig9vh</id>
-    <title>It looks like there are no plans for smaller GLM models</title>
-    <updated>2026-04-11T11:13:33+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"&gt; &lt;img alt="It looks like there are no plans for smaller GLM models" src="https://preview.redd.it/iyxj7523ojug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=aa194a999325a300a01dd60bebbe18bc6f1f1ffc" title="It looks like there are no plans for smaller GLM models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;but my Air discussion is still open... ;)&lt;br /&gt; &lt;a href="https://huggingface.co/zai-org/GLM-5.1/discussions/2"&gt;https://huggingface.co/zai-org/GLM-5.1/discussions/2&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/iyxj7523ojug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T11:13:33+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1si7qx8</id>
     <title>The tried to make me go to rehab. I said no no no…</title>
     <updated>2026-04-11T03:16:35+00:00</updated>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1si7qx8/the_tried_to_make_me_go_to_rehab_i_said_no_no_no/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-11T03:16:35+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sig9vh</id>
+    <title>It looks like there are no plans for smaller GLM models</title>
+    <updated>2026-04-11T11:13:33+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"&gt; &lt;img alt="It looks like there are no plans for smaller GLM models" src="https://preview.redd.it/iyxj7523ojug1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=aa194a999325a300a01dd60bebbe18bc6f1f1ffc" title="It looks like there are no plans for smaller GLM models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;but my Air discussion is still open... ;)&lt;br /&gt; &lt;a href="https://huggingface.co/zai-org/GLM-5.1/discussions/2"&gt;https://huggingface.co/zai-org/GLM-5.1/discussions/2&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/iyxj7523ojug1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sig9vh/it_looks_like_there_are_no_plans_for_smaller_glm/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T11:13:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpk2va</id>
