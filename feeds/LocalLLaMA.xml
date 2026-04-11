@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-11T12:21:55+00:00</updated>
+  <updated>2026-04-11T12:48:44+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1si5lc4</id>
-    <title>Sanity check on Milla Jovovich's MemPalace: Mixed metrics, bypassed judges, and that 96.6% LongMemEval score</title>
-    <updated>2026-04-11T01:35:50+00:00</updated>
-    <author>
-      <name>/u/DepthOk4115</name>
-      <uri>https://old.reddit.com/user/DepthOk4115</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure up front: I work on a different open-source memory system (bitterbot-desktop, ~125 stars vs MemPalace's ~40k so calibrate accordingly). We're trying to solve the same problem from different angles, and I went and read MemPalace's benchmark code specifically because their headline number is so much higher than the rest of the field, and I wanted to understand the gap.&lt;/p&gt; &lt;p&gt;What I found left me genuinely uncertain about how to read it, and I'd like a sanity check from people who know LongMemEval better than I do.&lt;/p&gt; &lt;p&gt;Here's where I get stuck:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;The comparison table is mixing two different metrics&lt;/p&gt; &lt;p&gt;The README claims: MemPal raw 96.6% &amp;gt; Mastra 94.87% &amp;gt; Hindsight 91.4%.&lt;/p&gt; &lt;p&gt;If you open benchmarks/longmemeval_bench.py, MemPalace explicitly reimplements its own metrics to avoid the LongMemEval dependency. It skips the answer-generation step and never calls the GPT-4o judge. Here's the entire&lt;/p&gt; &lt;p&gt;scoring function:&lt;/p&gt; &lt;p&gt;def evaluate_retrieval(rankings, correct_ids, corpus_ids, k):&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;quot;&amp;quot;&amp;quot;Evaluate retrieval at rank k.&amp;quot;&amp;quot;&amp;quot;&lt;/p&gt; &lt;p&gt;top_k_ids = set(corpus_ids[idx] for idx in rankings[:k])&lt;/p&gt; &lt;p&gt;recall_any = float(any(cid in top_k_ids for cid in correct_ids))&lt;/p&gt; &lt;p&gt;recall_all = float(all(cid in top_k_ids for cid in correct_ids))&lt;/p&gt; &lt;p&gt;ndcg_score = ndcg(rankings, correct_ids, corpus_ids, k)&lt;/p&gt; &lt;p&gt;return recall_any, recall_all, ndcg_score&lt;/p&gt; &lt;p&gt;That's it. No answer generation, no LLM judge, no QA scoring. recall_any@5 is the headline number.&lt;/p&gt; &lt;p&gt;So:&lt;/p&gt; &lt;p&gt;- MemPalace's 96.6% is Recall@5: &amp;quot;Did the gold-evidence session appear in the top 5 retrieved sessions?&amp;quot;&lt;/p&gt; &lt;p&gt;- Mastra's 94.87% and Hindsight's 91.4% are end-to-end QA accuracy: &amp;quot;Did the model produce the right answer to the question, judged by an LLM?&amp;quot;&lt;/p&gt; &lt;p&gt;We know the competitors are reporting QA accuracy because their own research blogs cite scores that vary by which LLM they use as the answer model. Mastra reports 84.23% with GPT-4o and 94.87% with GPT-5-mini (&lt;a href="https://mastra.ai/research/observational-memory"&gt;https://mastra.ai/research/observational-memory&lt;/a&gt;). Hindsight reports 91.4% with Gemini-3 Pro, 89.0% with OSS-120B, and 83.6% with OSS-20B. That variance only happens if you're actually generating answers and judging them, it's not a thing for pure retrieval scores.&lt;/p&gt; &lt;p&gt;Putting Recall@5 next to end-to-end QA accuracy in a comparison table without an asterisk is a structural mismatch, and the README doesn't flag it. Worth noting: MemPalace published a dated retraction note on April 7 acknowledging several other issues (the AAAK token-savings example was wrong, AAAK actually regresses retrieval, the &amp;quot;+34% palace boost&amp;quot; is just metadata filtering) but the metric-mismatch in the comparison table isn't mentioned. Either nobody has raised it yet, or they don't see it as one. I'd like to know which.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The deeper issue: retrieval may not be the bottleneck anymore&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Mastra's research blog explicitly notes that their QA accuracy outperforms the oracle (a configuration given only the gold-evidence conversations, no retrieval needed at all). That's a meaningful claim, it implies that for top-tier systems on LongMemEval, the bottleneck is no longer retrieval. It's reading, reasoning, temporal inference, and abstention.&lt;/p&gt; &lt;p&gt;The structural implication: MemPalace is reporting on a part of the benchmark that's no longer the field's bottleneck, then comparing that number against systems being measured on the part that is. We don't know what MemPalace would score under the QA judge, they haven't run it, but the comparison table reads as if the numbers are commensurable when they aren't. They're measuring different halves of the problem.&lt;/p&gt; &lt;p&gt;Where credit is due&lt;/p&gt; &lt;p&gt;I went in hoping to validate MemPalace's actual core finding: that raw verbatim text + ChromaDB default embeddings beats extraction-based memory systems like Mem0, Mastra, and Supermemory at the retrieval step. MemPalace just keeps everything verbatim and lets cosine search find it. If that result holds up and the 96.6% R@5 has been independently reproduced on M2 Ultra (&lt;a href="https://github.com/milla-jovovich/mempalace/issues/39"&gt;https://github.com/milla-jovovich/mempalace/issues/39&lt;/a&gt;) then the entire &amp;quot;use an LLM to manage memory&amp;quot; paradigm may be over-engineered. That's a real negative result against a lot of work in the space, including, candidly, parts of my own. It deserves more attention than the leaderboard ranking does, regardless of how the headline is framed.&lt;/p&gt; &lt;p&gt;The engineering is real, and public self-correction (like the AAAK retraction) is rare and good. I just want to make sure we're actually comparing apples to apples before the field updates its priors based on a mixed-metric leaderboard.&lt;/p&gt; &lt;p&gt;What I'm doing about it&lt;/p&gt; &lt;p&gt;I'm working on a retrieval-only runner so I can post a true 1:1 R@5 number against my own system. First attempt is hitting embeddings timeouts, so it'll be a few days, but I'll come back with results either way they land.&lt;/p&gt; &lt;p&gt;The actual question&lt;/p&gt; &lt;p&gt;Specifically: am I right that evaluate_retrieval in benchmarks/longmemeval_bench.py never calls an LLM and never compares hypothesized answers to gold answers? And am I right that Mastra and Hindsight are reporting QA accuracy on the same longmemeval_s split, which is a different metric?&lt;/p&gt; &lt;p&gt;If anyone has read the script and the linked competitor blogs and disagrees with that reading, I want to be told.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DepthOk4115"&gt; /u/DepthOk4115 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1si5lc4/sanity_check_on_milla_jovovichs_mempalace_mixed/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T01:35:50+00:00</published>
-  </entry>
   <entry>
     <id>t3_1shyczh</id>
     <title>Stanford: Self improving Meta-Harness</title>
@@ -32,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shyczh/stanford_self_improving_metaharness/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-10T20:33:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sif2dt</id>
-    <title>[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM</title>
-    <updated>2026-04-11T10:05:38+00:00</updated>
-    <author>
-      <name>/u/Kokospalme</name>
-      <uri>https://old.reddit.com/user/Kokospalme</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"&gt; &lt;img alt="[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM" src="https://external-preview.redd.it/iawk_BuiQHp2JqisdLRIcbOX0jg8omjSuBCvPlh7AL0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44407c34d64e4fd18eca53f8ceee238db2583601" title="[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kokospalme"&gt; /u/Kokospalme &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/Siriusquirrel/SongGeneration"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T10:05:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1sif8g9</id>
@@ -73,6 +47,19 @@
     <published>2026-04-10T04:30:23+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sif2dt</id>
+    <title>[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM</title>
+    <updated>2026-04-11T10:05:38+00:00</updated>
+    <author>
+      <name>/u/Kokospalme</name>
+      <uri>https://old.reddit.com/user/Kokospalme</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"&gt; &lt;img alt="[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM" src="https://external-preview.redd.it/iawk_BuiQHp2JqisdLRIcbOX0jg8omjSuBCvPlh7AL0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44407c34d64e4fd18eca53f8ceee238db2583601" title="[Project] SongGeneration v2 Large Optimized: Run the 22G/28G Model on 16GB Consumer GPUs (AMD/Nvidia) with 32GB System RAM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kokospalme"&gt; /u/Kokospalme &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/Siriusquirrel/SongGeneration"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sif2dt/project_songgeneration_v2_large_optimized_run_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T10:05:38+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1si7xzy</id>
     <title>Spectral-AI - a project to use Nvidia RT cores to dramatically speedup MoE inference on Nvidia GPU's (Crazy Fast!)</title>
     <updated>2026-04-11T03:25:59+00:00</updated>
@@ -99,19 +86,6 @@
     <published>2026-04-11T07:44:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sidnz6</id>
-    <title>Where is MiniMax M2.7?</title>
-    <updated>2026-04-11T08:41:03+00:00</updated>
-    <author>
-      <name>/u/lolwutdo</name>
-      <uri>https://old.reddit.com/user/lolwutdo</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Feel like it’s been forever since they announced it; I wonder if it’s going to be better than Qwen 3.5 397b.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lolwutdo"&gt; /u/lolwutdo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T08:41:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sht2yo</id>
     <title>National University of Singapore Presents "DMax": A New Paradigm For Diffusion Language Models (dLLMs) Enabling Aggressive Parallel Decoding.</title>
     <updated>2026-04-10T17:23:39+00:00</updated>
@@ -125,19 +99,6 @@
     <published>2026-04-10T17:23:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1siffos</id>
-    <title>How long until surveillance?</title>
-    <updated>2026-04-11T10:26:59+00:00</updated>
-    <author>
-      <name>/u/boloshon</name>
-      <uri>https://old.reddit.com/user/boloshon</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm sharing something worrying me, hoping to get answers saying &amp;quot;no it's impossible, you silly&amp;quot; (or similar).&lt;/p&gt; &lt;p&gt;I just read that reddit was asked to provide the identity of a user because of Ice criticism.&lt;/p&gt; &lt;p&gt;In France, one guy shared his will to become a terrorist with chatGPT and got the police (RAID) knocking at home.&lt;/p&gt; &lt;p&gt;Historically, teens have been arrested for trying to reproduce what they saw on Mac Gyver.&lt;/p&gt; &lt;p&gt;So it's a matter of time, if not already that journalists realise there is something like uncensored local LLM allowing to do whatever you want, without control, and that someone was helped by it for a crime or self-arm.&lt;/p&gt; &lt;p&gt;There is also more and more websites asking you to prove your identity (scanning face, and ID) first pron websites, then aliexpress etc.&lt;/p&gt; &lt;p&gt;So my guess it's that one day, one gov will discuss the danger of local llm &amp;quot;thanks&amp;quot; to a commited crime and try to &amp;quot;regulate&amp;quot; them. Making it illegal for someone or a gafam to release a too smart LLM above a certain quant for example.&lt;/p&gt; &lt;p&gt;When I see that HF is planning to create an opensource version of Glasswing, it means that it might trigger a race for people fixing software against people exploiting them.&lt;/p&gt; &lt;p&gt;In a dystopian view, people would exchange usb keys of LLM, in a dark street, wearing trench coats to avoid AI act police&lt;/p&gt; &lt;p&gt;Maybe I went too far thinking about it. One would say there is always open-source which will never be &amp;quot;regulatable&amp;quot; like piracy hard to catch.&lt;/p&gt; &lt;p&gt;But what's your take on this?&lt;/p&gt; &lt;p&gt;PS : feel free to downvote me, after all trying to discuss and open the debate about our future is so stupid&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/boloshon"&gt; /u/boloshon &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T10:26:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1shk8ia</id>
     <title>Final voting results for Qwen 3.6</title>
     <updated>2026-04-10T11:48:29+00:00</updated>
@@ -149,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shk8ia/final_voting_results_for_qwen_36/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-10T11:48:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sidnz6</id>
+    <title>Where is MiniMax M2.7?</title>
+    <updated>2026-04-11T08:41:03+00:00</updated>
+    <author>
+      <name>/u/lolwutdo</name>
+      <uri>https://old.reddit.com/user/lolwutdo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Feel like it’s been forever since they announced it; I wonder if it’s going to be better than Qwen 3.5 397b.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lolwutdo"&gt; /u/lolwutdo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sidnz6/where_is_minimax_m27/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T08:41:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1sigg35</id>
@@ -177,17 +151,17 @@
     <published>2026-04-11T11:15:16+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sige8s</id>
-    <title>update on my ai waifu app, can use web search react to images even picture of herself</title>
-    <updated>2026-04-11T11:19:52+00:00</updated>
+    <id>t3_1siffos</id>
+    <title>How long until surveillance?</title>
+    <updated>2026-04-11T10:26:59+00:00</updated>
     <author>
-      <name>/u/aziib</name>
-      <uri>https://old.reddit.com/user/aziib</uri>
+      <name>/u/boloshon</name>
+      <uri>https://old.reddit.com/user/boloshon</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt; &lt;img alt="update on my ai waifu app, can use web search react to images even picture of herself" src="https://external-preview.redd.it/MDBhbGxyc2NvanVnMQII9NWACal0b1W-VaIrPDQyK3fa6tsFfcaqvR4uOVK-.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4e2104897a83ceec26ba3e3d0089ff0592f3b366" title="update on my ai waifu app, can use web search react to images even picture of herself" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;using qwen 3 VL for the llm and the vision (really good for recognize popular characters and even recognize their appearances)&lt;/p&gt; &lt;p&gt;using SerpApi for the web search&lt;/p&gt; &lt;p&gt;the tts is using omnivoice tts (support 600+ languages) that i make a custom api that i recently open source it, get it here: &lt;a href="https://github.com/aziib/omnivoice-tts-api"&gt;https://github.com/aziib/omnivoice-tts-api&lt;/a&gt;&lt;/p&gt; &lt;p&gt;my ai waifu project stil in work in progress, i just hope there is free web search api, SerpApi has some search limit usage per month.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aziib"&gt; /u/aziib &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/996hylrcojug1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm sharing something worrying me, hoping to get answers saying &amp;quot;no it's impossible, you silly&amp;quot; (or similar).&lt;/p&gt; &lt;p&gt;I just read that reddit was asked to provide the identity of a user because of Ice criticism.&lt;/p&gt; &lt;p&gt;In France, one guy shared his will to become a terrorist with chatGPT and got the police (RAID) knocking at home.&lt;/p&gt; &lt;p&gt;Historically, teens have been arrested for trying to reproduce what they saw on Mac Gyver.&lt;/p&gt; &lt;p&gt;So it's a matter of time, if not already that journalists realise there is something like uncensored local LLM allowing to do whatever you want, without control, and that someone was helped by it for a crime or self-arm.&lt;/p&gt; &lt;p&gt;There is also more and more websites asking you to prove your identity (scanning face, and ID) first pron websites, then aliexpress etc.&lt;/p&gt; &lt;p&gt;So my guess it's that one day, one gov will discuss the danger of local llm &amp;quot;thanks&amp;quot; to a commited crime and try to &amp;quot;regulate&amp;quot; them. Making it illegal for someone or a gafam to release a too smart LLM above a certain quant for example.&lt;/p&gt; &lt;p&gt;When I see that HF is planning to create an opensource version of Glasswing, it means that it might trigger a race for people fixing software against people exploiting them.&lt;/p&gt; &lt;p&gt;In a dystopian view, people would exchange usb keys of LLM, in a dark street, wearing trench coats to avoid AI act police&lt;/p&gt; &lt;p&gt;Maybe I went too far thinking about it. One would say there is always open-source which will never be &amp;quot;regulatable&amp;quot; like piracy hard to catch.&lt;/p&gt; &lt;p&gt;But what's your take on this?&lt;/p&gt; &lt;p&gt;PS : feel free to downvote me, after all trying to discuss and open the debate about our future is so stupid&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/boloshon"&gt; /u/boloshon &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1siffos/how_long_until_surveillance/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-11T11:19:52+00:00</published>
+    <published>2026-04-11T10:26:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1shus54</id>
@@ -203,6 +177,19 @@
     <published>2026-04-10T18:23:15+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sihwo8</id>
+    <title>Gemma 4 26B A4B is still fully capable at 245283/262144 (94%) contex !</title>
+    <updated>2026-04-11T12:34:56+00:00</updated>
+    <author>
+      <name>/u/cviperr33</name>
+      <uri>https://old.reddit.com/user/cviperr33</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sihwo8/gemma_4_26b_a4b_is_still_fully_capable_at/"&gt; &lt;img alt="Gemma 4 26B A4B is still fully capable at 245283/262144 (94%) contex !" src="https://preview.redd.it/x4nv3btr0kug1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=faf744134946eea3db9683986d1ad6310de53c76" title="Gemma 4 26B A4B is still fully capable at 245283/262144 (94%) contex !" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/x4nv3btr0kug1.png?width=1919&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3c4cdda920a1cb74407e9292acb5bbeccea3bb5f"&gt;https://preview.redd.it/x4nv3btr0kug1.png?width=1919&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3c4cdda920a1cb74407e9292acb5bbeccea3bb5f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It solved an issue with a script that pulls real-time data from NVIDIA SMI; Gemini 3.1 actually failed to fix it even in a fresh session, lol.&lt;/p&gt; &lt;p&gt;It’s kind of mind-blowing how in 2026 we already have stable local models with 200k+ context! I tested it out by feeding it as many Reddit posts, random documentation files, and raw files from the llama.cpp repo as possible to bump the usage up and see how it affects my VRAM. Even during this testing, Gemma kept its mind intact! At 245,283 / 262,144 (94%) context, if I ask it what a specific user said, it matches perfectly and answers within 2–5 seconds.&lt;/p&gt; &lt;p&gt;245283/262144 (94%) at this contex , if i ask it to tell me what this user said and perfectly matches it and tells me , within 2-5 seconds&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/fo0myzkp1kug1.png?width=831&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=2b46c5ef672138c20c7e0e5ca85814569112ec0e"&gt;https://preview.redd.it/fo0myzkp1kug1.png?width=831&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=2b46c5ef672138c20c7e0e5ca85814569112ec0e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;From previous tests, I found I had to decrease the temperature and bump the repeat penalty to 1.17/1.18 so it doesn't fall into a loop of self-questioning. Above 100k context, it used to start looping through its own thoughts and arguing; instead of providing a final answer, it would just go on forever. These settings helped a lot!&lt;/p&gt; &lt;p&gt;I'm using the latest llama.cpp (which gets updates almost every hour) and the latest Unsloth GGUF from 2–6 hours ago, so make sure to redownload!&lt;/p&gt; &lt;p&gt;Model : gemma-4-26B-A4B-it-UD-IQ4_NL.gguf , unsloth (unsloth bis)&lt;br /&gt; These are my current settings for llama.ccp , that i start with pshel script :&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# --- [2. OPTIMIZATION PARAMETERS] --- $ContextSize = &amp;quot;262144&amp;quot; $GpuLayers = &amp;quot;99&amp;quot; $Temperature = &amp;quot;0.7&amp;quot; $TopP = &amp;quot;0.95&amp;quot; $TopK = &amp;quot;40&amp;quot; $MinP = &amp;quot;0.05&amp;quot; $RepeatPenalty = &amp;quot;1.17&amp;quot; # --- [3. THE ARGUMENT CONSTRUCTION] --- $ArgumentList = @( &amp;quot;-m&amp;quot;, $ModelPath, &amp;quot;--mmproj&amp;quot;, $MMProjPath, &amp;quot;-ngl&amp;quot;, $GpuLayers, &amp;quot;-c&amp;quot;, $ContextSize, &amp;quot;-fa&amp;quot;, &amp;quot;1&amp;quot;, &amp;quot;--cache-ram&amp;quot;, &amp;quot;2048&amp;quot;, &amp;quot;-ctxcp&amp;quot;, &amp;quot;2&amp;quot;, &amp;quot;-ctk&amp;quot;, &amp;quot;q8_0&amp;quot;, &amp;quot;-b&amp;quot;, &amp;quot;512&amp;quot;, # Smaller batch for less activation overhead &amp;quot;-ub&amp;quot;, &amp;quot;512&amp;quot;, &amp;quot;-ctv&amp;quot;, &amp;quot;q8_0&amp;quot;, &amp;quot;--temp&amp;quot;, $Temperature, &amp;quot;--top-p&amp;quot;, $TopP, &amp;quot;--top-k&amp;quot;, $TopK, &amp;quot;--min-p&amp;quot;, $MinP, &amp;quot;--repeat-penalty&amp;quot;, $RepeatPenalty, &amp;quot;--host&amp;quot;, &amp;quot;0.0.0.0&amp;quot;, &amp;quot;--port&amp;quot;, &amp;quot;8080&amp;quot;, &amp;quot;--jinja&amp;quot;, &amp;quot;--metrics&amp;quot; ) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;What else i can test ? honestly i ran out of ideas to crash it! It just gulps and gulps whatever i throw at it&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cviperr33"&gt; /u/cviperr33 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sihwo8/gemma_4_26b_a4b_is_still_fully_capable_at/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sihwo8/gemma_4_26b_a4b_is_still_fully_capable_at/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sihwo8/gemma_4_26b_a4b_is_still_fully_capable_at/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T12:34:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1shs6sx</id>
     <title>More Gemma4 fixes in the past 24 hours</title>
     <updated>2026-04-10T16:52:36+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1shs6sx/more_gemma4_fixes_in_the_past_24_hours/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-10T16:52:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sige8s</id>
+    <title>update on my ai waifu app, can use web search react to images even picture of herself</title>
+    <updated>2026-04-11T11:19:52+00:00</updated>
+    <author>
+      <name>/u/aziib</name>
+      <uri>https://old.reddit.com/user/aziib</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt; &lt;img alt="update on my ai waifu app, can use web search react to images even picture of herself" src="https://external-preview.redd.it/MDBhbGxyc2NvanVnMQII9NWACal0b1W-VaIrPDQyK3fa6tsFfcaqvR4uOVK-.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4e2104897a83ceec26ba3e3d0089ff0592f3b366" title="update on my ai waifu app, can use web search react to images even picture of herself" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;using qwen 3 VL for the llm and the vision (really good for recognize popular characters and even recognize their appearances)&lt;/p&gt; &lt;p&gt;using SerpApi for the web search&lt;/p&gt; &lt;p&gt;the tts is using omnivoice tts (support 600+ languages) that i make a custom api that i recently open source it, get it here: &lt;a href="https://github.com/aziib/omnivoice-tts-api"&gt;https://github.com/aziib/omnivoice-tts-api&lt;/a&gt;&lt;/p&gt; &lt;p&gt;my ai waifu project stil in work in progress, i just hope there is free web search api, SerpApi has some search limit usage per month.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/aziib"&gt; /u/aziib &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/996hylrcojug1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sige8s/update_on_my_ai_waifu_app_can_use_web_search/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-11T11:19:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1shq4ty</id>
