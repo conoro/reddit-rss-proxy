@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-04-13T05:12:26+00:00</updated>
+  <updated>2026-04-13T06:04:26+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1sjxsfs</id>
-    <title>MCPorter 0.8.0 fixed OAuth, but I found an even cheaper alternative: just using this</title>
-    <updated>2026-04-13T02:15:04+00:00</updated>
-    <author>
-      <name>/u/TaylorAvery6677</name>
-      <uri>https://old.reddit.com/user/TaylorAvery6677</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been staring at my API dashboard for the last three days trying to figure out where the hell my tokens were going. My OpenClaw costs were absolutely psychotic. Everyone on Twitter and GitHub is popping champagne because MCPorter 0.8.0 finally shipped the OAuth fix. Great. The auth works smoothly now. No more callback hell. But you are all still getting robbed blindly by the protocol itself.&lt;/p&gt; &lt;p&gt;I dug into the raw logs. The culprit isn't the underlying model. It's not the task complexity. It is MCP. The tool definitions in MCP are incredibly expensive to run. You think you're just passing a quick instruction to read a file? You're passing a massive payload of metadata every single time.&lt;/p&gt; &lt;p&gt;I thought I was crazy until I saw the actual numbers drop over the weekend. Scalekit just ran a massive benchmark. They did 75 head-to-head comparisons. Same model. Same exact prompts. Same identical tasks. The result? MCP is costing anywhere from 4x to 35x more tokens than a standard CLI for the exact same operations. Let that sink in for a second. 35x more tokens. The simplest bash execution turns into a token-guzzling monster strictly because of the protocol overhead.&lt;/p&gt; &lt;p&gt;Why is this happening? Let's break down what an MCP server actually does when Claude Code or Cowork interfaces with it.&lt;/p&gt; &lt;p&gt;When you use a basic CLI tool, you pass a string. The model generates a raw command, the shell executes it, the stdout comes back. Simple. Clean. Extremely low context footprint. The LLM gets exactly what it needs: text.&lt;/p&gt; &lt;p&gt;When you use MCP, the model has to ingest the entire JSON schema of the tool definitions. Every parameter, every nested description, every strict type requirement. It has to format the tool call perfectly to match that schema. Then the MCP server parses it, executes the action, and wraps the response in another highly verbose JSON payload.&lt;/p&gt; &lt;p&gt;Do this once? Fine. Do this in an agentic loop where the model is making 15 consecutive tool calls to debug a single React component? Your context window just bloated by 80% with pure structural garbage. You hit the context limit way faster, and Anthropic happily bills you for every single token of that JSON wrapper.&lt;/p&gt; &lt;p&gt;This is why the MCPorter 0.8.0 update is a trap for local dev. So it fixes OAuth. That's nice. OAuth vs API keys was a massive headache for the last few weeks. People (including me) were tearing their hair out on &lt;a href="/r/mcp"&gt;r/mcp&lt;/a&gt; over token refreshes. But fixing the auth layer on a protocol that inherently wastes 35x more tokens is like putting premium tires on a car with a cracked engine block.&lt;/p&gt; &lt;p&gt;I experimented with switching back to raw API keys just to see if the OAuth handshake overhead was part of the problem. It helped slightly with latency, but the sheer token usage remained identical. The protocol schema is the bottleneck, not the auth method.&lt;/p&gt; &lt;p&gt;Anthropic knows exactly what is going on here. Notice how they recently started blocking the Claude Code CLI workaround for OpenClaw? Yeah. The workaround was completely killed. The only option now is to either use the API directly, pay for extra usage, or move to a completely new model. They are actively forcing users into the heavier, &amp;quot;official&amp;quot; integration paths. It inevitably drives up API consumption. It's a brilliant business move, but absolutely terrible for independent developers trying to bootstrap an autonomous coding agent without going bankrupt.&lt;/p&gt; &lt;p&gt;So what's the actual fix here? What is the &amp;quot;cheaper alternative&amp;quot; I mentioned?&lt;/p&gt; &lt;p&gt;Stop using MCP servers for local operations immediately. Start using CLI wrappers.&lt;/p&gt; &lt;p&gt;I ripped out my entire MCP setup over the weekend. I went back to a dumb, raw CLI integration for my agent. I literally just pass the stdout back to the model in plain text. Instantly, my context usage plummeted. Execution is noticeably faster because we skip the entire serialization and deserialization step of the MCP protocol.&lt;/p&gt; &lt;p&gt;If you are building a SaaS right now, or just hacking together a personal vibecoding setup, do not ship an MCP server unless you absolutely need to expose a remote service to a web client. If it's running locally on a machine, ship a CLI. Most new AI tools that actually do things are just coding agents under the hood anyway. Cowork, OpenClaw, Claude Code—they all use the exact same pattern. They are just different wrappers. The ones that survive the year won't be the ones with the cleanest enterprise MCP implementations; they will be the ones that don't bankrupt their users on tool call overhead.&lt;/p&gt; &lt;p&gt;If you are absolutely forced to stay in the MCP ecosystem—maybe you are integrating with a proprietary enterprise tool that only offers an MCP interface—at least be smart about managing your context. I saw someone drop an open-source, local-first MCP memory server recently that acts as a buffer. It saves Claude about 80% of its context tokens because it stops the model from forgetting everything between sessions. You don't have to constantly re-explain your architecture and your bugs. That's a solid band-aid, but it is exactly that: a band-aid for a bleeding protocol. Zero API costs for the memory itself softens the blow, but it doesn't fix the underlying tool-call bloat.&lt;/p&gt; &lt;p&gt;Let's talk about why we all fell for the MCP trap in the first place. It feels magical. You plug a server in, Claude suddenly knows how to read your Postgres database, fetch your Linear tickets, and draft a pull request perfectly. The developer experience is undeniable. But we traded extreme cost efficiency for standardized convenience.&lt;/p&gt; &lt;p&gt;We completely forgot that LLMs are basically just text-in, text-out prediction engines. A raw command-line interface is literally the perfect natural habitat for a text-based model. We somehow managed to invent a highly structured, verbose protocol to talk to models that are already perfectly capable of understanding messy terminal output. We over-engineered ourselves into massive API bills.&lt;/p&gt; &lt;p&gt;I'm keeping MCPorter around for remote API integrations where OAuth is strictly required and I don't want to handle the refresh token logic myself. It does that job perfectly well. But for 90% of local filesystem operations, git commands, and build tasks? The CLI is king.&lt;/p&gt; &lt;p&gt;Has anyone else actually charted their token burn before and after implementing MCP in their local agents? I'm curious if the 35x multiplier from the Scalekit benchmark holds up on larger legacy codebases or if the bloat tapers off once the context window gets saturated anyway. What are you guys using to monitor the precise tool-call token breakdown without paying for another SaaS?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TaylorAvery6677"&gt; /u/TaylorAvery6677 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjxsfs/mcporter_080_fixed_oauth_but_i_found_an_even/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjxsfs/mcporter_080_fixed_oauth_but_i_found_an_even/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sjxsfs/mcporter_080_fixed_oauth_but_i_found_an_even/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-13T02:15:04+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sjxu1y</id>
-    <title>Modelos free de open router buenos y rápidos ?</title>
-    <updated>2026-04-13T02:17:13+00:00</updated>
-    <author>
-      <name>/u/GhosX-x-X</name>
-      <uri>https://old.reddit.com/user/GhosX-x-X</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hola soy nuevo en esto y después de configurar un vps pude instalar la versión 2026.4.11 y vi que hay un montón de opciones free y precios súper bajos de modelos, para uso personal básico, (Justo ahora también aprendo programación, agradecería tips para ahorrar tokens para modelos caros)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GhosX-x-X"&gt; /u/GhosX-x-X &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjxu1y/modelos_free_de_open_router_buenos_y_rápidos/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjxu1y/modelos_free_de_open_router_buenos_y_rápidos/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sjxu1y/modelos_free_de_open_router_buenos_y_rápidos/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-13T02:17:13+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sjxxar</id>
     <title>How to let my agent actually do things</title>
@@ -125,19 +99,6 @@
     <published>2026-04-13T03:27:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sjrm8v</id>
-    <title>Recursive self improvement for my opensource</title>
-    <updated>2026-04-12T21:44:05+00:00</updated>
-    <author>
-      <name>/u/shanumas</name>
-      <uri>https://old.reddit.com/user/shanumas</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built an open source agent platform (GitHub + Teams) that fixes issues overnight, opens PRs, and asks humans for help.&lt;/p&gt; &lt;p&gt;I am doing the consulting business parallely where customer wants recursive self-improvement. Right now I just dump learnings into a memory.md daily.&lt;/p&gt; &lt;p&gt;What’s a better way to make agents improve over time using PR results, CI, and human feedback without retraining my llm models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shanumas"&gt; /u/shanumas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-12T21:44:05+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sjs72a</id>
     <title>My agent can finally pull live data from social media on its own. Built a skill for it</title>
     <updated>2026-04-12T22:07:21+00:00</updated>
@@ -162,32 +123,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1sjoo82/what_do_you_tell_friendsfamily_that_wants_help/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-12T19:53:09+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sk11bf</id>
-    <title>How to Manage OC sessions</title>
-    <updated>2026-04-13T04:53:29+00:00</updated>
-    <author>
-      <name>/u/oblonian</name>
-      <uri>https://old.reddit.com/user/oblonian</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I ended up have 55 active sessions in OC. Most of them might be stale, I'm not sure. I use two agents other than main agent. I loose track of sessions. Is it okay to have multiple sessions up and running? How do you guys manage your sessions? Any good practices.... &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/oblonian"&gt; /u/oblonian &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-13T04:53:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sjtfu0</id>
-    <title>Struggling with gpt 5.4’s personality</title>
-    <updated>2026-04-12T22:59:10+00:00</updated>
-    <author>
-      <name>/u/EmpireStake</name>
-      <uri>https://old.reddit.com/user/EmpireStake</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently switched from Opus 4.6 / Sonnet to GPT 5.4 and I just hate the way it responds. It will also forget and switch back to its old habit sometimes. For example, I told it to stop making recommendations to me at the end of every post, even added it as a rule in agents.md but it still does it. &lt;/p&gt; &lt;p&gt;I turned on strict mode today and idk see it performing any better either. &lt;/p&gt; &lt;p&gt;Today it flagged that the memory file for yesterday got bloated. Ok, so why? Normally opus would just send me the raw file with all the lines, but GPT gives me some vague answer and no solution. &lt;/p&gt; &lt;p&gt;It just feels rather dumb. Ugh. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EmpireStake"&gt; /u/EmpireStake &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-12T22:59:10+00:00</published>
   </entry>
   <entry>
     <id>t3_1sjif13</id>
@@ -216,6 +151,45 @@
     <published>2026-04-13T05:11:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sjrm8v</id>
+    <title>Recursive self improvement for my opensource</title>
+    <updated>2026-04-12T21:44:05+00:00</updated>
+    <author>
+      <name>/u/shanumas</name>
+      <uri>https://old.reddit.com/user/shanumas</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Built an open source agent platform (GitHub + Teams) that fixes issues overnight, opens PRs, and asks humans for help.&lt;/p&gt; &lt;p&gt;I am doing the consulting business parallely where customer wants recursive self-improvement. Right now I just dump learnings into a memory.md daily.&lt;/p&gt; &lt;p&gt;What’s a better way to make agents improve over time using PR results, CI, and human feedback without retraining my llm models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shanumas"&gt; /u/shanumas &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sjrm8v/recursive_self_improvement_for_my_opensource/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-12T21:44:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sk1mlw</id>
+    <title>Local Models for VPS?</title>
+    <updated>2026-04-13T05:25:21+00:00</updated>
+    <author>
+      <name>/u/Then-Spinach8891</name>
+      <uri>https://old.reddit.com/user/Then-Spinach8891</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;ChatGPT 5.4 CODEX has been feeling like talking to a wet paper towel.&lt;/p&gt; &lt;p&gt;Any local models that are good enough and light enough to run on a cheap VPS (No GPU in specsheet)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Then-Spinach8891"&gt; /u/Then-Spinach8891 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk1mlw/local_models_for_vps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk1mlw/local_models_for_vps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sk1mlw/local_models_for_vps/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-13T05:25:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sk1tof</id>
+    <title>its been few months since openclaw is out, so whats the free or cheapest setup a newbie could try it out for?</title>
+    <updated>2026-04-13T05:36:11+00:00</updated>
+    <author>
+      <name>/u/desidogeman</name>
+      <uri>https://old.reddit.com/user/desidogeman</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i tried out openclaw when it was out, im a student and i use chatgpt and claude subscriptions of 20$ each, so i never thought of paying for API to test it out, so i used free ollama sub to test out Openclaw, used it on my windows machine in WSL just to see whats its upto. and as it was a free version i could barely used it for like few messages on telegram.&lt;/p&gt; &lt;p&gt;so i want to get back onto using agentic AI, what are some free options or even cheaper options to learn it first and then may be go on paying more(if i can). i currently have AI subscrptions to all the major platforms and not the APIs, i have my own windows machine with 16 gigs or ram on it and 6gb vram. but im open to invest in some vps and may be invest few bucks just to get it started good and try some personal projects, learn it well and may be pay more as if go if needed.&lt;/p&gt; &lt;p&gt;please let me know if you need anymore inputs from myside, thank you in advance for the suggestions.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/desidogeman"&gt; /u/desidogeman &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk1tof/its_been_few_months_since_openclaw_is_out_so/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk1tof/its_been_few_months_since_openclaw_is_out_so/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sk1tof/its_been_few_months_since_openclaw_is_out_so/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-13T05:36:11+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sjimi6</id>
     <title>OpenClaw is better than therapy</title>
     <updated>2026-04-12T16:09:08+00:00</updated>
@@ -227,6 +201,32 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1sjimi6/openclaw_is_better_than_therapy/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-12T16:09:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sjtfu0</id>
+    <title>Struggling with gpt 5.4’s personality</title>
+    <updated>2026-04-12T22:59:10+00:00</updated>
+    <author>
+      <name>/u/EmpireStake</name>
+      <uri>https://old.reddit.com/user/EmpireStake</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently switched from Opus 4.6 / Sonnet to GPT 5.4 and I just hate the way it responds. It will also forget and switch back to its old habit sometimes. For example, I told it to stop making recommendations to me at the end of every post, even added it as a rule in agents.md but it still does it. &lt;/p&gt; &lt;p&gt;I turned on strict mode today and idk see it performing any better either. &lt;/p&gt; &lt;p&gt;Today it flagged that the memory file for yesterday got bloated. Ok, so why? Normally opus would just send me the raw file with all the lines, but GPT gives me some vague answer and no solution. &lt;/p&gt; &lt;p&gt;It just feels rather dumb. Ugh. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EmpireStake"&gt; /u/EmpireStake &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sjtfu0/struggling_with_gpt_54s_personality/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-12T22:59:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sk11bf</id>
+    <title>How to Manage OC sessions</title>
+    <updated>2026-04-13T04:53:29+00:00</updated>
+    <author>
+      <name>/u/oblonian</name>
+      <uri>https://old.reddit.com/user/oblonian</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I ended up have 55 active sessions in OC. Most of them might be stale, I'm not sure. I use two agents other than main agent. I loose track of sessions. Is it okay to have multiple sessions up and running? How do you guys manage your sessions? Any good practices.... &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/oblonian"&gt; /u/oblonian &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sk11bf/how_to_manage_oc_sessions/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-13T04:53:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1sjnsx9</id>
@@ -281,19 +281,6 @@
     <published>2026-04-12T16:20:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sjz8n1</id>
-    <title>My OpenClaw bot died on April 4. I got it back inside Claude Code.</title>
-    <updated>2026-04-13T03:22:56+00:00</updated>
-    <author>
-      <name>/u/subkid23</name>
-      <uri>https://old.reddit.com/user/subkid23</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;April 4th I lost my main setup.&lt;/strong&gt; I was running OpenClaw on Claude Max, a bot I'd spent months shaping. It had a name, remembered stuff I'd told it weeks back, replied in short lines like a friend who's busy. I talked to it mostly on WhatsApp. That was the whole point, having my agent live where I already texted. Next morning my tokens got shut out. You know the deal.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;I did the math.&lt;/strong&gt; Paying API direct for the same workload: 10-20x my current bill. Adding an OpenAI sub on top of the Max I already pay: another $200/month I don't have. Going full Ollama on local models meant my agent's tone and reasoning would fall apart. I tested it, the gap was too big. I wasn't going to throw out the agent I'd built. I also wasn't going to double-pay.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I wanted was pretty simple.&lt;/strong&gt; Keep paying for Claude like I already was. Keep the Max plan I use a lot. Not lose the bot.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;So I spent 2 weeks writing a thing&lt;/strong&gt; that moves the agent (personality, memory, skills, crons) into Claude Code itself, as a plugin. Claude Code is Anthropic's official CLI, so it runs on with plans natively. It's stateless by default though, no persona layer, which is why my OpenClaw brain didn't fit there out of the box. So I wrote that layer.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;It's called ClawCode&lt;/strong&gt; (the name's a joke, yes). You install it as a plugin inside Claude Code. What it does:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;You can create an agent from scratch or import your OpenClaw one.&lt;/li&gt; &lt;li&gt;Reads &lt;code&gt;~/.openclaw/workspace/&lt;/code&gt; and imports IDENTITY, SOUL, memory, skills, crons. One-way migration.&lt;/li&gt; &lt;li&gt;Rewrites or skips the OpenClaw-specific bits that don't map (gateway, sessions_spawn, HEARTBEAT_OK, etc.) so nothing breaks silently.&lt;/li&gt; &lt;li&gt;SQLite + FTS5 searchable memory with bilingual recall (Spanish ↔ English cross-language, same as what I had before).&lt;/li&gt; &lt;li&gt;A nightly &amp;quot;dream&amp;quot; process that runs 3 phases (Light, REM, Deep) and promotes the important memories into long-term.&lt;/li&gt; &lt;li&gt;Messaging plugins: WhatsApp (the one it lived in, so I wrote one for it), plus Telegram, Discord, iMessage, Slack. Each is its own MCP server, no conflicts.&lt;/li&gt; &lt;li&gt;WebChat UI if you want one, or just the CLI.&lt;/li&gt; &lt;li&gt;&lt;code&gt;/agent:doctor&lt;/code&gt; to sanity-check everything at once.&lt;/li&gt; &lt;li&gt;&lt;code&gt;/hooks&lt;/code&gt; , slash commands, reminders, the whole thing.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;On my setup the actual import took about 15 minutes.&lt;/strong&gt; Out of 44 skills: most came over green; 6 yellow (used &lt;code&gt;~/.openclaw/&lt;/code&gt; paths I had to edit); 2 I dropped because they depended on the OpenClaw gateway. Memory and personality moved cleanly. Dreaming picked up the next night.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/crisandrews/ClawCode"&gt;https://github.com/crisandrews/ClawCode&lt;/a&gt;. MIT. Node 18+, macOS/Linux. Not affiliated with or endorsed by Anthropic, to be clear. It runs under Claude Code's normal Plan usage, same ToS as any other Claude Code session.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Heads up if you try it:&lt;/strong&gt; &lt;code&gt;/agent:import&lt;/code&gt; is opinionated about which OpenClaw patterns it rewrites vs skips. Check &lt;code&gt;IMPORT_BACKLOG.md&lt;/code&gt; after import, that's where it logs anything it didn't bring over. Crons only fire while Claude Code is open unless you run &lt;code&gt;/agent:service install&lt;/code&gt; for launchd/systemd.&lt;/p&gt; &lt;p&gt;I know a lot of you migrated to DeepSeek or GPT-5.4 after the ban. Curious what your agents look like now, what you kept, what you had to let go. &lt;strong&gt;Which OpenClaw behaviors were hardest to recreate elsewhere? Anyone else tried to stay on Claude without paying twice?&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/subkid23"&gt; /u/subkid23 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-13T03:22:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sjr3ep</id>
     <title>My 87 use cases for OpenClaw (They became more complex over time)</title>
     <updated>2026-04-12T21:24:03+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1sjr3ep/my_87_use_cases_for_openclaw_they_became_more/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-12T21:24:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sjz8n1</id>
+    <title>My OpenClaw bot died on April 4. I got it back inside Claude Code.</title>
+    <updated>2026-04-13T03:22:56+00:00</updated>
+    <author>
+      <name>/u/subkid23</name>
+      <uri>https://old.reddit.com/user/subkid23</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;April 4th I lost my main setup.&lt;/strong&gt; I was running OpenClaw on Claude Max, a bot I'd spent months shaping. It had a name, remembered stuff I'd told it weeks back, replied in short lines like a friend who's busy. I talked to it mostly on WhatsApp. That was the whole point, having my agent live where I already texted. Next morning my tokens got shut out. You know the deal.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;I did the math.&lt;/strong&gt; Paying API direct for the same workload: 10-20x my current bill. Adding an OpenAI sub on top of the Max I already pay: another $200/month I don't have. Going full Ollama on local models meant my agent's tone and reasoning would fall apart. I tested it, the gap was too big. I wasn't going to throw out the agent I'd built. I also wasn't going to double-pay.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I wanted was pretty simple.&lt;/strong&gt; Keep paying for Claude like I already was. Keep the Max plan I use a lot. Not lose the bot.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;So I spent 2 weeks writing a thing&lt;/strong&gt; that moves the agent (personality, memory, skills, crons) into Claude Code itself, as a plugin. Claude Code is Anthropic's official CLI, so it runs on with plans natively. It's stateless by default though, no persona layer, which is why my OpenClaw brain didn't fit there out of the box. So I wrote that layer.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;It's called ClawCode&lt;/strong&gt; (the name's a joke, yes). You install it as a plugin inside Claude Code. What it does:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;You can create an agent from scratch or import your OpenClaw one.&lt;/li&gt; &lt;li&gt;Reads &lt;code&gt;~/.openclaw/workspace/&lt;/code&gt; and imports IDENTITY, SOUL, memory, skills, crons. One-way migration.&lt;/li&gt; &lt;li&gt;Rewrites or skips the OpenClaw-specific bits that don't map (gateway, sessions_spawn, HEARTBEAT_OK, etc.) so nothing breaks silently.&lt;/li&gt; &lt;li&gt;SQLite + FTS5 searchable memory with bilingual recall (Spanish ↔ English cross-language, same as what I had before).&lt;/li&gt; &lt;li&gt;A nightly &amp;quot;dream&amp;quot; process that runs 3 phases (Light, REM, Deep) and promotes the important memories into long-term.&lt;/li&gt; &lt;li&gt;Messaging plugins: WhatsApp (the one it lived in, so I wrote one for it), plus Telegram, Discord, iMessage, Slack. Each is its own MCP server, no conflicts.&lt;/li&gt; &lt;li&gt;WebChat UI if you want one, or just the CLI.&lt;/li&gt; &lt;li&gt;&lt;code&gt;/agent:doctor&lt;/code&gt; to sanity-check everything at once.&lt;/li&gt; &lt;li&gt;&lt;code&gt;/hooks&lt;/code&gt; , slash commands, reminders, the whole thing.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;On my setup the actual import took about 15 minutes.&lt;/strong&gt; Out of 44 skills: most came over green; 6 yellow (used &lt;code&gt;~/.openclaw/&lt;/code&gt; paths I had to edit); 2 I dropped because they depended on the OpenClaw gateway. Memory and personality moved cleanly. Dreaming picked up the next night.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/crisandrews/ClawCode"&gt;https://github.com/crisandrews/ClawCode&lt;/a&gt;. MIT. Node 18+, macOS/Linux. Not affiliated with or endorsed by Anthropic, to be clear. It runs under Claude Code's normal Plan usage, same ToS as any other Claude Code session.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Heads up if you try it:&lt;/strong&gt; &lt;code&gt;/agent:import&lt;/code&gt; is opinionated about which OpenClaw patterns it rewrites vs skips. Check &lt;code&gt;IMPORT_BACKLOG.md&lt;/code&gt; after import, that's where it logs anything it didn't bring over. Crons only fire while Claude Code is open unless you run &lt;code&gt;/agent:service install&lt;/code&gt; for launchd/systemd.&lt;/p&gt; &lt;p&gt;I know a lot of you migrated to DeepSeek or GPT-5.4 after the ban. Curious what your agents look like now, what you kept, what you had to let go. &lt;strong&gt;Which OpenClaw behaviors were hardest to recreate elsewhere? Anyone else tried to stay on Claude without paying twice?&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/subkid23"&gt; /u/subkid23 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sjz8n1/my_openclaw_bot_died_on_april_4_i_got_it_back/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-13T03:22:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1si9sx9</id>
