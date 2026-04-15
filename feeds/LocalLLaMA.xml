@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-15T19:11:21+00:00</updated>
+  <updated>2026-04-15T19:45:55+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1slk4di</id>
-    <title>MiniMax M2.7 GGUF Investigation, Fixes, Benchmarks</title>
-    <updated>2026-04-14T20:12:52+00:00</updated>
-    <author>
-      <name>/u/danielhanchen</name>
-      <uri>https://old.reddit.com/user/danielhanchen</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1slk4di/minimax_m27_gguf_investigation_fixes_benchmarks/"&gt; &lt;img alt="MiniMax M2.7 GGUF Investigation, Fixes, Benchmarks" src="https://external-preview.redd.it/aZo9EbTw7SSoJUZp2FPrLlUW-q8kmTU3dXShPDfQsZg.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=118a5c69ca1f487372144481a7f41c94bf91f69c" title="MiniMax M2.7 GGUF Investigation, Fixes, Benchmarks" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;, we did an investigation into MiniMax-M2.7 GGUF causing NaNs on perplexity. Our findings show the issue &lt;strong&gt;affects 21%-38% of all GGUFs on Hugging Face (not just ours).&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Other popular community uploaders have 38% (10/26) NaNs, another deleted theirs (1/4), and 22% of ours had NaNs (5/23) - we fixed ours.&lt;/li&gt; &lt;li&gt;When running 99.9% KLD and other metrics, all are fine.&lt;/li&gt; &lt;li&gt;We found &lt;strong&gt;overflowing in llama.cpp to be the culprit&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;We did PPL, KLD 99.9% benchmarks as well - lower left is better.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/46i7z9e1m7vg1.png?width=1600&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=bbfe77263d210211c1fc0d7a6a973d7027ce18af"&gt;https://preview.redd.it/46i7z9e1m7vg1.png?width=1600&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=bbfe77263d210211c1fc0d7a6a973d7027ce18af&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Perplexity NaNs during block 32 - this was also found by the community and other quant uploaders. We also found block 311 to cause issues.&lt;/li&gt; &lt;li&gt;We found that &lt;code&gt;blk.61.ffn_down_exps&lt;/code&gt; was the culprit - Q5_K and Q4_K of these produce NaNs starting at chunk 32 during PPL evals. &lt;strong&gt;Interestingly IQ4_XS, IQ3_XXS and smaller I quant types do not NaN.&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;This was quite confusing, since lower bit quants (Q2_K_XL for eg) did NOT NaN, but medium sized quants did (Q4_K_XL)!&lt;/li&gt; &lt;li&gt;We’ve now updated the M2.7 quants at &lt;a href="https://huggingface.co/unsloth/MiniMax-M2.7-GGUF"&gt;https://huggingface.co/unsloth/MiniMax-M2.7-GGUF&lt;/a&gt; to alleviate the issue, though we still do not know the exact cause of the NaN perplexities - it could be a fluke, or most likely large multiplies causing overflows.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Which quants did we test?&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;10/26 NaNs (38%) found at &lt;a href="https://huggingface.co/bartowski/MiniMaxAI_MiniMax-M2.7-GGUF:"&gt;https://huggingface.co/bartowski/MiniMaxAI_MiniMax-M2.7-GGUF:&lt;/a&gt; Chunk-32 failures (9): IQ3_XXS, IQ3_XS, IQ3_M, Q3_K_M, Q3_K_L, Q3_K_XL, Q4_K_S, Q4_1, Q5_K_S. Late failure (1): IQ1_S (crashed at chunk 311)&lt;/li&gt; &lt;li&gt;5/23 NaNs (21%) ours had NaNs - &lt;strong&gt;all fixed now&lt;/strong&gt; at &lt;a href="https://huggingface.co/unsloth/MiniMax-M2.7-GGUF:"&gt;https://huggingface.co/unsloth/MiniMax-M2.7-GGUF:&lt;/a&gt; UD-Q4_K_S, UD-Q4_K_M, UD-Q4_K_XL, UD-Q5_K_S, MXFP4_MOE. All block 32.&lt;/li&gt; &lt;li&gt;1/4 NaN Q4_K_M at &lt;a href="https://huggingface.co/AesSedai/MiniMax-M2.7-GGUF"&gt;https://huggingface.co/AesSedai/MiniMax-M2.7-GGUF&lt;/a&gt; was deleted due to NaNs. Block 32 as well.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Also, CUDA 13.2 is still definitely an issue.&lt;/strong&gt; This causes some low bit quants on all models to get gibberish. Some people have dismissed it as not being an issue, but from what we’ve seen, more than 50 people have now confirmed that using CUDA 13.1 and lower fixes it. You can also see some of the public comments in our Hugging Face discussions, Reddit posts etc. NVIDIA has acknowledged that they are investigating the issue - see &lt;a href="https://github.com/unslothai/unsloth/issues/4849#issuecomment-4187434614"&gt;Unsloth Issue 4849&lt;/a&gt;, &lt;a href="https://github.com/ggml-org/llama.cpp/issues/21255"&gt;llama.cpp issue 21255&lt;/a&gt;, &lt;a href="https://github.com/ggml-org/llama.cpp/issues/21371"&gt;issue 21371&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you have any questions please do ask and thank you again for all the support as always. Appreciate it and hope you have a lovely week.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/danielhanchen"&gt; /u/danielhanchen &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1slk4di/minimax_m27_gguf_investigation_fixes_benchmarks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1slk4di/minimax_m27_gguf_investigation_fixes_benchmarks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1slk4di/minimax_m27_gguf_investigation_fixes_benchmarks/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-14T20:12:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1smc4mh</id>
-    <title>Multi host GPU cluster using DAC cables vs 4 GPU system. Anyone doing this successfully?</title>
-    <updated>2026-04-15T17:05:06+00:00</updated>
-    <author>
-      <name>/u/HockeyDadNinja</name>
-      <uri>https://old.reddit.com/user/HockeyDadNinja</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Right now I have 3 GPUs, 5060 Ti 16G, 2 x 4060 Ti 16G, and may get a used 3090 24G that I found. I could build a janky open rack system using M.2 and PCI risers with a 1600W PSU or try something like putting 2 GPUs in 2 systems using the fastest PCIe channels and connecting them using proper DAC hardware.&lt;/p&gt; &lt;p&gt;Both systems would also have 64G DDR4, the single system would have 128G.&lt;/p&gt; &lt;p&gt;Apparently llama.cpp supports multi-host inference using RPC. Is anyone here successfully doing this?&lt;/p&gt; &lt;p&gt;For the record the monolith server would have the GPUs layed out like so:&lt;/p&gt; &lt;p&gt;RTX 5060 Ti 16G - Top PCIe 5.0 x16 Slot (Direct) - 16GB/s (x16)&lt;/p&gt; &lt;p&gt;RTX 3090 24G - M.2 Slot #2 (PCIe Adapter) - 8GB/s (PCIe 4.0 x4)&lt;/p&gt; &lt;p&gt;RTX 4060 Ti 16G #1 - M.2 Slot #3 (PCIe Adapter) - 8GB/s (PCIe 4.0 x4)&lt;/p&gt; &lt;p&gt;RTX 4060 Ti 16G #2 - Bottom PCIe 3.0 x16 Slot - 4GB/s (PCIe 3.0 x4)&lt;/p&gt; &lt;p&gt;Boot SSD - Top M.2 Slot (CPU) - 8GB/s (Gen 4)&lt;/p&gt; &lt;p&gt;Storage SSD with PCIe x4 Adapter - 4GB/s (Gen 3)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HockeyDadNinja"&gt; /u/HockeyDadNinja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smc4mh/multi_host_gpu_cluster_using_dac_cables_vs_4_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smc4mh/multi_host_gpu_cluster_using_dac_cables_vs_4_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smc4mh/multi_host_gpu_cluster_using_dac_cables_vs_4_gpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T17:05:06+00:00</published>
-  </entry>
   <entry>
     <id>t3_1smc672</id>
     <title>Hey, has anyone here used Qwen3.5-27B-NVFP4-GGUF with llama.cpp yet?</title>
@@ -47,43 +21,43 @@
     <published>2026-04-15T17:06:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sltncp</id>
-    <title>DFlash Doubles the T/S Gen Speed of Qwen3.5 27B (BF16) on Mac M5 Max</title>
-    <updated>2026-04-15T02:46:35+00:00</updated>
+    <id>t3_1smffwl</id>
+    <title>Issues with Gemma 4 tool calling - abrupt gen ending despite the model telling me it wants to do X.</title>
+    <updated>2026-04-15T19:00:21+00:00</updated>
     <author>
-      <name>/u/MiaBchDave</name>
-      <uri>https://old.reddit.com/user/MiaBchDave</uri>
+      <name>/u/dampflokfreund</name>
+      <uri>https://old.reddit.com/user/dampflokfreund</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sltncp/dflash_doubles_the_ts_gen_speed_of_qwen35_27b/"&gt; &lt;img alt="DFlash Doubles the T/S Gen Speed of Qwen3.5 27B (BF16) on Mac M5 Max" src="https://preview.redd.it/xevasmfhn9vg1.png?width=140&amp;amp;height=116&amp;amp;auto=webp&amp;amp;s=3cd849d1dd92c722be99b26d9254c1e5b98dd60c" title="DFlash Doubles the T/S Gen Speed of Qwen3.5 27B (BF16) on Mac M5 Max" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The new DFlash support in oMLX 0.3.5 RC1 looks like it doubles (!!!) the speed of Qwen3.5 27B (BF16). Initial test. Generation T/S went from 9 to 22 T/S!&lt;/p&gt; &lt;p&gt;Models used (HuggingFace)&lt;/p&gt; &lt;p&gt;Main Model: Jackrong/MLX-Qwopus3.5-27B-v3-bf16&lt;br /&gt; Draft Model: z-lab/Qwen3.5-27B-DFlash&lt;/p&gt; &lt;p&gt;System: M5 Max 128GB&lt;/p&gt; &lt;p&gt;DFlash on Github: &lt;a href="https://github.com/bstnxbt/dflash-mlx?tab=readme-ov-file"&gt;https://github.com/bstnxbt/dflash-mlx?tab=readme-ov-file&lt;/a&gt;&lt;/p&gt; &lt;p&gt;oMLX (v0.3.5 RC1): &lt;a href="https://omlx.ai"&gt;https://omlx.ai&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm not affiliated with any of the developers. Since the Qwen3.5 27B model is so good for the size, with speed being the only thing holding it back, I thought that this may help deploy this model locally at higher quants/full weights.&lt;/p&gt; &lt;p&gt;I've yet to test with OpenCode or other harness. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MiaBchDave"&gt; /u/MiaBchDave &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1sltncp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sltncp/dflash_doubles_the_ts_gen_speed_of_qwen35_27b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sltncp/dflash_doubles_the_ts_gen_speed_of_qwen35_27b/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello,&lt;/p&gt; &lt;p&gt;I have noticed an annoying issue with Gemma 4 26b a4b. It seems like it cannot do multiple think-&amp;gt;tool call-&amp;gt;think-&amp;gt;tool call turns. It can do multiple tool calls in one generation but when thinking inbetween that steps happens, it always say it is wanting to do X and then just ends the generation immediately.&lt;/p&gt; &lt;p&gt;I am using a26b a4b q4_k_m with the latest chat template, interleaved or not, the old one, it doesn't make a difference. Does anyone else have this issue?&lt;/p&gt; &lt;p&gt;Edit: &lt;/p&gt; &lt;p&gt;thinking-&amp;gt;tool call -&amp;gt; thinking -&amp;gt; tool call -&amp;gt; response to the user works. But not&lt;/p&gt; &lt;p&gt;thinking-&amp;gt;tool call -&amp;gt; thinking -&amp;gt; tool call -&amp;gt; response to the user -&amp;gt; thinking -&amp;gt; tool call. After the response to the user it ends abruptly despite it wanting to call a tool. That's what I mean. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dampflokfreund"&gt; /u/dampflokfreund &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smffwl/issues_with_gemma_4_tool_calling_abrupt_gen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smffwl/issues_with_gemma_4_tool_calling_abrupt_gen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smffwl/issues_with_gemma_4_tool_calling_abrupt_gen/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T02:46:35+00:00</published>
+    <published>2026-04-15T19:00:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1slxbx7</id>
-    <title>AI Model Reviews</title>
-    <updated>2026-04-15T05:50:19+00:00</updated>
+    <id>t3_1smg26k</id>
+    <title>I made the dopest songs, all locally</title>
+    <updated>2026-04-15T19:21:51+00:00</updated>
     <author>
-      <name>/u/Typical-Tomatillo138</name>
-      <uri>https://old.reddit.com/user/Typical-Tomatillo138</uri>
+      <name>/u/_redacted-</name>
+      <uri>https://old.reddit.com/user/_redacted-</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;LLM benchmarks are terrible. Everyone overfits their models so they can max out benchmarks in no more than a few months after its release. Open source models release with headlines &amp;quot;90% of Opus at 5% of the cost&amp;quot;, yet anyone who has actually used it can feel the obvious difference in quality.&lt;/p&gt; &lt;p&gt;So now that benchmarks mean nothing, it has become impossible to find good reviews on models any more. Every result on the google search &amp;quot;minimax m2.7 review&amp;quot; is either&lt;/p&gt; &lt;ol&gt; &lt;li&gt;AI-written slop blogposts made in 10 minutes. These are the worst.&lt;/li&gt; &lt;li&gt;Meaningless benchmark results. Even the personal test results don't mean anything because it doesn't translate between use cases&lt;/li&gt; &lt;li&gt;Reddit threads with very conflicting information: comments are evenly divided between GLM, Qwen and Minimax with everyone reporting different quality&lt;/li&gt; &lt;li&gt;Clickbait youtube videos&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Are there &lt;em&gt;any&lt;/em&gt; good sources for model reviews left in 2026? I can't seem to find any.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Typical-Tomatillo138"&gt; /u/Typical-Tomatillo138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1slxbx7/ai_model_reviews/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1slxbx7/ai_model_reviews/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1slxbx7/ai_model_reviews/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smg26k/i_made_the_dopest_songs_all_locally/"&gt; &lt;img alt="I made the dopest songs, all locally" src="https://preview.redd.it/fresx5somevg1.png?width=140&amp;amp;height=79&amp;amp;auto=webp&amp;amp;s=8e46f32b534c359a037c2921dd24563e041879d2" title="I made the dopest songs, all locally" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I was goin to really post about my project, but it was getting flagged for self-promotion. So let me just tell y'all what I did locally that I think is pretty cool.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;I had ai go through my test messages and build a graph database and write a bunch of songs from my life. Then I had it do the same thing with the news. I turned it into an app.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Then I had it generate a bunch of music, which to be honest, a lot of the songs kind of got stuck in my head (i.e. they were... dope). So I made this capability into an app.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Then I needed a place to put these songs, so I made a streaming/distrubition platform. (See where this is going?)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Then I needed artwork, so I made an app to generate all the artwork. Also turned it into an app&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Then I made a pipeline and populated my platform with songs about the news and songs of my life and stuff that's going on&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Right now I'm working on a video editor so I can have ai make me a good video of it. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_redacted-"&gt; /u/_redacted- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1smg26k"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smg26k/i_made_the_dopest_songs_all_locally/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smg26k/i_made_the_dopest_songs_all_locally/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T05:50:19+00:00</published>
+    <published>2026-04-15T19:21:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sm2us4</id>
-    <title>at what point does quantization stop being a tradeoff and start being actual quality loss</title>
-    <updated>2026-04-15T11:06:11+00:00</updated>
+    <id>t3_1smg5x4</id>
+    <title>Been trying to get Qwen 3.5 to stop reasoning using old methods like /no_think, it didn't work, but it said something like "too late" in its reasoning</title>
+    <updated>2026-04-15T19:25:36+00:00</updated>
     <author>
-      <name>/u/srodland01</name>
-      <uri>https://old.reddit.com/user/srodland01</uri>
+      <name>/u/Madd0g</name>
+      <uri>https://old.reddit.com/user/Madd0g</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been running a few models locally at different quant levels and honestly the jump from Q5 to Q4 sometimes feels like nothing and other times it completely tanks coherence on longer outputs. is there a general rule for where the cliff is, or does it just depend entirely on the model architecture and what you're doing with it. Would love to hear what quant levels people here actually settle on for daily use versus what they use when quality really matters&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/srodland01"&gt; /u/srodland01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sm2us4/at_what_point_does_quantization_stop_being_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sm2us4/at_what_point_does_quantization_stop_being_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sm2us4/at_what_point_does_quantization_stop_being_a/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;Wait, I need to be careful about the &amp;quot;no_think&amp;quot; tag in the system prompt. The system prompt says &lt;code&gt;/no_think&lt;/code&gt;. This usually means I should not output my thought process. I am in the thought block right now, so that's fine.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;found it funny, it referenced it in every completion:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Wait, looking closely at the system instruction: &amp;quot;/no_think&amp;quot;. This usually means &amp;quot;do not output your internal thought process&amp;quot;. I am already doing that (the thought block is hidden).&lt;/p&gt; &lt;/blockquote&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Madd0g"&gt; /u/Madd0g &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smg5x4/been_trying_to_get_qwen_35_to_stop_reasoning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smg5x4/been_trying_to_get_qwen_35_to_stop_reasoning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smg5x4/been_trying_to_get_qwen_35_to_stop_reasoning/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T11:06:11+00:00</published>
+    <published>2026-04-15T19:25:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1sl6931</id>
@@ -99,19 +73,6 @@
     <published>2026-04-14T11:44:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1smaf9i</id>
-    <title>DTree on MLX ... tiny win over DFlash on Qwen3.5-4B (M2)..</title>
-    <updated>2026-04-15T16:05:19+00:00</updated>
-    <author>
-      <name>/u/naftalinus</name>
-      <uri>https://old.reddit.com/user/naftalinus</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I ported DTree to MLX ... and finally got one setting that seems to beat matched DFlash locally.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;M2 Max 32GB, Qwen3.5-4B, q4_g64, spec=16, tree_budget=24 - DFlash: 45.07 e2e tok/s - DTree: 48.31 e2e tok/s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So basically ~1.07x over DFlash. Not massive, but at least it looks real and repeatable enough to mention.&lt;/p&gt; &lt;p&gt;A lot of the other things I tried were flat or just worse, so my current read is that MLX verifier cost is still the main limiter here.&lt;/p&gt; &lt;p&gt;anyone has gotten bigger DTree gains on MLX?&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/DrHB/dtree-mlx"&gt;https://github.com/DrHB/dtree-mlx&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/naftalinus"&gt; /u/naftalinus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T16:05:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sm6uzc</id>
     <title>(llama.cpp) Possible to disable reasoning for some requests (while leaving reasoning on by default)?</title>
     <updated>2026-04-15T13:56:58+00:00</updated>
@@ -125,6 +86,19 @@
     <published>2026-04-15T13:56:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1smaf9i</id>
+    <title>DTree on MLX ... tiny win over DFlash on Qwen3.5-4B (M2)..</title>
+    <updated>2026-04-15T16:05:19+00:00</updated>
+    <author>
+      <name>/u/naftalinus</name>
+      <uri>https://old.reddit.com/user/naftalinus</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I ported DTree to MLX ... and finally got one setting that seems to beat matched DFlash locally.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;M2 Max 32GB, Qwen3.5-4B, q4_g64, spec=16, tree_budget=24 - DFlash: 45.07 e2e tok/s - DTree: 48.31 e2e tok/s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So basically ~1.07x over DFlash. Not massive, but at least it looks real and repeatable enough to mention.&lt;/p&gt; &lt;p&gt;A lot of the other things I tried were flat or just worse, so my current read is that MLX verifier cost is still the main limiter here.&lt;/p&gt; &lt;p&gt;anyone has gotten bigger DTree gains on MLX?&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/DrHB/dtree-mlx"&gt;https://github.com/DrHB/dtree-mlx&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/naftalinus"&gt; /u/naftalinus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smaf9i/dtree_on_mlx_tiny_win_over_dflash_on_qwen354b_m2/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-15T16:05:19+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1slue0z</id>
     <title>Hot Experts in your VRAM! Dynamic expert cache in llama.cpp for 27% faster CPU +GPU token generation with Qwen3.5-122B-A10B compared to layer-based single-GPU partial offload</title>
     <updated>2026-04-15T03:20:29+00:00</updated>
@@ -136,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1slue0z/hot_experts_in_your_vram_dynamic_expert_cache_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-15T03:20:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1smfimj</id>
+    <title>Anyone here actually using a Mac Studio Ultra (512GB RAM) for local LLM work? Feels like overkill for my use case</title>
+    <updated>2026-04-15T19:02:50+00:00</updated>
+    <author>
+      <name>/u/Gravemind7</name>
+      <uri>https://old.reddit.com/user/Gravemind7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m running a Mac Studio Ultra (512GB RAM) and I’ve been experimenting with local LLMs on it over the past few months.&lt;/p&gt; &lt;p&gt;Most of my work is in data heavy prototyping and small scale model experimentation (mainly testing inference pipelines, working with embeddings, and occasionally running larger context models for research style analysis). I also do a lot of software development around AI tooling and automation workflows, but nothing at a production training scale.&lt;/p&gt; &lt;p&gt;To be honest, I feel like the machine is way beyond what I actually need for my current workflow.&lt;/p&gt; &lt;p&gt;So I’m trying to understand how others are utilizing similar setups more effectively.&lt;/p&gt; &lt;p&gt;A few things I’m curious about:&lt;/p&gt; &lt;p&gt;What are you realistically running on systems with this much RAM?&lt;/p&gt; &lt;p&gt;Are people actually benefiting from going beyond ~70B models in local setups?&lt;/p&gt; &lt;p&gt;At what point does GPU/compute become the real limitation instead of memory?&lt;/p&gt; &lt;p&gt;Any workflows where a setup like this actually shines (multi model pipelines, heavy context, parallel inference, etc.)?&lt;/p&gt; &lt;p&gt;Right now I mostly use tools like Ollama / MLX / Python based inference stacks, but I feel like I’m not really leveraging the hardware properly.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Gravemind7"&gt; /u/Gravemind7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-15T19:02:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1slnglx</id>
@@ -229,6 +216,19 @@
     <published>2026-04-15T02:53:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1smgezm</id>
+    <title>How to properly deal with a CLAUDE.md file.</title>
+    <updated>2026-04-15T19:34:54+00:00</updated>
+    <author>
+      <name>/u/onil_gova</name>
+      <uri>https://old.reddit.com/user/onil_gova</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smgezm/how_to_properly_deal_with_a_claudemd_file/"&gt; &lt;img alt="How to properly deal with a CLAUDE.md file." src="https://preview.redd.it/vlrvbxabpevg1.png?width=216&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4f7eaecda5d41ad7942e6cf7a4a10b4d1a70918e" title="How to properly deal with a CLAUDE.md file." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/onil_gova"&gt; /u/onil_gova &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vlrvbxabpevg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smgezm/how_to_properly_deal_with_a_claudemd_file/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smgezm/how_to_properly_deal_with_a_claudemd_file/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-15T19:34:54+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1smbpn6</id>
     <title>Can't keep up with Llama.cpp changes, made a n8n workflow to summarize it for me daily</title>
     <updated>2026-04-15T16:50:42+00:00</updated>
@@ -268,19 +268,6 @@
     <published>2026-04-15T10:37:24+00:00</published>
   </entry>
   <entry>
-    <id>t3_1smb3wd</id>
-    <title>1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU</title>
-    <updated>2026-04-15T16:29:14+00:00</updated>
-    <author>
-      <name>/u/xenovatech</name>
-      <uri>https://old.reddit.com/user/xenovatech</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"&gt; &lt;img alt="1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU" src="https://external-preview.redd.it/dnFyYXNwcDRzZHZnMcfsq_o9StMY9IRo_K2nqqM-Av9i0-7RvAUEXJt9EWX6.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f9292cf9af53d56d98443df1b5be1a28f6dab8c2" title="1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Link to demo: &lt;a href="https://huggingface.co/spaces/webml-community/bonsai-webgpu"&gt;https://huggingface.co/spaces/webml-community/bonsai-webgpu&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/bdr33ip4sdvg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T16:29:14+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sm08m6</id>
     <title>Major drop in intelligence across most major models.</title>
     <updated>2026-04-15T08:40:35+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sm08m6/major_drop_in_intelligence_across_most_major/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-15T08:40:35+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1smb3wd</id>
+    <title>1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU</title>
+    <updated>2026-04-15T16:29:14+00:00</updated>
+    <author>
+      <name>/u/xenovatech</name>
+      <uri>https://old.reddit.com/user/xenovatech</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"&gt; &lt;img alt="1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU" src="https://external-preview.redd.it/dnFyYXNwcDRzZHZnMcfsq_o9StMY9IRo_K2nqqM-Av9i0-7RvAUEXJt9EWX6.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f9292cf9af53d56d98443df1b5be1a28f6dab8c2" title="1-bit Bonsai 1.7B (290MB in size) running locally in your browser on WebGPU" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Link to demo: &lt;a href="https://huggingface.co/spaces/webml-community/bonsai-webgpu"&gt;https://huggingface.co/spaces/webml-community/bonsai-webgpu&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xenovatech"&gt; /u/xenovatech &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/bdr33ip4sdvg1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smb3wd/1bit_bonsai_17b_290mb_in_size_running_locally_in/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-15T16:29:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1sm3swd</id>
