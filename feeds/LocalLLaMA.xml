@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-16T09:48:15+00:00</updated>
+  <updated>2026-04-16T10:34:45+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1smbpn6</id>
-    <title>Can't keep up with Llama.cpp changes, made a n8n workflow to summarize it for me daily</title>
-    <updated>2026-04-15T16:50:42+00:00</updated>
-    <author>
-      <name>/u/andy2na</name>
-      <uri>https://old.reddit.com/user/andy2na</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smbpn6/cant_keep_up_with_llamacpp_changes_made_a_n8n/"&gt; &lt;img alt="Can't keep up with Llama.cpp changes, made a n8n workflow to summarize it for me daily" src="https://preview.redd.it/prmris11vdvg1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=f8e2d1653531abf56a6f759c6afdae14fd7fc437" title="Can't keep up with Llama.cpp changes, made a n8n workflow to summarize it for me daily" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My kind of daily news sent to me via Discord&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/prmris11vdvg1.png?width=684&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0dcb00079362a38a29d981dd2f3a4e5143c8091f"&gt;https://preview.redd.it/prmris11vdvg1.png?width=684&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0dcb00079362a38a29d981dd2f3a4e5143c8091f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The N8N workflow (you could probably have Hermes or another agent do similar):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;nodes&amp;quot;: [ { &amp;quot;parameters&amp;quot;: { &amp;quot;rule&amp;quot;: { &amp;quot;interval&amp;quot;: [ { &amp;quot;triggerAtHour&amp;quot;: 10 } ] } }, &amp;quot;id&amp;quot;: &amp;quot;8fbb0e44-2d2b-45e5-8f46-1f95a04d88c4&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;Schedule Trigger&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;n8n-nodes-base.scheduleTrigger&amp;quot;, &amp;quot;typeVersion&amp;quot;: 1.1, &amp;quot;position&amp;quot;: [ 0, 0 ] }, { &amp;quot;parameters&amp;quot;: { &amp;quot;url&amp;quot;: &amp;quot;https://api.github.com/repos/ggml-org/llama.cpp/releases&amp;quot;, &amp;quot;sendHeaders&amp;quot;: true, &amp;quot;headerParameters&amp;quot;: { &amp;quot;parameters&amp;quot;: [ { &amp;quot;name&amp;quot;: &amp;quot;User-Agent&amp;quot;, &amp;quot;value&amp;quot;: &amp;quot;n8n-workflow-automation&amp;quot; } ] }, &amp;quot;options&amp;quot;: {} }, &amp;quot;id&amp;quot;: &amp;quot;729fbd1f-98c5-4ed7-8285-f396c8413b5c&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;Fetch GitHub Releases&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;n8n-nodes-base.httpRequest&amp;quot;, &amp;quot;typeVersion&amp;quot;: 4.1, &amp;quot;position&amp;quot;: [ 224, 0 ] }, { &amp;quot;parameters&amp;quot;: { &amp;quot;jsCode&amp;quot;: &amp;quot;// Get all items from the previous node\nconst items = $input.all();\nconst twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);\n\n// Safely extract the JSON data depending on how n8n parsed the HTTP response\nconst releases = items.length === 1 &amp;amp;&amp;amp; Array.isArray(items[0].json) \n ? items[0].json \n : items.map(item =&amp;gt; item.json);\n\n// Filter releases from the last 24 hours\nconst recentReleases = releases.filter(release =&amp;gt; {\n // Use published_at if available, otherwise fallback to created_at\n const releaseDate = new Date(release.published_at || release.created_at);\n return releaseDate &amp;gt; twentyFourHoursAgo;\n});\n\n// If no new releases, return an empty array to stop the workflow\nif (recentReleases.length === 0) {\n return []; \n}\n\n// Combine all release notes into a single Markdown string\nlet combinedNotes = recentReleases.map(r =&amp;gt; {\n const title = r.name || r.tag_name || 'Update';\n const body = r.body || 'No release notes provided.';\n return `## ${title}\\n${body}`;\n}).join('\\n\\n---\\n\\n');\n\n// Output the final combined notes and the count for the AI node to process\nreturn [{ \n json: { \n combinedNotes: combinedNotes, \n count: recentReleases.length \n } \n}];&amp;quot; }, &amp;quot;id&amp;quot;: &amp;quot;3eb58cee-fa2d-47a8-a6aa-71eb9a22f1a0&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;Filter 24h &amp;amp; Extract&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;n8n-nodes-base.code&amp;quot;, &amp;quot;typeVersion&amp;quot;: 2, &amp;quot;position&amp;quot;: [ 448, 0 ] }, { &amp;quot;parameters&amp;quot;: { &amp;quot;model&amp;quot;: &amp;quot;Qwen3.5-35B:instruct&amp;quot;, &amp;quot;options&amp;quot;: {} }, &amp;quot;id&amp;quot;: &amp;quot;206b7d98-374a-493f-b79d-0ceb2f472dd0&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;OpenAI Model&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;@n8n/n8n-nodes-langchain.lmChatOpenAi&amp;quot;, &amp;quot;position&amp;quot;: [ 624, 208 ], &amp;quot;typeVersion&amp;quot;: 1, &amp;quot;credentials&amp;quot;: { &amp;quot;openAiApi&amp;quot;: { &amp;quot;id&amp;quot;: &amp;quot;fuQa8ZhsNxUYdif2&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;llama-cpp&amp;quot; } } }, { &amp;quot;parameters&amp;quot;: { &amp;quot;promptType&amp;quot;: &amp;quot;define&amp;quot;, &amp;quot;text&amp;quot;: &amp;quot;=Summarize the following release notes for llama.cpp. \n\nFirst, provide a detailed technical summary of the changes in a paragraph, max 5 sentences.\nSecond, provide a summary in layman's terms in a paragraph, max 6 sentences.\n\nCrucially, make sure to highlight any specific CUDA optimizations, cache changes, or GPU improvements that would impact a rig running a mixed setup of an RTX 5060 Ti and 3090. Also specifically mention any optimizations regarding Qwen or Gemma. \n\nIf none exist in this update, simply don't mention the hardware.\n\nRelease Notes:\n{{ $json.combinedNotes }}&amp;quot;, &amp;quot;options&amp;quot;: { &amp;quot;systemMessage&amp;quot;: &amp;quot;You are a helpful movie critic assistant. Your internal knowledge is outdated. You MUST use your SearXNG tool to search the web for every movie query, regardless of the release year. Do not answer from your internal knowledge.&amp;quot; } }, &amp;quot;id&amp;quot;: &amp;quot;fb335d72-077e-4f30-9e00-5cdead0ca298&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;AI Agent&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;@n8n/n8n-nodes-langchain.agent&amp;quot;, &amp;quot;position&amp;quot;: [ 624, 0 ], &amp;quot;typeVersion&amp;quot;: 1.6 }, { &amp;quot;parameters&amp;quot;: { &amp;quot;authentication&amp;quot;: &amp;quot;webhook&amp;quot;, &amp;quot;content&amp;quot;: &amp;quot;=🤖 **Llama.cpp 24 Hour Update Summary** 🤖&amp;quot;, &amp;quot;options&amp;quot;: {}, &amp;quot;embeds&amp;quot;: { &amp;quot;values&amp;quot;: [ { &amp;quot;description&amp;quot;: &amp;quot;={{ $json.output }}&amp;quot;, &amp;quot;color&amp;quot;: &amp;quot;#E5A00D&amp;quot; } ] } }, &amp;quot;id&amp;quot;: &amp;quot;54872e50-f045-4b4b-aa54-3898c225ca14&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;Send to Discord&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;n8n-nodes-base.discord&amp;quot;, &amp;quot;position&amp;quot;: [ 944, 0 ], &amp;quot;typeVersion&amp;quot;: 2, &amp;quot;webhookId&amp;quot;: &amp;quot;26caa31f-87b9-411c-9fe5-0037ec9762a0&amp;quot;, &amp;quot;credentials&amp;quot;: { &amp;quot;discordWebhookApi&amp;quot;: { &amp;quot;id&amp;quot;: &amp;quot;w6doohH6ryvsJfQl&amp;quot;, &amp;quot;name&amp;quot;: &amp;quot;Discord Webhook account&amp;quot; } } } ], &amp;quot;connections&amp;quot;: { &amp;quot;Schedule Trigger&amp;quot;: { &amp;quot;main&amp;quot;: [ [ { &amp;quot;node&amp;quot;: &amp;quot;Fetch GitHub Releases&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;main&amp;quot;, &amp;quot;index&amp;quot;: 0 } ] ] }, &amp;quot;Fetch GitHub Releases&amp;quot;: { &amp;quot;main&amp;quot;: [ [ { &amp;quot;node&amp;quot;: &amp;quot;Filter 24h &amp;amp; Extract&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;main&amp;quot;, &amp;quot;index&amp;quot;: 0 } ] ] }, &amp;quot;Filter 24h &amp;amp; Extract&amp;quot;: { &amp;quot;main&amp;quot;: [ [ { &amp;quot;node&amp;quot;: &amp;quot;AI Agent&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;main&amp;quot;, &amp;quot;index&amp;quot;: 0 } ] ] }, &amp;quot;OpenAI Model&amp;quot;: { &amp;quot;ai_languageModel&amp;quot;: [ [ { &amp;quot;node&amp;quot;: &amp;quot;AI Agent&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;ai_languageModel&amp;quot;, &amp;quot;index&amp;quot;: 0 } ] ] }, &amp;quot;AI Agent&amp;quot;: { &amp;quot;main&amp;quot;: [ [ { &amp;quot;node&amp;quot;: &amp;quot;Send to Discord&amp;quot;, &amp;quot;type&amp;quot;: &amp;quot;main&amp;quot;, &amp;quot;index&amp;quot;: 0 } ] ] } }, &amp;quot;pinData&amp;quot;: {}, &amp;quot;meta&amp;quot;: { &amp;quot;templateCredsSetupCompleted&amp;quot;: true, &amp;quot;instanceId&amp;quot;: &amp;quot;49d2e96c7fb6baed481e1ed60fe55680b7404a961357bb768900d80cabfb3c91&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/andy2na"&gt; /u/andy2na &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smbpn6/cant_keep_up_with_llamacpp_changes_made_a_n8n/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smbpn6/cant_keep_up_with_llamacpp_changes_made_a_n8n/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smbpn6/cant_keep_up_with_llamacpp_changes_made_a_n8n/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T16:50:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1smrdz0</id>
-    <title>What's your favorite small-medium local model?</title>
-    <updated>2026-04-16T02:58:45+00:00</updated>
-    <author>
-      <name>/u/__ahdw</name>
-      <uri>https://old.reddit.com/user/__ahdw</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm now having fun with Gemma-4-E4B and Qwen3.5-9B, trying different variants like Gemopus and Qwopus, and Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0&lt;/p&gt; &lt;p&gt;don't quite know other models, so what's your favorite? why and how are them?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/__ahdw"&gt; /u/__ahdw &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smrdz0/whats_your_favorite_smallmedium_local_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smrdz0/whats_your_favorite_smallmedium_local_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smrdz0/whats_your_favorite_smallmedium_local_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-16T02:58:45+00:00</published>
-  </entry>
   <entry>
     <id>t3_1smqcyt</id>
     <title>Llama.cpp vs LM Studio on gaming PC</title>
@@ -58,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smyp6e/gguf_quants_arena_for_mmlu_24gb_vram_128gb_ram/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-16T09:38:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1smzf2c</id>
+    <title>Looking for tools/approaches for structural extraction from long, complex PDFs (sections + multi-page tables)</title>
+    <updated>2026-04-16T10:19:39+00:00</updated>
+    <author>
+      <name>/u/Expensive-Remote2650</name>
+      <uri>https://old.reddit.com/user/Expensive-Remote2650</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm working on a side project where I need to process fairly long and complex PDFs - mostly text-selectable (no OCR needed for now), formal administrative / legal-style documents with a mix of prose sections and data tables. Before I start gluing things together myself I'd like to hear what people have actually had success with, because the gap between &amp;quot;extract text from a PDF&amp;quot; and &amp;quot;understand the document&amp;quot; is huge and I keep falling into it.&lt;/p&gt; &lt;p&gt;What I need isn't really &amp;quot;read text from a PDF&amp;quot;. It's understanding the document as a structured object:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Clean page-level text&lt;/strong&gt; on selectable-text PDFs. Basic, but has to be reliable and lossless.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Noise removal&lt;/strong&gt; repeating headers, footers, page numbers, organizational labels. Strip them without touching real content.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Block classification inside a page&lt;/strong&gt; document title vs section titles vs subtitles vs paragraphs vs lists vs metadata lines vs regions that look like table content.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Logical hierarchy&lt;/strong&gt; going from &amp;quot;pages with blocks&amp;quot; to a tree of sections / subsections with titles correctly linked to their body.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Table detection&lt;/strong&gt; knowing where tables exist and keeping them separate from prose.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Table structure&lt;/strong&gt; rows, columns, headers vs data, multi-line cells, broken rows.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multi-page table continuation&lt;/strong&gt; this is the one that really worries me. When a table spans 10+ pages I need to recognize it's the &lt;em&gt;same&lt;/em&gt; table continuing (repeated headers ≠ new data), not a series of small tables.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;A stable output artifact&lt;/strong&gt; at the end one consistent representation of sections + tables + doc-level metadata, with traceability back to where in the original document each piece came from.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Stack is Python. I know the usual suspects pdfplumber, PyMuPDF, pdfminer.six, Camelot, Tabula, &lt;a href="http://unstructured.io"&gt;unstructured.io&lt;/a&gt;, Marker, Docling, LlamaParse, etc. and I've played with a few. What I'm actually trying to figure out:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Has anyone solved &lt;strong&gt;multi-page table continuation&lt;/strong&gt; reliably without hand-rolling heuristics per document type? This seems to be where every library quietly gives up.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Layout-aware models&lt;/strong&gt; (LayoutLM family, newer document-AI stuff) vs &lt;strong&gt;deterministic pipelines&lt;/strong&gt; (geometry + regex on top of pdfplumber/PyMuPDF) where's the real tradeoff for this kind of structural understanding? Not looking for hype, looking for &amp;quot;I ran this on 500 real docs and here's what happened&amp;quot;.&lt;/li&gt; &lt;li&gt;Any library that actually gives you a &lt;strong&gt;document tree&lt;/strong&gt; (sections → subsections → blocks/tables) as output, instead of a flat list of text blobs that you then have to re-group yourself?&lt;/li&gt; &lt;li&gt;Is there an open-source pipeline you'd recommend as a &lt;em&gt;starting point&lt;/em&gt; so I don't reinvent this from scratch?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Preference for local / self-hostable solutions - happy to use a small local LLM as a fallback for ambiguous cases, but I want the structural extraction itself to be mostly deterministic and reproducible.&lt;/p&gt; &lt;p&gt;War stories about what &lt;em&gt;didn't&lt;/em&gt; work are more useful than recommendations, in my experience. So if you tried X and it fell apart on real documents, I'd love to hear it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Expensive-Remote2650"&gt; /u/Expensive-Remote2650 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smzf2c/looking_for_toolsapproaches_for_structural/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smzf2c/looking_for_toolsapproaches_for_structural/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smzf2c/looking_for_toolsapproaches_for_structural/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-16T10:19:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1sm6d2k</id>
@@ -86,6 +73,19 @@
     <published>2026-04-16T04:24:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1smyzsh</id>
+    <title>what model is good for inspecting and extracting data from large set of spreadsheets</title>
+    <updated>2026-04-16T09:56:04+00:00</updated>
+    <author>
+      <name>/u/bonesoftheancients</name>
+      <uri>https://old.reddit.com/user/bonesoftheancients</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;as per title - i need to extract some data from a set of spreadsheets and wondering what would be the best method locally? I think I can utilise gemini-cli for that but can a local model work better?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bonesoftheancients"&gt; /u/bonesoftheancients &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smyzsh/what_model_is_good_for_inspecting_and_extracting/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smyzsh/what_model_is_good_for_inspecting_and_extracting/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smyzsh/what_model_is_good_for_inspecting_and_extracting/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-16T09:56:04+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1smgsim</id>
     <title>What's the smallest (most capable) model you've found?</title>
     <updated>2026-04-15T19:48:09+00:00</updated>
@@ -99,19 +99,6 @@
     <published>2026-04-15T19:48:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1smfimj</id>
-    <title>Anyone here actually using a Mac Studio Ultra (512GB RAM) for local LLM work? Feels like overkill for my use case</title>
-    <updated>2026-04-15T19:02:50+00:00</updated>
-    <author>
-      <name>/u/Gravemind7</name>
-      <uri>https://old.reddit.com/user/Gravemind7</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m running a Mac Studio Ultra (512GB RAM) and I’ve been experimenting with local LLMs on it over the past few months.&lt;/p&gt; &lt;p&gt;Most of my work is in data heavy prototyping and small scale model experimentation (mainly testing inference pipelines, working with embeddings, and occasionally running larger context models for research style analysis). I also do a lot of software development around AI tooling and automation workflows, but nothing at a production training scale.&lt;/p&gt; &lt;p&gt;To be honest, I feel like the machine is way beyond what I actually need for my current workflow.&lt;/p&gt; &lt;p&gt;So I’m trying to understand how others are utilizing similar setups more effectively.&lt;/p&gt; &lt;p&gt;A few things I’m curious about:&lt;/p&gt; &lt;p&gt;What are you realistically running on systems with this much RAM?&lt;/p&gt; &lt;p&gt;Are people actually benefiting from going beyond ~70B models in local setups?&lt;/p&gt; &lt;p&gt;At what point does GPU/compute become the real limitation instead of memory?&lt;/p&gt; &lt;p&gt;Any workflows where a setup like this actually shines (multi model pipelines, heavy context, parallel inference, etc.)?&lt;/p&gt; &lt;p&gt;Right now I mostly use tools like Ollama / MLX / Python based inference stacks, but I feel like I’m not really leveraging the hardware properly.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Gravemind7"&gt; /u/Gravemind7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-15T19:02:50+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1smtr5z</id>
     <title>Bonsai 32b when?</title>
     <updated>2026-04-16T04:54:09+00:00</updated>
@@ -123,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smtr5z/bonsai_32b_when/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-16T04:54:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1smfimj</id>
+    <title>Anyone here actually using a Mac Studio Ultra (512GB RAM) for local LLM work? Feels like overkill for my use case</title>
+    <updated>2026-04-15T19:02:50+00:00</updated>
+    <author>
+      <name>/u/Gravemind7</name>
+      <uri>https://old.reddit.com/user/Gravemind7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m running a Mac Studio Ultra (512GB RAM) and I’ve been experimenting with local LLMs on it over the past few months.&lt;/p&gt; &lt;p&gt;Most of my work is in data heavy prototyping and small scale model experimentation (mainly testing inference pipelines, working with embeddings, and occasionally running larger context models for research style analysis). I also do a lot of software development around AI tooling and automation workflows, but nothing at a production training scale.&lt;/p&gt; &lt;p&gt;To be honest, I feel like the machine is way beyond what I actually need for my current workflow.&lt;/p&gt; &lt;p&gt;So I’m trying to understand how others are utilizing similar setups more effectively.&lt;/p&gt; &lt;p&gt;A few things I’m curious about:&lt;/p&gt; &lt;p&gt;What are you realistically running on systems with this much RAM?&lt;/p&gt; &lt;p&gt;Are people actually benefiting from going beyond ~70B models in local setups?&lt;/p&gt; &lt;p&gt;At what point does GPU/compute become the real limitation instead of memory?&lt;/p&gt; &lt;p&gt;Any workflows where a setup like this actually shines (multi model pipelines, heavy context, parallel inference, etc.)?&lt;/p&gt; &lt;p&gt;Right now I mostly use tools like Ollama / MLX / Python based inference stacks, but I feel like I’m not really leveraging the hardware properly.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Gravemind7"&gt; /u/Gravemind7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smfimj/anyone_here_actually_using_a_mac_studio_ultra/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-15T19:02:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1sm2a6b</id>
@@ -164,19 +164,6 @@
     <published>2026-04-15T08:40:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1smxalq</id>
-    <title>HY-World 2.0 just dropped</title>
-    <updated>2026-04-16T08:14:41+00:00</updated>
-    <author>
-      <name>/u/bobeeeeeeeee8964</name>
-      <uri>https://old.reddit.com/user/bobeeeeeeeee8964</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tencent just released HY-World 2.0 — the first open-source state-of-the-art 3D world model.&lt;/p&gt; &lt;p&gt;What makes it special (repo’s own words):&lt;/p&gt; &lt;p&gt;Generates real 3D assets (3D Gaussian Splats, meshes, point clouds) — not videos&lt;/p&gt; &lt;p&gt;Persistent &amp;amp; editable worlds you can “build once, keep forever”&lt;/p&gt; &lt;p&gt;Fully importable into Unity, Unreal Engine, Blender, Isaac Sim&lt;/p&gt; &lt;p&gt;Native physics, collision, first-person navigation, real-time rendering on consumer GPUs&lt;/p&gt; &lt;p&gt;Unlike video-only models (Genie 3, HY-World 1.5), no flickering, no time limit, true 3D consistency&lt;/p&gt; &lt;p&gt;Core: WorldMirror 2.0 — unified feed-forward model that predicts depth, normals, camera params, point clouds + 3DGS in one pass.&lt;/p&gt; &lt;p&gt;Multimodal: text, image, multi-view, or video → 3D world.&lt;/p&gt; &lt;p&gt;HF: &lt;a href="https://huggingface.co/tencent/HY-World-2.0"&gt;https://huggingface.co/tencent/HY-World-2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/Tencent-Hunyuan/HY-World-2.0"&gt;https://github.com/Tencent-Hunyuan/HY-World-2.0&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bobeeeeeeeee8964"&gt; /u/bobeeeeeeeee8964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-16T08:14:41+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1smlvni</id>
     <title>Qwen3.5-35B running well on RTX4060 Ti 16GB at 60 tok/s</title>
     <updated>2026-04-15T22:58:26+00:00</updated>
@@ -190,6 +177,19 @@
     <published>2026-04-15T22:58:26+00:00</published>
   </entry>
   <entry>
+    <id>t3_1smxalq</id>
+    <title>HY-World 2.0 just dropped</title>
+    <updated>2026-04-16T08:14:41+00:00</updated>
+    <author>
+      <name>/u/bobeeeeeeeee8964</name>
+      <uri>https://old.reddit.com/user/bobeeeeeeeee8964</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tencent just released HY-World 2.0 — the first open-source state-of-the-art 3D world model.&lt;/p&gt; &lt;p&gt;What makes it special (repo’s own words):&lt;/p&gt; &lt;p&gt;Generates real 3D assets (3D Gaussian Splats, meshes, point clouds) — not videos&lt;/p&gt; &lt;p&gt;Persistent &amp;amp; editable worlds you can “build once, keep forever”&lt;/p&gt; &lt;p&gt;Fully importable into Unity, Unreal Engine, Blender, Isaac Sim&lt;/p&gt; &lt;p&gt;Native physics, collision, first-person navigation, real-time rendering on consumer GPUs&lt;/p&gt; &lt;p&gt;Unlike video-only models (Genie 3, HY-World 1.5), no flickering, no time limit, true 3D consistency&lt;/p&gt; &lt;p&gt;Core: WorldMirror 2.0 — unified feed-forward model that predicts depth, normals, camera params, point clouds + 3DGS in one pass.&lt;/p&gt; &lt;p&gt;Multimodal: text, image, multi-view, or video → 3D world.&lt;/p&gt; &lt;p&gt;HF: &lt;a href="https://huggingface.co/tencent/HY-World-2.0"&gt;https://huggingface.co/tencent/HY-World-2.0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/Tencent-Hunyuan/HY-World-2.0"&gt;https://github.com/Tencent-Hunyuan/HY-World-2.0&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bobeeeeeeeee8964"&gt; /u/bobeeeeeeeee8964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smxalq/hyworld_20_just_dropped/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-16T08:14:41+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1smy9t4</id>
     <title>[D] Released a 100k-sample dataset on Hugging Face</title>
     <updated>2026-04-16T09:13:57+00:00</updated>
@@ -201,19 +201,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smy9t4/d_released_a_100ksample_dataset_on_hugging_face/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-16T09:13:57+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1smvsfo</id>
-    <title>The most useful AI work I see now is not chat. It is boring background stuff</title>
-    <updated>2026-04-16T06:45:33+00:00</updated>
-    <author>
-      <name>/u/Ryannnnnnnnnnnnnnnh</name>
-      <uri>https://old.reddit.com/user/Ryannnnnnnnnnnnnnnh</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;for me the exciting part is not another chat UI anymore.&lt;/p&gt; &lt;p&gt;the really useful stuff is much more boring&lt;/p&gt; &lt;p&gt;classification&lt;br /&gt; routing&lt;br /&gt; ranking&lt;br /&gt; cleaning messy inputs&lt;br /&gt; watching a stream of text and surfacing the few things that actually matter&lt;/p&gt; &lt;p&gt;that is where AI starts to feel real to me&lt;/p&gt; &lt;p&gt;not when it gives a fun answer in a demo&lt;br /&gt; when it quietly removes manual work every day&lt;/p&gt; &lt;p&gt;I keep feeling local models fit that kind of job better than people admit&lt;/p&gt; &lt;p&gt;always on&lt;br /&gt; cheap to run once set up&lt;br /&gt; private by default&lt;br /&gt; good enough for a lot of narrow tasks&lt;/p&gt; &lt;p&gt;I think a lot of people still judge local AI by asking can it replace ChatGPT for me&lt;/p&gt; &lt;p&gt;for actual products and workflows, I care way more about whether it can sit in the background and make a messy system usable&lt;/p&gt; &lt;p&gt;maybe I am wrong, but local AI gets more valuable the less it looks like a chatbot&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ryannnnnnnnnnnnnnnh"&gt; /u/Ryannnnnnnnnnnnnnnh &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-16T06:45:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1sm3swd</id>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smm1dy/i_got_it_guys_i_think_i_finally_understand_why/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-15T23:04:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1smvsfo</id>
+    <title>The most useful AI work I see now is not chat. It is boring background stuff</title>
+    <updated>2026-04-16T06:45:33+00:00</updated>
+    <author>
+      <name>/u/Ryannnnnnnnnnnnnnnh</name>
+      <uri>https://old.reddit.com/user/Ryannnnnnnnnnnnnnnh</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;for me the exciting part is not another chat UI anymore.&lt;/p&gt; &lt;p&gt;the really useful stuff is much more boring&lt;/p&gt; &lt;p&gt;classification&lt;br /&gt; routing&lt;br /&gt; ranking&lt;br /&gt; cleaning messy inputs&lt;br /&gt; watching a stream of text and surfacing the few things that actually matter&lt;/p&gt; &lt;p&gt;that is where AI starts to feel real to me&lt;/p&gt; &lt;p&gt;not when it gives a fun answer in a demo&lt;br /&gt; when it quietly removes manual work every day&lt;/p&gt; &lt;p&gt;I keep feeling local models fit that kind of job better than people admit&lt;/p&gt; &lt;p&gt;always on&lt;br /&gt; cheap to run once set up&lt;br /&gt; private by default&lt;br /&gt; good enough for a lot of narrow tasks&lt;/p&gt; &lt;p&gt;I think a lot of people still judge local AI by asking can it replace ChatGPT for me&lt;/p&gt; &lt;p&gt;for actual products and workflows, I care way more about whether it can sit in the background and make a messy system usable&lt;/p&gt; &lt;p&gt;maybe I am wrong, but local AI gets more valuable the less it looks like a chatbot&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ryannnnnnnnnnnnnnnh"&gt; /u/Ryannnnnnnnnnnnnnnh &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1smvsfo/the_most_useful_ai_work_i_see_now_is_not_chat_it/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-16T06:45:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1smgezm</id>
