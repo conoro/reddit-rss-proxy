@@ -2,23 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-18T16:47:19+00:00</updated>
+  <updated>2026-04-18T17:15:54+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1sokdvd</id>
-    <title>Qwen3.5-4B|Gemma4-E2B/E4B uncensored models comparison</title>
-    <updated>2026-04-18T01:54:21+00:00</updated>
+    <id>t3_1so3rsx</id>
+    <title>Qwen3.6 is incredible with OpenCode!</title>
+    <updated>2026-04-17T15:10:17+00:00</updated>
     <author>
-      <name>/u/Tryshea</name>
-      <uri>https://old.reddit.com/user/Tryshea</uri>
+      <name>/u/CountlessFlies</name>
+      <uri>https://old.reddit.com/user/CountlessFlies</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sokdvd/qwen354bgemma4e2be4b_uncensored_models_comparison/"&gt; &lt;img alt="Qwen3.5-4B|Gemma4-E2B/E4B uncensored models comparison" src="https://preview.redd.it/fc38m6umuuvg1.png?width=140&amp;amp;height=102&amp;amp;auto=webp&amp;amp;s=e37da4e67caf4afb45d1f75f6f45ed6f08d21645" title="Qwen3.5-4B|Gemma4-E2B/E4B uncensored models comparison" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I had the idea of splitting the cross-entropy difference into two sums (positive and negative; or the PPL into two ratios &amp;gt;1 and &amp;lt;1) while doing PPL evals of uncensored GGUFs. &lt;/p&gt; &lt;p&gt;The inspiration came from looking at the area under the PPL ratio convergence plot (2nd graph) and thinking &amp;quot;what if I scattered the positive and negative area in 2D?&amp;quot;. &lt;/p&gt; &lt;p&gt;After all: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;negative delta =&amp;gt; predicted the text better than the base model. An uncensored model should score high when evaluated on a censored dataset (correlates with improvement/uncensored knowledge -- assuming a high quality dataset).&lt;br /&gt;&lt;/li&gt; &lt;li&gt;positive delta =&amp;gt; predicted the text worse than the base model, correlates with degradation/fine-tuning. A perfect uncensored model should be at 0 (assuming the dataset doesn't reward censorship) to stay as smart as the base model.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In other words, smaller Y are closer to the original model, and bigger X are more uncensored.&lt;/p&gt; &lt;p&gt;I'll leave the interpretation of the graphs up to you.&lt;/p&gt; &lt;p&gt;* All the models are Q8_0 except for the Q8_K. The reference is always a static quant from mradermacher.&lt;/p&gt; &lt;p&gt;* Only the BPB (Bits-per-Bytes) subplots are normalized and comparable across all 3 models.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;Notes:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;llama-perplexity.exe&lt;/code&gt; outputs the PPL for a single file, so you can simply take an average over many files:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;diff = np.log(df['ppl_cmp']) - np.log(df['ppl_ref']) df['ppl_gain'] = np.exp(np.minimum(diff, 0)) df['ppl_loss'] = np.exp(np.maximum(diff, 0)) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I have confirmed that this produces an identical Mean plot in my setup. &lt;/p&gt; &lt;p&gt;But the real trick is computing &lt;em&gt;per-token signed deltas&lt;/em&gt; along the sequence length to obtain a positive/negative delta sum &lt;em&gt;for each file&lt;/em&gt; (recovering the shape information that is lost in the PPL mean).&lt;/p&gt; &lt;p&gt;This is how I was able to scatter the whole dataset and visualize contours, I am essentially scattering &lt;code&gt;{Gain X=(1⁄N)∑(log p_cmp-log p_ref) | p_cmp&amp;gt;p_ref; Loss Y=(1⁄N)abs∑(log p_cmp-log p_ref) | p_cmp&amp;lt;p_ref}&lt;/code&gt;&lt;br /&gt; (Note: it looks backwards because the PPL ratio uses NLL, while this is LL from the logits cache; but you can also view it as &lt;code&gt;{X=(1⁄N)abs∑(I(cmp)-I(ref)) | I(cmp)&amp;lt;I(ref)}&lt;/code&gt; etc.)&lt;/p&gt; &lt;p&gt;The smart way to do that would be to recompile &lt;code&gt;llama-perpexity.exe&lt;/code&gt; by adding a simple for-loop inside &lt;code&gt;perplexity.cpp:kl_divergence()&lt;/code&gt;, LOG() the two signed delta sums, and read them back from Python.&lt;br /&gt; I thought of this too late and ended up calling &lt;code&gt;--save-all-logits&lt;/code&gt; twice, parsing the logits files manually with NumPy.&lt;/p&gt; &lt;p&gt;My dataset for this was about 1/3 code, 1/3 multilingual, 1/3 nsfw(AO3)/4chan/anarchy cookbooks... so not the greatest uncensored dataset, but this is the flaw of using PPL, you can't run k-Refusals with tiny prompts, you need actual (high-quality) documents to run it.&lt;/p&gt; &lt;p&gt;The first mistake I made was evaluating gemma with a stale &lt;code&gt;llama-cpp-python&lt;/code&gt;, I learned about &lt;code&gt;pip +git&lt;/code&gt; way too late and wasted a lot of time debugging incorrect token counts.&lt;/p&gt; &lt;p&gt;The second mistake was not understanding chunked vs strided perplexity and being confused about how the tool operates until basically the end.&lt;br /&gt; I'm now pretty sure there is an erroneous sanity check in perplexity that the file you pass in must be &lt;code&gt;2*n_ctx&lt;/code&gt; size.&lt;br /&gt; This makes no sense in hindsight, because the default PPL calculation is chunked (you select a chunk/context size &lt;code&gt;-c&lt;/code&gt;, which gets rounded up or down 256 based on your backend (apparently): the first half of that chunk is context, the second is used for PPL. In other words, since the last token is not generated you get the PPL of precisely &lt;code&gt;tokens[ctx//2:ctx-1]&lt;/code&gt;, or at least I did as I ran basically everything as&lt;code&gt;--chunks 1 -c {min(8196, file_tokens)}&lt;/code&gt;.)&lt;br /&gt; Anyways, I genuinely believed that the tool needed &lt;em&gt;two&lt;/em&gt; whole context-sized chunks for PPL, so I set &lt;code&gt;c=c//2&lt;/code&gt; to stop it crashing early on.&lt;br /&gt; So all the small files in my dataset got their context cut in half to please the tool, and I wasn't gonna re-run the whole 9730 evals (~30h) at that point, but I probably lost quite a bit of precision on that one.&lt;br /&gt; If I had to redo it, I would simply pad all the files with dummy tokens before passing them to perplexity: &lt;code&gt;data+=&amp;quot;\n &amp;quot;*c&lt;/code&gt;.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;strong&gt;Extras:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Dumping the failed experiment that led to this here:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://i.ibb.co/6JwDfXML/1776033250-plot.avif"&gt;[Qwen3.5-4B-Q5_normalized]&lt;/a&gt;, &lt;a href="https://i.ibb.co/kV5YzL4y/1776033204-plot.avif"&gt;[Q5_unnormalized]&lt;/a&gt;, &lt;a href="https://i.ibb.co/5hz8R7sp/1775856355-plot.avif"&gt;[Q8_unnormalized_wrong_scale]&lt;/a&gt; at least convinced me that imatrix is strictly better than static, but is a failure because I extracted &amp;quot;language structure&amp;quot; clusters instead of &amp;quot;topics&amp;quot;. I also managed to mess up the scale while transferring the data, so the Q8 results cannot be trusted except relatively. (note: the normalized plot adjusted for filesize to compare imatrix-tech efficiency.)&lt;br /&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://i.ibb.co/997FZVNK/1776034550-plot.avif"&gt;[Qwen3.5-4B_heretic_uncensored_models_comparison]&lt;/a&gt; since I learned that KLD can only be used to compare quants (not finetunes or separate models), I decided to plot PPL vs PPL as an absolute measure of knowledge, but that wasn't much better. I realized afterwards that my dataset isn't uncensored... and open datasets publish small prompts not full texts so I couldn't PPL those either.&lt;br /&gt; I almost gave up here, but then I thought about the negative and positive integral later and knew I had to try scattering them once more.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Cool pics: &lt;a href="https://i.ibb.co/Fv7Zyvs/logits.avif"&gt;[logits]&lt;/a&gt; (a tiny 2k corner of the 151k vocab) and &lt;a href="https://i.ibb.co/kgp0Py2T/hidden-states.avif"&gt;[hidden_states]&lt;/a&gt;, from when I tried to compress logits as hidden states (a complete nightmare to get working, that inevitably broke when I switched to gemma), gave up and tried SVD+TOP-k compression on the logits, only to finally recompute them on a ramdisk every time to save 635GB of writes per run.&lt;/li&gt; &lt;li&gt;Fun fact: I crashed my 5900X at least 5 times while doing this, I seem to have finally fixed it by turning off Cool'n'Quiet/C-states/TypicalCurrentIdle and downclocking to 3200Mhz, in case someone stumbles upon this.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tryshea"&gt; /u/Tryshea &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1sokdvd"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sokdvd/qwen354bgemma4e2be4b_uncensored_models_comparison/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sokdvd/qwen354bgemma4e2be4b_uncensored_models_comparison/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've tried a few different local models in the past (gemma 4 being the latest), but none of them felt as good as this. (Or maybe I just didn't give them a proper chance, you guys let me know). But this genuinely feels like a model I could daily drive for certain tasks instead of reaching for Claude Code.&lt;/p&gt; &lt;p&gt;I gave it a fairly complex task of implementing RLS in postgres across a large-ish codebase with multiple services written in rust, typescript and python. I had zero expectations going in, but it did an amazing job. PR: &lt;a href="https://github.com/getomnico/omni/pull/165/changes/dd04685b6cf47e7c3791f9cdbd807595ef4c686e"&gt;https://github.com/getomnico/omni/pull/165/changes/dd04685b6cf47e7c3791f9cdbd807595ef4c686e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Now it's far from perfect, there's major gaps and a couple of major bugs, but my god, is this thing good. It doesn't one-shot rust like Opus can, but it's able to look at compiler errors and iterate without getting lost.&lt;/p&gt; &lt;p&gt;I had a fairly long coding session lasting multiple rounds of plan -&amp;gt; build -&amp;gt; plan... at one point it went down a path editing 29 files to use RLS across all db queries, which was ok, but I stepped in and asked it to reconsider, maybe look at other options to minimize churn. It found the right solution, acquiring a db connection and scoping it to the user at the beginning of the incoming request. &lt;/p&gt; &lt;p&gt;For the first time, it felt like talking to a truly capable local coding model.&lt;/p&gt; &lt;p&gt;My setup:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Qwen3.6-35B-A3B, IQ4_NL unsloth quant&lt;/li&gt; &lt;li&gt;Deployed locally via llama.cpp&lt;/li&gt; &lt;li&gt;RTX 4090, 24 GB&lt;/li&gt; &lt;li&gt;KV cache quant: q8_0&lt;/li&gt; &lt;li&gt;Context size: 262k. At this ctx size, vram use sits at ~21GB&lt;/li&gt; &lt;li&gt;Thinking enabled, with recommended settings of temp, min_p etc.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;llama server:&lt;/p&gt; &lt;p&gt;```&lt;br /&gt; docker run -d --name llama-server --gpus all -v &amp;lt;path\_to\_models&amp;gt;:/models -p 8080:8080 local/llama.cpp:server-cuda -m /models/qwen3.6-35b-a3b/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf --port 8080 --host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; --ctx-size 262144 -n 8192 --n-gpu-layers 40 --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00 --parallel 1 --cache-type-k q8_0 --cache-type-v q8_0 --cache-ram 4096&lt;br /&gt; ```&lt;/p&gt; &lt;p&gt;Had to set `--parallel` and `--cache-ram` without which llama.cpp would crash with OOM because opencode makes a bunch of parallel tools calls that blow up prompt cache. I get 100+ output tok/sec with this.&lt;/p&gt; &lt;p&gt;But this might be it guys... the holy grail of local coding! Or getting very close to it at any rate.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CountlessFlies"&gt; /u/CountlessFlies &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-18T01:54:21+00:00</published>
+    <published>2026-04-17T15:10:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1so2nt9</id>
+    <title>Qwen 3.6 is the first local model that actually feels worth the effort for me</title>
+    <updated>2026-04-17T14:30:08+00:00</updated>
+    <author>
+      <name>/u/Epicguru</name>
+      <uri>https://old.reddit.com/user/Epicguru</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent some time yesterday after work trying out the new qwen3.6-35b-a3b model, and at least for me it's the first time that I actually felt that a local model wasn't more of a pain to use than it was worth.&lt;/p&gt; &lt;p&gt;I've been using LLMs in my personal/throwaway projects for a few months, for the kind of code that I don't feel any passion writing (most UI XML in Avalonia, embedded systems C++), and I used to have Sonet and Opus for free thanks to Github's student program but they cancelled that. I've been trying out local models for quite a while too but it's mostly felt up until this point that they were either too dumb to get the job done, or they could complete it but I would spend so much time fixing/tweaking/formatting/refactoring the code that I might as well have just done it myself.&lt;/p&gt; &lt;p&gt;Qwen3.6 seems to have finally changed that, at least on my system and projects. Running on a 5090 + 4090 I can load the Q8 model with full 260k context, getting around 170 tokens per second also makes it one of the fastest models I've tried. And unlike all other models I've tried recently including Gemma 4, it can actually complete tasks and only requires minor guidance or corrections at the end. 9 times out of 10, simply asking it to review its own changes once it is 'done' is enough for it to catch and correct anything that was wrong.&lt;/p&gt; &lt;p&gt;I'm pretty impressed and it's really cool to see local models finally start to get to this point. It gives me hope for a future where this technology is not limited to massive data centers and subscription services, but rather being optimized to the point where even mid-range computers can take advantage of it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Epicguru"&gt; /u/Epicguru &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-17T14:30:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1sov5lb</id>
@@ -34,19 +47,6 @@
     <published>2026-04-18T11:30:33+00:00</published>
   </entry>
   <entry>
-    <id>t3_1so3rsx</id>
-    <title>Qwen3.6 is incredible with OpenCode!</title>
-    <updated>2026-04-17T15:10:17+00:00</updated>
-    <author>
-      <name>/u/CountlessFlies</name>
-      <uri>https://old.reddit.com/user/CountlessFlies</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've tried a few different local models in the past (gemma 4 being the latest), but none of them felt as good as this. (Or maybe I just didn't give them a proper chance, you guys let me know). But this genuinely feels like a model I could daily drive for certain tasks instead of reaching for Claude Code.&lt;/p&gt; &lt;p&gt;I gave it a fairly complex task of implementing RLS in postgres across a large-ish codebase with multiple services written in rust, typescript and python. I had zero expectations going in, but it did an amazing job. PR: &lt;a href="https://github.com/getomnico/omni/pull/165/changes/dd04685b6cf47e7c3791f9cdbd807595ef4c686e"&gt;https://github.com/getomnico/omni/pull/165/changes/dd04685b6cf47e7c3791f9cdbd807595ef4c686e&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Now it's far from perfect, there's major gaps and a couple of major bugs, but my god, is this thing good. It doesn't one-shot rust like Opus can, but it's able to look at compiler errors and iterate without getting lost.&lt;/p&gt; &lt;p&gt;I had a fairly long coding session lasting multiple rounds of plan -&amp;gt; build -&amp;gt; plan... at one point it went down a path editing 29 files to use RLS across all db queries, which was ok, but I stepped in and asked it to reconsider, maybe look at other options to minimize churn. It found the right solution, acquiring a db connection and scoping it to the user at the beginning of the incoming request. &lt;/p&gt; &lt;p&gt;For the first time, it felt like talking to a truly capable local coding model.&lt;/p&gt; &lt;p&gt;My setup:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Qwen3.6-35B-A3B, IQ4_NL unsloth quant&lt;/li&gt; &lt;li&gt;Deployed locally via llama.cpp&lt;/li&gt; &lt;li&gt;RTX 4090, 24 GB&lt;/li&gt; &lt;li&gt;KV cache quant: q8_0&lt;/li&gt; &lt;li&gt;Context size: 262k. At this ctx size, vram use sits at ~21GB&lt;/li&gt; &lt;li&gt;Thinking enabled, with recommended settings of temp, min_p etc.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;llama server:&lt;/p&gt; &lt;p&gt;```&lt;br /&gt; docker run -d --name llama-server --gpus all -v &amp;lt;path\_to\_models&amp;gt;:/models -p 8080:8080 local/llama.cpp:server-cuda -m /models/qwen3.6-35b-a3b/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf --port 8080 --host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; --ctx-size 262144 -n 8192 --n-gpu-layers 40 --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00 --parallel 1 --cache-type-k q8_0 --cache-type-v q8_0 --cache-ram 4096&lt;br /&gt; ```&lt;/p&gt; &lt;p&gt;Had to set `--parallel` and `--cache-ram` without which llama.cpp would crash with OOM because opencode makes a bunch of parallel tools calls that blow up prompt cache. I get 100+ output tok/sec with this.&lt;/p&gt; &lt;p&gt;But this might be it guys... the holy grail of local coding! Or getting very close to it at any rate.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CountlessFlies"&gt; /u/CountlessFlies &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1so3rsx/qwen36_is_incredible_with_opencode/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-17T15:10:17+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sop5hb</id>
     <title>Qwen3.6-35B-A3B GGUF from Unsloth is quite a bit slower?</title>
     <updated>2026-04-18T05:50:19+00:00</updated>
@@ -58,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sop5hb/qwen3635ba3b_gguf_from_unsloth_is_quite_a_bit/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-18T05:50:19+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1so2nt9</id>
-    <title>Qwen 3.6 is the first local model that actually feels worth the effort for me</title>
-    <updated>2026-04-17T14:30:08+00:00</updated>
-    <author>
-      <name>/u/Epicguru</name>
-      <uri>https://old.reddit.com/user/Epicguru</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent some time yesterday after work trying out the new qwen3.6-35b-a3b model, and at least for me it's the first time that I actually felt that a local model wasn't more of a pain to use than it was worth.&lt;/p&gt; &lt;p&gt;I've been using LLMs in my personal/throwaway projects for a few months, for the kind of code that I don't feel any passion writing (most UI XML in Avalonia, embedded systems C++), and I used to have Sonet and Opus for free thanks to Github's student program but they cancelled that. I've been trying out local models for quite a while too but it's mostly felt up until this point that they were either too dumb to get the job done, or they could complete it but I would spend so much time fixing/tweaking/formatting/refactoring the code that I might as well have just done it myself.&lt;/p&gt; &lt;p&gt;Qwen3.6 seems to have finally changed that, at least on my system and projects. Running on a 5090 + 4090 I can load the Q8 model with full 260k context, getting around 170 tokens per second also makes it one of the fastest models I've tried. And unlike all other models I've tried recently including Gemma 4, it can actually complete tasks and only requires minor guidance or corrections at the end. 9 times out of 10, simply asking it to review its own changes once it is 'done' is enough for it to catch and correct anything that was wrong.&lt;/p&gt; &lt;p&gt;I'm pretty impressed and it's really cool to see local models finally start to get to this point. It gives me hope for a future where this technology is not limited to massive data centers and subscription services, but rather being optimized to the point where even mid-range computers can take advantage of it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Epicguru"&gt; /u/Epicguru &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1so2nt9/qwen_36_is_the_first_local_model_that_actually/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-17T14:30:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1sojag2</id>
@@ -125,19 +112,6 @@
     <published>2026-04-18T01:15:40+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sp216x</id>
-    <title>Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter</title>
-    <updated>2026-04-18T16:20:57+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"&gt; &lt;img alt="Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter" src="https://preview.redd.it/vj6di56o4zvg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=837220f7bb1505dbb98396909a90d40b587f855a" title="Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;sup&gt;Just sharing here, I'm not sure whether this is suitable/useful for Local models or not.&lt;/sup&gt; &lt;/p&gt; &lt;p&gt;&lt;sup&gt;This is by Kimi/Moonshot.&lt;/sup&gt; &lt;a href="https://xcancel.com/Kimi_Moonshot/status/2045461663898599472#m"&gt;&lt;sup&gt;Source Tweet&lt;/sup&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;We push Prefill/Decode disaggregation beyond a single cluster: cross-datacenter + heterogeneous hardware, unlocking the potential for significantly lower cost per token. &lt;/p&gt; &lt;p&gt;This was previously blocked by KV cache transfer overhead. The key enabler is our hybrid model (&lt;strong&gt;Kimi Linear&lt;/strong&gt;), which reduces KV cache size and makes cross-DC PD practical. &lt;/p&gt; &lt;p&gt;Validated on a 20x scaled-up Kimi Linear model:&lt;br /&gt; ✅ 1.54× throughput&lt;br /&gt; ✅ 64% ↓ P90 TTFT&lt;br /&gt; → Directly translating into lower token cost. &lt;/p&gt; &lt;p&gt;More in Prefill-as-a-Service: &lt;a href="https://arxiv.org/html/2604.15039v1"&gt;arxiv.org/html/2604.15039v1&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vj6di56o4zvg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-18T16:20:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1so5nrl</id>
     <title>Qwen3.6 GGUF Benchmarks</title>
     <updated>2026-04-17T16:17:50+00:00</updated>
@@ -177,6 +151,19 @@
     <published>2026-04-17T13:33:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sojhwy</id>
+    <title>When is Qwen 3.6 27B dropping? Didn’t it win the vote?</title>
+    <updated>2026-04-18T01:13:27+00:00</updated>
+    <author>
+      <name>/u/GrungeWerX</name>
+      <uri>https://old.reddit.com/user/GrungeWerX</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just as the title says. Everyone’s talking about the new 35B, but I thought 27B won the poll…?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GrungeWerX"&gt; /u/GrungeWerX &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-18T01:13:27+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sopvs6</id>
     <title>LTX-2.3 based audio model outputs</title>
     <updated>2026-04-18T06:29:17+00:00</updated>
@@ -190,17 +177,30 @@
     <published>2026-04-18T06:29:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sojhwy</id>
-    <title>When is Qwen 3.6 27B dropping? Didn’t it win the vote?</title>
-    <updated>2026-04-18T01:13:27+00:00</updated>
+    <id>t3_1sp216x</id>
+    <title>Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter</title>
+    <updated>2026-04-18T16:20:57+00:00</updated>
     <author>
-      <name>/u/GrungeWerX</name>
-      <uri>https://old.reddit.com/user/GrungeWerX</uri>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just as the title says. Everyone’s talking about the new 35B, but I thought 27B won the poll…?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GrungeWerX"&gt; /u/GrungeWerX &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sojhwy/when_is_qwen_36_27b_dropping_didnt_it_win_the_vote/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"&gt; &lt;img alt="Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter" src="https://preview.redd.it/vj6di56o4zvg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=837220f7bb1505dbb98396909a90d40b587f855a" title="Prefill-as-a-Service: KVCache of Next-Generation Models Could Go Cross-Datacenter" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;sup&gt;Just sharing here, I'm not sure whether this is suitable/useful for Local models or not.&lt;/sup&gt; &lt;/p&gt; &lt;p&gt;&lt;sup&gt;This is by Kimi/Moonshot.&lt;/sup&gt; &lt;a href="https://xcancel.com/Kimi_Moonshot/status/2045461663898599472#m"&gt;&lt;sup&gt;Source Tweet&lt;/sup&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;We push Prefill/Decode disaggregation beyond a single cluster: cross-datacenter + heterogeneous hardware, unlocking the potential for significantly lower cost per token. &lt;/p&gt; &lt;p&gt;This was previously blocked by KV cache transfer overhead. The key enabler is our hybrid model (&lt;strong&gt;Kimi Linear&lt;/strong&gt;), which reduces KV cache size and makes cross-DC PD practical. &lt;/p&gt; &lt;p&gt;Validated on a 20x scaled-up Kimi Linear model:&lt;br /&gt; ✅ 1.54× throughput&lt;br /&gt; ✅ 64% ↓ P90 TTFT&lt;br /&gt; → Directly translating into lower token cost. &lt;/p&gt; &lt;p&gt;More in Prefill-as-a-Service: &lt;a href="https://arxiv.org/html/2604.15039v1"&gt;arxiv.org/html/2604.15039v1&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/vj6di56o4zvg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sp216x/prefillasaservice_kvcache_of_nextgeneration/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-18T01:13:27+00:00</published>
+    <published>2026-04-18T16:20:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sp2l72</id>
+    <title>Qwen3.6-35B-A3B-Uncensored-Wasserstein-GGUF</title>
+    <updated>2026-04-18T16:42:34+00:00</updated>
+    <author>
+      <name>/u/EvilEnginer</name>
+      <uri>https://old.reddit.com/user/EvilEnginer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone. Finally I found a way to fix &lt;em&gt;ssm_conv1d&lt;/em&gt; tensor drift in quantized GGUF models via &lt;a href="https://en.wikipedia.org/wiki/Wasserstein_metric"&gt;Wasserstein metric (W1).&lt;/a&gt; It's a lot better than Kullback Leibler for detecting numerical instability and drift in tensors.&lt;/p&gt; &lt;p&gt;All three are &lt;code&gt;ssm_conv1d.weight&lt;/code&gt; layers – recurrent state transition layers responsible for long‑context memory. It appears the Qwen team may not be aware of this specific drift issue in the SSM layers. I found the same bug in quants from &lt;a href="https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF"&gt;Unsloth&lt;/a&gt;.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Tensor&lt;/th&gt; &lt;th align="left"&gt;α&lt;/th&gt; &lt;th align="left"&gt;D (log‑ratio)&lt;/th&gt; &lt;th align="left"&gt;W1 before&lt;/th&gt; &lt;th align="left"&gt;W1 after&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;blk.36.ssm_conv1d.weight&lt;/td&gt; &lt;td align="left"&gt;0.5765&lt;/td&gt; &lt;td align="left"&gt;0.553&lt;/td&gt; &lt;td align="left"&gt;0.0038&lt;/td&gt; &lt;td align="left"&gt;0.0009&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;blk.37.ssm_conv1d.weight&lt;/td&gt; &lt;td align="left"&gt;0.5768&lt;/td&gt; &lt;td align="left"&gt;0.725&lt;/td&gt; &lt;td align="left"&gt;0.0040&lt;/td&gt; &lt;td align="left"&gt;0.0009&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;blk.38.ssm_conv1d.weight&lt;/td&gt; &lt;td align="left"&gt;0.6533&lt;/td&gt; &lt;td align="left"&gt;0.649&lt;/td&gt; &lt;td align="left"&gt;0.0026&lt;/td&gt; &lt;td align="left"&gt;0.0006&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Other tensors in model are healthy.&lt;/p&gt; &lt;p&gt;Here fixed model: &lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Wasserstein-GGUF"&gt;https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Wasserstein-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Model is based on this one: &lt;a href="https://huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive"&gt;https://huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive&lt;/a&gt; . Thanks to &lt;a href="https://huggingface.co/HauhauCS"&gt;HauhauCS&lt;/a&gt; for amazing job.&lt;/p&gt; &lt;p&gt;System prompt: &lt;a href="https://pastebin.com/pU25DVnB"&gt;https://pastebin.com/pU25DVnB&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Chat template: &lt;a href="https://pastebin.com/Dy2fmmpN"&gt;https://pastebin.com/Dy2fmmpN&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Reccomended quant: Q4_K_P&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Recommended Settings (LM Studio):&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Parameter&lt;/th&gt; &lt;th align="left"&gt;Value&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Temperature&lt;/td&gt; &lt;td align="left"&gt;0.7&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Top K Sampling&lt;/td&gt; &lt;td align="left"&gt;20&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Presence Penalty&lt;/td&gt; &lt;td align="left"&gt;1.5&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Repeat Penalty&lt;/td&gt; &lt;td align="left"&gt;Disabled&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Top P Sampling&lt;/td&gt; &lt;td align="left"&gt;0.8&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Min P Sampling&lt;/td&gt; &lt;td align="left"&gt;0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Seed&lt;/td&gt; &lt;td align="left"&gt;42&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Model features:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;It talks almost like human. Short and consize.&lt;/li&gt; &lt;li&gt;Fully uncensored.&lt;/li&gt; &lt;li&gt;Programming works fine.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I tested long context window in model via roleplay with my System Prompt. According to my taste I didn't find any problems in following character.&lt;/p&gt; &lt;p&gt;Enjoy ^_^&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EvilEnginer"&gt; /u/EvilEnginer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp2l72/qwen3635ba3buncensoredwassersteingguf/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp2l72/qwen3635ba3buncensoredwassersteingguf/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sp2l72/qwen3635ba3buncensoredwassersteingguf/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-18T16:42:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1soxsh2</id>
@@ -216,19 +216,6 @@
     <published>2026-04-18T13:33:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1soz24h</id>
-    <title>LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU</title>
-    <updated>2026-04-18T14:26:21+00:00</updated>
-    <author>
-      <name>/u/bonobomaster</name>
-      <uri>https://old.reddit.com/user/bonobomaster</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"&gt; &lt;img alt="LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU" src="https://preview.redd.it/j64n5u17kyvg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=147618a1bc2e1759456c813a5fe346a32dd55e21" title="LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bonobomaster"&gt; /u/bonobomaster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/j64n5u17kyvg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-18T14:26:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sotj4n</id>
     <title>Qwen 3.6 35B A3B Q4_K_M quant evaluation</title>
     <updated>2026-04-18T10:01:13+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sotj4n/qwen_36_35b_a3b_q4_k_m_quant_evaluation/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-18T10:01:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1soz24h</id>
+    <title>LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU</title>
+    <updated>2026-04-18T14:26:21+00:00</updated>
+    <author>
+      <name>/u/bonobomaster</name>
+      <uri>https://old.reddit.com/user/bonobomaster</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"&gt; &lt;img alt="LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU" src="https://preview.redd.it/j64n5u17kyvg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=147618a1bc2e1759456c813a5fe346a32dd55e21" title="LM Studio CPU thread pool size vs. tk/s with some MoE layers offloaded to CPU" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bonobomaster"&gt; /u/bonobomaster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/j64n5u17kyvg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1soz24h/lm_studio_cpu_thread_pool_size_vs_tks_with_some/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-18T14:26:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1sor438</id>
@@ -281,19 +281,6 @@
     <published>2026-04-18T07:40:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sp10oa</id>
-    <title>KIMI K2.6 SOON !!</title>
-    <updated>2026-04-18T15:41:57+00:00</updated>
-    <author>
-      <name>/u/Namra_7</name>
-      <uri>https://old.reddit.com/user/Namra_7</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"&gt; &lt;img alt="KIMI K2.6 SOON !!" src="https://preview.redd.it/ee8dgfvgyyvg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7dcab146b6fd38fd5371793c475234df4f72c155" title="KIMI K2.6 SOON !!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Namra_7"&gt; /u/Namra_7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ee8dgfvgyyvg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-18T15:41:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1soq1es</id>
     <title>qwen3.6 performance jump is real, just make sure you have it properly configured</title>
     <updated>2026-04-18T06:37:54+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1soq1es/qwen36_performance_jump_is_real_just_make_sure/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-18T06:37:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sp10oa</id>
+    <title>KIMI K2.6 SOON !!</title>
+    <updated>2026-04-18T15:41:57+00:00</updated>
+    <author>
+      <name>/u/Namra_7</name>
+      <uri>https://old.reddit.com/user/Namra_7</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"&gt; &lt;img alt="KIMI K2.6 SOON !!" src="https://preview.redd.it/ee8dgfvgyyvg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7dcab146b6fd38fd5371793c475234df4f72c155" title="KIMI K2.6 SOON !!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Namra_7"&gt; /u/Namra_7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ee8dgfvgyyvg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sp10oa/kimi_k26_soon/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-18T15:41:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1mpk2va</id>
