@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-04-18T06:38:23+00:00</updated>
+  <updated>2026-04-18T07:10:16+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1snfvmm</id>
-    <title>Quick question: Should I stick with my M4 Max or grab a Corsair AI Workstation 300 for local LLM stuff?</title>
-    <updated>2026-04-16T20:44:58+00:00</updated>
-    <author>
-      <name>/u/SnooCrickets7501</name>
-      <uri>https://old.reddit.com/user/SnooCrickets7501</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1snfvmm/quick_question_should_i_stick_with_my_m4_max_or/"&gt; &lt;img alt="Quick question: Should I stick with my M4 Max or grab a Corsair AI Workstation 300 for local LLM stuff?" src="https://external-preview.redd.it/JVFAZ9kL9Ds-ucCwvXP2aT2-6WBtqddrD7cWFxdGoos.png?width=70&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=59a343af3b4a78062b6d64c1790e9079f750dc0c" title="Quick question: Should I stick with my M4 Max or grab a Corsair AI Workstation 300 for local LLM stuff?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SnooCrickets7501"&gt; /u/SnooCrickets7501 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.corsair.com/us/en/p/gaming-computers/CS-9080003-NA/corsair-ai-workstation-300-amd-ryzen-ai-max-395-processor-amd-radeon-8060s-igpu-up-to-96gb-vram-128gb-lpddr5x-memory-4tb-2tb-2tb-m2-ssd-win11-home-cs-9080003"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1snfvmm/quick_question_should_i_stick_with_my_m4_max_or/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1snfvmm/quick_question_should_i_stick_with_my_m4_max_or/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-16T20:44:58+00:00</published>
-  </entry>
   <entry>
     <id>t3_1snogqs</id>
     <title>Arrow — local SAM contract CSV + SQLite; optional Ollama for JSON “why fit” &amp; summarize (format: json)</title>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/ollama/comments/1so22n5/2500_budget_to_run_local_help_me_decide_on_the/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-04-17T14:08:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1soqi1w</id>
+    <title>Context window filling up too fast with local models? Here's what actually wastes the most tokens</title>
+    <updated>2026-04-18T07:03:36+00:00</updated>
+    <author>
+      <name>/u/Due_Anything4678</name>
+      <uri>https://old.reddit.com/user/Due_Anything4678</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been running local models for a while and the context window problem is way worse than with cloud models - 8K-32K fills up fast, especially in agentic workflows.&lt;/p&gt; &lt;p&gt;After logging tool calls across a bunch of sessions I found the biggest culprits:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Repeated file reads&lt;/strong&gt; - the same file gets read 3-5x in a single session. Each read is full cost.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Verbose JSON&lt;/strong&gt; - API responses full of null fields, debug_info, trace_id, internal_id. None of that helps the model.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Repeated log lines&lt;/strong&gt; - build output, test output, same lines over and over.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The fix for #1 is surprisingly simple: hash the content, cache the compressed version, return a 13-token reference on repeat reads. A 2,000-token file read 5 times goes from 10,000 tokens to ~1,400. Works with any local model since it's just reducing what you send.&lt;/p&gt; &lt;p&gt;I have done research and mathematics and made a prototype tool around this called sqz. It's a Rust binary that sits between your tool calls and the model:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cargo install sqz-cli sqz init &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Works as a shell hook (auto-compresses CLI output), MCP server, and browser extension. Particularly useful for local models since every token counts more when your window is 8K instead of 200K.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Scenario&lt;/th&gt; &lt;th align="left"&gt;Savings&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Repeated file reads (5x)&lt;/td&gt; &lt;td align="left"&gt;86%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;JSON with nulls&lt;/td&gt; &lt;td align="left"&gt;7–56%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Repeated log lines&lt;/td&gt; &lt;td align="left"&gt;58%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Stack traces&lt;/td&gt; &lt;td align="left"&gt;0% (intentional)&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Stack traces are preserved on purpose - the model needs that context to debug.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/ojuschugh1/sqz"&gt;https://github.com/ojuschugh1/sqz&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Anyone else tracking where their tokens actually go? Curious what patterns others are seeing with local models. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Due_Anything4678"&gt; /u/Due_Anything4678 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1soqi1w/context_window_filling_up_too_fast_with_local/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1soqi1w/context_window_filling_up_too_fast_with_local/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1soqi1w/context_window_filling_up_too_fast_with_local/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-18T07:03:36+00:00</published>
   </entry>
 </feed>
