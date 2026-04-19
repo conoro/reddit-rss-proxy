@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-04-19T19:20:10+00:00</updated>
+  <updated>2026-04-19T19:45:54+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1sp1334</id>
-    <title>How I built a local MCP server that routes all Git operations through Ollama — zero cloud tokens (v1.0.0)</title>
-    <updated>2026-04-18T15:44:28+00:00</updated>
-    <author>
-      <name>/u/blakok14</name>
-      <uri>https://old.reddit.com/user/blakok14</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1sp1334/how_i_built_a_local_mcp_server_that_routes_all/"&gt; &lt;img alt="How I built a local MCP server that routes all Git operations through Ollama — zero cloud tokens (v1.0.0)" src="https://external-preview.redd.it/Xv5ZZpgLxRPCQNC_kz49xsHDDZzSrWKPxkJtvH5UqgM.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=e3935a986dc42c96690b5bc9a76741db7c9eddd6" title="How I built a local MCP server that routes all Git operations through Ollama — zero cloud tokens (v1.0.0)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Si usas Ollama para desarrollo local, esto podría ahorrarte mucho dinero.&lt;/p&gt; &lt;p&gt;Los agentes de codificación de IA (como OpenCode, Claude Code o Windsurf) consumen miles de tokens en la nube realizando tareas triviales como leer un &lt;code&gt;git diff&lt;/code&gt; o generar un mensaje de confirmación. Desarrollé &lt;strong&gt;git-courer&lt;/strong&gt;, un servidor MCP de código abierto que intercepta esas llamadas a Git y delega el trabajo a un LLM local a través de Ollama. El resultado: &lt;strong&gt;Cero tokens en la nube gastados en Git.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Lograr que Ollama gestionara Git de forma fiable presentó algunos desafíos de ingeniería interesantes. Así es como los resolví:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. El problema del contexto: Fragmentación de diferencias basada en grafos&lt;/strong&gt; No se puede simplemente volcar una diferencia masiva en un LLM local sin saturar la ventana de contexto. Implementé un algoritmo de agrupamiento utilizando teoría de grafos con un sistema de fuerzas. Extrae tokens significativos de las diferencias, crea un grafo asignando &amp;quot;puntos de fuerza&amp;quot; (pesos) entre archivos según los tokens compartidos y las rutas de directorio, y luego utiliza BFS para agrupar los archivos con la mayor fuerza de conexión. Estos fragmentos de alto contexto se envían secuencialmente a Ollama.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Controlando el LLM: Razonamiento Estructurado&lt;/strong&gt; Anteriormente, el LLM solo devolvía valores booleanos para decidir qué preparar: una caja negra total. La solución consistió en obligarlo a devolver un JSON estricto con su razonamiento completo mediante restricciones de solicitud.&lt;/p&gt; &lt;p&gt;Esta es la salida real que generó el modelo local al leer las diferencias para esta actualización:&lt;/p&gt; &lt;p&gt;Corrección: pasar el parámetro de instrucción a los métodos del servicio de confirmación&lt;/p&gt; &lt;p&gt;Anteriormente, la preparación y ejecución de la confirmación ignoraban la instrucción proporcionada&lt;/p&gt; &lt;p&gt;en la solicitud. Ahora, tanto los métodos PrepareCommit como Execute reciben y utilizan el parámetro de instrucción, lo que garantiza el manejo adecuado de las instrucciones proporcionadas por el usuario.&lt;/p&gt; &lt;p&gt;feat(commit): enriquece la transparencia de las decisiones de LLM con metadatos explícitos de selección de archivos&lt;/p&gt; &lt;p&gt;Anteriormente, las decisiones de confirmación se basaban únicamente en indicadores booleanos abstractos, sin&lt;/p&gt; &lt;p&gt;visibilidad de la lógica real de selección de archivos de LLM. Ahora proporciona un razonamiento estructurado, junto con listas explícitas de archivos incluidos/excluidos, lo que permite una auditoría y depuración precisas del comportamiento de selección de confirmación.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. El canal de seguridad: Prevención de fugas de secretos&lt;/strong&gt; Otorgar a Ollama el control sobre &lt;code&gt;git add&lt;/code&gt; es realmente peligroso. He creado un canal síncrono de 5 capas:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Detección de bytes mágicos (se detiene inmediatamente en los binarios).&lt;/li&gt; &lt;li&gt;Listas negras de rutas (p. ej., &lt;code&gt;/node_modules&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Listas negras de nombres de archivo exactos (&lt;code&gt;.pem&lt;/code&gt;, &lt;code&gt;id_rsa&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;Escaneo de expresiones regulares para secretos y tokens. 5. Verificación final de LLM para descartar falsos positivos.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;4. Cobertura de operaciones Git&lt;/strong&gt; El objetivo es brindar soporte completo para operaciones Git. El flujo de &lt;code&gt;commit&lt;/code&gt; es estable y está listo para producción. Cada operación se ha agregado comando por comando para garantizar una ejecución local segura.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Protocolo de confirmación&lt;/strong&gt; El servidor utiliza un protocolo de 3 fases (&lt;code&gt;START -&amp;gt; APPLY -&amp;gt; ABORT&lt;/code&gt;). Devuelve el plan de LLM y bloquea la ejecución hasta que el usuario aprueba explícitamente la confirmación en el chat de IA.&lt;/p&gt; &lt;p&gt;**El proyecto es de código abierto y está escrito en Go: &lt;a href="https://github.com/Alejandro-M-P/git-courer"&gt;&lt;strong&gt;Repositorio de GitHub&lt;/strong&gt;&lt;/a&gt; **Agradecería comentarios constructivos sobre la arquitectura, casos límite que intentarían poner a prueba o ideas sobre el enfoque. Con mucho gusto responderé cualquier pregunta.&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1sp1334/video/pm4glgiszyvg1/player"&gt;https://reddit.com/link/1sp1334/video/pm4glgiszyvg1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/blakok14"&gt; /u/blakok14 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sp1334/how_i_built_a_local_mcp_server_that_routes_all/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sp1334/how_i_built_a_local_mcp_server_that_routes_all/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1sp1334/how_i_built_a_local_mcp_server_that_routes_all/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-18T15:44:28+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sowvi2</id>
     <title>Ollama Cloud usage question!</title>
@@ -177,19 +164,6 @@
     <published>2026-04-19T13:11:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1spvfdv</id>
-    <title>Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models</title>
-    <updated>2026-04-19T15:05:01+00:00</updated>
-    <author>
-      <name>/u/Creative-Regular6799</name>
-      <uri>https://old.reddit.com/user/Creative-Regular6799</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt; &lt;img alt="Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models" src="https://external-preview.redd.it/8tVNqXhkU6C3vejZLbbH4bfsQ2SNTpoIimZ7GlL4xew.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ce3b15ff211c39ea5ffe412fafb2c533f8e0d424" title="Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Creative-Regular6799"&gt; /u/Creative-Regular6799 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLaMA/comments/1spufzz/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-19T15:05:01+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1spwb99</id>
     <title>Arent These single file LLM coding tests like browserOS pretty much redundant now most 2026 LLM can easily handle this?</title>
     <updated>2026-04-19T15:38:04+00:00</updated>
@@ -242,6 +216,19 @@
     <published>2026-04-19T18:17:40+00:00</published>
   </entry>
   <entry>
+    <id>t3_1spvfdv</id>
+    <title>Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models</title>
+    <updated>2026-04-19T15:05:01+00:00</updated>
+    <author>
+      <name>/u/Creative-Regular6799</name>
+      <uri>https://old.reddit.com/user/Creative-Regular6799</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt; &lt;img alt="Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models" src="https://external-preview.redd.it/8tVNqXhkU6C3vejZLbbH4bfsQ2SNTpoIimZ7GlL4xew.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ce3b15ff211c39ea5ffe412fafb2c533f8e0d424" title="Same 9B Qwen weights: 19.1% in Aider vs 45.6% with a scaffold adapted to small local models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Creative-Regular6799"&gt; /u/Creative-Regular6799 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLaMA/comments/1spufzz/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1spvfdv/same_9b_qwen_weights_191_in_aider_vs_456_with_a/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-19T15:05:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sq27er</id>
     <title>Am i the only one who exhausted this?</title>
     <updated>2026-04-19T19:15:02+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1sq29ru/i_wrapped_my_ollama_agent_with_deterministic/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-04-19T19:17:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sq2rkp</id>
+    <title>Everyone is building AI agents. Nobody talks about what happens when they silently fail. I built an open-source debugger for AI pipelines: trace timeline, run diff, node replay. Zero telemetry. MIT.</title>
+    <updated>2026-04-19T19:36:11+00:00</updated>
+    <author>
+      <name>/u/SnooStories6973</name>
+      <uri>https://old.reddit.com/user/SnooStories6973</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The problem: your multi-agent workflow runs, produces garbage output, and you have no idea which node failed, why, or what context it had. No stack trace. No replay. Nothing.&lt;/p&gt; &lt;p&gt;So I built Binex an open-source runtime + visual editor for AI agent pipelines, focused entirely on debuggability.&lt;/p&gt; &lt;p&gt;What it actually does:&lt;br /&gt; • Visual YAML sync: draw the graph or write YAML, both stay in sync&lt;br /&gt; • Trace timeline: Gantt-style view of every node, every prompt, every tool call&lt;br /&gt; • Run diff: compare two runs side-by-side - see exactly where they diverged&lt;br /&gt; • Node replay: swap the model on one node, re-run just that step, keep all artifacts&lt;br /&gt; • Pattern nodes: 9 built-in patterns (critic, debate, best-of-N, reflexion...) that expand into full sub-DAG pipelines&lt;br /&gt; • Cost caps: hard dollar limits per run or per day &lt;/p&gt; &lt;p&gt;pip install binex &amp;amp;&amp;amp; binex ui&lt;br /&gt; &lt;a href="https://github.com/Alexli18/binex"&gt;https://github.com/Alexli18/binex&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Still early (v0.7.5), happy to hear what's missing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SnooStories6973"&gt; /u/SnooStories6973 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sq2rkp/everyone_is_building_ai_agents_nobody_talks_about/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sq2rkp/everyone_is_building_ai_agents_nobody_talks_about/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1sq2rkp/everyone_is_building_ai_agents_nobody_talks_about/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-19T19:36:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1sq0ugj</id>
