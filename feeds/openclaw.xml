@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-04-19T01:57:04+00:00</updated>
+  <updated>2026-04-19T03:15:10+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1sp667g</id>
-    <title>My agent helped me fix the Windows brew issues simply in a way that 'just works'</title>
-    <updated>2026-04-18T18:58:19+00:00</updated>
-    <author>
-      <name>/u/radiantthought</name>
-      <uri>https://old.reddit.com/user/radiantthought</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I've recently been trying out openclaw in windows, and I found it quite frustrating how the installation of skills via the web UI would not actually set them up for me, and when I went to configure them in powershell, the wizards would just straight up fail with some obscure error messages either about brew or ENOENT or other things that didn't make sense to my brain. So, today I did some work with gemini and made a solution. &lt;/p&gt; &lt;p&gt;tl;dr - install scoop, redirect brew calls to scoop, write a small exe that keeps 'brew' from complaining. Below is the summary from my agent on how to replicate.&lt;/p&gt; &lt;h1&gt;Fixing OpenClaw &amp;quot;spawn brew ENOENT&amp;quot; on Windows 11&lt;/h1&gt; &lt;p&gt;Many AI agents (like OpenClaw) are built for macOS and hardcoded to use brew for dependency management. On Windows, even if you have the tools installed, the agent will fail because it can't find a file named brew.&lt;/p&gt; &lt;p&gt;A simple .cmd alias often fails because Node.js/OpenClaw uses the spawn command, which struggles with script-based aliases. This fix creates a native Windows executable (.exe) that transparently hands all brew requests over to Scoop.&lt;/p&gt; &lt;h2&gt;Step 1: Install Scoop (The Windows &amp;quot;Brew&amp;quot;)&lt;/h2&gt; &lt;p&gt;Scoop is the best tool for this because it manages binaries without requiring Admin rights and handles PATH updates automatically. PowerShell&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Set execution policy and install Scoop Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; iwr -useb get.scoop.sh | iex; # Add the 'extras' bucket (where most AI/technical tools live) scoop bucket add extras &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Note: Restart your terminal after this step.&lt;/p&gt; &lt;h2&gt;Step 2: Compile the Native brew.exe Redirect&lt;/h2&gt; &lt;p&gt;Instead of a simple batch file, we compile a tiny C# application into an executable. This ensures that any software trying to &amp;quot;spawn&amp;quot; or &amp;quot;execute&amp;quot; brew sees a real binary.&lt;/p&gt; &lt;p&gt;Run this in PowerShell: PowerShell&lt;/p&gt; &lt;pre&gt;&lt;code&gt;$code = 'using System.Diagnostics; class P { static void Main(string[] args) { ProcessStartInfo psi = new ProcessStartInfo(&amp;quot;cmd.exe&amp;quot;, &amp;quot;/c scoop &amp;quot; + string.Join(&amp;quot; &amp;quot;, args)); psi.UseShellExecute = false; Process.Start(psi).WaitForExit(); } }'; Add-Type -TypeDefinition $code -OutputAssembly &amp;quot;$env:USERPROFILE\scoop\shims\brew.exe&amp;quot; -OutputType ConsoleApplication; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;What this does:&lt;/p&gt; &lt;p&gt;Creates a real brew.exe in your Scoop shims folder.&lt;/p&gt; &lt;p&gt;Whenever a program runs brew install &amp;lt;package&amp;gt;, this .exe captures the command and runs scoop install &amp;lt;package&amp;gt; instead.&lt;/p&gt; &lt;h2&gt;Step 3: Pre-install Core Dependencies&lt;/h2&gt; &lt;p&gt;OpenClaw specifically looks for a few key tools. Since our redirect is now live, you can install them using the &amp;quot;brew&amp;quot; command or Scoop directly: PowerShell&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# These are the most common requirements for OpenClaw skills brew install jq brew install uv brew install python brew install gh &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Why this works&lt;/p&gt; &lt;p&gt;Native Execution: Because it's a .exe, Node.js won't throw ENOENT (File Not Found) errors.&lt;/p&gt; &lt;p&gt;Pathing: Since it lives in the Scoop shims folder, it’s already in your System Path.&lt;/p&gt; &lt;p&gt;One-and-Done: You don't have to edit the OpenClaw manifest.json or openclaw.json files manually every time you add a new skill.&lt;/p&gt; &lt;p&gt;Final Verification&lt;/p&gt; &lt;p&gt;To confirm it's working, type:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;brew --version &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;You should see the Scoop version info. You can now run openclaw skills install and the automated installer will work as if you were on a Mac.&lt;/p&gt; &lt;p&gt;I tried searching for similar solutions but was unable to find any, hope this helps some folks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/radiantthought"&gt; /u/radiantthought &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp667g/my_agent_helped_me_fix_the_windows_brew_issues/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp667g/my_agent_helped_me_fix_the_windows_brew_issues/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sp667g/my_agent_helped_me_fix_the_windows_brew_issues/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T18:58:19+00:00</published>
-  </entry>
   <entry>
     <id>t3_1spcc9f</id>
     <title>🧠 La memoria de tu agente no sirve para nada si no tienes un Bunker Check. Aquí te explico por qué. 🛡️</title>
@@ -73,19 +60,6 @@
     <published>2026-04-18T19:53:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sp80v6</id>
-    <title>What feature, capability, or quirk of OpenClaw do you wish you’d known about sooner?</title>
-    <updated>2026-04-18T20:10:03+00:00</updated>
-    <author>
-      <name>/u/dirksn</name>
-      <uri>https://old.reddit.com/user/dirksn</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Sometimes it takes a while to learn something.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dirksn"&gt; /u/dirksn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp80v6/what_feature_capability_or_quirk_of_openclaw_do/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp80v6/what_feature_capability_or_quirk_of_openclaw_do/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sp80v6/what_feature_capability_or_quirk_of_openclaw_do/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T20:10:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1spe3x4</id>
     <title>20k tokens despite no memory, barely any skills, no previous sessions... How do you setup OpenClaw for real-time conversation?</title>
     <updated>2026-04-19T00:28:46+00:00</updated>
@@ -97,6 +71,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1spe3x4/20k_tokens_despite_no_memory_barely_any_skills_no/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-19T00:28:46+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sp9bw7</id>
+    <title>After building an Openclaw agent for a few months...The real problem with AI agents isn't capability — it's trust</title>
+    <updated>2026-04-18T21:01:43+00:00</updated>
+    <author>
+      <name>/u/Recent_Sample_2056</name>
+      <uri>https://old.reddit.com/user/Recent_Sample_2056</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most AI agents fail not because they're dumb, but because no one's built a trust layer between us as an owner and agent.&lt;/p&gt; &lt;p&gt;I obsess over model quality, context windows, tool use. But at the end of the day? I still don't trust agents with my money, some personal data.&lt;/p&gt; &lt;p&gt;I think the &lt;strong&gt;trust is the missing infrastructure for agentic AI.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Not another model. Not another framework. A trust layer — verification, transparency, accountability — so humans and agents can actually collaborate without hand-holding.&lt;/p&gt; &lt;p&gt;I am building something related to how to improve trust..between me and my agent. &lt;/p&gt; &lt;p&gt;Took me months, but my openclaw agent is finally getting smarter, but still I still need more time to build up the trust...to give it my responsibilities. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Recent_Sample_2056"&gt; /u/Recent_Sample_2056 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-18T21:01:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1sp9jv4</id>
@@ -125,19 +112,6 @@
     <published>2026-04-18T07:35:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1soq5l0</id>
-    <title>GLM-5.1 Now Live on NVIDIA API. Free to use.</title>
-    <updated>2026-04-18T06:44:24+00:00</updated>
-    <author>
-      <name>/u/EnergyRoyal9889</name>
-      <uri>https://old.reddit.com/user/EnergyRoyal9889</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Zai just dropped GLM-5.1 on NVIDIA NIM. It's downloadable, GPU-ready for agentic workflows, coding, and long-horizon reasoning.&lt;/p&gt; &lt;p&gt;Big win for OpenClaw users and devs.&lt;/p&gt; &lt;p&gt;Thoughts? What are you planning to build with it?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EnergyRoyal9889"&gt; /u/EnergyRoyal9889 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T06:44:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sp757q</id>
     <title>Working with a system that processes a large number of sources and running into multiple scaling and reliability problems.</title>
     <updated>2026-04-18T19:36:20+00:00</updated>
@@ -151,17 +125,30 @@
     <published>2026-04-18T19:36:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sp1x61</id>
-    <title>Something cool i did today (voice note replys)</title>
-    <updated>2026-04-18T16:16:37+00:00</updated>
+    <id>t3_1soq5l0</id>
+    <title>GLM-5.1 Now Live on NVIDIA API. Free to use.</title>
+    <updated>2026-04-18T06:44:24+00:00</updated>
     <author>
-      <name>/u/Fz1zz</name>
-      <uri>https://old.reddit.com/user/Fz1zz</uri>
+      <name>/u/EnergyRoyal9889</name>
+      <uri>https://old.reddit.com/user/EnergyRoyal9889</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://youtube.com/shorts/QygkFQZMjNM?si=s5YHWVN4XBCKXtEC"&gt;https://youtube.com/shorts/QygkFQZMjNM?si=s5YHWVN4XBCKXtEC&lt;/a&gt;&lt;/p&gt; &lt;p&gt;no api no anything &lt;/p&gt; &lt;p&gt;Just one package espeak-ng if your using Ubuntu and that's it &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fz1zz"&gt; /u/Fz1zz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Zai just dropped GLM-5.1 on NVIDIA NIM. It's downloadable, GPU-ready for agentic workflows, coding, and long-horizon reasoning.&lt;/p&gt; &lt;p&gt;Big win for OpenClaw users and devs.&lt;/p&gt; &lt;p&gt;Thoughts? What are you planning to build with it?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EnergyRoyal9889"&gt; /u/EnergyRoyal9889 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1soq5l0/glm51_now_live_on_nvidia_api_free_to_use/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T16:16:37+00:00</published>
+    <published>2026-04-18T06:44:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1spggd2</id>
+    <title>I am working on an automation platform where developers can list their agents for recurring passive income.</title>
+    <updated>2026-04-19T02:22:57+00:00</updated>
+    <author>
+      <name>/u/SoHi_Techiee</name>
+      <uri>https://old.reddit.com/user/SoHi_Techiee</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I got this idea of, an automation platform like Zapier but open for all devs to list their agent for money (usage based or fixed subscription), months ago and got excited right away. I did extensive research on the usability, features and how should it be implemented. After months of reading, observations and planning, I started developing it and not its taking a shape. The alpha will be released soon for everyone to try.&lt;/p&gt; &lt;p&gt;What do you all think of this concept? (feels like I am still researching 😀 )&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SoHi_Techiee"&gt; /u/SoHi_Techiee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spggd2/i_am_working_on_an_automation_platform_where/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spggd2/i_am_working_on_an_automation_platform_where/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1spggd2/i_am_working_on_an_automation_platform_where/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-19T02:22:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1spbu19</id>
@@ -177,43 +164,17 @@
     <published>2026-04-18T22:46:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sp9bw7</id>
-    <title>After building an Openclaw agent for a few months...The real problem with AI agents isn't capability — it's trust</title>
-    <updated>2026-04-18T21:01:43+00:00</updated>
+    <id>t3_1sp1x61</id>
+    <title>Something cool i did today (voice note replys)</title>
+    <updated>2026-04-18T16:16:37+00:00</updated>
     <author>
-      <name>/u/Recent_Sample_2056</name>
-      <uri>https://old.reddit.com/user/Recent_Sample_2056</uri>
+      <name>/u/Fz1zz</name>
+      <uri>https://old.reddit.com/user/Fz1zz</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most AI agents fail not because they're dumb, but because no one's built a trust layer between us as an owner and agent.&lt;/p&gt; &lt;p&gt;I obsess over model quality, context windows, tool use. But at the end of the day? I still don't trust agents with my money, some personal data.&lt;/p&gt; &lt;p&gt;I think the &lt;strong&gt;trust is the missing infrastructure for agentic AI.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Not another model. Not another framework. A trust layer — verification, transparency, accountability — so humans and agents can actually collaborate without hand-holding.&lt;/p&gt; &lt;p&gt;I am building something related to how to improve trust..between me and my agent. &lt;/p&gt; &lt;p&gt;Took me months, but my openclaw agent is finally getting smarter, but still I still need more time to build up the trust...to give it my responsibilities. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Recent_Sample_2056"&gt; /u/Recent_Sample_2056 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sp9bw7/after_building_an_openclaw_agent_for_a_few/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://youtube.com/shorts/QygkFQZMjNM?si=s5YHWVN4XBCKXtEC"&gt;https://youtube.com/shorts/QygkFQZMjNM?si=s5YHWVN4XBCKXtEC&lt;/a&gt;&lt;/p&gt; &lt;p&gt;no api no anything &lt;/p&gt; &lt;p&gt;Just one package espeak-ng if your using Ubuntu and that's it &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fz1zz"&gt; /u/Fz1zz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sp1x61/something_cool_i_did_today_voice_note_replys/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T21:01:43+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sp32ul</id>
-    <title>For People that keep asking what OpenClaw actually does...</title>
-    <updated>2026-04-18T17:01:16+00:00</updated>
-    <author>
-      <name>/u/Hereafter_is_Better</name>
-      <uri>https://old.reddit.com/user/Hereafter_is_Better</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;For everyone asking what OpenClaw actually does: &lt;/p&gt; &lt;p&gt;I put together 21 substantial use cases. Not generic chatbot stuff. Actual workflows. Systems. Things that keep running. &lt;/p&gt; &lt;p&gt;If you still think OpenClaw is just “chat with tools,” this should change your mind.&lt;/p&gt; &lt;p&gt;&lt;a href="https://chatgptguide.ai/openclaw-use-cases/"&gt;Check them here&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;The are 21 substantial OpenClaw use cases, organized across seven industries, drawn from field reports, community repos, published case studies, the OpenClaw Showcase, and operator threads where people actually shipped something. &lt;/p&gt; &lt;p&gt;None of these are &amp;quot;ask OpenClaw to write a haiku.&amp;quot; Every single one is a &lt;strong&gt;real workflow with state, tools, triggers, and consequences&lt;/strong&gt; - which is where agentic AI stops being a novelty and starts compounding. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Hereafter_is_Better"&gt; /u/Hereafter_is_Better &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T17:01:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1spdac8</id>
-    <title>OpenClaw has been getting slower and more confusing after recent updates — anyone else? How do you prevent your agent from losing its identity on restart?</title>
-    <updated>2026-04-18T23:50:58+00:00</updated>
-    <author>
-      <name>/u/Extra_Lengthiness893</name>
-      <uri>https://old.reddit.com/user/Extra_Lengthiness893</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;OpenClaw has been getting slower and more confusing after recent updates — anyone else? How do you prevent your agent from losing its identity on restart?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Post body:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I've been running &lt;strong&gt;OpenClaw&lt;/strong&gt; for a few months now and it's become a core part of my workflow. I mainly use it for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Reading/writing tasks in &lt;strong&gt;Leantime&lt;/strong&gt; (project management)&lt;/li&gt; &lt;li&gt;Reading/writing to &lt;strong&gt;Trilium Notes&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;A custom 3-tier memory system I built myself&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That memory setup includes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Tier 1&lt;/strong&gt;: Lossless Claw for active context management&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tier 2&lt;/strong&gt;: Writing complex/long-term items to a dedicated &amp;quot;agent memory&amp;quot; section in Trilium&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tier 3&lt;/strong&gt;: A vector DB that chunks and stores everything from my Discord chats so I can retrieve anything from the past&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It's been incredibly powerful... until the last 3-4 updates.&lt;/p&gt; &lt;p&gt;Lately, the memory processes feel way more confusing, response times have slowed down noticeably, and things keep breaking or behaving inconsistently. I'm primarily using &lt;strong&gt;Ollama + Kimi 2.5 cloud&lt;/strong&gt; as my main model.&lt;/p&gt; &lt;p&gt;I'm seriously considering copying all my .md files over and spinning up a fresh OpenClaw instance (this is actually version 2 — I ditched v1 pretty quickly, and even v2 is getting old in &amp;quot;agent years&amp;quot;).&lt;/p&gt; &lt;p&gt;I've been reading through some threads here and opinions are mixed. For those of you who have rebuilt or restarted your agent multiple times:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How do you keep your agent from losing &amp;quot;who it is&amp;quot; every time you restart or recreate it?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Any tips on preserving personality, rules, long-term memory, and custom workflows during a fresh setup would be hugely appreciated. Also open to hearing if others are experiencing similar slowdowns/frustrations with recent updates.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Extra_Lengthiness893"&gt; /u/Extra_Lengthiness893 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T23:50:58+00:00</published>
+    <published>2026-04-18T16:16:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1sp8b63</id>
@@ -227,6 +188,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1sp8b63/ideas_for_openclaw_as_a_family_assistant/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-18T20:21:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sp32ul</id>
+    <title>For People that keep asking what OpenClaw actually does...</title>
+    <updated>2026-04-18T17:01:16+00:00</updated>
+    <author>
+      <name>/u/Hereafter_is_Better</name>
+      <uri>https://old.reddit.com/user/Hereafter_is_Better</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;For everyone asking what OpenClaw actually does: &lt;/p&gt; &lt;p&gt;I put together 21 substantial use cases. Not generic chatbot stuff. Actual workflows. Systems. Things that keep running. &lt;/p&gt; &lt;p&gt;If you still think OpenClaw is just “chat with tools,” this should change your mind.&lt;/p&gt; &lt;p&gt;&lt;a href="https://chatgptguide.ai/openclaw-use-cases/"&gt;Check them here&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;The are 21 substantial OpenClaw use cases, organized across seven industries, drawn from field reports, community repos, published case studies, the OpenClaw Showcase, and operator threads where people actually shipped something. &lt;/p&gt; &lt;p&gt;None of these are &amp;quot;ask OpenClaw to write a haiku.&amp;quot; Every single one is a &lt;strong&gt;real workflow with state, tools, triggers, and consequences&lt;/strong&gt; - which is where agentic AI stops being a novelty and starts compounding. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Hereafter_is_Better"&gt; /u/Hereafter_is_Better &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sp32ul/for_people_that_keep_asking_what_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-18T17:01:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1sp2ibs</id>
@@ -255,6 +229,19 @@
     <published>2026-04-18T15:22:30+00:00</published>
   </entry>
   <entry>
+    <id>t3_1spdac8</id>
+    <title>OpenClaw has been getting slower and more confusing after recent updates — anyone else? How do you prevent your agent from losing its identity on restart?</title>
+    <updated>2026-04-18T23:50:58+00:00</updated>
+    <author>
+      <name>/u/Extra_Lengthiness893</name>
+      <uri>https://old.reddit.com/user/Extra_Lengthiness893</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;OpenClaw has been getting slower and more confusing after recent updates — anyone else? How do you prevent your agent from losing its identity on restart?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Post body:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I've been running &lt;strong&gt;OpenClaw&lt;/strong&gt; for a few months now and it's become a core part of my workflow. I mainly use it for:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Reading/writing tasks in &lt;strong&gt;Leantime&lt;/strong&gt; (project management)&lt;/li&gt; &lt;li&gt;Reading/writing to &lt;strong&gt;Trilium Notes&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;A custom 3-tier memory system I built myself&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That memory setup includes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Tier 1&lt;/strong&gt;: Lossless Claw for active context management&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tier 2&lt;/strong&gt;: Writing complex/long-term items to a dedicated &amp;quot;agent memory&amp;quot; section in Trilium&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tier 3&lt;/strong&gt;: A vector DB that chunks and stores everything from my Discord chats so I can retrieve anything from the past&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It's been incredibly powerful... until the last 3-4 updates.&lt;/p&gt; &lt;p&gt;Lately, the memory processes feel way more confusing, response times have slowed down noticeably, and things keep breaking or behaving inconsistently. I'm primarily using &lt;strong&gt;Ollama + Kimi 2.5 cloud&lt;/strong&gt; as my main model.&lt;/p&gt; &lt;p&gt;I'm seriously considering copying all my .md files over and spinning up a fresh OpenClaw instance (this is actually version 2 — I ditched v1 pretty quickly, and even v2 is getting old in &amp;quot;agent years&amp;quot;).&lt;/p&gt; &lt;p&gt;I've been reading through some threads here and opinions are mixed. For those of you who have rebuilt or restarted your agent multiple times:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How do you keep your agent from losing &amp;quot;who it is&amp;quot; every time you restart or recreate it?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Any tips on preserving personality, rules, long-term memory, and custom workflows during a fresh setup would be hugely appreciated. Also open to hearing if others are experiencing similar slowdowns/frustrations with recent updates.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Extra_Lengthiness893"&gt; /u/Extra_Lengthiness893 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1spdac8/openclaw_has_been_getting_slower_and_more/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-18T23:50:58+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1spav9x</id>
     <title>Skill keeps failing silently — how do I make it actually shout when it breaks?</title>
     <updated>2026-04-18T22:04:52+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1spav9x/skill_keeps_failing_silently_how_do_i_make_it/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-18T22:04:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1spgr25</id>
+    <title>Free LLM APIs (April 2026 Update)</title>
+    <updated>2026-04-19T02:37:28+00:00</updated>
+    <author>
+      <name>/u/stosssik</name>
+      <uri>https://old.reddit.com/user/stosssik</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;Last month we published a list of Free LLM APIs here and it got a lot of interest, so I decided to publish a big update.&lt;/p&gt; &lt;p&gt;More providers, more models, and much more info on rate limits (RPM / RPD / TPM / TPD), max context, and supported modalities&lt;/p&gt; &lt;p&gt;The idea stays the same: Permanent free tiers, no trial credits.&lt;/p&gt; &lt;p&gt;Here's the updated list per provider:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Cohere&lt;/strong&gt; &lt;strong&gt;🇨🇦&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Command A (111B)&lt;/strong&gt; - Context: 256K | Max Output: 4K | Modality: Text | Rate Limit: 20 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Command R+&lt;/strong&gt; - Context: 128K | Max Output: 4K | Modality: Text | Rate Limit: 20 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Command R&lt;/strong&gt; - Context: 128K | Max Output: 4K | Modality: Text | Rate Limit: 20 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Command R7B&lt;/strong&gt; - Context: 128K | Max Output: 4K | Modality: Text | Rate Limit: 20 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Embed 4&lt;/strong&gt; - Modality: Embeddings (Text + Image) | Rate Limit: 2,000 inputs/min&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#cohere-"&gt;+ 1 more model&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Google Gemini&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Gemini 2.5 Flash&lt;/strong&gt; - Context: 1M | Max Output: 65K | Modality: Text + Image + Audio + Video | Rate Limit: 10 RPM, 250 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Gemini 2.5 Flash-Lite&lt;/strong&gt; - Context: 1M | Max Output: 65K | Modality: Text + Image + Audio + Video | Rate Limit: 15 RPM, 1,000 RPD&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Mistral AI&lt;/strong&gt; &lt;strong&gt;🇫🇷&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Mistral Small 4&lt;/strong&gt; - Context: 256K | Max Output: 256K | Modality: Text + Image + Code | Rate Limit: ~1 RPS, 500K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mistral Medium 3&lt;/strong&gt; - Context: 128K | Max Output: 128K | Modality: Text | Rate Limit: ~1 RPS, 500K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mistral Large 3&lt;/strong&gt; - Context: 256K | Max Output: 256K | Modality: Text | Rate Limit: ~1 RPS, 500K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mistral Nemo (12B)&lt;/strong&gt; - Context: 128K | Max Output: 128K | Modality: Text | Rate Limit: ~1 RPS, 500K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Codestral&lt;/strong&gt; - Context: 256K | Max Output: 256K | Modality: Code | Rate Limit: ~1 RPS, 500K TPM&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#mistral-ai-"&gt;+ 1 more model&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Z.AI&lt;/strong&gt; &lt;strong&gt;🇨🇳&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;GLM-4.7-Flash&lt;/strong&gt; - Context: 200K | Max Output: 128K | Modality: Text | Rate Limit: 1 concurrent request&lt;/li&gt; &lt;li&gt;&lt;strong&gt;GLM-4.5-Flash&lt;/strong&gt; - Context: 128K | Max Output: ~8K | Modality: Text | Rate Limit: 1 concurrent request&lt;/li&gt; &lt;li&gt;&lt;strong&gt;GLM-4.6V-Flash&lt;/strong&gt; - Context: 128K | Max Output: ~4K | Modality: Text + Image | Rate Limit: 1 concurrent request&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Inference providers&lt;/h1&gt; &lt;p&gt;Third-party platforms that host open-weight models from various sources.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Cerebras&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;llama3.1-8b&lt;/strong&gt; - Context: 128K (8K on free) | Max Output: 8K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD, 1M TPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gpt-oss-120b&lt;/strong&gt; - Context: 128K (8K on free) | Max Output: 8K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD, 1M TPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;qwen-3-235b-a22b-instruct-2507&lt;/strong&gt; - Context: 131K (8K on free) | Max Output: 8K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD, 1M TPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;zai-glm-4.7&lt;/strong&gt; - Context: 128K (8K on free) | Max Output: 8K | Modality: Text | Rate Limit: 10 RPM, 100 RPD, 1M TPD&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;GitHub Models&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;gpt-4.1&lt;/strong&gt; - Context: 1M | Max Output: 32K | Modality: Text | Rate Limit: 10 RPM, 50 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gpt-4.1-mini&lt;/strong&gt; - Context: 1M | Max Output: 32K | Modality: Text | Rate Limit: 15 RPM, 150 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gpt-4o&lt;/strong&gt; - Context: 128K | Max Output: 16K | Modality: Text + Vision | Rate Limit: 10 RPM, 50 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;o3-mini&lt;/strong&gt; - Context: 200K | Max Output: 100K | Modality: Text (reasoning) | Rate Limit: 10 RPM, 50 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;o4-mini&lt;/strong&gt; - Context: 200K | Max Output: 100K | Modality: Text (reasoning) | Rate Limit: 10 RPM, 50 RPD&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#mistral-ai-"&gt;+ 5 more models&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Groq&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;llama-3.3-70b-versatile&lt;/strong&gt; - Context: 131K | Max Output: 32K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;llama-3.1-8b-instant&lt;/strong&gt; - Context: 131K | Max Output: 131K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;llama-4-scout-17b-16e-instruct&lt;/strong&gt; - Context: 131K | Max Output: 8K | Modality: Text + Vision | Rate Limit: 30 RPM, 14,400 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;llama-4-maverick-17b-128e-instruct&lt;/strong&gt; - Context: 131K | Max Output: 8K | Modality: Text + Vision | Rate Limit: 15 RPM, 500 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;kimi-k2-instruct&lt;/strong&gt; - Context: 262K | Max Output: 262K | Modality: Text | Rate Limit: 30 RPM, 14,400 RPD&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#groq-"&gt;+ 5 more models&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Hugging Face&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Meta-Llama-3.1-8B-Instruct&lt;/strong&gt; - Context: 128K | Max Output: ~4K | Modality: Text | Rate Limit: ~1,000 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mistral-7B-Instruct-v0.3&lt;/strong&gt; - Context: 32K | Max Output: ~4K | Modality: Text | Rate Limit: ~1,000 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Mixtral-8x7B-Instruct-v0.1&lt;/strong&gt; - Context: 32K | Max Output: ~4K | Modality: Text | Rate Limit: ~1,000 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Phi-3.5-mini-instruct&lt;/strong&gt; - Context: 128K | Max Output: ~4K | Modality: Text | Rate Limit: ~1,000 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen2.5-7B-Instruct&lt;/strong&gt; - Context: 131K | Max Output: ~4K | Modality: Text | Rate Limit: ~1,000 RPD&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Kilo Code&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;bytedance-seed/dola-seed-2.0-pro:free&lt;/strong&gt; - Modality: Text | Rate Limit: ~200 req/hr&lt;/li&gt; &lt;li&gt;&lt;strong&gt;x-ai/grok-code-fast-1:optimized:free&lt;/strong&gt; - Modality: Text (code) | Rate Limit: ~200 req/hr&lt;/li&gt; &lt;li&gt;&lt;strong&gt;nvidia/nemotron-3-super-120b-a12b:free&lt;/strong&gt; - Context: 262K | Max Output: 32K | Modality: Text | Rate Limit: ~200 req/hr&lt;/li&gt; &lt;li&gt;&lt;strong&gt;arcee-ai/trinity-large-thinking:free&lt;/strong&gt; - Modality: Text (reasoning) | Rate Limit: ~200 req/hr&lt;/li&gt; &lt;li&gt;&lt;strong&gt;openrouter/free&lt;/strong&gt; - Modality: Text | Rate Limit: ~200 req/hr&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;LLM7.io&lt;/strong&gt; &lt;strong&gt;🇬🇧&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;deepseek-r1-0528&lt;/strong&gt; - Modality: Text (reasoning) | Rate Limit: 30 RPM (120 with token)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;deepseek-v3-0324&lt;/strong&gt; - Modality: Text | Rate Limit: 30 RPM (120 with token)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gemini-2.5-flash-lite&lt;/strong&gt; - Modality: Text + Vision | Rate Limit: 30 RPM (120 with token)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gpt-4o-mini&lt;/strong&gt; - Modality: Text + Vision | Rate Limit: 30 RPM (120 with token)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;mistral-small-3.1-24b&lt;/strong&gt; - Context: 32K | Modality: Text | Rate Limit: 30 RPM (120 with token)&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#llm7io-"&gt;+ 1 more model&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;NVIDIA NIM&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;deepseek-ai/deepseek-r1&lt;/strong&gt; - Context: 128K | Max Output: ~163K | Modality: Text (reasoning) | Rate Limit: ~40 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;nvidia/llama-3.1-nemotron-ultra-253b-v1&lt;/strong&gt; - Context: 128K | Max Output: 4K | Modality: Text | Rate Limit: ~40 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;nvidia/nemotron-3-super-120b-a12b&lt;/strong&gt; - Context: 262K | Max Output: 262K | Modality: Text | Rate Limit: ~40 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;meta/llama-3.1-405b-instruct&lt;/strong&gt; - Context: 128K | Max Output: 4K | Modality: Text | Rate Limit: ~40 RPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;qwen/qwen2.5-72b-instruct&lt;/strong&gt; - Context: 128K | Max Output: 8K | Modality: Text | Rate Limit: ~40 RPM&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#nvidia-nim-"&gt;+ 5 more models&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Ollama Cloud&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;llama3.1:cloud&lt;/strong&gt; - Context: 128K | Modality: Text | Rate Limit: Session/weekly limits (unpublished)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;deepseek-r1:cloud&lt;/strong&gt; - Context: 128K | Modality: Text (reasoning) | Rate Limit: Session/weekly limits (unpublished)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;qwen2.5:cloud&lt;/strong&gt; - Context: 128K | Modality: Text | Rate Limit: Session/weekly limits (unpublished)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;gemma2:cloud&lt;/strong&gt; - Context: 8K | Modality: Text | Rate Limit: Session/weekly limits (unpublished)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;mistral:cloud&lt;/strong&gt; - Context: 32K | Modality: Text | Rate Limit: Session/weekly limits (unpublished)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;OpenRouter&lt;/strong&gt; &lt;strong&gt;🇺🇸&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;deepseek/deepseek-r1-0528:free&lt;/strong&gt; - Context: 163K | Max Output: ~163K | Modality: Text (reasoning) | Rate Limit: 20 RPM, 200 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;deepseek/deepseek-chat-v3-0324:free&lt;/strong&gt; - Context: 163K | Max Output: 163K | Modality: Text | Rate Limit: 20 RPM, 200 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;qwen/qwen3.6-plus:free&lt;/strong&gt; - Context: 1M | Max Output: 65K | Modality: Text | Rate Limit: 20 RPM, 200 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;meta-llama/llama-4-scout:free&lt;/strong&gt; - Context: 10M | Max Output: 16K | Modality: Multimodal | Rate Limit: 20 RPM, 200 RPD&lt;/li&gt; &lt;li&gt;&lt;strong&gt;openai/gpt-oss-120b:free&lt;/strong&gt; - Context: 131K | Max Output: 131K | Modality: Text | Rate Limit: 20 RPM, 200 RPD&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#openrouter-"&gt;+ 7 more free models&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;SiliconFlow&lt;/strong&gt; &lt;strong&gt;🇨🇳&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Qwen/Qwen3-8B&lt;/strong&gt; - Context: 131K | Max Output: 131K | Modality: Text | Rate Limit: 1,000 RPM, 50K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;deepseek-ai/DeepSeek-R1-0528-Qwen3-8B&lt;/strong&gt; - Context: ~33K | Max Output: 16K | Modality: Text (reasoning) | Rate Limit: 1,000 RPM, 50K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;deepseek-ai/DeepSeek-R1-Distill-Qwen-7B&lt;/strong&gt; - Context: 131K | Modality: Text (reasoning) | Rate Limit: 1,000 RPM, 50K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;THUDM/glm-4-9b-chat&lt;/strong&gt; - Context: 32K | Max Output: 32K | Modality: Text | Rate Limit: 1,000 RPM, 50K TPM&lt;/li&gt; &lt;li&gt;&lt;strong&gt;THUDM/GLM-4.1V-9B-Thinking&lt;/strong&gt; - Context: 66K | Max Output: 66K | Modality: Vision + Text | Rate Limit: 1,000 RPM, 50K TPM&lt;/li&gt; &lt;li&gt;&lt;a href="https://github.com/mnfst/awesome-free-llm-apis#siliconflow-"&gt;+ 1 more model&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;em&gt;RPM = requests per minute • RPD = requests per day. TPM - Tokens per minute • TPD - Tokens per day • RPS - Requests per second • All endpoints are OpenAI SDK-compatible.&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/stosssik"&gt; /u/stosssik &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spgr25/free_llm_apis_april_2026_update/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spgr25/free_llm_apis_april_2026_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1spgr25/free_llm_apis_april_2026_update/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-19T02:37:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1spb1jz</id>
@@ -281,19 +281,6 @@
     <published>2026-04-18T22:12:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1spby6a</id>
-    <title>If you're about to quit OpenClaw, read this first</title>
-    <updated>2026-04-18T22:51:45+00:00</updated>
-    <author>
-      <name>/u/Marcelovc</name>
-      <uri>https://old.reddit.com/user/Marcelovc</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It took me about four weeks to really understand how OpenClaw works, so I wanted to share my experience in case it helps someone else.&lt;/p&gt; &lt;p&gt;At first, I was treating it like a typical tool where you rely on the creator or the community for stability and updates. That mindset is what made everything frustrating. &lt;/p&gt; &lt;p&gt;What I’ve realized is that OpenClaw isn’t built to be used that way. It’s more like a foundation you shape yourself. You kind of have to build your own path with it.&lt;/p&gt; &lt;p&gt;One of the biggest lessons I learned is to stop updating blindly. Updates can and will break your setup, especially if you’ve already customized things. If you don’t have a proper backup, you’re going to lose a lot of time redoing everything. I learned that the hard way.&lt;/p&gt; &lt;p&gt;Now I treat updates very carefully. Only update when it’s actually necessary, and always make sure you can roll back. If possible, use a staging setup first. Test updates there, see what breaks, and then decide if it’s worth bringing into your main environment.&lt;/p&gt; &lt;p&gt;Another thing that made a huge difference for me was working directly from the terminal with strong reasoning models. Using something like Opus 4.7 in high thinking or ChatGPT 5.4 in high thinking mode helps a lot when debugging or applying fixes. It gives you a much more reliable way to understand what’s going on instead of guessing.&lt;/p&gt; &lt;p&gt;At the end of the day, once you accept that OpenClaw is something you maintain and evolve yourself, it becomes way more manageable. As long as you keep your patches and fixes organized, avoid unnecessary updates, and always have backups, you should be fine.&lt;/p&gt; &lt;p&gt;Just don’t treat it like a plug and play tool. That’s where most of the pain comes from.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Marcelovc"&gt; /u/Marcelovc &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-18T22:51:45+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1souzrc</id>
     <title>I wanted OpenClaw to work. After 3 months, I’m done.</title>
     <updated>2026-04-18T11:22:09+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1souzrc/i_wanted_openclaw_to_work_after_3_months_im_done/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-18T11:22:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1spby6a</id>
+    <title>If you're about to quit OpenClaw, read this first</title>
+    <updated>2026-04-18T22:51:45+00:00</updated>
+    <author>
+      <name>/u/Marcelovc</name>
+      <uri>https://old.reddit.com/user/Marcelovc</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It took me about four weeks to really understand how OpenClaw works, so I wanted to share my experience in case it helps someone else.&lt;/p&gt; &lt;p&gt;At first, I was treating it like a typical tool where you rely on the creator or the community for stability and updates. That mindset is what made everything frustrating. &lt;/p&gt; &lt;p&gt;What I’ve realized is that OpenClaw isn’t built to be used that way. It’s more like a foundation you shape yourself. You kind of have to build your own path with it.&lt;/p&gt; &lt;p&gt;One of the biggest lessons I learned is to stop updating blindly. Updates can and will break your setup, especially if you’ve already customized things. If you don’t have a proper backup, you’re going to lose a lot of time redoing everything. I learned that the hard way.&lt;/p&gt; &lt;p&gt;Now I treat updates very carefully. Only update when it’s actually necessary, and always make sure you can roll back. If possible, use a staging setup first. Test updates there, see what breaks, and then decide if it’s worth bringing into your main environment.&lt;/p&gt; &lt;p&gt;Another thing that made a huge difference for me was working directly from the terminal with strong reasoning models. Using something like Opus 4.7 in high thinking or ChatGPT 5.4 in high thinking mode helps a lot when debugging or applying fixes. It gives you a much more reliable way to understand what’s going on instead of guessing.&lt;/p&gt; &lt;p&gt;At the end of the day, once you accept that OpenClaw is something you maintain and evolve yourself, it becomes way more manageable. As long as you keep your patches and fixes organized, avoid unnecessary updates, and always have backups, you should be fine.&lt;/p&gt; &lt;p&gt;Just don’t treat it like a plug and play tool. That’s where most of the pain comes from.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Marcelovc"&gt; /u/Marcelovc &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1spby6a/if_youre_about_to_quit_openclaw_read_this_first/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-18T22:51:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1soo7ma</id>
