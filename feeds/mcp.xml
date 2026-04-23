@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-04-23T16:20:20+00:00</updated>
+  <updated>2026-04-23T17:01:31+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1ssx4hn</id>
-    <title>Designed an MCP server around 6 tools, three things I got right and three I didn’t</title>
-    <updated>2026-04-22T20:22:44+00:00</updated>
-    <author>
-      <name>/u/mymir-dev</name>
-      <uri>https://old.reddit.com/user/mymir-dev</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building Mymir (a project graph for coding agents) and ended up with an MCP server that's structured very differently from most. Six tools, each keyed on an action enum, with the actual workflow instructions living in &lt;code&gt;InitializeResult.instructions&lt;/code&gt; instead of repeated across tool descriptions. Writing this up because I figured out a few things I haven't seen discussed much, and I know there are gaps I haven't fixed yet.&lt;/p&gt; &lt;p&gt;Three observations from actually using it:&lt;/p&gt; &lt;p&gt;First, the &lt;code&gt;instructions&lt;/code&gt; field in the initialize response is underused. Most servers I've looked at cram workflow guidance into every tool description, which duplicates tokens and still leaves the agent without a global picture. Moving it to &lt;code&gt;instructions&lt;/code&gt; let the tool descriptions shrink to what the tool actually does, and the agent picks up the workflow once per session.&lt;/p&gt; &lt;p&gt;Second, hints in returns matter more than I expected. Every response attaches a &lt;code&gt;_hints&lt;/code&gt; array tied to state. If a task gets marked done without an &lt;code&gt;executionRecord&lt;/code&gt;, the return includes &amp;quot;Missing executionRecord. Downstream tasks depend on this.&amp;quot; The agent follows these. I started with a handful of hints and kept adding them as I watched Claude Code make the same mistakes, and most of those mistakes stopped.&lt;/p&gt; &lt;p&gt;Third, action-partitioned tools are small on the surface but loose underneath. My task tool has 14 optional fields because one schema covers create, update, delete, and reorder. Validation lives in the handler instead of the schema.&lt;/p&gt; &lt;p&gt;Things I'd change:&lt;/p&gt; &lt;p&gt;First, a discriminated union on the task tool's &lt;code&gt;action&lt;/code&gt; would move that validation from the handler into the schema, so the agent sees the constraint before calling instead of after failing.&lt;/p&gt; &lt;p&gt;Second, my descriptions don't state limitations (failure modes, edge cases, what each tool can't do). The Feb 2026 arxiv paper &amp;quot;MCP Tool Descriptions Are Smelly!&amp;quot; (Hasan et al., &lt;a href="https://arxiv.org/abs/2602.14878"&gt;https://arxiv.org/abs/2602.14878&lt;/a&gt;) found the &amp;quot;Unstated Limitations&amp;quot; smell affects 89.8% of MCP tools in the wild. Mine are no exception.&lt;/p&gt; &lt;p&gt;Third, no eval suite, so tweaks are guesses. Ten realistic tasks with known good outputs would turn every description change from vibes into pass/fail.&lt;/p&gt; &lt;p&gt;Transport is Streamable HTTP, stateless, JWT Bearer via RFC 9728. Code at &lt;a href="http://github.com/FrkAk/mymir"&gt;github.com/FrkAk/mymir&lt;/a&gt; (server in &lt;code&gt;lib/mcp/create-server.ts&lt;/code&gt;, handlers in &lt;code&gt;lib/ai/tool-handlers.ts&lt;/code&gt;). If you've built an MCP server around agent workflows, how did you handle action-vs-tool partitioning, and did you bother with examples in descriptions?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mymir-dev"&gt; /u/mymir-dev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1ssx4hn/designed_an_mcp_server_around_6_tools_three/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1ssx4hn/designed_an_mcp_server_around_6_tools_three/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1ssx4hn/designed_an_mcp_server_around_6_tools_three/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-22T20:22:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1st0oqs</id>
     <title>After all the recent MCP security reports, I built a tiny demo showing how config can become execution authority</title>
@@ -255,6 +242,19 @@
     <published>2026-04-23T16:11:35+00:00</published>
   </entry>
   <entry>
+    <id>t3_1stoer3</id>
+    <title>Issues with/solutions for MCP context ballooning?</title>
+    <updated>2026-04-23T16:53:11+00:00</updated>
+    <author>
+      <name>/u/_Aeronyx_</name>
+      <uri>https://old.reddit.com/user/_Aeronyx_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I regularly run into the same issue with reasoning agents, which is that connecting up tools is not difficult anymore, the harder part is making the model understand enough of your environment quickly so that it stops wasting half of its thinking tokens on reading what it can even do. &lt;/p&gt; &lt;p&gt;MCPs are obviously useful for tool access, but the real problem is context architecture, aka:&lt;br /&gt; - what info do you persist between runs,&lt;br /&gt; - what data do you compress,&lt;br /&gt; - which tools do you inject every turn,&lt;br /&gt; - and (especially) what you decide to leave out on purpose &lt;/p&gt; &lt;p&gt;I’m one of the devs working on &lt;a href="http://CloudGo.ai"&gt;CloudGo.ai&lt;/a&gt;, so I'm thinking about this stuff a lot, but the question is real. Once you get past your initial testing stage, do you agree that context design/limiting matters more than adding extra MCP tools?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_Aeronyx_"&gt; /u/_Aeronyx_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stoer3/issues_withsolutions_for_mcp_context_ballooning/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stoer3/issues_withsolutions_for_mcp_context_ballooning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1stoer3/issues_withsolutions_for_mcp_context_ballooning/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-23T16:53:11+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1st12cd</id>
     <title>Aseprite MCP Server that generates pixel art (raw aseprite files that you can edit too)</title>
     <updated>2026-04-22T22:53:43+00:00</updated>
@@ -281,19 +281,6 @@
     <published>2026-04-23T14:08:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1stm1o2</id>
-    <title>Everyone is talking about MCP. What's next?</title>
-    <updated>2026-04-23T15:28:15+00:00</updated>
-    <author>
-      <name>/u/shalini_sakthi</name>
-      <uri>https://old.reddit.com/user/shalini_sakthi</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Right now, MCP feels like connecting your tools to AI, pulling data, giving prompts, and getting insights. That already feels like a major shift.&lt;/p&gt; &lt;p&gt;I’m curious though; what’s the next real innovation from here? We already hear about AI agents and autonomous workflows, but specifically in reporting and analytics, what can marketers actually expect next? &lt;/p&gt; &lt;p&gt;Would love to hear how people see MCP evolving in the upcoming years.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shalini_sakthi"&gt; /u/shalini_sakthi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-23T15:28:15+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1stdtdb</id>
     <title>prompts, resources and sampling who actually uses these?</title>
     <updated>2026-04-23T09:30:03+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1stdtdb/prompts_resources_and_sampling_who_actually_uses/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-04-23T09:30:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1stm1o2</id>
+    <title>Everyone is talking about MCP. What's next?</title>
+    <updated>2026-04-23T15:28:15+00:00</updated>
+    <author>
+      <name>/u/shalini_sakthi</name>
+      <uri>https://old.reddit.com/user/shalini_sakthi</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Right now, MCP feels like connecting your tools to AI, pulling data, giving prompts, and getting insights. That already feels like a major shift.&lt;/p&gt; &lt;p&gt;I’m curious though; what’s the next real innovation from here? We already hear about AI agents and autonomous workflows, but specifically in reporting and analytics, what can marketers actually expect next? &lt;/p&gt; &lt;p&gt;Would love to hear how people see MCP evolving in the upcoming years.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shalini_sakthi"&gt; /u/shalini_sakthi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1stm1o2/everyone_is_talking_about_mcp_whats_next/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-23T15:28:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1h7qe88</id>
