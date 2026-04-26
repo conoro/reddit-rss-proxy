@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-04-26T17:46:55+00:00</updated>
+  <updated>2026-04-26T18:20:40+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1svfxr9</id>
-    <title>Curating 12 MCP tools out of 43 WebExtension handlers — thunderbird-cli architecture writeup</title>
-    <updated>2026-04-25T15:57:39+00:00</updated>
-    <author>
-      <name>/u/captredstar</name>
-      <uri>https://old.reddit.com/user/captredstar</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1svfxr9/curating_12_mcp_tools_out_of_43_webextension/"&gt; &lt;img alt="Curating 12 MCP tools out of 43 WebExtension handlers — thunderbird-cli architecture writeup" src="https://preview.redd.it/jd5lf18izcxg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=338b7620c26af01005f1b9ee1e7845f448bffa2a" title="Curating 12 MCP tools out of 43 WebExtension handlers — thunderbird-cli architecture writeup" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There's a curation question every MCP server hits: do you wrap every API handler the underlying system exposes, or do you pick? I picked, and the cut wasn't where I expected.&lt;/p&gt; &lt;p&gt;Context: I shipped thunderbird-cli, an MCP server that gives Claude Desktop full read/write access to email through Mozilla Thunderbird without the agent ever holding a credential. Disclosure: I built it; MIT; no cost; no business behind it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/jd5lf18izcxg1.png?width=3200&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=cab728c78313f2706d154431b8142b7f65ddefa8"&gt;architecture diagram&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The architecture is four small components, each doing exactly one thing:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;A signed Thunderbird WebExtension (43 messenger.* API handlers, on addons.thunderbird.net) — the only component that touches credentials.&lt;/li&gt; &lt;li&gt;A stateless localhost HTTP↔WebSocket bridge daemon. Listens on 127.0.0.1, proxies requests to whichever extension is connected, correlates responses by UUID. Zero business logic. Zero state.&lt;/li&gt; &lt;li&gt;A &lt;code&gt;tb&lt;/code&gt; CLI — 38 commands, JSON out, used directly by humans.&lt;/li&gt; &lt;li&gt;The MCP server (&lt;code&gt;tb-mcp&lt;/code&gt;) — 12 curated tools.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The bridge daemon is the design choice I keep coming back to. Most &amp;quot;MCP server for X&amp;quot; projects wire the MCP layer directly to the underlying API. I split them on purpose. The bridge holds one piece of state — an open WebSocket. The CLI and the MCP server are both stateless HTTP clients. That means I can have ten &lt;code&gt;tb&lt;/code&gt; processes plus the MCP server running concurrently and they're indistinguishable. Agents that fan out into parallel subprocesses don't deadlock, don't fight over a shared connection, and don't need to coordinate.&lt;/p&gt; &lt;p&gt;The curation question is the more interesting one for this sub.&lt;/p&gt; &lt;p&gt;I started by exposing all 43 messenger.* handlers as MCP tools. The model wrote the boilerplate cleanly. It worked. Then I tried to use it. The agent had ~40 tools to pick from, descriptions blurred together, every search response was 60 KB of JSON, and one accidental email_bulk_delete would have lost data.&lt;/p&gt; &lt;p&gt;I cut to 12. Three rules I ended up with:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Curation is a design surface. Bulk delete, bulk move, bulk tag — gone from MCP entirely, kept in the CLI for human use. The cut wasn't &amp;quot;remove rarely-used&amp;quot;; it was &amp;quot;remove anything where an LLM hallucinating a broader filter loses me data.&amp;quot; Enforcing safety by &lt;em&gt;not exposing the tool&lt;/em&gt; is more reliable than enforcing it through prompting.&lt;/li&gt; &lt;li&gt;Defaults are security; flags are theatre. compose / reply / forward save as drafts unless mode: &amp;quot;send&amp;quot; is explicit. Permanent delete requires --confirm. Search excludes junk by default. Every flag the agent has to remember is a flag it will eventually forget — so the safe behaviour goes on the default path.&lt;/li&gt; &lt;li&gt;Token efficiency at the MCP layer is structural, not cosmetic. A naive search returned 500 messages with full headers — 60 KB. With --fields id,author,subject,date the same query is ~4 KB. --max-body 500 truncates body text another order of magnitude. Without these the agent literally could not finish a triage task on a real inbox.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Live scale on my actual mailbox: 22 accounts, 249,000 messages, 86k unread, 387 folders. Six IMAP providers (Gmail / iCloud / Fastmail / Migadu / Protonmail Bridge / generic IMAP). Bridge daemon has been up for weeks without a restart.&lt;/p&gt; &lt;p&gt;SPEC.md, SECURITY.md, and the full handler list are in the repo. Most interested in two pieces of feedback:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Curation strategies you've used on your own MCP servers — how do you decide which underlying API surface stays human-only?&lt;/li&gt; &lt;li&gt;Whether the bridge daemon should grow an optional auth token. It's loopback-only by design, but I can imagine setups where that assumption doesn't hold (shared dev containers, multi-tenant boxes).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/vitalio-sh/thunderbird-cli"&gt;https://github.com/vitalio-sh/thunderbird-cli&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/captredstar"&gt; /u/captredstar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1svfxr9/curating_12_mcp_tools_out_of_43_webextension/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1svfxr9/curating_12_mcp_tools_out_of_43_webextension/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1svfxr9/curating_12_mcp_tools_out_of_43_webextension/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-25T15:57:39+00:00</published>
-  </entry>
   <entry>
     <id>t3_1svg9fy</id>
     <title>Benchmarked 9 AI agents on a governed MCP workflow — here's what MCP tool call data reveals about agent behavior</title>
@@ -216,19 +203,6 @@
     <published>2026-04-26T15:00:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sw9td9</id>
-    <title>MCP Server Police UK – Provides access to the police.uk API with 21 tools to query UK crime data, police forces, neighbourhoods, and stop-and-search incidents. Enables retrieval of street-level crimes, force details, neighbourhood teams, and policing priorities across England, Wales, and Northern Ir</title>
-    <updated>2026-04-26T15:00:03+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/dwain-barnes/police-uk-api-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1sw9td9/mcp_server_police_uk_provides_access_to_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1sw9td9/mcp_server_police_uk_provides_access_to_the/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-04-26T15:00:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1swael4</id>
     <title>AgentMako MCP + CC Plugin</title>
     <updated>2026-04-26T15:22:16+00:00</updated>
@@ -268,6 +242,19 @@
     <published>2026-04-26T12:13:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1swf259</id>
+    <title>Is there a decent Apple MCP? (Mail, Notes, Reminders, Calendar, etc.)</title>
+    <updated>2026-04-26T18:15:10+00:00</updated>
+    <author>
+      <name>/u/bfeeny</name>
+      <uri>https://old.reddit.com/user/bfeeny</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have looked at a few MCP's for apple on github. apple-mcp, apple-mcp-enhanced, etc. Most of them are not fully operation, full of stubs, or behave in dumb ways (list notes rerturns all notes with full bodies!). Does anyone know of a GOOD MCP for Apple ecosystem productivity apps?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bfeeny"&gt; /u/bfeeny &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1swf259/is_there_a_decent_apple_mcp_mail_notes_reminders/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1swf259/is_there_a_decent_apple_mcp_mail_notes_reminders/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1swf259/is_there_a_decent_apple_mcp_mail_notes_reminders/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-26T18:15:10+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sw27db</id>
     <title>What are the best free MCP servers you’re actually using with ChatGPT / Claude?</title>
     <updated>2026-04-26T08:46:49+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1sw27db/what_are_the_best_free_mcp_servers_youre_actually/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-04-26T08:46:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sw9td9</id>
+    <title>MCP Server Police UK – Provides access to the police.uk API with 21 tools to query UK crime data, police forces, neighbourhoods, and stop-and-search incidents. Enables retrieval of street-level crimes, force details, neighbourhood teams, and policing priorities across England, Wales, and Northern Ir</title>
+    <updated>2026-04-26T15:00:03+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/dwain-barnes/police-uk-api-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1sw9td9/mcp_server_police_uk_provides_access_to_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1sw9td9/mcp_server_police_uk_provides_access_to_the/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-04-26T15:00:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1sw5u3l</id>
