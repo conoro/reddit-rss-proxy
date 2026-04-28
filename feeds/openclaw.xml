@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-04-28T23:07:14+00:00</updated>
+  <updated>2026-04-28T23:34:45+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1sy7rcc</id>
-    <title>[SOLVED] Agent can't write files with google-gemini-cli — "write_file not found" / "default_api_write_file not found"</title>
-    <updated>2026-04-28T17:16:02+00:00</updated>
-    <author>
-      <name>/u/gmamorim</name>
-      <uri>https://old.reddit.com/user/gmamorim</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been banging my head against this for a while. Posting the full solution because I couldn't find it anywhere.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Setup:&lt;/strong&gt; OpenClaw + Gemini CLI (&lt;code&gt;google-gemini-cli&lt;/code&gt;) + Gemini 2.5 Flash Lite via Telegram&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Symptoms:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Agent says it doesn't have &lt;code&gt;write_file&lt;/code&gt; available&lt;/li&gt; &lt;li&gt;Sometimes tries to call &lt;code&gt;default_api_write_file&lt;/code&gt; and gets &lt;code&gt;Tool not found. Did you mean: write_file, read_file, list_directory?&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Bootstrap never completes because agent can't write IDENTITY.md / USER.md / SOUL.md&lt;/li&gt; &lt;li&gt;Happens regardless of what you tell the agent — it genuinely doesn't see the tool&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Root cause: two things broken at the same time:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;code&gt;tools.profile&lt;/code&gt; defaults to &lt;code&gt;coding&lt;/code&gt;, which doesn't expose &lt;code&gt;write_file&lt;/code&gt;&lt;/li&gt; &lt;li&gt;OpenClaw calls the Gemini CLI as a headless subprocess without &lt;code&gt;--approval-mode auto_edit&lt;/code&gt; — and without that flag, &lt;code&gt;write_file&lt;/code&gt; simply doesn't appear in the tool list even if the profile is right&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Fix:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;First, change the tools profile:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw config set tools.profile full &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then edit &lt;code&gt;~/.openclaw/openclaw.json&lt;/code&gt; and add this inside &lt;code&gt;agents.defaults&lt;/code&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;cliBackends&amp;quot;: { &amp;quot;google-gemini-cli&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;/home/YOUR_USER/.npm-global/bin/gemini&amp;quot;, &amp;quot;args&amp;quot;: [&amp;quot;--approval-mode&amp;quot;, &amp;quot;auto_edit&amp;quot;], &amp;quot;output&amp;quot;: &amp;quot;json&amp;quot;, &amp;quot;input&amp;quot;: &amp;quot;arg&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then restart:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;systemctl --user restart openclaw-gateway &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;That's it. The &lt;code&gt;cliBackends&lt;/code&gt; key overrides how OpenClaw spawns the Gemini CLI process, so you can inject the flag directly. Without it, the subprocess runs in default approval mode which requires interactive input — and since there's no terminal, the tool just disappears silently.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What doesn't work&lt;/strong&gt; (tried all of these):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Creating settings.json in the workspace with &lt;code&gt;approvalMode: auto_edit -&amp;gt;&lt;/code&gt;OpenClaw doesn't pass the right working directory for it to be picked up&lt;/li&gt; &lt;li&gt;Setting &lt;code&gt;agents.defaults.sandbox.workspaceAccess: rw -&amp;gt;&lt;/code&gt; that's OpenClaw's sandbox, unrelated to Gemini CLI tool availability&lt;/li&gt; &lt;li&gt;Injecting &lt;code&gt;GEMINI_CLI_ACTIVE_APPROVAL_MODE&lt;/code&gt; via env -&amp;gt; schema rejects it at the &lt;code&gt;agents.defaults&lt;/code&gt; level&lt;/li&gt; &lt;li&gt;Modifying the gemini binary directly -&amp;gt; works in isolation but OpenClaw may not use the same PATH&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Hope this saves someone a few hours.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gmamorim"&gt; /u/gmamorim &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy7rcc/solved_agent_cant_write_files_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy7rcc/solved_agent_cant_write_files_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sy7rcc/solved_agent_cant_write_files_with/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T17:16:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sxx18b</id>
-    <title>Openclaw memory, or lack there of is a real problem</title>
-    <updated>2026-04-28T10:05:28+00:00</updated>
-    <author>
-      <name>/u/Pendaz</name>
-      <uri>https://old.reddit.com/user/Pendaz</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First of all, a little context: &lt;/p&gt; &lt;p&gt;I originally installed openclaw on a vm on my homelab back around the start of february. Initial setup was easy and straightforward although it got a little messy after the branding rename. So i backed up my .md files, workspace and rebuilt the vm (everythings provisioned through terraform/ansible but i just throw my vm's away then restore back ups once they're up) &lt;/p&gt; &lt;p&gt;Again, all was well for the longest time, configured slack with multiple private channels each designed for specific contexts. I could work on a project per slack channel and openclaw would appear to retain memory / context even when i parked it and came back a few days later.&lt;/p&gt; &lt;p&gt;Recently, this changed entirely, every single time i spoke to it it had ZERO memory of our previous conversations to the point where i had to dump hundreds of conversation logs from slack back into it so it knew what we were doing... this was fking horrible.&lt;/p&gt; &lt;p&gt;Jump forward to around when mempalace was released, looked like this could be a potential fix. so i downloaded / installed it to the VM and imported all slack channel conversations into their respective wings. Setup the MCP server and configured a few rules to &amp;quot;Always update mempalace before compaction / every x minutes etc&amp;quot;&lt;/p&gt; &lt;p&gt;Couple weeks later, openclaw is NOT updating mempalace nor is it updating relevant .md files unless i explicitly ask it to. &lt;/p&gt; &lt;p&gt;This is beyond a joke, openclaw is an incredibly valuable tool to have but the fact that it can't remember anything about what we worked on 5 minutes ago makes it basically useless...&lt;/p&gt; &lt;p&gt;So my question is, has anyone solved this in a consistent way? It's weird to me that for some reason (i assume an update at some point between now and feb changed the way openclaw writes memory?) &lt;/p&gt; &lt;p&gt;All i ask is: &lt;/p&gt; &lt;p&gt;- write memory at regular intervals&lt;/p&gt; &lt;p&gt;- consult memory before undertaking any work or asking any questions &lt;/p&gt; &lt;p&gt;Should be simple no? &lt;/p&gt; &lt;p&gt;Happy to post config snippets if needed.&lt;/p&gt; &lt;p&gt;tldr: &lt;/p&gt; &lt;p&gt;does anyone have any actual working solution for openclaws goldfish memory? Specifically around it's inability to read and write memory when needed&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Pendaz"&gt; /u/Pendaz &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sxx18b/openclaw_memory_or_lack_there_of_is_a_real_problem/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sxx18b/openclaw_memory_or_lack_there_of_is_a_real_problem/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sxx18b/openclaw_memory_or_lack_there_of_is_a_real_problem/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T10:05:28+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sya64g</id>
-    <title>What if OpenClaw agents can have UI that matches its personality?</title>
-    <updated>2026-04-28T18:38:45+00:00</updated>
-    <author>
-      <name>/u/1glasspaani</name>
-      <uri>https://old.reddit.com/user/1glasspaani</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Should I build this?&lt;/p&gt; &lt;p&gt;Every OpenClaw is a different entity. different skills, different cron jobs, different way of talking to you.&lt;/p&gt; &lt;p&gt;but they all look the same.&lt;/p&gt; &lt;p&gt;idea: a skill that lets the Claw theme its own chat UI based on its personality.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;chaotic Claw running 40 cron jobs → maximalist dashboard, stuff blinking, dense&lt;/li&gt; &lt;li&gt;minimalist productivity Claw → monospace, whitespace, muted palette&lt;/li&gt; &lt;li&gt;late-night-coding gremlin Claw → green-on-black terminal, too many emojis&lt;/li&gt; &lt;li&gt;the haiku one → serif type, lots of margin, single column&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;and because it's Claw, the theming is just another skill. it picks its own colors, type, density, motion.&lt;/p&gt; &lt;p&gt;drop a comment if you'd install this. enough interest and i'll ship it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/1glasspaani"&gt; /u/1glasspaani &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sya64g/what_if_openclaw_agents_can_have_ui_that_matches/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sya64g/what_if_openclaw_agents_can_have_ui_that_matches/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sya64g/what_if_openclaw_agents_can_have_ui_that_matches/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T18:38:45+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sycwar</id>
     <title>Openclaw como agente en telegram con ollama</title>
@@ -177,6 +138,19 @@
     <published>2026-04-28T15:32:52+00:00</published>
   </entry>
   <entry>
+    <id>t3_1syhioj</id>
+    <title>I used OpenClaw to summarize the tech blogs from Anthropic, but some blogs were always missing.</title>
+    <updated>2026-04-28T23:14:36+00:00</updated>
+    <author>
+      <name>/u/Instance_Not_Found</name>
+      <uri>https://old.reddit.com/user/Instance_Not_Found</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Many of us use OpenClaw to summarize tech blogs to stay updated. One day, I came across a previous Anthropic blog published on April 8th that had never been mentioned by my OpenClaw!&lt;/p&gt; &lt;p&gt;After some investigation, it turns out the browser tool used by OpenClaw doesn't retrieve all the blogs. It looks like Anthropic actually hosts their blogs at many different URLs (what a bad design). Anyway, I spent some time fixing this by feeding a generated sitemap to the agent. It worked!&lt;/p&gt; &lt;p&gt;The solution isn't very difficult, but it still cost some tokens to generate the sitemap because I asked the agent to click every link to build it;) I packed it into a skill so it can be easily shared. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Instance_Not_Found"&gt; /u/Instance_Not_Found &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhioj/i_used_openclaw_to_summarize_the_tech_blogs_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhioj/i_used_openclaw_to_summarize_the_tech_blogs_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syhioj/i_used_openclaw_to_summarize_the_tech_blogs_from/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-28T23:14:36+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sydasb</id>
     <title>Can I use OpenClaw to collect leads on Twitch?</title>
     <updated>2026-04-28T20:30:18+00:00</updated>
@@ -229,17 +203,17 @@
     <published>2026-04-28T21:13:48+00:00</published>
   </entry>
   <entry>
-    <id>t3_1syfmgf</id>
-    <title>I spent 3 weeks trying to replace Open-Claw. The better setup was Open-Claw + Hermes.</title>
-    <updated>2026-04-28T21:57:34+00:00</updated>
+    <id>t3_1sy5gqm</id>
+    <title>I compared Openclaw setups on a few patterns, Here is what stood out</title>
+    <updated>2026-04-28T15:55:52+00:00</updated>
     <author>
-      <name>/u/Upper_Bass_2590</name>
-      <uri>https://old.reddit.com/user/Upper_Bass_2590</uri>
+      <name>/u/FailOrSnail</name>
+      <uri>https://old.reddit.com/user/FailOrSnail</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I expected to pick one winner.&lt;/p&gt; &lt;p&gt;I gave Hermes a full 3-week test to see if it could replace my Open-Claw workflow. &lt;/p&gt; &lt;p&gt;What actually worked best was combining them:&lt;/p&gt; &lt;p&gt;- 𝐎𝐩𝐞𝐧-𝐂𝐥𝐚𝐰 as orchestrator (planning, decomposition, sequencing)&lt;/p&gt; &lt;p&gt;- 𝐇𝐞𝐫𝐦𝐞𝐬 as execution specialist (fast, repeatable task loops)&lt;/p&gt; &lt;p&gt;A few things stood out fast:&lt;/p&gt; &lt;p&gt;- Hermes felt quicker on execution-heavy runs&lt;/p&gt; &lt;p&gt;- Open-Claw stayed stronger at coordinating messy, multi-step work&lt;/p&gt; &lt;p&gt;- Running both in parallel on different parts of the same project improved throughput way more than switching to either one alone&lt;/p&gt; &lt;p&gt;The biggest unexpected gain was reliability.&lt;/p&gt; &lt;p&gt;In a single-agent workflow, if the agent breaks, you stop and debug alone. &lt;/p&gt; &lt;p&gt;With two agents, I can use one to diagnose/fix the other and keep moving.&lt;/p&gt; &lt;p&gt;My current pattern is simple:&lt;/p&gt; &lt;p&gt;- Route broad project control to Open-Claw&lt;/p&gt; &lt;p&gt;- Route speed/repetition tasks to Hermes&lt;/p&gt; &lt;p&gt;- Review outputs and rebalance as needed&lt;/p&gt; &lt;p&gt;Costs went up a bit depending on model mix, but output increased enough to justify it.&lt;/p&gt; &lt;p&gt;So after 3 weeks, my conclusion is: &lt;/p&gt; &lt;p&gt;I am not replacing Open-Claw, I am using it as the center of a multi-agent workflow.&lt;/p&gt; &lt;p&gt;If you are running Open-Claw with another agent, what split has worked best for you?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Upper_Bass_2590"&gt; /u/Upper_Bass_2590 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was trying to get a clearer picture of the OpenClaw ecosystem, for understanding the difference between self hosted setups and managed options. Thought it would be simple but the deeper I went, the more complex it started to feel. Different tools solve similar problems in completely different ways so comparing them was not as simple as I expected.&lt;/p&gt; &lt;p&gt;A few patterns started to stand out:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Some setups are super easy to start, others assume you’ll handle infra yourself.&lt;/li&gt; &lt;li&gt;Pricing is kind of all over the place depending on what’s included.&lt;/li&gt; &lt;li&gt;Big difference between rigid workflows vs more flexible agent style setups.&lt;/li&gt; &lt;li&gt;A few newer options are mixing both instead of forcing one approach.&lt;/li&gt; &lt;li&gt;Ongoing maintenance (updates, scaling, etc.) seems like a bigger factor than I initially thought.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What surprised me most was how much ongoing maintenance matters. It’s easy to focus on setup but long term upkeep, updates and scaling seem to be where most of the real cost and effort sits.&lt;/p&gt; &lt;p&gt;After going through a bunch of these, I tried to organize everything in one place just to make sense of it for myself. Sharing it here in case it helps someone else exploring the same space: &lt;a href="https://docs.google.com/spreadsheets/d/1tVqYh8fAWLAFAuuM3-G0WVoFqY6VKJ8pgFdS3zvux80/edit?gid=2137144791#gid=2137144791"&gt;https://docs.google.com/spreadsheets/d/1tVqYh8fAWLAFAuuM3-G0WVoFqY6VKJ8pgFdS3zvux80/edit?gid=2137144791#gid=2137144791&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Might be missing some so would like to know what others here ended up choosing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FailOrSnail"&gt; /u/FailOrSnail &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T21:57:34+00:00</published>
+    <published>2026-04-28T15:55:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1sydehg</id>
@@ -255,30 +229,43 @@
     <published>2026-04-28T20:34:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sy5gqm</id>
-    <title>I compared Openclaw setups on a few patterns, Here is what stood out</title>
-    <updated>2026-04-28T15:55:52+00:00</updated>
+    <id>t3_1syhq3w</id>
+    <title>Buyer Beware minimax.</title>
+    <updated>2026-04-28T23:23:30+00:00</updated>
     <author>
-      <name>/u/FailOrSnail</name>
-      <uri>https://old.reddit.com/user/FailOrSnail</uri>
+      <name>/u/sdfowler1977</name>
+      <uri>https://old.reddit.com/user/sdfowler1977</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was trying to get a clearer picture of the OpenClaw ecosystem, for understanding the difference between self hosted setups and managed options. Thought it would be simple but the deeper I went, the more complex it started to feel. Different tools solve similar problems in completely different ways so comparing them was not as simple as I expected.&lt;/p&gt; &lt;p&gt;A few patterns started to stand out:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Some setups are super easy to start, others assume you’ll handle infra yourself.&lt;/li&gt; &lt;li&gt;Pricing is kind of all over the place depending on what’s included.&lt;/li&gt; &lt;li&gt;Big difference between rigid workflows vs more flexible agent style setups.&lt;/li&gt; &lt;li&gt;A few newer options are mixing both instead of forcing one approach.&lt;/li&gt; &lt;li&gt;Ongoing maintenance (updates, scaling, etc.) seems like a bigger factor than I initially thought.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;What surprised me most was how much ongoing maintenance matters. It’s easy to focus on setup but long term upkeep, updates and scaling seem to be where most of the real cost and effort sits.&lt;/p&gt; &lt;p&gt;After going through a bunch of these, I tried to organize everything in one place just to make sense of it for myself. Sharing it here in case it helps someone else exploring the same space: &lt;a href="https://docs.google.com/spreadsheets/d/1tVqYh8fAWLAFAuuM3-G0WVoFqY6VKJ8pgFdS3zvux80/edit?gid=2137144791#gid=2137144791"&gt;https://docs.google.com/spreadsheets/d/1tVqYh8fAWLAFAuuM3-G0WVoFqY6VKJ8pgFdS3zvux80/edit?gid=2137144791#gid=2137144791&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Might be missing some so would like to know what others here ended up choosing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FailOrSnail"&gt; /u/FailOrSnail &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1sy5gqm/i_compared_openclaw_setups_on_a_few_patterns_here/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just thought I would share a finding with the recent anthropic deletion of the company's database. I don't run opus on my open claw I do run it in Claud code so I can't see if this is a parallel failure. &lt;/p&gt; &lt;p&gt;I have rules written in every single layer I will not go into those layers because some layers were not supposed to mess with I have put the rules in every single layer because I found Minimax violates them at every single step. &lt;/p&gt; &lt;p&gt;Chat GPT 5.5 follows them to a t to the point of failure. Chat GPT will not change modify delete or add files without the command &amp;quot;command execute&amp;quot; I have this in five different places and Minimax ignores it every single time Minimax if I don't lock the Json we'll go in there and keep giving itself exec approval without my permission bypassing all my rules and my safeguards I literally have to lock the files so it cannot adjust them I'm beginning to think Mini Max is really good or a virus I'm not sure.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sdfowler1977"&gt; /u/sdfowler1977 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T15:55:52+00:00</published>
+    <published>2026-04-28T23:23:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1syf0du</id>
-    <title>How do you connect to your OpenClaw Agent?</title>
-    <updated>2026-04-28T21:33:38+00:00</updated>
+    <id>t3_1syhsja</id>
+    <title>How are you handling tool-calling degradation at 50+ skills?</title>
+    <updated>2026-04-28T23:26:24+00:00</updated>
     <author>
-      <name>/u/1glasspaani</name>
-      <uri>https://old.reddit.com/user/1glasspaani</uri>
+      <name>/u/twgoss2</name>
+      <uri>https://old.reddit.com/user/twgoss2</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Do you use Telegram/WhatsApp, Discord, OpenWebUI, the OpenClaw UI, or a third-party like Paperclip? trying to figure out if we actually need better interfaces to manage agents, or if the existing chat apps are good enough for daily work&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/1glasspaani"&gt; /u/1glasspaani &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Most frameworks I've tested degrade past 20-30 tools. Instruction-following drifts, skill conflicts emerge, and custom scaffolding becomes its own maintenance burden. Curious what patterns people use to keep invocation consistent at scale.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/twgoss2"&gt; /u/twgoss2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhsja/how_are_you_handling_toolcalling_degradation_at/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhsja/how_are_you_handling_toolcalling_degradation_at/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syhsja/how_are_you_handling_toolcalling_degradation_at/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T21:33:38+00:00</published>
+    <published>2026-04-28T23:26:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1syfmgf</id>
+    <title>I spent 3 weeks trying to replace Open-Claw. The better setup was Open-Claw + Hermes.</title>
+    <updated>2026-04-28T21:57:34+00:00</updated>
+    <author>
+      <name>/u/Upper_Bass_2590</name>
+      <uri>https://old.reddit.com/user/Upper_Bass_2590</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I expected to pick one winner.&lt;/p&gt; &lt;p&gt;I gave Hermes a full 3-week test to see if it could replace my Open-Claw workflow. &lt;/p&gt; &lt;p&gt;What actually worked best was combining them:&lt;/p&gt; &lt;p&gt;- 𝐎𝐩𝐞𝐧-𝐂𝐥𝐚𝐰 as orchestrator (planning, decomposition, sequencing)&lt;/p&gt; &lt;p&gt;- 𝐇𝐞𝐫𝐦𝐞𝐬 as execution specialist (fast, repeatable task loops)&lt;/p&gt; &lt;p&gt;A few things stood out fast:&lt;/p&gt; &lt;p&gt;- Hermes felt quicker on execution-heavy runs&lt;/p&gt; &lt;p&gt;- Open-Claw stayed stronger at coordinating messy, multi-step work&lt;/p&gt; &lt;p&gt;- Running both in parallel on different parts of the same project improved throughput way more than switching to either one alone&lt;/p&gt; &lt;p&gt;The biggest unexpected gain was reliability.&lt;/p&gt; &lt;p&gt;In a single-agent workflow, if the agent breaks, you stop and debug alone. &lt;/p&gt; &lt;p&gt;With two agents, I can use one to diagnose/fix the other and keep moving.&lt;/p&gt; &lt;p&gt;My current pattern is simple:&lt;/p&gt; &lt;p&gt;- Route broad project control to Open-Claw&lt;/p&gt; &lt;p&gt;- Route speed/repetition tasks to Hermes&lt;/p&gt; &lt;p&gt;- Review outputs and rebalance as needed&lt;/p&gt; &lt;p&gt;Costs went up a bit depending on model mix, but output increased enough to justify it.&lt;/p&gt; &lt;p&gt;So after 3 weeks, my conclusion is: &lt;/p&gt; &lt;p&gt;I am not replacing Open-Claw, I am using it as the center of a multi-agent workflow.&lt;/p&gt; &lt;p&gt;If you are running Open-Claw with another agent, what split has worked best for you?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Upper_Bass_2590"&gt; /u/Upper_Bass_2590 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-28T21:57:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1sxxpag</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1sxxpag/did_the_openclaw_2026426_update_break_everything/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-28T10:41:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1syf0du</id>
+    <title>How do you connect to your OpenClaw Agent?</title>
+    <updated>2026-04-28T21:33:38+00:00</updated>
+    <author>
+      <name>/u/1glasspaani</name>
+      <uri>https://old.reddit.com/user/1glasspaani</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Do you use Telegram/WhatsApp, Discord, OpenWebUI, the OpenClaw UI, or a third-party like Paperclip? trying to figure out if we actually need better interfaces to manage agents, or if the existing chat apps are good enough for daily work&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/1glasspaani"&gt; /u/1glasspaani &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syf0du/how_do_you_connect_to_your_openclaw_agent/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-28T21:33:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1sxw6cx</id>
