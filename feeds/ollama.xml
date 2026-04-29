@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-04-29T18:10:33+00:00</updated>
+  <updated>2026-04-29T18:47:52+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1sydhbo</id>
-    <title>[FIX] Ollama Cloud + Pi Agent/OpenClaw: Solving "Error 400: Role developer is not supported" and 401 Unauthorized</title>
-    <updated>2026-04-28T20:36:57+00:00</updated>
-    <author>
-      <name>/u/Conscious_Tart_8762</name>
-      <uri>https://old.reddit.com/user/Conscious_Tart_8762</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1sydhbo/fix_ollama_cloud_pi_agentopenclaw_solving_error/"&gt; &lt;img alt="[FIX] Ollama Cloud + Pi Agent/OpenClaw: Solving &amp;quot;Error 400: Role developer is not supported&amp;quot; and 401 Unauthorized" src="https://preview.redd.it/g2nflv17szxg1.png?width=140&amp;amp;height=7&amp;amp;auto=webp&amp;amp;s=ef9a69c250bdd600370492b54a3b2e84d0147d9f" title="[FIX] Ollama Cloud + Pi Agent/OpenClaw: Solving &amp;quot;Error 400: Role developer is not supported&amp;quot; and 401 Unauthorized" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I got this error using the pi agent + ollama + qwen3.5:cloud &lt;/p&gt; &lt;p&gt;Error: 400 &amp;quot;developer is not one of ['system', 'assistant', 'user', 'tool', 'function'] - 'messages.['0].role'&lt;/p&gt; &lt;p&gt;The Ollama Cloud API is strict and currently only whitelists &lt;code&gt;system&lt;/code&gt;, &lt;code&gt;user&lt;/code&gt;, and &lt;code&gt;assistant&lt;/code&gt;. This results in a 400 Bad Request. Also, changing the API URL often breaks the &lt;code&gt;ollama login&lt;/code&gt; session, leading to a 401 Unauthorized.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/g2nflv17szxg1.png?width=1430&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3db7fe3fa87e5537d2b87a90c5ef6c810427f403"&gt;https://preview.redd.it/g2nflv17szxg1.png?width=1430&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3db7fe3fa87e5537d2b87a90c5ef6c810427f403&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Since we can't edit the Cloud &lt;code&gt;Modelfile&lt;/code&gt;, I created a lightweight middleware script for Ubuntu that:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Intercepts the request.&lt;/li&gt; &lt;li&gt;Changes &lt;code&gt;role: developer&lt;/code&gt; to &lt;code&gt;role: system&lt;/code&gt; on the fly.&lt;/li&gt; &lt;li&gt;Fixes missing &lt;code&gt;/v1/&lt;/code&gt; paths.&lt;/li&gt; &lt;li&gt;Routes everything through your local Ollama daemon to keep your &lt;code&gt;ollama login&lt;/code&gt; session alive.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;1. The Proxy Script (proxy_ollama.py):&lt;/h1&gt; &lt;p&gt;Python&lt;/p&gt; &lt;pre&gt;&lt;code&gt;from flask import Flask, request, Response import requests app = Flask(__name__) TARGET_BASE_URL = &amp;quot;http://127.0.0.1:11434&amp;quot; .route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE']) u/app.route('/&amp;lt;path:path&amp;gt;', methods=['GET', 'POST', 'PUT', 'DELETE']) def catch_all(path): target_path = &amp;quot;v1/chat/completions&amp;quot; if path == &amp;quot;chat/completions&amp;quot; else path url = f&amp;quot;{TARGET_BASE_URL}/{target_path}&amp;quot; data = request.get_json(silent=True) if data and 'messages' in data: for msg in data['messages']: if msg.get('role') == 'developer': msg['role'] = 'system' headers = {k: v for k, v in request.headers if k.lower() not in ['host', 'content-length']} try: resp = requests.request(method=request.method, url=url, headers=headers, json=data, timeout=120) excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection'] headers_out = [(k, v) for k, v in resp.raw.headers.items() if k.lower() not in excluded_headers] return Response(resp.content, resp.status_code, headers_out) except Exception as e: return {&amp;quot;error&amp;quot;: str(e)}, 500 if __name__ == '__main__': app.run(host='127.0.0.1', port=5005) &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;2. How to setup:&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Install dependencies:&lt;/strong&gt; &lt;code&gt;pip install flask requests&lt;/code&gt; (Use a venv in Ubuntu 24.04+).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Run it:&lt;/strong&gt; &lt;code&gt;python3 proxy_ollama.py&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Configure Pi Agent:&lt;/strong&gt; Change your API URL to &lt;code&gt;http://127.0.0.1:5005&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Login:&lt;/strong&gt; Make sure you ran &lt;code&gt;ollama login&lt;/code&gt; in your terminal.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;3. Make it permanent (Systemd):&lt;/h1&gt; &lt;p&gt;Create &lt;code&gt;/etc/systemd/system/ollama-proxy.service&lt;/code&gt; to make it run on boot. This way, you don't need a terminal open.&lt;/p&gt; &lt;p&gt;This fix removes the &amp;quot;lag&amp;quot; or &amp;quot;self-censorship&amp;quot; you might feel when forcing the model to avoid words in the prompt. It's handled at the protocol level.&lt;/p&gt; &lt;p&gt;Hope this saves you the hours I spent debugging it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Conscious_Tart_8762"&gt; /u/Conscious_Tart_8762 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sydhbo/fix_ollama_cloud_pi_agentopenclaw_solving_error/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sydhbo/fix_ollama_cloud_pi_agentopenclaw_solving_error/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1sydhbo/fix_ollama_cloud_pi_agentopenclaw_solving_error/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-28T20:36:57+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sygose</id>
-    <title>I made a menu-bar text polisher that runs entirely on Ollama (no cloud)</title>
-    <updated>2026-04-28T22:40:22+00:00</updated>
-    <author>
-      <name>/u/wesomemarinios</name>
-      <uri>https://old.reddit.com/user/wesomemarinios</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1sygose/i_made_a_menubar_text_polisher_that_runs_entirely/"&gt; &lt;img alt="I made a menu-bar text polisher that runs entirely on Ollama (no cloud)" src="https://external-preview.redd.it/wi2BPYwxBG7mNIzcWFtp_kWr6wIDgKGi2TKRdHvOZ_c.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e288393f0990ef2bd0465fdcd6ca7cb91472116d" title="I made a menu-bar text polisher that runs entirely on Ollama (no cloud)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wesomemarinios"&gt; /u/wesomemarinios &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/MacOS/comments/1sygolg/i_made_a_menubar_text_polisher_that_runs_entirely/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sygose/i_made_a_menubar_text_polisher_that_runs_entirely/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1sygose/i_made_a_menubar_text_polisher_that_runs_entirely/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-28T22:40:22+00:00</published>
-  </entry>
   <entry>
     <id>t3_1syirum</id>
     <title>ollama run ministral-3:3b throwing error</title>
@@ -112,6 +86,19 @@
     <published>2026-04-28T20:49:39+00:00</published>
   </entry>
   <entry>
+    <id>t3_1sz6fkd</id>
+    <title>I thought local LLMs would allow me to ask unethical things…</title>
+    <updated>2026-04-29T17:59:44+00:00</updated>
+    <author>
+      <name>/u/themvf</name>
+      <uri>https://old.reddit.com/user/themvf</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;But multiple models are saying they can’t help me with the code I need. Isn’t that the promise of local models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/themvf"&gt; /u/themvf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-29T17:59:44+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1syqbly</id>
     <title>Does anyone know the parser and render for qwen3.6 in ollama modelfile?</title>
     <updated>2026-04-29T06:09:39+00:00</updated>
@@ -162,19 +149,6 @@
     <link href="https://old.reddit.com/r/ollama/comments/1syfckc/has_anyone_here_actually_used_ollama_cloud_for/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-04-28T21:46:36+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sz6fkd</id>
-    <title>I thought local LLMs would allow me to ask unethical things…</title>
-    <updated>2026-04-29T17:59:44+00:00</updated>
-    <author>
-      <name>/u/themvf</name>
-      <uri>https://old.reddit.com/user/themvf</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;But multiple models are saying they can’t help me with the code I need. Isn’t that the promise of local models?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/themvf"&gt; /u/themvf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1sz6fkd/i_thought_local_llms_would_allow_me_to_ask/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-04-29T17:59:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1syvbwi</id>
@@ -266,6 +240,32 @@
     <link href="https://old.reddit.com/r/ollama/comments/1sz14s2/trooper_v2_local_first_cloud_on_demand_your_ai/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-04-29T14:53:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sz7pwc</id>
+    <title>I built a transparent proxy + live dashboard for Ollama - see every request, tool call, and stream in real-time</title>
+    <updated>2026-04-29T18:43:40+00:00</updated>
+    <author>
+      <name>/u/PaxyInRs</name>
+      <uri>https://old.reddit.com/user/PaxyInRs</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I got tired of debugging my Al agent's tool calls blind, so I built Ollama Flow Visualizer - a transparent proxy that sits between your client and Ollama and gives you a live dashboard of everything happening.&lt;/p&gt; &lt;p&gt;What it does:&lt;/p&gt; &lt;p&gt;Zero-config proxy - just point your client at localhost: 11435 instead of 11434&lt;/p&gt; &lt;p&gt;• Live Socket.IO dashboard at localhost:8080&lt;/p&gt; &lt;p&gt;Smart grouping - groups requests by prompt (same prompt = same group)&lt;/p&gt; &lt;p&gt;Tool call matching - matches tool&lt;/p&gt; &lt;p&gt;Streaming duration tracking&lt;/p&gt; &lt;p&gt;calls with their outputs automatically by ID,&lt;/p&gt; &lt;p&gt;even across separate requests&lt;/p&gt; &lt;p&gt;Error source detection (Ollama timeout vs agent interrupt)&lt;/p&gt; &lt;p&gt;Use case: I'm running OpenClaw with local LLMs, and this made debugging agent workflows 10x easier. Instead of guessing what the model returned, I see it live.&lt;/p&gt; &lt;p&gt;Stack: Node.js, Socket.10, zero dependencies on Ollama's config.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/Paxy/Ollama-flow-visualizer"&gt;https://github.com/Paxy/Ollama-flow-visualizer&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Would love feedback! What debugging tools are you using with your local LLM setup?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PaxyInRs"&gt; /u/PaxyInRs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz7pwc/i_built_a_transparent_proxy_live_dashboard_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz7pwc/i_built_a_transparent_proxy_live_dashboard_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1sz7pwc/i_built_a_transparent_proxy_live_dashboard_for/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-29T18:43:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sz7rdd</id>
+    <title>Ollama API works via Curl, but OpenClaw/Integrations won't connect. Need help.</title>
+    <updated>2026-04-29T18:45:08+00:00</updated>
+    <author>
+      <name>/u/Specialist-Art-2289</name>
+      <uri>https://old.reddit.com/user/Specialist-Art-2289</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1sz7rdd/ollama_api_works_via_curl_but/"&gt; &lt;img alt="Ollama API works via Curl, but OpenClaw/Integrations won't connect. Need help." src="https://preview.redd.it/uxgmo906d6yg1.png?width=140&amp;amp;height=15&amp;amp;auto=webp&amp;amp;s=919f42582d36043cb12754404f30c9cbdb7aa71b" title="Ollama API works via Curl, but OpenClaw/Integrations won't connect. Need help." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/uxgmo906d6yg1.png?width=678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=6caab654b7ca7868e3c75eb6183f398fc76e9982"&gt;https://preview.redd.it/uxgmo906d6yg1.png?width=678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=6caab654b7ca7868e3c75eb6183f398fc76e9982&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hey guys, I’m stuck on a weird networking issue with Ollama.&lt;/p&gt; &lt;p&gt;I can confirm Ollama is running and accessible on my network. If I run a &lt;code&gt;curl&lt;/code&gt; to &lt;a href="http://192.168.2.180:11434/api/generate"&gt;&lt;code&gt;http://192.168.2.180:11434/api/generate&lt;/code&gt;&lt;/a&gt; it works fine and returns a response. I can also see my models if I go to &lt;code&gt;/api/tags&lt;/code&gt; in my browser.&lt;/p&gt; &lt;p&gt;But for some reason, whenever I try to link it to &lt;strong&gt;OpenClaw&lt;/strong&gt; or &lt;strong&gt;OpenWebUI&lt;/strong&gt;, the connection just fails.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I've done so far:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Set &lt;code&gt;OLLAMA_HOST&lt;/code&gt; to &lt;a href="http://0.0.0.0"&gt;&lt;code&gt;0.0.0.0&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Set &lt;code&gt;OLLAMA_ORIGINS&lt;/code&gt; to &lt;code&gt;*&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Restarted the service multiple times.&lt;/li&gt; &lt;li&gt;Verified the firewall isn't blocking port 11434.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Even though the API is clearly &amp;quot;alive&amp;quot; (since curl works), the integrations just won't talk to it. If anyone has dealt with this before or knows if there's a specific setting I'm missing for third-party apps, please let me know.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;My setup:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Ollama IP:&lt;/strong&gt; &lt;a href="http://192.168.2.180"&gt;192.168.2.180&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Model:&lt;/strong&gt; gemma4:e2b&lt;/li&gt; &lt;li&gt;&lt;strong&gt;OS:&lt;/strong&gt; synology nas, running inside containermanager &lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Specialist-Art-2289"&gt; /u/Specialist-Art-2289 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz7rdd/ollama_api_works_via_curl_but/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1sz7rdd/ollama_api_works_via_curl_but/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1sz7rdd/ollama_api_works_via_curl_but/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-04-29T18:45:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1syyqwk</id>
