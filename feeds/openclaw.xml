@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-04-29T14:16:51+00:00</updated>
+  <updated>2026-04-29T15:17:41+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1symep0</id>
-    <title>OpenClaw v2026.4.26 Fix for Azure Windows VPS</title>
-    <updated>2026-04-29T02:52:47+00:00</updated>
-    <author>
-      <name>/u/LeadingAssumption796</name>
-      <uri>https://old.reddit.com/user/LeadingAssumption796</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;OpenClaw v2026.4.26 on Azure Windows VPS — Fix Notes&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Goal&lt;/strong&gt;&lt;br /&gt; Get OpenClaw v2026.4.26 running reliably on a Windows VPS (Azure).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Status&lt;/strong&gt;&lt;br /&gt; Working. Slightly sluggish — response times currently under ~1 minute.&lt;/p&gt; &lt;h1&gt;1) Use Node.js 22.x&lt;/h1&gt; &lt;p&gt;Check current version:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;winget list node &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Remove existing install (if needed):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;winget uninstall --id OpenJS.NodeJS.LTS &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Install Node 22.15.0:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Invoke-WebRequest -Uri &amp;quot;https://nodejs.org/dist/v22.15.0/node-v22.15.0-x64.msi&amp;quot; -OutFile &amp;quot;$env:TEMP\node22.msi&amp;quot; Start-Process msiexec.exe -Wait -ArgumentList &amp;quot;/i `&amp;quot;$env:TEMP\node22.msi`&amp;quot; /qn&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Verify:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;node -v npm -v &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Target: Node v22.x.x&lt;/p&gt; &lt;h1&gt;2) Fix devices\paired.json&lt;/h1&gt; &lt;p&gt;Stop OpenClaw first:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw gateway stop Stop-Process -Name node -Force -ErrorAction SilentlyContinue &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Recreate file as valid UTF-8 (no BOM):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;$devicesDir = &amp;quot;$env:USERPROFILE\.openclaw\devices&amp;quot; $file = &amp;quot;$devicesDir\paired.json&amp;quot; New-Item -ItemType Directory -Force $devicesDir | Out-Null Remove-Item $file -Force -ErrorAction SilentlyContinue [System.IO.File]::WriteAllText( $file, &amp;quot;[]&amp;quot;, [System.Text.UTF8Encoding]::new($false) ) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Verify:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Format-Hex $file Get-Content $file -Raw &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;(Expected: &lt;code&gt;[]&lt;/code&gt; / hex &lt;code&gt;5B 5D&lt;/code&gt;)&lt;/p&gt; &lt;h1&gt;3) Disable Bonjour / mDNS&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;[Environment]::SetEnvironmentVariable(&amp;quot;OPENCLAW_DISABLE_BONJOUR&amp;quot;, &amp;quot;1&amp;quot;, &amp;quot;User&amp;quot;) $env:OPENCLAW_DISABLE_BONJOUR=&amp;quot;1&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;4) Fix maxTokens in openclaw.json&lt;/h1&gt; &lt;p&gt;Path:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;%USERPROFILE%\.openclaw\openclaw.json &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Set:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;maxTokens&amp;quot;: 16000 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why:&lt;/strong&gt;&lt;br /&gt; Some Azure/OpenAI models reject 32000.&lt;br /&gt; Common error:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;max_tokens is too large... supports at most 16384 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;5) Complete identity files&lt;/h1&gt; &lt;p&gt;Make sure these are filled out (not templates):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;IDENTITY.md USER.md SOUL.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then remove or rename:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;BOOTSTRAP.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why:&lt;/strong&gt;&lt;br /&gt; If &lt;a href="http://BOOTSTRAP.md"&gt;&lt;code&gt;BOOTSTRAP.md&lt;/code&gt;&lt;/a&gt; remains, OpenClaw may stay stuck in bootstrap mode.&lt;/p&gt; &lt;h1&gt;6) Start OpenClaw&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;openclaw gateway --verbose &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Wait for:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[gateway] ready &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw dashboard &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Notes / Remaining Issues&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Still some latency (~&amp;lt;1 min responses)&lt;/li&gt; &lt;li&gt;Likely VPS performance-related&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If anyone has optimizations for reducing response time on Azure VPS, I’m interested. Will work with several models to see if this will fix, I'll update soon.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LeadingAssumption796"&gt; /u/LeadingAssumption796 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-29T02:52:47+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1syicjh</id>
-    <title>OpenClaw + Gemini CLI: Gemini 3 Flash Preview gets 20h timeout after just one prompt</title>
-    <updated>2026-04-28T23:50:42+00:00</updated>
-    <author>
-      <name>/u/Wobber87</name>
-      <uri>https://old.reddit.com/user/Wobber87</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Is anyone else having problems with OpenClaw + &lt;code&gt;google-gemini-cli&lt;/code&gt; recently?&lt;/p&gt; &lt;p&gt;I’m using &lt;code&gt;google-gemini-cli/gemini-3-flash-preview&lt;/code&gt; with OAuth auth. The auth itself seems to work, but after a single prompt I get a quota/capacity error like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;You have exhausted your capacity on this model. Your quota will reset after ~20h. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This happens even with accounts that have barely been used for Gemini.&lt;/p&gt; &lt;p&gt;I also noticed that OpenClaw’s logs show the provider/model, but not clearly which OAuth profile/account was used for the failed request, which makes debugging profile rotation hard.&lt;/p&gt; &lt;p&gt;Questions:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Has anyone else started seeing this within the last month or so?&lt;/li&gt; &lt;li&gt;Is this a Gemini CLI/OAuth quota issue, an OpenClaw issue, or just account-specific?&lt;/li&gt; &lt;li&gt;Is there a reliable way to see which auth profile OpenClaw used for a failed Gemini request?&lt;/li&gt; &lt;li&gt;Any known workaround besides switching providers/models?&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Wobber87"&gt; /u/Wobber87 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syicjh/openclaw_gemini_cli_gemini_3_flash_preview_gets/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syicjh/openclaw_gemini_cli_gemini_3_flash_preview_gets/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syicjh/openclaw_gemini_cli_gemini_3_flash_preview_gets/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T23:50:42+00:00</published>
-  </entry>
   <entry>
     <id>t3_1sy5gqm</id>
     <title>I compared Openclaw setups on a few patterns, Here is what stood out</title>
@@ -71,19 +45,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1syl3hr/feedback_help_wanted_3_real_blockers_after_weeks/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-29T01:54:00+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1syv5ei</id>
-    <title>You don’t find out who’s been swimming naked until the tide goes out</title>
-    <updated>2026-04-29T10:44:26+00:00</updated>
-    <author>
-      <name>/u/ImpossibleMuffin8791</name>
-      <uri>https://old.reddit.com/user/ImpossibleMuffin8791</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As github announcing its new billing model, I think we should knwo the tide is going out.&lt;/p&gt; &lt;p&gt;A lot's of these story telling/video making use cases will be found naked.&lt;/p&gt; &lt;p&gt;In a near future if my neighbour tells me his openclaw is openning the browser and summarizing news for him everyday, I will LMAO.&lt;/p&gt; &lt;p&gt;I think soon all the websites will either have a mcp, or they will need to pick up an obsolete technology - WAP. &lt;/p&gt; &lt;p&gt;Agent UX will be on the opposite way than today's UX, where bare data matters more! &lt;/p&gt; &lt;p&gt;We will see.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ImpossibleMuffin8791"&gt; /u/ImpossibleMuffin8791 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syv5ei/you_dont_find_out_whos_been_swimming_naked_until/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syv5ei/you_dont_find_out_whos_been_swimming_naked_until/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syv5ei/you_dont_find_out_whos_been_swimming_naked_until/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-29T10:44:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1syf0du</id>
@@ -203,19 +164,6 @@
     <published>2026-04-29T02:53:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1syhq3w</id>
-    <title>Buyer Beware minimax.</title>
-    <updated>2026-04-28T23:23:30+00:00</updated>
-    <author>
-      <name>/u/sdfowler1977</name>
-      <uri>https://old.reddit.com/user/sdfowler1977</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just thought I would share a finding with the recent anthropic deletion of the company's database. I don't run opus on my open claw I do run it in Claud code so I can't see if this is a parallel failure. &lt;/p&gt; &lt;p&gt;I have rules written in every single layer I will not go into those layers because some layers were not supposed to mess with I have put the rules in every single layer because I found Minimax violates them at every single step. &lt;/p&gt; &lt;p&gt;Chat GPT 5.5 follows them to a t to the point of failure. Chat GPT will not change modify delete or add files without the command &amp;quot;command execute&amp;quot; I have this in five different places and Minimax ignores it every single time Minimax if I don't lock the Json we'll go in there and keep giving itself exec approval without my permission bypassing all my rules and my safeguards I literally have to lock the files so it cannot adjust them I'm beginning to think Mini Max is really good or a virus I'm not sure.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sdfowler1977"&gt; /u/sdfowler1977 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T23:23:30+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1syr5la</id>
     <title>Created OpenClaw plugin now for Spectyra</title>
     <updated>2026-04-29T06:55:47+00:00</updated>
@@ -242,6 +190,58 @@
     <published>2026-04-29T13:54:05+00:00</published>
   </entry>
   <entry>
+    <id>t3_1syhq3w</id>
+    <title>Buyer Beware minimax.</title>
+    <updated>2026-04-28T23:23:30+00:00</updated>
+    <author>
+      <name>/u/sdfowler1977</name>
+      <uri>https://old.reddit.com/user/sdfowler1977</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just thought I would share a finding with the recent anthropic deletion of the company's database. I don't run opus on my open claw I do run it in Claud code so I can't see if this is a parallel failure. &lt;/p&gt; &lt;p&gt;I have rules written in every single layer I will not go into those layers because some layers were not supposed to mess with I have put the rules in every single layer because I found Minimax violates them at every single step. &lt;/p&gt; &lt;p&gt;Chat GPT 5.5 follows them to a t to the point of failure. Chat GPT will not change modify delete or add files without the command &amp;quot;command execute&amp;quot; I have this in five different places and Minimax ignores it every single time Minimax if I don't lock the Json we'll go in there and keep giving itself exec approval without my permission bypassing all my rules and my safeguards I literally have to lock the files so it cannot adjust them I'm beginning to think Mini Max is really good or a virus I'm not sure.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sdfowler1977"&gt; /u/sdfowler1977 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-28T23:23:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sz065w</id>
+    <title>Can my old PC run OpenClaw + local AI models?</title>
+    <updated>2026-04-29T14:17:59+00:00</updated>
+    <author>
+      <name>/u/zerbyx</name>
+      <uri>https://old.reddit.com/user/zerbyx</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I have an old desktop PC and I’m wondering if it’s worth trying to run OpenClaw and some local models on it to avoid API costs.&lt;/p&gt; &lt;p&gt;Here are my specs:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Intel i7 (3rd gen)&lt;/li&gt; &lt;li&gt;8 GB RAM (upgradeable up to 32 GB)&lt;/li&gt; &lt;li&gt;GTX 750 Ti (4 GB VRAM)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;My goal would be to install OpenClaw and run some small/local AI models directly on this machine.&lt;/p&gt; &lt;p&gt;Do you think this kind of hardware is enough to run any “decent” models, even if they’re smaller or slower? Or would the experience be too limited to be practical?&lt;/p&gt; &lt;p&gt;Also, if it’s feasible, what kind of models (size/quantization) would you recommend for this setup?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/zerbyx"&gt; /u/zerbyx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz065w/can_my_old_pc_run_openclaw_local_ai_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz065w/can_my_old_pc_run_openclaw_local_ai_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sz065w/can_my_old_pc_run_openclaw_local_ai_models/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-29T14:17:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sz1hx1</id>
+    <title>Reverted back to 2026.4.23, again</title>
+    <updated>2026-04-29T15:06:18+00:00</updated>
+    <author>
+      <name>/u/jnjn2020</name>
+      <uri>https://old.reddit.com/user/jnjn2020</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Upgraded to 4.26 yesterday. It was slower but seems to be up and running. But today, almost all timed reports went missing and a lot of no responding and messaging error, network connection lost and channel went offline. I decided to go back to 4.23, again, since 4.24 and 4.25 are even worse than 4.26. And finally, everything seeed to be fine. Reports are coming in normally again.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jnjn2020"&gt; /u/jnjn2020 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz1hx1/reverted_back_to_2026423_again/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz1hx1/reverted_back_to_2026423_again/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sz1hx1/reverted_back_to_2026423_again/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-29T15:06:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sz1kdv</id>
+    <title>Looking for someone who is fully familiar and competent and setting up and building fully bespoke assistant/second brain type builds - any help is greatly appreciated!</title>
+    <updated>2026-04-29T15:08:43+00:00</updated>
+    <author>
+      <name>/u/ImpactStriking9791</name>
+      <uri>https://old.reddit.com/user/ImpactStriking9791</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi there, &lt;/p&gt; &lt;p&gt;I’m looking for an individual who is completely competent at setting up/building out/tweaking/maintaining assistant and second brain builds. &lt;/p&gt; &lt;p&gt;Particularly with corporate use cases.&lt;/p&gt; &lt;p&gt;Have an exciting opportunity for whoever fits the bill! &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ImpactStriking9791"&gt; /u/ImpactStriking9791 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz1kdv/looking_for_someone_who_is_fully_familiar_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1sz1kdv/looking_for_someone_who_is_fully_familiar_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1sz1kdv/looking_for_someone_who_is_fully_familiar_and/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-29T15:08:43+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1syy94j</id>
     <title>Facebook/Messenger cold outreach</title>
     <updated>2026-04-29T13:05:09+00:00</updated>
@@ -255,19 +255,6 @@
     <published>2026-04-29T13:05:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1syz9u2</id>
-    <title>Openclaw slower?</title>
-    <updated>2026-04-29T13:45:24+00:00</updated>
-    <author>
-      <name>/u/mehditch</name>
-      <uri>https://old.reddit.com/user/mehditch</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have update to the latest release .26 of openclaw, and i am noticing a huge lag on telegram now. Am i the only one facing this or is it a known problem?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mehditch"&gt; /u/mehditch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-29T13:45:24+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1syw40r</id>
     <title>87% Cost Savings &amp; Sub-3s Latency: I built a "Warm-Cache" harness for persistent Claude agents.</title>
     <updated>2026-04-29T11:31:53+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1syw40r/87_cost_savings_sub3s_latency_i_built_a_warmcache/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-29T11:31:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1syz9u2</id>
+    <title>Openclaw slower?</title>
+    <updated>2026-04-29T13:45:24+00:00</updated>
+    <author>
+      <name>/u/mehditch</name>
+      <uri>https://old.reddit.com/user/mehditch</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have update to the latest release .26 of openclaw, and i am noticing a huge lag on telegram now. Am i the only one facing this or is it a known problem?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mehditch"&gt; /u/mehditch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syz9u2/openclaw_slower/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-29T13:45:24+00:00</published>
   </entry>
   <entry>
     <id>t3_1syvpha</id>
