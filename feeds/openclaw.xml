@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-04-29T08:33:02+00:00</updated>
+  <updated>2026-04-29T09:28:45+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -138,6 +138,19 @@
     <published>2026-04-28T22:46:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1symep0</id>
+    <title>OpenClaw v2026.4.26 Fix for Azure Windows VPS</title>
+    <updated>2026-04-29T02:52:47+00:00</updated>
+    <author>
+      <name>/u/LeadingAssumption796</name>
+      <uri>https://old.reddit.com/user/LeadingAssumption796</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;OpenClaw v2026.4.26 on Azure Windows VPS — Fix Notes&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Goal&lt;/strong&gt;&lt;br /&gt; Get OpenClaw v2026.4.26 running reliably on a Windows VPS (Azure).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Status&lt;/strong&gt;&lt;br /&gt; Working. Slightly sluggish — response times currently under ~1 minute.&lt;/p&gt; &lt;h1&gt;1) Use Node.js 22.x&lt;/h1&gt; &lt;p&gt;Check current version:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;winget list node &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Remove existing install (if needed):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;winget uninstall --id OpenJS.NodeJS.LTS &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Install Node 22.15.0:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Invoke-WebRequest -Uri &amp;quot;https://nodejs.org/dist/v22.15.0/node-v22.15.0-x64.msi&amp;quot; -OutFile &amp;quot;$env:TEMP\node22.msi&amp;quot; Start-Process msiexec.exe -Wait -ArgumentList &amp;quot;/i `&amp;quot;$env:TEMP\node22.msi`&amp;quot; /qn&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Verify:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;node -v npm -v &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Target: Node v22.x.x&lt;/p&gt; &lt;h1&gt;2) Fix devices\paired.json&lt;/h1&gt; &lt;p&gt;Stop OpenClaw first:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw gateway stop Stop-Process -Name node -Force -ErrorAction SilentlyContinue &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Recreate file as valid UTF-8 (no BOM):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;$devicesDir = &amp;quot;$env:USERPROFILE\.openclaw\devices&amp;quot; $file = &amp;quot;$devicesDir\paired.json&amp;quot; New-Item -ItemType Directory -Force $devicesDir | Out-Null Remove-Item $file -Force -ErrorAction SilentlyContinue [System.IO.File]::WriteAllText( $file, &amp;quot;[]&amp;quot;, [System.Text.UTF8Encoding]::new($false) ) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Verify:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Format-Hex $file Get-Content $file -Raw &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;(Expected: &lt;code&gt;[]&lt;/code&gt; / hex &lt;code&gt;5B 5D&lt;/code&gt;)&lt;/p&gt; &lt;h1&gt;3) Disable Bonjour / mDNS&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;[Environment]::SetEnvironmentVariable(&amp;quot;OPENCLAW_DISABLE_BONJOUR&amp;quot;, &amp;quot;1&amp;quot;, &amp;quot;User&amp;quot;) $env:OPENCLAW_DISABLE_BONJOUR=&amp;quot;1&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;4) Fix maxTokens in openclaw.json&lt;/h1&gt; &lt;p&gt;Path:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;%USERPROFILE%\.openclaw\openclaw.json &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Set:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;maxTokens&amp;quot;: 16000 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why:&lt;/strong&gt;&lt;br /&gt; Some Azure/OpenAI models reject 32000.&lt;br /&gt; Common error:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;max_tokens is too large... supports at most 16384 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;5) Complete identity files&lt;/h1&gt; &lt;p&gt;Make sure these are filled out (not templates):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;IDENTITY.md USER.md SOUL.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then remove or rename:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;BOOTSTRAP.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Why:&lt;/strong&gt;&lt;br /&gt; If &lt;a href="http://BOOTSTRAP.md"&gt;&lt;code&gt;BOOTSTRAP.md&lt;/code&gt;&lt;/a&gt; remains, OpenClaw may stay stuck in bootstrap mode.&lt;/p&gt; &lt;h1&gt;6) Start OpenClaw&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;openclaw gateway --verbose &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Wait for:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[gateway] ready &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw dashboard &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Notes / Remaining Issues&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Still some latency (~&amp;lt;1 min responses)&lt;/li&gt; &lt;li&gt;Likely VPS performance-related&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If anyone has optimizations for reducing response time on Azure VPS, I’m interested. Will work with several models to see if this will fix, I'll update soon.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LeadingAssumption796"&gt; /u/LeadingAssumption796 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1symep0/openclaw_v2026426_fix_for_azure_windows_vps/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-29T02:52:47+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sy5gqm</id>
     <title>I compared Openclaw setups on a few patterns, Here is what stood out</title>
     <updated>2026-04-28T15:55:52+00:00</updated>
@@ -216,19 +229,6 @@
     <published>2026-04-28T10:41:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1syhq3w</id>
-    <title>Buyer Beware minimax.</title>
-    <updated>2026-04-28T23:23:30+00:00</updated>
-    <author>
-      <name>/u/sdfowler1977</name>
-      <uri>https://old.reddit.com/user/sdfowler1977</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just thought I would share a finding with the recent anthropic deletion of the company's database. I don't run opus on my open claw I do run it in Claud code so I can't see if this is a parallel failure. &lt;/p&gt; &lt;p&gt;I have rules written in every single layer I will not go into those layers because some layers were not supposed to mess with I have put the rules in every single layer because I found Minimax violates them at every single step. &lt;/p&gt; &lt;p&gt;Chat GPT 5.5 follows them to a t to the point of failure. Chat GPT will not change modify delete or add files without the command &amp;quot;command execute&amp;quot; I have this in five different places and Minimax ignores it every single time Minimax if I don't lock the Json we'll go in there and keep giving itself exec approval without my permission bypassing all my rules and my safeguards I literally have to lock the files so it cannot adjust them I'm beginning to think Mini Max is really good or a virus I'm not sure.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sdfowler1977"&gt; /u/sdfowler1977 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T23:23:30+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1syhsja</id>
     <title>How are you handling tool-calling degradation at 50+ skills?</title>
     <updated>2026-04-28T23:26:24+00:00</updated>
@@ -240,6 +240,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1syhsja/how_are_you_handling_toolcalling_degradation_at/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-28T23:26:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1syhq3w</id>
+    <title>Buyer Beware minimax.</title>
+    <updated>2026-04-28T23:23:30+00:00</updated>
+    <author>
+      <name>/u/sdfowler1977</name>
+      <uri>https://old.reddit.com/user/sdfowler1977</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just thought I would share a finding with the recent anthropic deletion of the company's database. I don't run opus on my open claw I do run it in Claud code so I can't see if this is a parallel failure. &lt;/p&gt; &lt;p&gt;I have rules written in every single layer I will not go into those layers because some layers were not supposed to mess with I have put the rules in every single layer because I found Minimax violates them at every single step. &lt;/p&gt; &lt;p&gt;Chat GPT 5.5 follows them to a t to the point of failure. Chat GPT will not change modify delete or add files without the command &amp;quot;command execute&amp;quot; I have this in five different places and Minimax ignores it every single time Minimax if I don't lock the Json we'll go in there and keep giving itself exec approval without my permission bypassing all my rules and my safeguards I literally have to lock the files so it cannot adjust them I'm beginning to think Mini Max is really good or a virus I'm not sure.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sdfowler1977"&gt; /u/sdfowler1977 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1syhq3w/buyer_beware_minimax/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-04-28T23:23:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1syr5la</id>
@@ -279,19 +292,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1symfhp/openclaw_insider_builds_the_enterprise_safety/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-04-29T02:53:50+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1syfmgf</id>
-    <title>I spent 3 weeks trying to replace Open-Claw. The better setup was Open-Claw + Hermes.</title>
-    <updated>2026-04-28T21:57:34+00:00</updated>
-    <author>
-      <name>/u/Upper_Bass_2590</name>
-      <uri>https://old.reddit.com/user/Upper_Bass_2590</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I expected to pick one winner.&lt;/p&gt; &lt;p&gt;I gave Hermes a full 3-week test to see if it could replace my Open-Claw workflow. &lt;/p&gt; &lt;p&gt;What actually worked best was combining them:&lt;/p&gt; &lt;p&gt;- 𝐎𝐩𝐞𝐧-𝐂𝐥𝐚𝐰 as orchestrator (planning, decomposition, sequencing)&lt;/p&gt; &lt;p&gt;- 𝐇𝐞𝐫𝐦𝐞𝐬 as execution specialist (fast, repeatable task loops)&lt;/p&gt; &lt;p&gt;A few things stood out fast:&lt;/p&gt; &lt;p&gt;- Hermes felt quicker on execution-heavy runs&lt;/p&gt; &lt;p&gt;- Open-Claw stayed stronger at coordinating messy, multi-step work&lt;/p&gt; &lt;p&gt;- Running both in parallel on different parts of the same project improved throughput way more than switching to either one alone&lt;/p&gt; &lt;p&gt;The biggest unexpected gain was reliability.&lt;/p&gt; &lt;p&gt;In a single-agent workflow, if the agent breaks, you stop and debug alone. &lt;/p&gt; &lt;p&gt;With two agents, I can use one to diagnose/fix the other and keep moving.&lt;/p&gt; &lt;p&gt;My current pattern is simple:&lt;/p&gt; &lt;p&gt;- Route broad project control to Open-Claw&lt;/p&gt; &lt;p&gt;- Route speed/repetition tasks to Hermes&lt;/p&gt; &lt;p&gt;- Review outputs and rebalance as needed&lt;/p&gt; &lt;p&gt;Costs went up a bit depending on model mix, but output increased enough to justify it.&lt;/p&gt; &lt;p&gt;So after 3 weeks, my conclusion is: &lt;/p&gt; &lt;p&gt;I am not replacing Open-Claw, I am using it as the center of a multi-agent workflow.&lt;/p&gt; &lt;p&gt;If you are running Open-Claw with another agent, what split has worked best for you?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Upper_Bass_2590"&gt; /u/Upper_Bass_2590 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1syfmgf/i_spent_3_weeks_trying_to_replace_openclaw_the/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-04-28T21:57:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1syl4ot</id>
