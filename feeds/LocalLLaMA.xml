@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-30T07:57:39+00:00</updated>
+  <updated>2026-04-30T08:57:04+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1sz9v9z</id>
-    <title>Qwen 3.6-35B-A3B KV cache part 2: PPL, KL divergence, asymmetric K/V, 64K row on M5 Max</title>
-    <updated>2026-04-29T20:00:43+00:00</updated>
-    <author>
-      <name>/u/Defilan</name>
-      <uri>https://old.reddit.com/user/Defilan</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Followup to yesterday's post: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1sy7srk/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1sy7srk/&lt;/a&gt;. Comments asked for perplexity, KL divergence, asymmetric K/V combos, and a 64K data point. Ran them overnight. Same M5 Max, same Qwen 3.6-35B-A3B Q8, same TheTom TurboQuant fork (feature/turboquant-kv-cache).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Quality (perplexity + KL divergence on wikitext-2)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For &lt;a href="/u/milpster"&gt;u/milpster&lt;/a&gt; and &lt;a href="/u/Karyo_Ten"&gt;u/Karyo_Ten&lt;/a&gt;. Context size 4096, since the canonical 512 doesn't fill enough KV cache to surface cache-quantization effects. f16 saves the baseline logits via --kl-divergence-base, then each quant run computes KL against that.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Cache&lt;/th&gt; &lt;th&gt;PPL&lt;/th&gt; &lt;th&gt;KL vs f16&lt;/th&gt; &lt;th&gt;Top-1 token agreement&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;f16&lt;/td&gt; &lt;td&gt;5.7438&lt;/td&gt; &lt;td&gt;baseline&lt;/td&gt; &lt;td&gt;n/a&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q8_0&lt;/td&gt; &lt;td&gt;5.7433&lt;/td&gt; &lt;td&gt;0.0016&lt;/td&gt; &lt;td&gt;98.64%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;turbo3 (~4.9x)&lt;/td&gt; &lt;td&gt;5.8092&lt;/td&gt; &lt;td&gt;0.0199&lt;/td&gt; &lt;td&gt;93.93%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;turbo4 (~3.8x)&lt;/td&gt; &lt;td&gt;5.7810&lt;/td&gt; &lt;td&gt;0.0131&lt;/td&gt; &lt;td&gt;95.28%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;q8_0 KV is essentially free at this depth. The PPL delta is -0.0005, well inside the ±0.036 stderr. KL is 0.0016. The quantized cache picks the same top-1 token as f16 98.6% of the time. The worry from yesterday's comments was &amp;quot;what does this cost in quality.&amp;quot; At 4k context, it's noise.&lt;/p&gt; &lt;p&gt;turbo3 costs about 1% PPL increase and 5 percentage points of top-token disagreement, with KL roughly 12x q8_0. turbo4 sits between, in line with its lower compression ratio. Quality cost scales with compression, no surprises.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Asymmetric K/V (depth sweep)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For &lt;a href="/u/Sabin_Stargem"&gt;u/Sabin_Stargem&lt;/a&gt; and my own untested caveat from yesterday. Decode tok/s, same llama-bench flags as the symmetric sweep:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Depth&lt;/th&gt; &lt;th&gt;q8_0 K / turbo4 V&lt;/th&gt; &lt;th&gt;q8_0 K / turbo3 V&lt;/th&gt; &lt;th&gt;f16 K / turbo4 V&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;0&lt;/td&gt; &lt;td&gt;82.9&lt;/td&gt; &lt;td&gt;81.8&lt;/td&gt; &lt;td&gt;72.8&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;8K&lt;/td&gt; &lt;td&gt;75.4&lt;/td&gt; &lt;td&gt;75.6&lt;/td&gt; &lt;td&gt;16.9&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;32K&lt;/td&gt; &lt;td&gt;66.0&lt;/td&gt; &lt;td&gt;63.2&lt;/td&gt; &lt;td&gt;8.6&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;128K&lt;/td&gt; &lt;td&gt;41.0&lt;/td&gt; &lt;td&gt;38.2&lt;/td&gt; &lt;td&gt;2.8&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;256K&lt;/td&gt; &lt;td&gt;27.1&lt;/td&gt; &lt;td&gt;25.0&lt;/td&gt; &lt;td&gt;skipped&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;512K&lt;/td&gt; &lt;td&gt;16.5&lt;/td&gt; &lt;td&gt;14.8&lt;/td&gt; &lt;td&gt;skipped&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;-ctk q8_0 -ctv turbo4 is the standout. At 256K it matches yesterday's symmetric q8_0 throughput (pp 128 vs 124, tg 27.1 vs 26.6), and it fits 512K where symmetric q8_0 OOM'd. So you get q8_0-grade prefill behavior with turbo4-grade context ceiling. Sabin's hypothesis that V compresses cheap and K compresses expensive looks right on the throughput side. Quality side I'd want a PPL run on the asym combos to fully close the loop.&lt;/p&gt; &lt;p&gt;-ctk q8_0 -ctv turbo3 does the same trick but with worse decode. Tighter V quant taxes the generation side more.&lt;/p&gt; &lt;p&gt;-ctk f16 -ctv turbo4 is broken on this fork on Metal. The FlashAttention kernel doesn't fast-path that K/V type combination, so it falls back to a generic dequant-then-attention path. At 8K it's 34x slower than symmetric f16. At 128K it's 78x slower (4.1 t/s pp). Cells past 128K weren't worth completing. Don't use this combo.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;64K row&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For &lt;a href="/u/ocarina24"&gt;u/ocarina24&lt;/a&gt;. Filling the 32K to 128K gap on the prefill curve. All seven configs at depth 65536:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Cache&lt;/th&gt; &lt;th&gt;pp512&lt;/th&gt; &lt;th&gt;tg128&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;f16 (symmetric)&lt;/td&gt; &lt;td&gt;602.0&lt;/td&gt; &lt;td&gt;59.8&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q8_0 (symmetric)&lt;/td&gt; &lt;td&gt;479.2&lt;/td&gt; &lt;td&gt;57.9&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;turbo3 (symmetric)&lt;/td&gt; &lt;td&gt;469.8&lt;/td&gt; &lt;td&gt;49.9&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;turbo4 (symmetric)&lt;/td&gt; &lt;td&gt;418.0&lt;/td&gt; &lt;td&gt;55.2&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q8_0 K / turbo4 V&lt;/td&gt; &lt;td&gt;468.2&lt;/td&gt; &lt;td&gt;55.9&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q8_0 K / turbo3 V&lt;/td&gt; &lt;td&gt;465.6&lt;/td&gt; &lt;td&gt;52.6&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;f16 K / turbo4 V&lt;/td&gt; &lt;td&gt;8.3&lt;/td&gt; &lt;td&gt;4.9&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Two things stood out. First, the prefill curves are nearly converged at 64K. turbo3 (470) is within 2% of q8_0 (479). Yesterday's data showed turbo3 actually pulling ahead by 128K (253 vs 245), so the bandwidth-bound regime kicks in somewhere between 64K and 128K on this hardware. Earlier than I'd estimated. Second, the asymmetric q8_0/turbo* rows track symmetric q8_0 prefill closely at this depth too. Same story as the deeper rows.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I take from all of this&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Updated cache-type recommendation from yesterday:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Coding agents (deep context, lots of generated tokens): -ctk q8_0 -ctv turbo4 is the new pick. q8_0 quality on K, turbo4 savings on V, fits 512K.&lt;/li&gt; &lt;li&gt;RAG or batch QA (heavy prefill, short answers): same combo, or symmetric turbo3 at the deepest depths.&lt;/li&gt; &lt;li&gt;Pure 1M context maxing: still symmetric turbo3, only thing that fits.&lt;/li&gt; &lt;li&gt;Short interactive (under 32K): f16 if memory allows, else q8_0. Quality cost is genuinely zero.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Caveats&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;PPL was at 4096 context. Quality at deeper contexts, where the cache is more saturated, might tell a different story.&lt;/li&gt; &lt;li&gt;Asymmetric quality numbers are still pending. Throughput data argues V-side compression is cheap, but I haven't measured KL or PPL on the asym combos yet.&lt;/li&gt; &lt;li&gt;f16 K + turbo* is a kernel fallback on this fork on Metal. Verify before assuming this combo works on other backends.&lt;/li&gt; &lt;li&gt;Single hardware data point (M5 Max, 128 GB). Crossover depths and the prefill/decode split likely shift with memory bandwidth and GPU core count.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Still in flight&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="/u/GCoderDCoder"&gt;u/GCoderDCoder&lt;/a&gt;. Aider Polyglot pass for f16, turbo3, and turbo4 (q8_0 was 62.2% earlier this week, n=225). Each Polyglot run is about 6 to 12 hours, so it's a few nights serial. Running later this week.&lt;/li&gt; &lt;li&gt;&lt;a href="/u/noctrex"&gt;u/noctrex&lt;/a&gt;. Wider quant types (q4_0, q4_1, iq4_nl, q5_0, q5_1) extending the depth sweep. After Aider.&lt;/li&gt; &lt;li&gt;&lt;a href="/u/Able_Librarian1569"&gt;u/Able_Librarian1569&lt;/a&gt;. Same sweep on a non-MoE non-DeltaNet model for transferability. After the wider quant types.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Same offer as yesterday. If you have non-M5-Max Apple Silicon and want to run a slice of this matrix, drop your numbers below or DM me. Happy to send the raw llama-bench and llama-perplexity output for anyone who wants to dig into the per-cell stats.&lt;/p&gt; &lt;p&gt;Full writeup with the methodology and the per-cell stderr numbers: &lt;a href="https://llmkube.com/blog/turboquant-m5-max-quality-and-asymmetric"&gt;https://llmkube.com/blog/turboquant-m5-max-quality-and-asymmetric&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Defilan"&gt; /u/Defilan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz9v9z/qwen_3635ba3b_kv_cache_part_2_ppl_kl_divergence/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz9v9z/qwen_3635ba3b_kv_cache_part_2_ppl_kl_divergence/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz9v9z/qwen_3635ba3b_kv_cache_part_2_ppl_kl_divergence/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T20:00:43+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sz4vy0</id>
-    <title>Granite Speech 4.1</title>
-    <updated>2026-04-29T17:06:05+00:00</updated>
-    <author>
-      <name>/u/nuclearbananana</name>
-      <uri>https://old.reddit.com/user/nuclearbananana</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz4vy0/granite_speech_41/"&gt; &lt;img alt="Granite Speech 4.1" src="https://external-preview.redd.it/m5IwC9nyUE8aZnNy1_qe7DkoosVbe3c7fW_Ru2BeFM8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=056044e3d3a88b7e2353e1032122bbab60072372" title="Granite Speech 4.1" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nuclearbananana"&gt; /u/nuclearbananana &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/ibm-granite/granite-speech"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz4vy0/granite_speech_41/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz4vy0/granite_speech_41/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T17:06:05+00:00</published>
-  </entry>
   <entry>
     <id>t3_1szbx94</id>
     <title>Strip Qwen3.6 dense of its multimodal capabilities</title>
@@ -45,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T21:16:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szpwwt</id>
+    <title>Tenstorrent TT-QuietBox 2 Specifications (Blackhole)</title>
+    <updated>2026-04-30T08:18:12+00:00</updated>
+    <author>
+      <name>/u/pulse77</name>
+      <uri>https://old.reddit.com/user/pulse77</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpwwt/tenstorrent_ttquietbox_2_specifications_blackhole/"&gt; &lt;img alt="Tenstorrent TT-QuietBox 2 Specifications (Blackhole)" src="https://preview.redd.it/zynxqgkydayg1.png?width=140&amp;amp;height=93&amp;amp;auto=webp&amp;amp;s=45d74beaf7268f2a69f693c34016fee2035d106d" title="Tenstorrent TT-QuietBox 2 Specifications (Blackhole)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://docs.tenstorrent.com/systems/quietbox/quietbox-bh-2/specifications.html"&gt;https://docs.tenstorrent.com/systems/quietbox/quietbox-bh-2/specifications.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Currently supported models: &lt;a href="https://tenstorrent.com/developers"&gt;https://tenstorrent.com/developers&lt;/a&gt;&lt;/p&gt; &lt;p&gt;From the specification docs above:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;CPU:&lt;/strong&gt; Ryzen 7 9700X 65W Granite Ridge 3.8GHz&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Memory&lt;/strong&gt;: 256GB (4x64GB) DDR5-5600 UDIMM, CL46 (4 slots, 0 free)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tenstorrent Processors&lt;/strong&gt;: 2x Liquid-Cooled Blackhole™ cards, each equipped with: &lt;ul&gt; &lt;li&gt;2x Blackhole ASICs&lt;/li&gt; &lt;li&gt;240 Tensix Cores&lt;/li&gt; &lt;li&gt;64 GB of DDR6 Memory @ 16 GT/sec (1024 GB/sec memory bandwidth)&lt;/li&gt; &lt;li&gt;600W of board power&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So total of: 128GB VRAM + 256GB RAM&lt;/p&gt; &lt;p&gt;ASICs are internally connected with 800G Ethernet:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/zynxqgkydayg1.png?width=4059&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=02afe82f7cbfa7ef903fab0c9a10512de6d6014f"&gt;Internal Topology&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If they add Qwen 3.6 and MiniMax support they will start getting competitive to Nvidia RTX PRO 6000 Blackwell with 96GB VRAM...&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pulse77"&gt; /u/pulse77 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpwwt/tenstorrent_ttquietbox_2_specifications_blackhole/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpwwt/tenstorrent_ttquietbox_2_specifications_blackhole/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szpwwt/tenstorrent_ttquietbox_2_specifications_blackhole/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T08:18:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz1y64</id>
@@ -73,19 +60,6 @@
     <published>2026-04-29T15:22:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sznc6q</id>
-    <title>AMD Engineers directly seeking ROCm feedback</title>
-    <updated>2026-04-30T05:51:35+00:00</updated>
-    <author>
-      <name>/u/FORLLM</name>
-      <uri>https://old.reddit.com/user/FORLLM</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hoping there are folks here with ROCm experience they can share with those guys to improve the ecosystem. I haven't used it but I'd like there to be as many first class citizens in local ai hardware as possible.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FORLLM"&gt; /u/FORLLM &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://x.com/AnushElangovan/status/2049560499608818090"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznc6q/amd_engineers_directly_seeking_rocm_feedback/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznc6q/amd_engineers_directly_seeking_rocm_feedback/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T05:51:35+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sz8auq</id>
     <title>Building a fully local PDF-to-audiobook workflow with Kokoro 82M, Qwen and llama.cpp</title>
     <updated>2026-04-29T19:04:13+00:00</updated>
@@ -97,6 +71,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz8auq/building_a_fully_local_pdftoaudiobook_workflow/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T19:04:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szpevg</id>
+    <title>A conversation about local LLMs with a senior government AI leader</title>
+    <updated>2026-04-30T07:48:28+00:00</updated>
+    <author>
+      <name>/u/JackStrawWitchita</name>
+      <uri>https://old.reddit.com/user/JackStrawWitchita</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm a local LLM solutions developer and I've recently had the opportunity to spend an hour talking to the head of AI technology for one of the smaller European governments. His remit is to promote AI within the country's business community and champion local AI research and projects and so on. &lt;/p&gt; &lt;p&gt;We connected on a technical level as he's an older guy (as am I) and we have similar technical backgrounds and worked in similar global IT organisations. He grilled me on the AI products I'm developing for clients and went quite deeply into the queries so he is obviously much more knowledgeable than just a government official. This is his first government appointment and is very experienced in the tech industry. &lt;/p&gt; &lt;p&gt;But what struck me was his lack of awareness of local AI. Yes, he understood that people can d/l LLMs and run them but he had no awareness of why someone or a business would want to do this. When I explained issues of data sovereignty, he countered with ‘Copilot data protection agreements’. When I explained that legal firms are building their own local AI stacks because they've read the big AI tech agreements and don't like them and are therefore securing their own data via local LLM solutions. &lt;/p&gt; &lt;p&gt;We also talked about API cost risk. If a business builds AI stacks into their business reliant on API calls to OpenAI/Anthropic etc then they've created a business risk as those companies can raise API costs dramatically and business are stuck. Not to mention how frontier model companies are constantly changing their model access due to whatever internal issues of usage load or model changes and more so there's no consistency - send the same prompt via API twice and you'll like get two different answer - which is a business concern. &lt;/p&gt; &lt;p&gt;He also seemingly had no awareness of the backlash against big AI tech companies, how many organisations don't want to do business with companies with different values and politics as them, not to mention the green issues. I explained how local LLMs can address those issues for specific use cases to get more companies working with AI. &lt;/p&gt; &lt;p&gt;The conversation was good natured and he was keen to understand. But I was disappointed at how little understanding of how local LLMs can be used as an option for many business use cases. He just seems to be focused on getting businesses to send API calls to the big US AI firms. And he kept mentioning Copilot which made me cringe. &lt;/p&gt; &lt;p&gt;I think we, as local LLM users, need to promote local LLMs as serious business solutions for specific use cases. If we can get AI leaders to start mentioning local LLMs as a possible solution, we can perhaps gain more investment in this solution stack as a viable alternative to big AI. &lt;/p&gt; &lt;p&gt;Are any of you speaking to senior government people about local LLMs? What kind of conversations are you having? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JackStrawWitchita"&gt; /u/JackStrawWitchita &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T07:48:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sznc6q</id>
+    <title>AMD Engineers directly seeking ROCm feedback</title>
+    <updated>2026-04-30T05:51:35+00:00</updated>
+    <author>
+      <name>/u/FORLLM</name>
+      <uri>https://old.reddit.com/user/FORLLM</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hoping there are folks here with ROCm experience they can share with those guys to improve the ecosystem. I haven't used it but I'd like there to be as many first class citizens in local ai hardware as possible.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FORLLM"&gt; /u/FORLLM &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://x.com/AnushElangovan/status/2049560499608818090"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznc6q/amd_engineers_directly_seeking_rocm_feedback/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznc6q/amd_engineers_directly_seeking_rocm_feedback/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T05:51:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1syx4sg</id>
@@ -112,19 +112,6 @@
     <published>2026-04-29T12:18:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szi1mh</id>
-    <title>Larger Gemma-4/Qwen3.6</title>
-    <updated>2026-04-30T01:33:46+00:00</updated>
-    <author>
-      <name>/u/Non-Technical</name>
-      <uri>https://old.reddit.com/user/Non-Technical</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Qwen3.5-122B-A10B at Q6_K is really good.&lt;/p&gt; &lt;p&gt;Do you think we will see a larger MoE Gemma-4 or Qwen3.6 at some point?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Non-Technical"&gt; /u/Non-Technical &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T01:33:46+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1syt38w</id>
     <title>What it feels like to have to have Qwen 3.6 or Gemma 4 running locally</title>
     <updated>2026-04-29T08:47:36+00:00</updated>
@@ -138,17 +125,17 @@
     <published>2026-04-29T08:47:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szp96f</id>
-    <title>Qwen3.6-27B-Q6_K - images</title>
-    <updated>2026-04-30T07:38:54+00:00</updated>
+    <id>t3_1szi1mh</id>
+    <title>Larger Gemma-4/Qwen3.6</title>
+    <updated>2026-04-30T01:33:46+00:00</updated>
     <author>
-      <name>/u/Usual-Carrot6352</name>
-      <uri>https://old.reddit.com/user/Usual-Carrot6352</uri>
+      <name>/u/Non-Technical</name>
+      <uri>https://old.reddit.com/user/Non-Technical</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"&gt; &lt;img alt="Qwen3.6-27B-Q6_K - images" src="https://preview.redd.it/dvzeh3pq6ayg1.png?width=140&amp;amp;height=99&amp;amp;auto=webp&amp;amp;s=e3cecc372869efb021ce63f8b78e5aa27264623e" title="Qwen3.6-27B-Q6_K - images" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Settings:&lt;/p&gt; &lt;p&gt;temperature=0.6, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0&lt;/p&gt; &lt;p&gt;Prompts:&lt;/p&gt; &lt;p&gt;- Create svg image of a pelican riding a bicycle&lt;/p&gt; &lt;p&gt;- Create svg image of a capybara wearing a kimono drinking matcha tea&lt;/p&gt; &lt;p&gt;- Create svg image of a flamingo knitting a colorful sweater&lt;/p&gt; &lt;p&gt;- Create svg image of a sushi roll wearing sunglasses driving a go-kart&lt;/p&gt; &lt;p&gt;- Create svg image of a Victorian-era robot reading a newspaper in a cafe&lt;/p&gt; &lt;p&gt;- Create a svg image of a time-lapse composite showing a flower blooming, wilting, and transforming into butterflies across four seasons, all in one frame with seasonal lighting&lt;/p&gt; &lt;p&gt;Stats:&lt;/p&gt; &lt;p&gt;3min 10s, 27.55 t/s&lt;/p&gt; &lt;p&gt;4min 35s, 27.05 t/s&lt;/p&gt; &lt;p&gt;3min 20s, 27.55 t/s&lt;/p&gt; &lt;p&gt;7min 2s, 27.27 t/s&lt;/p&gt; &lt;p&gt;7min 23s, 27.19 t/s&lt;/p&gt; &lt;p&gt;8min 24s, 27.13 t/s&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Usual-Carrot6352"&gt; /u/Usual-Carrot6352 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1szp96f"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Qwen3.5-122B-A10B at Q6_K is really good.&lt;/p&gt; &lt;p&gt;Do you think we will see a larger MoE Gemma-4 or Qwen3.6 at some point?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Non-Technical"&gt; /u/Non-Technical &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szi1mh/larger_gemma4qwen36/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T07:38:54+00:00</published>
+    <published>2026-04-30T01:33:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz2mgw</id>
@@ -177,19 +164,6 @@
     <published>2026-04-29T15:27:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szg1d9</id>
-    <title>I got a Qwen sticker lol</title>
-    <updated>2026-04-30T00:03:32+00:00</updated>
-    <author>
-      <name>/u/lombwolf</name>
-      <uri>https://old.reddit.com/user/lombwolf</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt; &lt;img alt="I got a Qwen sticker lol" src="https://preview.redd.it/rn5h86w4y7yg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=304709933ef7afe7ff902c26c7726fe25202cd2f" title="I got a Qwen sticker lol" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lombwolf"&gt; /u/lombwolf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rn5h86w4y7yg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T00:03:32+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1sz2y76</id>
     <title>AMA with Nous Research -- Ask Us Anything!</title>
     <updated>2026-04-29T15:57:39+00:00</updated>
@@ -201,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz2y76/ama_with_nous_research_ask_us_anything/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T15:57:39+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szg1d9</id>
+    <title>I got a Qwen sticker lol</title>
+    <updated>2026-04-30T00:03:32+00:00</updated>
+    <author>
+      <name>/u/lombwolf</name>
+      <uri>https://old.reddit.com/user/lombwolf</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt; &lt;img alt="I got a Qwen sticker lol" src="https://preview.redd.it/rn5h86w4y7yg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=304709933ef7afe7ff902c26c7726fe25202cd2f" title="I got a Qwen sticker lol" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lombwolf"&gt; /u/lombwolf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rn5h86w4y7yg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T00:03:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1szk0lb</id>
@@ -229,17 +216,17 @@
     <published>2026-04-30T00:25:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sznfue</id>
-    <title>Where the goblins came from</title>
-    <updated>2026-04-30T05:57:12+00:00</updated>
+    <id>t3_1sz1qer</id>
+    <title>mistralai/Mistral-Medium-3.5-128B · Hugging Face</title>
+    <updated>2026-04-29T15:14:40+00:00</updated>
     <author>
-      <name>/u/Successful_Bowl2564</name>
-      <uri>https://old.reddit.com/user/Successful_Bowl2564</uri>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openai.com/index/where-the-goblins-came-from/"&gt;https://openai.com/index/where-the-goblins-came-from/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Something actually good from OpenAI.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Successful_Bowl2564"&gt; /u/Successful_Bowl2564 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"&gt; &lt;img alt="mistralai/Mistral-Medium-3.5-128B · Hugging Face" src="https://external-preview.redd.it/KaOYMEDdsghOL1VAlwe5jqGy3uvXgcbl5z0st_4p90k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44f23ca67a800a8dc2b449fa5c138278161e88ee" title="mistralai/Mistral-Medium-3.5-128B · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/unsloth/Mistral-Medium-3.5-128B-GGUF"&gt;https://huggingface.co/unsloth/Mistral-Medium-3.5-128B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Mistral Medium 3.5 128B&lt;/h1&gt; &lt;p&gt;Mistral Medium 3.5 is our first flagship merged model. It is a dense 128B model with a 256k context window, handling instruction-following, reasoning, and coding in a single set of weights. Mistral Medium 3.5 replaces its predecessor Mistral Medium 3.1 and Magistral in Le Chat. It also replaces Devstral 2 in our coding agent Vibe. Concretely, expect better performance for instruct, reasoning and coding tasks in a new unified model in comparison with our previous released models.&lt;/p&gt; &lt;p&gt;Reasoning effort is configurable per request, so the same model can answer a quick chat reply or work through a complex agentic run. We trained the vision encoder from scratch to handle variable image sizes and aspect ratios.&lt;/p&gt; &lt;p&gt;Find more information on our &lt;a href="https://mistral.ai/news/vibe-remote-agents-mistral-medium-3-5"&gt;blog&lt;/a&gt;.&lt;/p&gt; &lt;h1&gt;Key Features&lt;/h1&gt; &lt;p&gt;Mistral Medium 3.5 includes the following architectural choices:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Dense 128B parameters&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;256k context length&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multimodal input&lt;/strong&gt;: Accepts both text and image input, with text output.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Instruct and Reasoning functionalities&lt;/strong&gt; with function calls (reasoning effort configurable per request).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Mistral Medium 3.5 offers the following capabilities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Reasoning Mode&lt;/strong&gt;: Toggle between fast instant reply mode and reasoning mode, boosting performance with test-time compute when requested.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Vision&lt;/strong&gt;: Analyzes images and provides insights based on visual content, in addition to text.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multilingual&lt;/strong&gt;: Supports dozens of languages, including English, French, Spanish, German, Italian, Portuguese, Dutch, Chinese, Japanese, Korean, and Arabic.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;System Prompt&lt;/strong&gt;: Strong adherence and support for system prompts.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Agentic&lt;/strong&gt;: Best-in-class agentic capabilities with native function calling and JSON output.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Large Context Window&lt;/strong&gt;: Supports a 256k context window.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;We release this model under a &lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B/blob/main/(https://huggingface.co/mistralai/mistralai/Mistral-Medium-3.5-128B/blob/main/LICENSE"&gt;&lt;strong&gt;Modified MIT License&lt;/strong&gt;&lt;/a&gt;): Open-source license for both commercial and non-commercial use with exceptions for companies with large revenue.&lt;/p&gt; &lt;h1&gt;Recommended Settings&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Reasoning Effort&lt;/strong&gt;: &lt;ul&gt; &lt;li&gt;&lt;code&gt;'none'&lt;/code&gt; → Do not use reasoning&lt;/li&gt; &lt;li&gt;&lt;code&gt;'high'&lt;/code&gt; → Use reasoning (recommended for complex prompts and agentic usage) Use &lt;code&gt;reasoning_effort=&amp;quot;high&amp;quot;&lt;/code&gt; for complex tasks and agentic coding.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Temperature&lt;/strong&gt;: 0.7 for &lt;code&gt;reasoning_effort=&amp;quot;high&amp;quot;&lt;/code&gt;. Temp between 0.0 and 0.7 for &lt;code&gt;reasoning_effort=&amp;quot;none&amp;quot;&lt;/code&gt; depending on the task. Generally, lower means answer that are more to the point and higher allows the model to be more creative. It is a good practice to try different values in order to improve the model performance to meet your demands.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T05:57:12+00:00</published>
+    <published>2026-04-29T15:14:40+00:00</published>
   </entry>
   <entry>
     <id>t3_1szdv5s</id>
@@ -255,19 +242,6 @@
     <published>2026-04-29T22:31:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sz1qer</id>
-    <title>mistralai/Mistral-Medium-3.5-128B · Hugging Face</title>
-    <updated>2026-04-29T15:14:40+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"&gt; &lt;img alt="mistralai/Mistral-Medium-3.5-128B · Hugging Face" src="https://external-preview.redd.it/KaOYMEDdsghOL1VAlwe5jqGy3uvXgcbl5z0st_4p90k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44f23ca67a800a8dc2b449fa5c138278161e88ee" title="mistralai/Mistral-Medium-3.5-128B · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/unsloth/Mistral-Medium-3.5-128B-GGUF"&gt;https://huggingface.co/unsloth/Mistral-Medium-3.5-128B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Mistral Medium 3.5 128B&lt;/h1&gt; &lt;p&gt;Mistral Medium 3.5 is our first flagship merged model. It is a dense 128B model with a 256k context window, handling instruction-following, reasoning, and coding in a single set of weights. Mistral Medium 3.5 replaces its predecessor Mistral Medium 3.1 and Magistral in Le Chat. It also replaces Devstral 2 in our coding agent Vibe. Concretely, expect better performance for instruct, reasoning and coding tasks in a new unified model in comparison with our previous released models.&lt;/p&gt; &lt;p&gt;Reasoning effort is configurable per request, so the same model can answer a quick chat reply or work through a complex agentic run. We trained the vision encoder from scratch to handle variable image sizes and aspect ratios.&lt;/p&gt; &lt;p&gt;Find more information on our &lt;a href="https://mistral.ai/news/vibe-remote-agents-mistral-medium-3-5"&gt;blog&lt;/a&gt;.&lt;/p&gt; &lt;h1&gt;Key Features&lt;/h1&gt; &lt;p&gt;Mistral Medium 3.5 includes the following architectural choices:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Dense 128B parameters&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;256k context length&lt;/strong&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multimodal input&lt;/strong&gt;: Accepts both text and image input, with text output.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Instruct and Reasoning functionalities&lt;/strong&gt; with function calls (reasoning effort configurable per request).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Mistral Medium 3.5 offers the following capabilities:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Reasoning Mode&lt;/strong&gt;: Toggle between fast instant reply mode and reasoning mode, boosting performance with test-time compute when requested.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Vision&lt;/strong&gt;: Analyzes images and provides insights based on visual content, in addition to text.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multilingual&lt;/strong&gt;: Supports dozens of languages, including English, French, Spanish, German, Italian, Portuguese, Dutch, Chinese, Japanese, Korean, and Arabic.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;System Prompt&lt;/strong&gt;: Strong adherence and support for system prompts.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Agentic&lt;/strong&gt;: Best-in-class agentic capabilities with native function calling and JSON output.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Large Context Window&lt;/strong&gt;: Supports a 256k context window.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;We release this model under a &lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B/blob/main/(https://huggingface.co/mistralai/mistralai/Mistral-Medium-3.5-128B/blob/main/LICENSE"&gt;&lt;strong&gt;Modified MIT License&lt;/strong&gt;&lt;/a&gt;): Open-source license for both commercial and non-commercial use with exceptions for companies with large revenue.&lt;/p&gt; &lt;h1&gt;Recommended Settings&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Reasoning Effort&lt;/strong&gt;: &lt;ul&gt; &lt;li&gt;&lt;code&gt;'none'&lt;/code&gt; → Do not use reasoning&lt;/li&gt; &lt;li&gt;&lt;code&gt;'high'&lt;/code&gt; → Use reasoning (recommended for complex prompts and agentic usage) Use &lt;code&gt;reasoning_effort=&amp;quot;high&amp;quot;&lt;/code&gt; for complex tasks and agentic coding.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Temperature&lt;/strong&gt;: 0.7 for &lt;code&gt;reasoning_effort=&amp;quot;high&amp;quot;&lt;/code&gt;. Temp between 0.0 and 0.7 for &lt;code&gt;reasoning_effort=&amp;quot;none&amp;quot;&lt;/code&gt; depending on the task. Generally, lower means answer that are more to the point and higher allows the model to be more creative. It is a good practice to try different values in order to improve the model performance to meet your demands.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1qer/mistralaimistralmedium35128b_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T15:14:40+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1szajgm</id>
     <title>Devs using Qwen 27B seriously, what's your take?</title>
     <updated>2026-04-29T20:24:36+00:00</updated>
@@ -281,17 +255,30 @@
     <published>2026-04-29T20:24:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sznao3</id>
-    <title>DeepSeek V4 isn't beating Opus, but it doesn't need to</title>
-    <updated>2026-04-30T05:49:28+00:00</updated>
+    <id>t3_1sznfue</id>
+    <title>Where the goblins came from</title>
+    <updated>2026-04-30T05:57:12+00:00</updated>
     <author>
-      <name>/u/Practical_Low29</name>
-      <uri>https://old.reddit.com/user/Practical_Low29</uri>
+      <name>/u/Successful_Bowl2564</name>
+      <uri>https://old.reddit.com/user/Successful_Bowl2564</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek V4 is not in the same league as GPT-5.5 or Opus 4.7. Benchmarks put it slightly below both of those, roughly on par with Opus 4.6. You can check the numbers yourself here: &lt;a href="https://www.reddit.com/r/singularity/s/jIsNEK6Rrm"&gt;https://www.reddit.com/r/singularity/s/jIsNEK6Rrm&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And yes, benchmarks only tell part of the story. In real-world usage, my experience is that V4 performs at around GPT-5.2 level, solid, consistent, and the best open-source model available right now, but doesn't quite reach Opus 4.6 in practice either.&lt;/p&gt; &lt;p&gt;But here's why none of that really matters, whether DeepSeek beats Claude or GPT, it achieves this level of performance with only 20% of the hardware requirements, while being fully open-source and free to download. For now running it locally is extremely demanding tho, out of reach for most people. I've been accessing it through atlascloud, and the experience has been great. At its price point, nothing else comes close. This is genuinely the cheapest SOTA model on the market by a significant margin.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Practical_Low29"&gt; /u/Practical_Low29 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openai.com/index/where-the-goblins-came-from/"&gt;https://openai.com/index/where-the-goblins-came-from/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Something actually good from OpenAI.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Successful_Bowl2564"&gt; /u/Successful_Bowl2564 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T05:49:28+00:00</published>
+    <published>2026-04-30T05:57:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szp96f</id>
+    <title>Qwen3.6-27B-Q6_K - images</title>
+    <updated>2026-04-30T07:38:54+00:00</updated>
+    <author>
+      <name>/u/Usual-Carrot6352</name>
+      <uri>https://old.reddit.com/user/Usual-Carrot6352</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"&gt; &lt;img alt="Qwen3.6-27B-Q6_K - images" src="https://preview.redd.it/dvzeh3pq6ayg1.png?width=140&amp;amp;height=99&amp;amp;auto=webp&amp;amp;s=e3cecc372869efb021ce63f8b78e5aa27264623e" title="Qwen3.6-27B-Q6_K - images" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Settings:&lt;/p&gt; &lt;p&gt;temperature=0.6, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0&lt;/p&gt; &lt;p&gt;Prompts:&lt;/p&gt; &lt;p&gt;- Create svg image of a pelican riding a bicycle&lt;/p&gt; &lt;p&gt;- Create svg image of a capybara wearing a kimono drinking matcha tea&lt;/p&gt; &lt;p&gt;- Create svg image of a flamingo knitting a colorful sweater&lt;/p&gt; &lt;p&gt;- Create svg image of a sushi roll wearing sunglasses driving a go-kart&lt;/p&gt; &lt;p&gt;- Create svg image of a Victorian-era robot reading a newspaper in a cafe&lt;/p&gt; &lt;p&gt;- Create a svg image of a time-lapse composite showing a flower blooming, wilting, and transforming into butterflies across four seasons, all in one frame with seasonal lighting&lt;/p&gt; &lt;p&gt;Stats:&lt;/p&gt; &lt;p&gt;3min 10s, 27.55 t/s&lt;/p&gt; &lt;p&gt;4min 35s, 27.05 t/s&lt;/p&gt; &lt;p&gt;3min 20s, 27.55 t/s&lt;/p&gt; &lt;p&gt;7min 2s, 27.27 t/s&lt;/p&gt; &lt;p&gt;7min 23s, 27.19 t/s&lt;/p&gt; &lt;p&gt;8min 24s, 27.13 t/s&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Usual-Carrot6352"&gt; /u/Usual-Carrot6352 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1szp96f"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szp96f/qwen3627bq6_k_images/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T07:38:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz0lyk</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz0lyk/16x_dgx_sparks_what_should_i_run/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T14:34:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1sznao3</id>
+    <title>DeepSeek V4 isn't beating Opus, but it doesn't need to</title>
+    <updated>2026-04-30T05:49:28+00:00</updated>
+    <author>
+      <name>/u/Practical_Low29</name>
+      <uri>https://old.reddit.com/user/Practical_Low29</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek V4 is not in the same league as GPT-5.5 or Opus 4.7. Benchmarks put it slightly below both of those, roughly on par with Opus 4.6. You can check the numbers yourself here: &lt;a href="https://www.reddit.com/r/singularity/s/jIsNEK6Rrm"&gt;https://www.reddit.com/r/singularity/s/jIsNEK6Rrm&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And yes, benchmarks only tell part of the story. In real-world usage, my experience is that V4 performs at around GPT-5.2 level, solid, consistent, and the best open-source model available right now, but doesn't quite reach Opus 4.6 in practice either.&lt;/p&gt; &lt;p&gt;But here's why none of that really matters, whether DeepSeek beats Claude or GPT, it achieves this level of performance with only 20% of the hardware requirements, while being fully open-source and free to download. For now running it locally is extremely demanding tho, out of reach for most people. I've been accessing it through atlascloud, and the experience has been great. At its price point, nothing else comes close. This is genuinely the cheapest SOTA model on the market by a significant margin.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Practical_Low29"&gt; /u/Practical_Low29 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznao3/deepseek_v4_isnt_beating_opus_but_it_doesnt_need/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T05:49:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1su3ao4</id>
