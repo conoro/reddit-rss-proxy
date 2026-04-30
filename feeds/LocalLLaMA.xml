@@ -2,36 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-30T00:05:07+00:00</updated>
+  <updated>2026-04-30T01:09:22+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1sz9r0u</id>
-    <title>Writing an LLM compiler from scratch: PyTorch to CUDA in 5,000 lines of Python</title>
-    <updated>2026-04-29T19:56:30+00:00</updated>
+    <id>t3_1szgjd7</id>
+    <title>You should probably disable algif kernel module this second if you run linux.</title>
+    <updated>2026-04-30T00:25:35+00:00</updated>
     <author>
-      <name>/u/NoVibeCoding</name>
-      <uri>https://old.reddit.com/user/NoVibeCoding</uri>
+      <name>/u/a_beautiful_rhind</name>
+      <uri>https://old.reddit.com/user/a_beautiful_rhind</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;,&lt;/p&gt; &lt;p&gt;I wanted to come up with a simple overview of the modern ML compiler stack, essentially what happens between &lt;code&gt;model.generate()&lt;/code&gt;and the GPU executing a kernel. However, the stack is brutal to read. TVM is 500K+ lines of C++. PyTorch piles Dynamo, Inductor, and Triton on top of each other. Then there's XLA, MLIR, Halide, and Mojo.&lt;/p&gt; &lt;p&gt;Instead, I decided to take a different approach and just build one from scratch. Just pure Python and raw CUDA. Take a small model (Qwen2.5-7B, TinyLlama) and compile it into a sequence of CUDA kernels. The goal isn't to beat Triton today, but to create a hackable compiler that doesn't require a PhD in compilers to modify, or at least make it easier to follow.&lt;/p&gt; &lt;p&gt;The final performance is about 50-90% of the production stack (as compared to PyTorch Eager and torch.compile).&lt;/p&gt; &lt;p&gt;I built it in a principled way, with a layered pipeline and concerns clearly separated:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Torch IR — captured FX graph (rmsnorm, linear, softmax, ...)&lt;/li&gt; &lt;li&gt;Tensor IR — every op decomposed into Elementwise / Reduction / IndexMap&lt;/li&gt; &lt;li&gt;Loop IR — a kernel written as a loop nest fused with other kernels&lt;/li&gt; &lt;li&gt;Tile IR — a kernel scheduled onto the GPU (threads, blocks, shared memory)&lt;/li&gt; &lt;li&gt;Kernel IR — schedule materialized into hardware primitives&lt;/li&gt; &lt;li&gt;CUDA — emitted source ready for nvcc&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Tensor IR is introduced to support future frontends, such as ONNX and Jax. Loop fusion handles the fusion of long pointwise and reduction chains. Lowering stages introduce optimizations such as tiled matmul, smem staging, and double-buffering.&lt;/p&gt; &lt;p&gt;Each stage can be inspected and debugged independently (&lt;a href="https://github.com/cloudrift-ai/deplodock"&gt;repository link&lt;/a&gt;). No GPU needed:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;deplodock compile -c &amp;quot;nn.RMSNorm(2048)(torch.randn(1,32,2048))&amp;quot; --ir tensor|loop|tile|kernel|cuda &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Benchmarking:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;deplodock run --bench --profile -c &amp;quot;torch.nn.Softmax(dim=-1)(torch.randn(1,28,2048,2048))&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;End-to-end compilation:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;deplodock compile Qwen/Qwen2.5-7B &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The generated CUDA kernel for RMSNorm looks like this:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;extern &amp;quot;C&amp;quot; __global__ __launch_bounds__(256) void k_rms_norm_reduce(const float* x, const float* p_weight, float* rms_norm) { float in0 = 2048.0f; float in1 = 1e-06f; { int a1 = blockIdx.x; int a0 = threadIdx.x; float acc0 = 0.0f; __syncthreads(); __shared__ float x_smem[2048]; for (int x_smem_flat = a0; x_smem_flat &amp;lt; 2048; x_smem_flat += 256) { { unsigned int _smem_addr = __cvta_generic_to_shared(&amp;amp;x_smem[x_smem_flat]); asm volatile(&amp;quot;cp.async.ca.shared.global [%0], [%1], 4;\n&amp;quot; :: &amp;quot;r&amp;quot;(_smem_addr), &amp;quot;l&amp;quot;(&amp;amp;x[a1 * 2048 + x_smem_flat]) : &amp;quot;memory&amp;quot;); } } asm volatile(&amp;quot;cp.async.commit_group;\n&amp;quot; ::: &amp;quot;memory&amp;quot;); asm volatile(&amp;quot;cp.async.wait_group 0;\n&amp;quot; ::: &amp;quot;memory&amp;quot;); __syncthreads(); __shared__ float p_weight_smem[2048]; for (int p_weight_smem_flat = a0; p_weight_smem_flat &amp;lt; 2048; p_weight_smem_flat += 256) { { unsigned int _smem_addr = __cvta_generic_to_shared(&amp;amp;p_weight_smem[p_weight_smem_flat]); asm volatile(&amp;quot;cp.async.ca.shared.global [%0], [%1], 4;\n&amp;quot; :: &amp;quot;r&amp;quot;(_smem_addr), &amp;quot;l&amp;quot;(&amp;amp;p_weight[p_weight_smem_flat]) : &amp;quot;memory&amp;quot;); } } asm volatile(&amp;quot;cp.async.commit_group;\n&amp;quot; ::: &amp;quot;memory&amp;quot;); asm volatile(&amp;quot;cp.async.wait_group 0;\n&amp;quot; ::: &amp;quot;memory&amp;quot;); __syncthreads(); for (int a2 = a0; a2 &amp;lt; 2048; a2 += 256) { float in2 = x_smem[a2]; float v0 = in2 * in2; acc0 += v0; } __shared__ float acc0_smem[256]; acc0_smem[a0] = acc0; __syncthreads(); for (int s = 128; s &amp;gt; 0; s &amp;gt;&amp;gt;= 1) { if (a0 &amp;lt; s) { acc0_smem[a0] = acc0_smem[a0] + acc0_smem[a0 + s]; } __syncthreads(); } __syncthreads(); float acc0_b = acc0_smem[0]; float v1 = acc0_b / in0; float v2 = v1 + in1; float v3 = rsqrtf(v2); for (int a3 = a0; a3 &amp;lt; 2048; a3 += 256) { float in3 = x_smem[a3]; float in4 = p_weight_smem[a3]; float v4 = in3 * v3; float v5 = v4 * in4; rms_norm[a1 * 2048 + a3] = v5; } } } &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NoVibeCoding"&gt; /u/NoVibeCoding &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://medium.com/data-science-collective/a-principled-ml-compiler-stack-in-5-000-lines-of-python-17f2db9549d4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz9r0u/writing_an_llm_compiler_from_scratch_pytorch_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz9r0u/writing_an_llm_compiler_from_scratch_pytorch_to/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szgjd7/you_should_probably_disable_algif_kernel_module/"&gt; &lt;img alt="You should probably disable algif kernel module this second if you run linux." src="https://external-preview.redd.it/xR1BVLJ-UOa32LSwe-lNVLIwLMisVmkcmCZ7JUMWu54.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ff5ce5b60dee5b047f1e6c4f0121f79d4d390b9a" title="You should probably disable algif kernel module this second if you run linux." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/a_beautiful_rhind"&gt; /u/a_beautiful_rhind &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://copy.fail/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szgjd7/you_should_probably_disable_algif_kernel_module/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szgjd7/you_should_probably_disable_algif_kernel_module/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T19:56:30+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sysyz2</id>
-    <title>Qwen3.6 27B on dual RTX 5060 Ti 16GB with vLLM: ~60 tok/s, 204k context working</title>
-    <updated>2026-04-29T08:40:46+00:00</updated>
-    <author>
-      <name>/u/do_u_think_im_spooky</name>
-      <uri>https://old.reddit.com/user/do_u_think_im_spooky</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been testing Qwen3.6 27B on a pretty non-standard local setup and figured the numbers might be useful for anyone looking at the newer 16GB Blackwell cards.&lt;/p&gt; &lt;p&gt;Hardware:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;2x RTX 5060 Ti 16GB&lt;/li&gt; &lt;li&gt;32GB total VRAM&lt;/li&gt; &lt;li&gt;Proxmox LXC&lt;/li&gt; &lt;li&gt;16 vCPU&lt;/li&gt; &lt;li&gt;~60GB RAM&lt;/li&gt; &lt;li&gt;CUDA 13 / Torch 2.11 nightly&lt;/li&gt; &lt;li&gt;vLLM nightly: &lt;a href="http://0.19.2rc1.dev"&gt;&lt;code&gt;0.19.2rc1.dev&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Model: &lt;code&gt;sakamakismile/Qwen3.6-27B-Text-NVFP4-MTP&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;vLLM launch shape:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;vllm serve sakamakismile/Qwen3.6-27B-Text-NVFP4-MTP \ --served-model-name qwen36-nvfp4-mtp \ --tensor-parallel-size 2 \ --max-model-len 204800 \ --max-num-batched-tokens 8192 \ --max-num-seqs 1 \ --gpu-memory-utilization 0.95 \ --kv-cache-dtype fp8 \ --quantization modelopt \ --speculative-config '{&amp;quot;method&amp;quot;:&amp;quot;mtp&amp;quot;,&amp;quot;num_speculative_tokens&amp;quot;:3}' \ --reasoning-parser qwen3 \ --language-model-only \ --generation-config vllm \ --disable-custom-all-reduce \ --attention-backend TRITON_ATTN &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Performance so far:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;8K context, MTP n=1: ~50–52 tok/s&lt;/li&gt; &lt;li&gt;8K context, MTP n=3: ~62–66 tok/s&lt;/li&gt; &lt;li&gt;32K context: ~59–66 tok/s&lt;/li&gt; &lt;li&gt;204800 context starts and works, but is tight&lt;/li&gt; &lt;li&gt;Idle VRAM at 204k: ~14.45GiB per GPU&lt;/li&gt; &lt;li&gt;After a 168k-token prefill: ~15.65GiB per GPU&lt;/li&gt; &lt;li&gt;168k-token needle/retrieval smoke test passed in ~256s&lt;/li&gt; &lt;li&gt;Near-limit test correctly rejected prompt+output over the 204800 window&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Thinking mode works too, but you need to give it enough output budget. With low &lt;code&gt;max_tokens&lt;/code&gt;, Qwen can spend the whole cap on reasoning and return no final content. Around &lt;code&gt;1024+&lt;/code&gt; is fine for small prompts, and &lt;code&gt;4096–8192&lt;/code&gt; is safer for actual reasoning tasks.&lt;/p&gt; &lt;p&gt;Caveats:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;204k context is right on the edge with 2x16GB.&lt;/li&gt; &lt;li&gt;&lt;code&gt;gpu_memory_utilization=0.94&lt;/code&gt; failed KV allocation; &lt;code&gt;0.95&lt;/code&gt; worked.&lt;/li&gt; &lt;li&gt;Startup takes several minutes due to compile/autotune.&lt;/li&gt; &lt;li&gt;Logs show FlashInfer autotuner OOM fallbacks during startup, but the server still becomes healthy.&lt;/li&gt; &lt;li&gt;I had better luck with &lt;code&gt;TRITON_ATTN&lt;/code&gt; for the text path.&lt;/li&gt; &lt;li&gt;This is not a high-concurrency config: &lt;code&gt;max_num_seqs=1&lt;/code&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Overall: dual 5060 Ti 16GB seems surprisingly usable for Qwen3.6 27B if you use the right checkpoint/runtime combo. It’s not roomy, but it works.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/do_u_think_im_spooky"&gt; /u/do_u_think_im_spooky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sysyz2/qwen36_27b_on_dual_rtx_5060_ti_16gb_with_vllm_60/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sysyz2/qwen36_27b_on_dual_rtx_5060_ti_16gb_with_vllm_60/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sysyz2/qwen36_27b_on_dual_rtx_5060_ti_16gb_with_vllm_60/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T08:40:46+00:00</published>
+    <published>2026-04-30T00:25:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1szaw8n</id>
@@ -45,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szaw8n/kld_comparison_of_oq_q_mxfp_and_ud_mlx/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T20:37:35+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1szbx94</id>
-    <title>Strip Qwen3.6 dense of its multimodal capabilities</title>
-    <updated>2026-04-29T21:16:02+00:00</updated>
-    <author>
-      <name>/u/redblood252</name>
-      <uri>https://old.reddit.com/user/redblood252</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This may be naive but if we stripped a model of its image processing/voice processing capabilities, can it make it smaller or faster? Is that even possible? Does it vary between MoE and dense?&lt;/p&gt; &lt;p&gt;If it is, why isn't it done on popular models &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/redblood252"&gt; /u/redblood252 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T21:16:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1syxckc</id>
@@ -84,6 +58,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz0aaj/ik_llama_now_supports_qwen35_mtp_support_o/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T14:22:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szg1d9</id>
+    <title>I got a Qwen sticker lol</title>
+    <updated>2026-04-30T00:03:32+00:00</updated>
+    <author>
+      <name>/u/lombwolf</name>
+      <uri>https://old.reddit.com/user/lombwolf</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt; &lt;img alt="I got a Qwen sticker lol" src="https://preview.redd.it/rn5h86w4y7yg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=304709933ef7afe7ff902c26c7726fe25202cd2f" title="I got a Qwen sticker lol" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lombwolf"&gt; /u/lombwolf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rn5h86w4y7yg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T00:03:32+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szbx94</id>
+    <title>Strip Qwen3.6 dense of its multimodal capabilities</title>
+    <updated>2026-04-29T21:16:02+00:00</updated>
+    <author>
+      <name>/u/redblood252</name>
+      <uri>https://old.reddit.com/user/redblood252</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This may be naive but if we stripped a model of its image processing/voice processing capabilities, can it make it smaller or faster? Is that even possible? Does it vary between MoE and dense?&lt;/p&gt; &lt;p&gt;If it is, why isn't it done on popular models &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/redblood252"&gt; /u/redblood252 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szbx94/strip_qwen36_dense_of_its_multimodal_capabilities/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-29T21:16:02+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz9v9z</id>
@@ -164,17 +164,17 @@
     <published>2026-04-29T19:04:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szdv5s</id>
-    <title>"What do you guys even use local LLMs for?" Me: A lot</title>
-    <updated>2026-04-29T22:31:44+00:00</updated>
+    <id>t3_1sz1y64</id>
+    <title>Mistral Médium 3.5 is here</title>
+    <updated>2026-04-29T15:22:16+00:00</updated>
     <author>
-      <name>/u/andy2na</name>
-      <uri>https://old.reddit.com/user/andy2na</uri>
+      <name>/u/Kathane37</name>
+      <uri>https://old.reddit.com/user/Kathane37</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"&gt; &lt;img alt="&amp;quot;What do you guys even use local LLMs for?&amp;quot; Me: A lot" src="https://preview.redd.it/8bc08sn9h7yg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a2639f41531ea085605d445a9f6e04dd4741eec9" title="&amp;quot;What do you guys even use local LLMs for?&amp;quot; Me: A lot" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Created separate private API keys for each service within LiteLLM and started logging the usage via Prometheus to view in Grafana. Surprised the Frigate GenAI summaries tokens quickly add up!&lt;/p&gt; &lt;p&gt;This view is only the past 6 hours.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/andy2na"&gt; /u/andy2na &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8bc08sn9h7yg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B"&gt;https://huggingface.co/mistralai/Mistral-Medium-3.5-128B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kathane37"&gt; /u/Kathane37 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T22:31:44+00:00</published>
+    <published>2026-04-29T15:22:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz1y8d</id>
@@ -190,17 +190,17 @@
     <published>2026-04-29T15:22:20+00:00</published>
   </entry>
   <entry>
-    <id>t3_1sz1y64</id>
-    <title>Mistral Médium 3.5 is here</title>
-    <updated>2026-04-29T15:22:16+00:00</updated>
+    <id>t3_1szdv5s</id>
+    <title>"What do you guys even use local LLMs for?" Me: A lot</title>
+    <updated>2026-04-29T22:31:44+00:00</updated>
     <author>
-      <name>/u/Kathane37</name>
-      <uri>https://old.reddit.com/user/Kathane37</uri>
+      <name>/u/andy2na</name>
+      <uri>https://old.reddit.com/user/andy2na</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/mistralai/Mistral-Medium-3.5-128B"&gt;https://huggingface.co/mistralai/Mistral-Medium-3.5-128B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kathane37"&gt; /u/Kathane37 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sz1y64/mistral_médium_35_is_here/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"&gt; &lt;img alt="&amp;quot;What do you guys even use local LLMs for?&amp;quot; Me: A lot" src="https://preview.redd.it/8bc08sn9h7yg1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a2639f41531ea085605d445a9f6e04dd4741eec9" title="&amp;quot;What do you guys even use local LLMs for?&amp;quot; Me: A lot" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Created separate private API keys for each service within LiteLLM and started logging the usage via Prometheus to view in Grafana. Surprised the Frigate GenAI summaries tokens quickly add up!&lt;/p&gt; &lt;p&gt;This view is only the past 6 hours.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/andy2na"&gt; /u/andy2na &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8bc08sn9h7yg1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szdv5s/what_do_you_guys_even_use_local_llms_for_me_a_lot/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-29T15:22:16+00:00</published>
+    <published>2026-04-29T22:31:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1syx4sg</id>
