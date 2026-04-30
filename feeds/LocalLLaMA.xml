@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-04-30T17:35:01+00:00</updated>
+  <updated>2026-04-30T18:10:00+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1szg1d9</id>
-    <title>I got a Qwen sticker lol</title>
-    <updated>2026-04-30T00:03:32+00:00</updated>
-    <author>
-      <name>/u/lombwolf</name>
-      <uri>https://old.reddit.com/user/lombwolf</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt; &lt;img alt="I got a Qwen sticker lol" src="https://preview.redd.it/rn5h86w4y7yg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=304709933ef7afe7ff902c26c7726fe25202cd2f" title="I got a Qwen sticker lol" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lombwolf"&gt; /u/lombwolf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rn5h86w4y7yg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szg1d9/i_got_a_qwen_sticker_lol/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T00:03:32+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1szsdyb</id>
-    <title>Notes on what actually breaks when you run a coding agent on small local models</title>
-    <updated>2026-04-30T10:39:41+00:00</updated>
-    <author>
-      <name>/u/BestSeaworthiness283</name>
-      <uri>https://old.reddit.com/user/BestSeaworthiness283</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've spent the last few weeks running real multi-file coding tasks through small local models and small cloud models on free tiers. Wanted to share the failure points that came up consistently, since some of them surprised me and i wanted to share with the community so maybe it helps someone.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Markdown fences are the most common failure across every small model I tested.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;You can put &amp;quot;output only raw code, no markdown formatting&amp;quot; in the system prompt. The model agrees. The model also wraps its response in triple backticks anyway, especially when the request involves anything that looks like explaining code. Qwen3.5:9b and gemma4:e4b are the most consistent at following the instruction but still slip occasionally. Others from my testing fail this rule frequently enough that you basically have to assume the fences will be there.&lt;/p&gt; &lt;p&gt;The fix isn't better prompting. It's stripping fences in post-processing as a default. Any code-editing tool using small models has to do this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;From my testing structured output is unreliable below 7B parameters.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;If your agent needs the model to return JSON for task lists (like in my caase), action types, or anything machine-parseable, small models fail at this far more often than benchmarks suggest. The benchmarks measure whether the model can produce valid JSON. They don't measure whether it produces valid JSON when given a complex multi-step instruction with edge cases.&lt;/p&gt; &lt;p&gt;In my testing, Gemma4:e4b is the most reliable for structured output among the local models I tried. Qwen3.5:9B is close behind. Codellama (allthoough old) struggles. On the cloud side, Llama 3.3 70B on Groq is rock solid for structured output (this was the most consistent). With other models from OpenRouter for example had some quirks. Example: Nemotron 3 super was very good, but it stopped responding on openrouter when hitting 100k tokens usage.&lt;/p&gt; &lt;p&gt;The practical workaround is to validate the JSON, retry once with an even more explicit instruction, then fall back to a permissive parser that can extract JSON from prose-wrapped responses.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Models will edit the wrong file if you let them.&lt;/strong&gt;&lt;br /&gt; Give a small model a task that mentions a function name, a project map listing similar function names, and a request like &amp;quot;rename validateToken to verifyToken.&amp;quot; (real example from my testing). It might rename validateToken correctly. It might also rename validateUser, or modify a comment that mentions the function, or apply the rename to the wrong file entirely. The model treats the project map as suggestions, not constraints.&lt;/p&gt; &lt;p&gt;The fix is at the orchestration layer, not the prompt. Validate that file paths the model mentions actually exist. Validate that function names it claims to be operating on are actually in the files it claims they're in. Throw clear errors when there's a mismatch. Small models lie confidently and the agent has to not trust them.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Question vs action classification is harder than it sounds.&lt;/strong&gt;&lt;br /&gt; Asking &amp;quot;how many lines does utils.js have&amp;quot; should be a read-only operation. But if your executor only has one mode — edit this file — it will dutifully edit the file to contain the answer to your question, because the model interprets the request through the only action it knows.&lt;/p&gt; &lt;p&gt;The fix is having the planner classify requests into action types before any execution. Read-only queries route to a separate code path that never touches disk. Without this, a casual question can delete your file.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What works better than I expected&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Token budget enforcement in code, before every call. Small models have no concept of context limits. If you trust them to be brief, they will not be brief. Counting tokens in your own code and refusing to send a too-large request is the only way to actually stay under the limit.&lt;/p&gt; &lt;p&gt;Per-file isolation. Sending one file at a time to the model is dramatically more reliable than sending two. Two files in the same call confuses small models surprisingly often. They mix up which fix goes where.&lt;/p&gt; &lt;p&gt;Synthesis-style memory. Storing what the model did last time as a one-sentence summary, not the full task list, gives enough context for the model to handle &amp;quot;undo&amp;quot; and &amp;quot;also add X&amp;quot; requests on the next turn. Doesn't need to be sophisticated.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I'm still figuring out&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Whether any local model under 7B is actually viable for an agent role, or if 7B is the practical floor. I haven't found a smaller model that doesn't fail at structured output frequently enough to be unusable. Curious if anyone has had luck with smaller fine-tunes specifically tuned for tool use or JSON output.&lt;/p&gt; &lt;p&gt;I open sourced the test harness if anyone wants to look or contribute: &lt;a href="http://github.com/razvanneculai/litecode"&gt;github.com/razvanneculai/litecode&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Any help is highly appreciated and i would love any type of feedback.&lt;/p&gt; &lt;p&gt;As a disclaimer, yes i use AI to reformat some of my text because english is not my first language and i think the information is very interesting and it might help someone out. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/BestSeaworthiness283"&gt; /u/BestSeaworthiness283 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szsdyb/notes_on_what_actually_breaks_when_you_run_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szsdyb/notes_on_what_actually_breaks_when_you_run_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szsdyb/notes_on_what_actually_breaks_when_you_run_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T10:39:41+00:00</published>
-  </entry>
   <entry>
     <id>t3_1szgjd7</id>
     <title>You should probably disable algif kernel module this second if you run linux.</title>
@@ -60,43 +34,17 @@
     <published>2026-04-30T11:37:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szpevg</id>
-    <title>A conversation about local LLMs with a senior government AI leader</title>
-    <updated>2026-04-30T07:48:28+00:00</updated>
+    <id>t3_1t02rwy</id>
+    <title>Agile as a cat</title>
+    <updated>2026-04-30T17:20:55+00:00</updated>
     <author>
-      <name>/u/JackStrawWitchita</name>
-      <uri>https://old.reddit.com/user/JackStrawWitchita</uri>
+      <name>/u/t4a8945</name>
+      <uri>https://old.reddit.com/user/t4a8945</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm a local LLM solutions developer and I've recently had the opportunity to spend an hour talking to the head of AI technology for one of the smaller European governments. His remit is to promote AI within the country's business community and champion local AI research and projects and so on. &lt;/p&gt; &lt;p&gt;We connected on a technical level as he's an older guy (as am I) and we have similar technical backgrounds and worked in similar global IT organisations. He grilled me on the AI products I'm developing for clients and went quite deeply into the queries so he is obviously much more knowledgeable than just a government official. This is his first government appointment and is very experienced in the tech industry. &lt;/p&gt; &lt;p&gt;But what struck me was his lack of awareness of local AI. Yes, he understood that people can d/l LLMs and run them but he had no awareness of why someone or a business would want to do this. When I explained issues of data sovereignty, he countered with ‘Copilot data protection agreements’. When I explained that legal firms are building their own local AI stacks because they've read the big AI tech agreements and don't like them and are therefore securing their own data via local LLM solutions. &lt;/p&gt; &lt;p&gt;We also talked about API cost risk. If a business builds AI stacks into their business reliant on API calls to OpenAI/Anthropic etc then they've created a business risk as those companies can raise API costs dramatically and business are stuck. Not to mention how frontier model companies are constantly changing their model access due to whatever internal issues of usage load or model changes and more so there's no consistency - send the same prompt via API twice and you'll like get two different answer - which is a business concern. &lt;/p&gt; &lt;p&gt;He also seemingly had no awareness of the backlash against big AI tech companies, how many organisations don't want to do business with companies with different values and politics as them, not to mention the green issues. I explained how local LLMs can address those issues for specific use cases to get more companies working with AI. &lt;/p&gt; &lt;p&gt;The conversation was good natured and he was keen to understand. But I was disappointed at how little understanding of how local LLMs can be used as an option for many business use cases. He just seems to be focused on getting businesses to send API calls to the big US AI firms. And he kept mentioning Copilot which made me cringe. &lt;/p&gt; &lt;p&gt;I think we, as local LLM users, need to promote local LLMs as serious business solutions for specific use cases. If we can get AI leaders to start mentioning local LLMs as a possible solution, we can perhaps gain more investment in this solution stack as a viable alternative to big AI. &lt;/p&gt; &lt;p&gt;Are any of you speaking to senior government people about local LLMs? What kind of conversations are you having? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JackStrawWitchita"&gt; /u/JackStrawWitchita &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t02rwy/agile_as_a_cat/"&gt; &lt;img alt="Agile as a cat" src="https://preview.redd.it/kgkv6knv2dyg1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=13f8d2437eb836c1223d185d9ca86bb789ff6285" title="Agile as a cat" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/kgkv6knv2dyg1.png?width=1026&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=d2e37f1914136ad672bcecf98741eee5e8cd69da"&gt;https://preview.redd.it/kgkv6knv2dyg1.png?width=1026&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=d2e37f1914136ad672bcecf98741eee5e8cd69da&lt;/a&gt;&lt;/p&gt; &lt;p&gt;MiniMax M2.7 AWQ 4bit hallucinated a URL and instantly pivoted to treating its own error as a joke. That made me laugh&lt;/p&gt; &lt;p&gt;(don't mind the low speeds, I'm running two sessions in parallel)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/t4a8945"&gt; /u/t4a8945 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t02rwy/agile_as_a_cat/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t02rwy/agile_as_a_cat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t02rwy/agile_as_a_cat/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T07:48:28+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t00bgr</id>
-    <title>Is local AI the actual endgame? (M5 Mac Studio vs. Dual 3090s)</title>
-    <updated>2026-04-30T15:53:25+00:00</updated>
-    <author>
-      <name>/u/Party-Log-1084</name>
-      <uri>https://old.reddit.com/user/Party-Log-1084</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I currently use Gemini and NotebookLM a lot, but I really want to transition to local AI for things like privacy and uncensored models. Before dropping serious cash though, I have to ask: is local AI the actual future for power users, or will the big cloud models just permanently outpace us? Or is there something else i didnt even know about coming soon?&lt;/p&gt; &lt;p&gt;If you were to invest long-term right now, what is the smartest move? Should I wait for an M5 Mac Studio Ultra, even if it costs 4 to 7k, just for the massive unified memory? Or is it better to build a classic setup with two used RTX 3090s? I've got an old Dell Precision T5810 with Intel Xeon E5-2680 v4 and 128GB Ram.&lt;/p&gt; &lt;p&gt;Or is there a third option: just wait? Software and quantization seem to be improving so fast. Are we reaching a point where we can run amazing models on much cheaper hardware soon anyway?&lt;/p&gt; &lt;p&gt;Is it worth the heavy hardware investment right now? Would love to hear your realistic thoughts.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Party-Log-1084"&gt; /u/Party-Log-1084 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T15:53:25+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t00fkh</id>
-    <title>Terminal Bench score for Mistral 3.5 Medium</title>
-    <updated>2026-04-30T15:57:25+00:00</updated>
-    <author>
-      <name>/u/Real_Ebb_7417</name>
-      <uri>https://old.reddit.com/user/Real_Ebb_7417</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt; &lt;img alt="Terminal Bench score for Mistral 3.5 Medium" src="https://preview.redd.it/bgrl55b6ocyg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=a52ada2a11dfeeb87bd3569a0f8b81cc7e00eb11" title="Terminal Bench score for Mistral 3.5 Medium" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So... there were a couple promising benchmark scores reported by mistralai in the model card for Mistral 3.5 Medium, BUT there wasn't the one that I usually care about the most, which is TerminalBench 2.0. So... since I was really curious how the new Mistral handles agentic stuff, I decided to benchmark it myself.&lt;/p&gt; &lt;p&gt;I didn't run TerminalBench 2.0, because I'm not crazy (usage would be biiiig), BUT I did run TBLite, which is a lighter/faster version of TerminalBench 2.0. The scores in this smaller variant don't correlate directly with TB2 scores, however the trend among models does (if a model does better than other model in TBLite, it would also do better at TerminalBench 2.0).&lt;/p&gt; &lt;p&gt;I did only one run, so it's not 100% accurate likely, however I decided to share the result here, since maybe someone is also curious, especially as Mistral Small 4 was... quite bad in terms of tool calling and agentic loops. Still... the result is below. I added a couple other models that have a TBLite score reported in the benchmark card + added SWEBench Verified scores for them and for GPT-5.4, Opus4.6 and GLM-5 (just to see comparison). Tbh. for it's size Mistral 3.5 Medium does really well and most of all is a big improvement when compared with previous mistralai models. (Hurray, I really cheer for Mistral)&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/bgrl55b6ocyg1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a3b9a87e4bce2b1b3cb7787c377c5387a7c0a67e"&gt;https://preview.redd.it/bgrl55b6ocyg1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a3b9a87e4bce2b1b3cb7787c377c5387a7c0a67e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Real_Ebb_7417"&gt; /u/Real_Ebb_7417 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T15:57:25+00:00</published>
+    <published>2026-04-30T17:20:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1sznc6q</id>
@@ -112,17 +60,17 @@
     <published>2026-04-30T05:51:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1szxjqe</id>
-    <title>Qwen3.6 27B seems struggling at 90k on 128k ctx windows</title>
-    <updated>2026-04-30T14:23:26+00:00</updated>
+    <id>t3_1szpevg</id>
+    <title>A conversation about local LLMs with a senior government AI leader</title>
+    <updated>2026-04-30T07:48:28+00:00</updated>
     <author>
-      <name>/u/dodistyo</name>
-      <uri>https://old.reddit.com/user/dodistyo</uri>
+      <name>/u/JackStrawWitchita</name>
+      <uri>https://old.reddit.com/user/JackStrawWitchita</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have RX 7900 XTX, running Qwen3.6 27B Q4_K_XL. got 400ish pp and 30s tps. every work below 64k is incredible and it spits out good quality code.&lt;/p&gt; &lt;p&gt;But i tried to push it further to work on kinda complex devops related work and it fail at tool calling at 90k ctx.&lt;/p&gt; &lt;p&gt;I use opencode as my harness and here is the llama.cpp command i ran:&lt;/p&gt; &lt;p&gt;&lt;em&gt;Ilama-server -ctv q8_0 -ctk q8_0 -c 128000 --temp 0.6 --top-p 0.95 --top-k 20 --repeat-penalty 1.0 --fit on.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;what's your experience?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dodistyo"&gt; /u/dodistyo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm a local LLM solutions developer and I've recently had the opportunity to spend an hour talking to the head of AI technology for one of the smaller European governments. His remit is to promote AI within the country's business community and champion local AI research and projects and so on. &lt;/p&gt; &lt;p&gt;We connected on a technical level as he's an older guy (as am I) and we have similar technical backgrounds and worked in similar global IT organisations. He grilled me on the AI products I'm developing for clients and went quite deeply into the queries so he is obviously much more knowledgeable than just a government official. This is his first government appointment and is very experienced in the tech industry. &lt;/p&gt; &lt;p&gt;But what struck me was his lack of awareness of local AI. Yes, he understood that people can d/l LLMs and run them but he had no awareness of why someone or a business would want to do this. When I explained issues of data sovereignty, he countered with ‘Copilot data protection agreements’. When I explained that legal firms are building their own local AI stacks because they've read the big AI tech agreements and don't like them and are therefore securing their own data via local LLM solutions. &lt;/p&gt; &lt;p&gt;We also talked about API cost risk. If a business builds AI stacks into their business reliant on API calls to OpenAI/Anthropic etc then they've created a business risk as those companies can raise API costs dramatically and business are stuck. Not to mention how frontier model companies are constantly changing their model access due to whatever internal issues of usage load or model changes and more so there's no consistency - send the same prompt via API twice and you'll like get two different answer - which is a business concern. &lt;/p&gt; &lt;p&gt;He also seemingly had no awareness of the backlash against big AI tech companies, how many organisations don't want to do business with companies with different values and politics as them, not to mention the green issues. I explained how local LLMs can address those issues for specific use cases to get more companies working with AI. &lt;/p&gt; &lt;p&gt;The conversation was good natured and he was keen to understand. But I was disappointed at how little understanding of how local LLMs can be used as an option for many business use cases. He just seems to be focused on getting businesses to send API calls to the big US AI firms. And he kept mentioning Copilot which made me cringe. &lt;/p&gt; &lt;p&gt;I think we, as local LLM users, need to promote local LLMs as serious business solutions for specific use cases. If we can get AI leaders to start mentioning local LLMs as a possible solution, we can perhaps gain more investment in this solution stack as a viable alternative to big AI. &lt;/p&gt; &lt;p&gt;Are any of you speaking to senior government people about local LLMs? What kind of conversations are you having? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JackStrawWitchita"&gt; /u/JackStrawWitchita &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szpevg/a_conversation_about_local_llms_with_a_senior/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T14:23:26+00:00</published>
+    <published>2026-04-30T07:48:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1szajgm</id>
@@ -136,6 +84,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szajgm/devs_using_qwen_27b_seriously_whats_your_take/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-29T20:24:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t00fkh</id>
+    <title>Terminal Bench score for Mistral 3.5 Medium</title>
+    <updated>2026-04-30T15:57:25+00:00</updated>
+    <author>
+      <name>/u/Real_Ebb_7417</name>
+      <uri>https://old.reddit.com/user/Real_Ebb_7417</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt; &lt;img alt="Terminal Bench score for Mistral 3.5 Medium" src="https://preview.redd.it/bgrl55b6ocyg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=a52ada2a11dfeeb87bd3569a0f8b81cc7e00eb11" title="Terminal Bench score for Mistral 3.5 Medium" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So... there were a couple promising benchmark scores reported by mistralai in the model card for Mistral 3.5 Medium, BUT there wasn't the one that I usually care about the most, which is TerminalBench 2.0. So... since I was really curious how the new Mistral handles agentic stuff, I decided to benchmark it myself.&lt;/p&gt; &lt;p&gt;I didn't run TerminalBench 2.0, because I'm not crazy (usage would be biiiig), BUT I did run TBLite, which is a lighter/faster version of TerminalBench 2.0. The scores in this smaller variant don't correlate directly with TB2 scores, however the trend among models does (if a model does better than other model in TBLite, it would also do better at TerminalBench 2.0).&lt;/p&gt; &lt;p&gt;I did only one run, so it's not 100% accurate likely, however I decided to share the result here, since maybe someone is also curious, especially as Mistral Small 4 was... quite bad in terms of tool calling and agentic loops. Still... the result is below. I added a couple other models that have a TBLite score reported in the benchmark card + added SWEBench Verified scores for them and for GPT-5.4, Opus4.6 and GLM-5 (just to see comparison). Tbh. for it's size Mistral 3.5 Medium does really well and most of all is a big improvement when compared with previous mistralai models. (Hurray, I really cheer for Mistral)&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/bgrl55b6ocyg1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a3b9a87e4bce2b1b3cb7787c377c5387a7c0a67e"&gt;https://preview.redd.it/bgrl55b6ocyg1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a3b9a87e4bce2b1b3cb7787c377c5387a7c0a67e&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Real_Ebb_7417"&gt; /u/Real_Ebb_7417 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00fkh/terminal_bench_score_for_mistral_35_medium/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T15:57:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1szxjqe</id>
+    <title>Qwen3.6 27B seems struggling at 90k on 128k ctx windows</title>
+    <updated>2026-04-30T14:23:26+00:00</updated>
+    <author>
+      <name>/u/dodistyo</name>
+      <uri>https://old.reddit.com/user/dodistyo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have RX 7900 XTX, running Qwen3.6 27B Q4_K_XL. got 400ish pp and 30s tps. every work below 64k is incredible and it spits out good quality code.&lt;/p&gt; &lt;p&gt;But i tried to push it further to work on kinda complex devops related work and it fail at tool calling at 90k ctx.&lt;/p&gt; &lt;p&gt;I use opencode as my harness and here is the llama.cpp command i ran:&lt;/p&gt; &lt;p&gt;&lt;em&gt;Ilama-server -ctv q8_0 -ctk q8_0 -c 128000 --temp 0.6 --top-p 0.95 --top-k 20 --repeat-penalty 1.0 --fit on.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;what's your experience?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dodistyo"&gt; /u/dodistyo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szxjqe/qwen36_27b_seems_struggling_at_90k_on_128k_ctx/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T14:23:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1szziv0</id>
@@ -164,17 +138,17 @@
     <published>2026-04-29T22:31:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t00dmk</id>
-    <title>New Stealth Model : Owl Alpha</title>
-    <updated>2026-04-30T15:55:32+00:00</updated>
+    <id>t3_1t00bgr</id>
+    <title>Is local AI the actual endgame? (M5 Mac Studio vs. Dual 3090s)</title>
+    <updated>2026-04-30T15:53:25+00:00</updated>
     <author>
-      <name>/u/Kingwolf4</name>
-      <uri>https://old.reddit.com/user/Kingwolf4</uri>
+      <name>/u/Party-Log-1084</name>
+      <uri>https://old.reddit.com/user/Party-Log-1084</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What model do u think this is?&lt;/p&gt; &lt;p&gt;I checked it on the china question, and it refuses to answer them. So definitely a chinese model. &lt;/p&gt; &lt;p&gt;Has 1 million context&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kingwolf4"&gt; /u/Kingwolf4 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I currently use Gemini and NotebookLM a lot, but I really want to transition to local AI for things like privacy and uncensored models. Before dropping serious cash though, I have to ask: is local AI the actual future for power users, or will the big cloud models just permanently outpace us? Or is there something else i didnt even know about coming soon?&lt;/p&gt; &lt;p&gt;If you were to invest long-term right now, what is the smartest move? Should I wait for an M5 Mac Studio Ultra, even if it costs 4 to 7k, just for the massive unified memory? Or is it better to build a classic setup with two used RTX 3090s? I've got an old Dell Precision T5810 with Intel Xeon E5-2680 v4 and 128GB Ram.&lt;/p&gt; &lt;p&gt;Or is there a third option: just wait? Software and quantization seem to be improving so fast. Are we reaching a point where we can run amazing models on much cheaper hardware soon anyway?&lt;/p&gt; &lt;p&gt;Is it worth the heavy hardware investment right now? Would love to hear your realistic thoughts.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Party-Log-1084"&gt; /u/Party-Log-1084 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00bgr/is_local_ai_the_actual_endgame_m5_mac_studio_vs/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T15:55:32+00:00</published>
+    <published>2026-04-30T15:53:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1sz0lyk</id>
@@ -203,6 +177,19 @@
     <published>2026-04-30T14:49:18+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t00dmk</id>
+    <title>New Stealth Model : Owl Alpha</title>
+    <updated>2026-04-30T15:55:32+00:00</updated>
+    <author>
+      <name>/u/Kingwolf4</name>
+      <uri>https://old.reddit.com/user/Kingwolf4</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What model do u think this is?&lt;/p&gt; &lt;p&gt;I checked it on the china question, and it refuses to answer them. So definitely a chinese model. &lt;/p&gt; &lt;p&gt;Has 1 million context&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kingwolf4"&gt; /u/Kingwolf4 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00dmk/new_stealth_model_owl_alpha/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T15:55:32+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1sztb22</id>
     <title>Can't replicate Reddit numbers with Qwen 27B on a 3090TI.</title>
     <updated>2026-04-30T11:26:18+00:00</updated>
@@ -229,19 +216,6 @@
     <published>2026-04-30T05:57:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t00d2m</id>
-    <title>Are Qwen 3.6 27B and 35B making other ~30B models obsolete?</title>
-    <updated>2026-04-30T15:54:59+00:00</updated>
-    <author>
-      <name>/u/nikhilprasanth</name>
-      <uri>https://old.reddit.com/user/nikhilprasanth</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Have Qwen 3.6 27B and Qwen 3.6 35B basically made most of the older ~30B models irrelevant?&lt;/p&gt; &lt;p&gt;They seem to beat stuff like Qwen coder 30B, GPT OSS 20B, Gemma models, especially for coding and agent workflows.&lt;/p&gt; &lt;p&gt;At this point I’m not really finding a reason to keep the older ones around.&lt;/p&gt; &lt;p&gt;Anyone still using them for something specific?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nikhilprasanth"&gt; /u/nikhilprasanth &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T15:54:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1szwjrp</id>
     <title>PSA: llama-swap released a new grouping feature, matrix, allowing you to fine tune which models can run together</title>
     <updated>2026-04-30T13:45:50+00:00</updated>
@@ -253,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szwjrp/psa_llamaswap_released_a_new_grouping_feature/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-30T13:45:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t00d2m</id>
+    <title>Are Qwen 3.6 27B and 35B making other ~30B models obsolete?</title>
+    <updated>2026-04-30T15:54:59+00:00</updated>
+    <author>
+      <name>/u/nikhilprasanth</name>
+      <uri>https://old.reddit.com/user/nikhilprasanth</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Have Qwen 3.6 27B and Qwen 3.6 35B basically made most of the older ~30B models irrelevant?&lt;/p&gt; &lt;p&gt;They seem to beat stuff like Qwen coder 30B, GPT OSS 20B, Gemma models, especially for coding and agent workflows.&lt;/p&gt; &lt;p&gt;At this point I’m not really finding a reason to keep the older ones around.&lt;/p&gt; &lt;p&gt;Anyone still using them for something specific?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nikhilprasanth"&gt; /u/nikhilprasanth &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t00d2m/are_qwen_36_27b_and_35b_making_other_30b_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T15:54:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1szv6z0</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szrbub/qwenscope_official_sparse_autoencoders_saes_for/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-30T09:40:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t038g7</id>
+    <title>AMD in-house ryzen 395 box coming in June</title>
+    <updated>2026-04-30T17:37:23+00:00</updated>
+    <author>
+      <name>/u/1ncehost</name>
+      <uri>https://old.reddit.com/user/1ncehost</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t038g7/amd_inhouse_ryzen_395_box_coming_in_june/"&gt; &lt;img alt="AMD in-house ryzen 395 box coming in June" src="https://preview.redd.it/rlwfreg56dyg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=28bfb7d54150fa5f85ec929d66c33ef811665e8b" title="AMD in-house ryzen 395 box coming in June" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Don't know if the date was released yet, but this was just said a few moments ago at AMD AI Dev Day. No word on price, but I think its made by Lenovo based on the plug earlier in the presentation.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/1ncehost"&gt; /u/1ncehost &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rlwfreg56dyg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t038g7/amd_inhouse_ryzen_395_box_coming_in_june/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t038g7/amd_inhouse_ryzen_395_box_coming_in_june/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-04-30T17:37:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1szwi1d</id>
