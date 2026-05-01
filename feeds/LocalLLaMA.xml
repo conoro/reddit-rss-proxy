@@ -2,49 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-01T04:48:44+00:00</updated>
+  <updated>2026-05-01T06:05:39+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1sztb22</id>
-    <title>Can't replicate Reddit numbers with Qwen 27B on a 3090TI.</title>
-    <updated>2026-04-30T11:26:18+00:00</updated>
+    <id>t3_1t09hbr</id>
+    <title>Got hipfire running in Docker on my RX 7900 XTX alongside llamacpp</title>
+    <updated>2026-04-30T21:23:11+00:00</updated>
     <author>
-      <name>/u/YourNightmar31</name>
-      <uri>https://old.reddit.com/user/YourNightmar31</uri>
+      <name>/u/AgentErgoloid</name>
+      <uri>https://old.reddit.com/user/AgentErgoloid</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I feel like i'm going insane. I see people here posting 30 - 100+ tok/s (100+ being with speculative decoding) on a 3090 with Qwen 3.6 27B. I'm trying to replicate this but my performance numbers are nowhere near that.&lt;/p&gt; &lt;p&gt;I have tried llama.cpp with Unsloth's Q4XL and Q4_K_M GGUF's. On that i got like 10 tok/s at 50k context. I also tried using ik_llama.cpp with this smaller gguf: &lt;a href="https://huggingface.co/sokann/Qwen3.6-27B-GGUF-5.076bpw"&gt;https://huggingface.co/sokann/Qwen3.6-27B-GGUF-5.076bpw&lt;/a&gt; which is about 1GB smaller than Unlosth's GGUF and with that combination i get about 18-19 tok/s on 50k context. (Edit: Everything in VRAM with both setups by the way)&lt;/p&gt; &lt;p&gt;I put my ik_llama.cpp logs into Claude Sonnet 4.6 and it's telling me this:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Look at the two compute buffers in your log:&lt;/p&gt; &lt;p&gt;&lt;code&gt;CUDA0 compute buffer size = 2020.00 MiB ← GPU&lt;/code&gt;&lt;br /&gt; &lt;code&gt;CUDA_Host compute buffer size = 552.05 MiB ← CPU&lt;/code&gt;&lt;br /&gt; &lt;code&gt;graph splits = 2&lt;/code&gt;&lt;/p&gt; &lt;p&gt;**`graph splits = 2` means every single generated token requires:**&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;**Sync to CPU** → CPU computes the SSM recurrence state update (552 MiB of CPU-side work)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Sync back to GPU → GPU finishes&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The `CUDA_Host compute buffer` is not just memory for data transfer — it's an actual compute buffer where the CPU executes operations at every token step. The SSM state recurrence (`ssm_d_state = 128`, `ssm_d_inner = 6144`) mathematically cannot be expressed as a static CUDA graph and must be done sequentially on the CPU side.&lt;/p&gt; &lt;p&gt;This is why `HAVE_FANCY_SIMD` matters: that 552 MiB of CPU work per token uses dequantization kernels (`iq4_ks`, `q6_0`) that are dramatically faster with AVX-VNNI/AVX-512. Without them, the CPU portion is the bottleneck, not the GPU.&lt;/p&gt; &lt;p&gt;The model is &amp;quot;fully on GPU&amp;quot; in terms of **weights storage**, but **not** in terms of **computation at generation time**. This is a fundamental property of the Qwen3.6 hybrid SSM architecture — it can't be fixed with any flag or placement trick.&lt;/p&gt; &lt;p&gt;You have an i9-9900K — that's a Coffee Lake (2018) CPU. It supports AVX2 and FMA but not AVX-512 and not AVX-VNNI (those came with Ice Lake / Alder Lake and later). So yes, confirmed — your CPU architecturally cannot run the HAVE_FANCY_SIMD path.&lt;/p&gt; &lt;p&gt;The 18-19 t/s you're getting is the realistic ceiling for this CPU + SSM hybrid model combination.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Can someone confirm if this is accurate or is it gaslighting me? All the numbers i see online are higher because those people are using newer CPU's?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/YourNightmar31"&gt; /u/YourNightmar31 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sztb22/cant_replicate_reddit_numbers_with_qwen_27b_on_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sztb22/cant_replicate_reddit_numbers_with_qwen_27b_on_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sztb22/cant_replicate_reddit_numbers_with_qwen_27b_on_a/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been dealing with long context failures on Qwen3.6 27B and stumbled onto &lt;a href="https://github.com/Kaden-Schutt/hipfire"&gt;hipfire&lt;/a&gt;. Spent an evening dockerizing it so it runs alongside an existing llamacpp stack without touching anything.&lt;/p&gt; &lt;p&gt;Running Qwen3.6 27B MQ4 on a 7900 XTX. The TriAttention sidecar and DFlash draft both load correctly per the logs. ~40 tok/s AR, haven't confirmed DFlash is actually engaging yet. Still early but it responds correctly and the API is clean.&lt;/p&gt; &lt;p&gt;One thing that tripped me up: hipfire isn't a single binary you just run. The CLI is a Bun/TypeScript HTTP server that spawns the engine as a subprocess. Relevant if you're trying to dockerize it.&lt;/p&gt; &lt;p&gt;If there's interest I'll put the Dockerfile and compose setup on GitHub tomorrow. Happy to answer questions in the meantime.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AgentErgoloid"&gt; /u/AgentErgoloid &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T11:26:18+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t0j1cq</id>
-    <title>Pocket TTS Multilingual Update</title>
-    <updated>2026-05-01T04:28:03+00:00</updated>
-    <author>
-      <name>/u/RowGroundbreaking982</name>
-      <uri>https://old.reddit.com/user/RowGroundbreaking982</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone. &lt;/p&gt; &lt;p&gt;Pocket TTS finally released their multilingual model.&lt;br /&gt; It support 6 language English, French, Spanish, German, Italian, Portuguese.&lt;br /&gt; And each language is separated model.&lt;/p&gt; &lt;p&gt;I'm making modification for the onnx exporter to support multilingual version.&lt;br /&gt; It based on KevinAHM onnx exporter and VolgaGerm Pocket TTS cpp optimization.&lt;br /&gt; It also selective quantized the nodes to int8 for much faster and stable generation. &lt;/p&gt; &lt;p&gt;My initial benchmark with int8 model:&lt;br /&gt; AMD Ryzen 9 7950X: latency around 30ms, generation speed up to 13x realtime.&lt;br /&gt; Helio G99: latency around 100ms, generation speed 2.5x realtime. &lt;/p&gt; &lt;p&gt;Here is the exporter script : &lt;a href="https://github.com/lookbe/pocket-tts-onnx-export"&gt;Pocket TTS ONNX&lt;/a&gt; &lt;/p&gt; &lt;p&gt;And I have sample runner in unity engine : &lt;a href="https://github.com/lookbe/pocket-tts-unity"&gt;Pocket TTS Unity&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you want easy way to test it, I already have Android version available.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RowGroundbreaking982"&gt; /u/RowGroundbreaking982 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-01T04:28:03+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1sznfue</id>
-    <title>Where the goblins came from</title>
-    <updated>2026-04-30T05:57:12+00:00</updated>
-    <author>
-      <name>/u/Successful_Bowl2564</name>
-      <uri>https://old.reddit.com/user/Successful_Bowl2564</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openai.com/index/where-the-goblins-came-from/"&gt;https://openai.com/index/where-the-goblins-came-from/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Something actually good from OpenAI.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Successful_Bowl2564"&gt; /u/Successful_Bowl2564 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1sznfue/where_the_goblins_came_from/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T05:57:12+00:00</published>
+    <published>2026-04-30T21:23:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1t00dmk</id>
@@ -71,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0g1tg/qwen_36_27b_neo_code_q4_km_i_matrix_is_badass/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-01T02:05:29+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t09hbr</id>
-    <title>Got hipfire running in Docker on my RX 7900 XTX alongside llamacpp</title>
-    <updated>2026-04-30T21:23:11+00:00</updated>
-    <author>
-      <name>/u/AgentErgoloid</name>
-      <uri>https://old.reddit.com/user/AgentErgoloid</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been dealing with long context failures on Qwen3.6 27B and stumbled onto &lt;a href="https://github.com/Kaden-Schutt/hipfire"&gt;hipfire&lt;/a&gt;. Spent an evening dockerizing it so it runs alongside an existing llamacpp stack without touching anything.&lt;/p&gt; &lt;p&gt;Running Qwen3.6 27B MQ4 on a 7900 XTX. The TriAttention sidecar and DFlash draft both load correctly per the logs. ~40 tok/s AR, haven't confirmed DFlash is actually engaging yet. Still early but it responds correctly and the API is clean.&lt;/p&gt; &lt;p&gt;One thing that tripped me up: hipfire isn't a single binary you just run. The CLI is a Bun/TypeScript HTTP server that spawns the engine as a subprocess. Relevant if you're trying to dockerize it.&lt;/p&gt; &lt;p&gt;If there's interest I'll put the Dockerfile and compose setup on GitHub tomorrow. Happy to answer questions in the meantime.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AgentErgoloid"&gt; /u/AgentErgoloid &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t09hbr/got_hipfire_running_in_docker_on_my_rx_7900_xtx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-04-30T21:23:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1szwjrp</id>
@@ -125,6 +86,45 @@
     <published>2026-04-30T07:38:54+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t0jd95</id>
+    <title>Poor man's guide to servicing a used RTX 3090 for local LLM inference</title>
+    <updated>2026-05-01T04:45:01+00:00</updated>
+    <author>
+      <name>/u/canred</name>
+      <uri>https://old.reddit.com/user/canred</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0jd95/poor_mans_guide_to_servicing_a_used_rtx_3090_for/"&gt; &lt;img alt="Poor man's guide to servicing a used RTX 3090 for local LLM inference" src="https://preview.redd.it/glwl9427hgyg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=85b335bb3ebfd46e586b1f9eb2ab33f44b8b2d50" title="Poor man's guide to servicing a used RTX 3090 for local LLM inference" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Wrote up the whole process with disassembly photos and HWiNFO before/after data. Hope it saves someone some headaches.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/glwl9427hgyg1.png?width=1678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=8e0755ccd9be456e2e65a96613edb0bce573991b"&gt;https://preview.redd.it/glwl9427hgyg1.png?width=1678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=8e0755ccd9be456e2e65a96613edb0bce573991b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/cubebecu/writeups/tree/main/gpu-service"&gt;https://github.com/cubebecu/writeups/tree/main/gpu-service&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/canred"&gt; /u/canred &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0jd95/poor_mans_guide_to_servicing_a_used_rtx_3090_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0jd95/poor_mans_guide_to_servicing_a_used_rtx_3090_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0jd95/poor_mans_guide_to_servicing_a_used_rtx_3090_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-01T04:45:01+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t0k6fj</id>
+    <title>Running llama.cpp on Snapdragon Hexagon NPU seems promising</title>
+    <updated>2026-05-01T05:26:05+00:00</updated>
+    <author>
+      <name>/u/Ok_Warning2146</name>
+      <uri>https://old.reddit.com/user/Ok_Warning2146</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/snapdragon/README.md"&gt;https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/snapdragon/README.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I have an Oneplus 12 with Snapdragon 8 Gen 3. I followed the above README to cross-compile llama.cpp on Ubuntu and then copy to the Termux directory on the phone.&lt;/p&gt; &lt;p&gt;It seems like llama.cpp's Hexagon backend is highly supported by Qualcomm with many PRs made by Qualcomm employees.&lt;/p&gt; &lt;p&gt;I am getting 8t/s pp and 4.5t/s tg with gemma-3-12b-it-qat-Q4_0 and 20t/s pp 12.5t/s tg with gemma-3-4b-it-qat-Q4_0.&lt;/p&gt; &lt;p&gt;Speed is about the same as using the SD8G3's CPU but it is not hot at all and the tg speed is good enough for simple Q&amp;amp;As.&lt;/p&gt; &lt;p&gt;The limitations now is that it only supports Q4_0, IQ4_NL, MXFP4, Q8_0 and F32 ggufs. It also doesn't support KV cache quantization. While it supports chips as old as Snapdragon 888, since only SD8G2 or newer SoCs has Tensor module for LLMs, so probably shouldn't bother with it if your chip is too old.&lt;/p&gt; &lt;p&gt;Since Hexagon NPU can only address 4GB RAM, if you your model plus kv cache is too big, you need to set an environment variable to open more than one NPU device. Here is an example:&lt;/p&gt; &lt;p&gt;LD_LIBRARY_PATH=./lib:/vendor/lib64 ADSP_LIBRARY_PATH=./lib GGML_HEXAGON_NDEV=2 ./bin/llama-completion -m /sdcard/gguf/gemma-3-12b-it-qat-Q4_0.gguf -sys 'You are a helpful AI assistant' -ngl 99 --device HTP0,HTP1&lt;/p&gt; &lt;p&gt;My SD8G3's NPU has 34 INT8 TOPS and memory bandwidth of 76.8GB/s. Their latest product X2 Elite Extreme has 80 INT8 TOPS and 228GB/s. On the other hand, Nvidia 3090 has 248 INT8 TOPS and 936GB/s. So probably two or three gens to catch up?&lt;/p&gt; &lt;p&gt;PS By the way, does anyone own a SD 8 Elite Gen 5 Smartphone or a X2 Elite Extreme Laptop? If so, can you report your inference performance numbers? Supposedly, they can address more than 4GB RAM such that multiple HTP devices are not needed, is this supported by llama.cpp now?&lt;/p&gt; &lt;p&gt;PPS The Hexagon build supposedly is an OpenCL build also. Does anyone know how to offload LLMs to the Adreno GPU only? If I omit --device option, it seems to offload to both GPU and NPU without being any faster. Also, is it possible to use CPU, GPU and NPU together for maximum performance (albeit an ice pack might be needed)?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Warning2146"&gt; /u/Ok_Warning2146 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0k6fj/running_llamacpp_on_snapdragon_hexagon_npu_seems/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0k6fj/running_llamacpp_on_snapdragon_hexagon_npu_seems/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0k6fj/running_llamacpp_on_snapdragon_hexagon_npu_seems/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-01T05:26:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t0j1cq</id>
+    <title>Pocket TTS Multilingual Update</title>
+    <updated>2026-05-01T04:28:03+00:00</updated>
+    <author>
+      <name>/u/RowGroundbreaking982</name>
+      <uri>https://old.reddit.com/user/RowGroundbreaking982</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone. &lt;/p&gt; &lt;p&gt;Pocket TTS finally released their multilingual model.&lt;br /&gt; It support 6 language English, French, Spanish, German, Italian, Portuguese.&lt;br /&gt; And each language is separated model.&lt;/p&gt; &lt;p&gt;I'm making modification for the onnx exporter to support multilingual version.&lt;br /&gt; It based on KevinAHM onnx exporter and VolgaGerm Pocket TTS cpp optimization.&lt;br /&gt; It also selective quantized the nodes to int8 for much faster and stable generation. &lt;/p&gt; &lt;p&gt;My initial benchmark with int8 model:&lt;br /&gt; AMD Ryzen 9 7950X: latency around 30ms, generation speed up to 13x realtime.&lt;br /&gt; Helio G99: latency around 100ms, generation speed 2.5x realtime. &lt;/p&gt; &lt;p&gt;Here is the exporter script : &lt;a href="https://github.com/lookbe/pocket-tts-onnx-export"&gt;Pocket TTS ONNX&lt;/a&gt; &lt;/p&gt; &lt;p&gt;And I have sample runner in unity engine : &lt;a href="https://github.com/lookbe/pocket-tts-unity"&gt;Pocket TTS Unity&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you want easy way to test it, I already have Android version available.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RowGroundbreaking982"&gt; /u/RowGroundbreaking982 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0j1cq/pocket_tts_multilingual_update/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-01T04:28:03+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t09anw</id>
     <title>Mistral medium 3.5 128B, MLX 4bit, ~70 GB</title>
     <updated>2026-04-30T21:15:54+00:00</updated>
@@ -138,19 +138,6 @@
     <published>2026-04-30T21:15:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t0fg3y</id>
-    <title>What exactly does Pi harness mean?</title>
-    <updated>2026-05-01T01:38:06+00:00</updated>
-    <author>
-      <name>/u/FrozenFishEnjoyer</name>
-      <uri>https://old.reddit.com/user/FrozenFishEnjoyer</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone. I've been reading through this sub for a long time trying to understand what exactly this harness thing is.&lt;/p&gt; &lt;p&gt;The most common word people use here is &amp;quot;Pi Harness&amp;quot;, but I'm not sure what exactly it is. I think a lot of people new to local LLMs have this question. &lt;/p&gt; &lt;p&gt;To those who use this Pi Harness, can you explain in the comments what exactly it is? How does it work?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FrozenFishEnjoyer"&gt; /u/FrozenFishEnjoyer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-01T01:38:06+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1szv6z0</id>
     <title>Actual comparison between locally ran Qwen-3.6-27B and proprietary models</title>
     <updated>2026-04-30T12:51:17+00:00</updated>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1szv6z0/actual_comparison_between_locally_ran_qwen3627b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-30T12:51:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t0fg3y</id>
+    <title>What exactly does Pi harness mean?</title>
+    <updated>2026-05-01T01:38:06+00:00</updated>
+    <author>
+      <name>/u/FrozenFishEnjoyer</name>
+      <uri>https://old.reddit.com/user/FrozenFishEnjoyer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone. I've been reading through this sub for a long time trying to understand what exactly this harness thing is.&lt;/p&gt; &lt;p&gt;The most common word people use here is &amp;quot;Pi Harness&amp;quot;, but I'm not sure what exactly it is. I think a lot of people new to local LLMs have this question. &lt;/p&gt; &lt;p&gt;To those who use this Pi Harness, can you explain in the comments what exactly it is? How does it work?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FrozenFishEnjoyer"&gt; /u/FrozenFishEnjoyer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0fg3y/what_exactly_does_pi_harness_mean/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-01T01:38:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1t0bkaf</id>
@@ -216,19 +216,6 @@
     <published>2026-04-30T22:24:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t0i18e</id>
-    <title>nvidia/Gemma-4-26B-A4B-NVFP4</title>
-    <updated>2026-05-01T03:37:56+00:00</updated>
-    <author>
-      <name>/u/reto-wyss</name>
-      <uri>https://old.reddit.com/user/reto-wyss</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"&gt; &lt;img alt="nvidia/Gemma-4-26B-A4B-NVFP4" src="https://external-preview.redd.it/CGcfUhvwRLpyHYO4eOqLuv3IlwTi2sxkm_o6ea3Z-h4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9be3d061c180bd6e8bc706924973454f3701e402" title="nvidia/Gemma-4-26B-A4B-NVFP4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;ul&gt; &lt;li&gt;Can confirm it works on a 5090, with 80% allocation (of 32gb) I got around 50k context.&lt;/li&gt; &lt;li&gt;It's 18.8GB&lt;/li&gt; &lt;/ul&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Benchmark&lt;/th&gt; &lt;th&gt;Baseline (Full Precision)&lt;/th&gt; &lt;th&gt;NVFP4&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;GPQA Diamond&lt;/td&gt; &lt;td&gt;80.30%&lt;/td&gt; &lt;td&gt;79.90%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;AIME 2025&lt;/td&gt; &lt;td&gt;88.95%&lt;/td&gt; &lt;td&gt;90.00%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;MMLU Pro&lt;/td&gt; &lt;td&gt;85.00%&lt;/td&gt; &lt;td&gt;84.80%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;LiveCodeBench (pass@1)&lt;/td&gt; &lt;td&gt;80.50%&lt;/td&gt; &lt;td&gt;79.80%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;IFBench&lt;/td&gt; &lt;td&gt;77.77%&lt;/td&gt; &lt;td&gt;78.1%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;IFEval&lt;/td&gt; &lt;td&gt;96.60%&lt;/td&gt; &lt;td&gt;96.40%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/reto-wyss"&gt; /u/reto-wyss &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/nvidia/Gemma-4-26B-A4B-NVFP4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-01T03:37:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1szwi1d</id>
     <title>DeepSeek released 'Thinking-with-Visual-Primitives' framework</title>
     <updated>2026-04-30T13:43:54+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t07su1/followup_qwen3627b_on_1_rtx_3090_pushing_to_218k/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-04-30T20:20:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t0i18e</id>
+    <title>nvidia/Gemma-4-26B-A4B-NVFP4</title>
+    <updated>2026-05-01T03:37:56+00:00</updated>
+    <author>
+      <name>/u/reto-wyss</name>
+      <uri>https://old.reddit.com/user/reto-wyss</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"&gt; &lt;img alt="nvidia/Gemma-4-26B-A4B-NVFP4" src="https://external-preview.redd.it/CGcfUhvwRLpyHYO4eOqLuv3IlwTi2sxkm_o6ea3Z-h4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9be3d061c180bd6e8bc706924973454f3701e402" title="nvidia/Gemma-4-26B-A4B-NVFP4" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;ul&gt; &lt;li&gt;Can confirm it works on a 5090, with 80% allocation (of 32gb) I got around 50k context.&lt;/li&gt; &lt;li&gt;It's 18.8GB&lt;/li&gt; &lt;/ul&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Benchmark&lt;/th&gt; &lt;th&gt;Baseline (Full Precision)&lt;/th&gt; &lt;th&gt;NVFP4&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;GPQA Diamond&lt;/td&gt; &lt;td&gt;80.30%&lt;/td&gt; &lt;td&gt;79.90%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;AIME 2025&lt;/td&gt; &lt;td&gt;88.95%&lt;/td&gt; &lt;td&gt;90.00%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;MMLU Pro&lt;/td&gt; &lt;td&gt;85.00%&lt;/td&gt; &lt;td&gt;84.80%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;LiveCodeBench (pass@1)&lt;/td&gt; &lt;td&gt;80.50%&lt;/td&gt; &lt;td&gt;79.80%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;IFBench&lt;/td&gt; &lt;td&gt;77.77%&lt;/td&gt; &lt;td&gt;78.1%&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;IFEval&lt;/td&gt; &lt;td&gt;96.60%&lt;/td&gt; &lt;td&gt;96.40%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/reto-wyss"&gt; /u/reto-wyss &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/nvidia/Gemma-4-26B-A4B-NVFP4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t0i18e/nvidiagemma426ba4bnvfp4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-01T03:37:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1t06y43</id>
