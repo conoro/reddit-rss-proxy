@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-04T15:27:38+00:00</updated>
+  <updated>2026-05-04T16:14:10+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1t32012</id>
-    <title>file-search-on — content-type-aware file search as an MCP server</title>
-    <updated>2026-05-04T00:13:37+00:00</updated>
-    <author>
-      <name>/u/richardwooding</name>
-      <uri>https://old.reddit.com/user/richardwooding</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just shipped the first open-source release of &lt;a href="https://github.com/richardwooding/file-search-on"&gt;file-search-on&lt;/a&gt;. It's a CLI that walks a directory and matches files against a &lt;a href="https://github.com/google/cel-spec"&gt;CEL&lt;/a&gt; expression evaluated over per-file metadata. &lt;strong&gt;&lt;em&gt;Same binary runs as an MCP server.&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo&lt;/strong&gt;: &lt;a href="https://github.com/richardwooding/file-search-on"&gt;richardwooding/file-search-on&lt;/a&gt; &lt;strong&gt;Tested with&lt;/strong&gt;: Claude Desktop (stdio) &lt;strong&gt;Transport(s)&lt;/strong&gt;: stdio, Streamable HTTP (2025-03-26), HTTP+SSE (2024-11-05, kept for back-compat) &lt;strong&gt;Spec version&lt;/strong&gt;: latest via the &lt;a href="https://github.com/modelcontextprotocol/go-sdk"&gt;official Go SDK&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;What it does&lt;/h1&gt; &lt;p&gt;Two tools:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;search&lt;/code&gt; — runs a CEL expression against a directory tree. Returns matched paths plus the per-file attribute bundle (EXIF / front-matter / audio tags / video codec / etc.) so the agent can reason over results without re-walking.&lt;/li&gt; &lt;li&gt;&lt;code&gt;list_attributes&lt;/code&gt; — emits the full attribute schema: every CEL variable, every registered content-type family. Lets the agent compose expressions without prior knowledge of what's available.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&amp;#8203;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;// tools/call → search { &amp;quot;expression&amp;quot;: &amp;quot;is_image &amp;amp;&amp;amp; gps_lat &amp;gt; -34.1 &amp;amp;&amp;amp; gps_lat &amp;lt; -33.8 &amp;amp;&amp;amp; f_stop &amp;lt; 2.0&amp;quot;, &amp;quot;directory&amp;quot;: &amp;quot;/Users/me/Pictures&amp;quot;, &amp;quot;include_attributes&amp;quot;: true } &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Why an MCP server&lt;/h1&gt; &lt;p&gt;The CLI was already content-type-aware, but writing &lt;code&gt;is_image &amp;amp;&amp;amp; gps_lat &amp;gt; 51.4 &amp;amp;&amp;amp; gps_lat &amp;lt; 51.6 &amp;amp;&amp;amp; taken_at &amp;gt; timestamp(&amp;quot;2024-01-01T00:00:00Z&amp;quot;)&lt;/code&gt; from memory is tedious. With the MCP handshake the agent fetches the schema via &lt;code&gt;list_attributes&lt;/code&gt;, composes the expression itself, and runs it. &amp;quot;Find photos taken in Cape Town in 2024 with aperture wider than f/2&amp;quot; gets the agent writing the CEL.&lt;/p&gt; &lt;h1&gt;Interesting bits&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;One binary, three transports.&lt;/strong&gt; &lt;code&gt;file-search-on mcp --transport stdio|http|sse&lt;/code&gt;. Stdio is the default for Claude Desktop; HTTP is the modern Streamable HTTP per 2025-03-26; SSE is kept for back-compat with 2024-11-05 clients. Same tool handlers under the hood.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tool I/O schemas derived from Go struct tags.&lt;/strong&gt; The official Go SDK introspects &lt;code&gt;json:&lt;/code&gt; and &lt;code&gt;jsonschema:&lt;/code&gt; tags, so adding a tool is define-struct + write-handler + &lt;code&gt;mcp.AddTool(s, &amp;amp;mcp.Tool{...}, handler)&lt;/code&gt;. No hand-written JSON schema.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;In-memory transport in tests.&lt;/strong&gt; The SDK ships &lt;code&gt;mcp.NewInMemoryTransports()&lt;/code&gt; so handler tests don't need a subprocess. Whole MCP test suite runs in &amp;lt;50ms.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Permissions / blast radius&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Read-only.&lt;/strong&gt; No tool accepts a path to write. The server never modifies files.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Filesystem access is scoped to the&lt;/strong&gt; &lt;code&gt;directory&lt;/code&gt; &lt;strong&gt;argument&lt;/strong&gt; the caller passes. Behaves like &lt;code&gt;find&lt;/code&gt; with no &lt;code&gt;-delete&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;No network access&lt;/strong&gt; from either tool. CEL is hermetic; no &lt;code&gt;fetch()&lt;/code&gt; analogue.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;What's missing&lt;/h1&gt; &lt;p&gt;HDR colour-space metadata for video, subtitle tracks, codec-specific bitrate breakdowns — all scoped issues. Tested only against Claude Desktop so far — would love reports from Cline / Continue / Cursor / Goose users.&lt;/p&gt; &lt;p&gt;Feedback welcome — particularly on the &lt;code&gt;search&lt;/code&gt; tool's output shape (is the per-match attribute bundle the right granularity, or should attributes come back via a separate &lt;code&gt;read_attributes&lt;/code&gt; call?) and on whether &lt;code&gt;list_attributes&lt;/code&gt; would be more idiomatic as an MCP Resource than a Tool.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/richardwooding"&gt; /u/richardwooding &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t32012/filesearchon_contenttypeaware_file_search_as_an/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t32012/filesearchon_contenttypeaware_file_search_as_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t32012/filesearchon_contenttypeaware_file_search_as_an/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-04T00:13:37+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t2nsxo</id>
     <title>I added jcodemunch-mcp and GitNexus to my own retrieval benchmark. Three honest surprises.</title>
@@ -268,17 +255,17 @@
     <published>2026-05-04T15:00:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t3kig6</id>
-    <title>Launched api to mcp converter a week ago — 100 users already and still figuring out distribution?</title>
-    <updated>2026-05-04T15:10:18+00:00</updated>
+    <id>t3_1t3lkzb</id>
+    <title>Just published pixelcheck — built with Claude Code, optimized for Claude Code, now on the MCP registry (MIT)</title>
+    <updated>2026-05-04T15:47:59+00:00</updated>
     <author>
-      <name>/u/HeyItsSufya</name>
-      <uri>https://old.reddit.com/user/HeyItsSufya</uri>
+      <name>/u/waynelimx</name>
+      <uri>https://old.reddit.com/user/waynelimx</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It converts any OpenAPI spec into a working MCP server automatically.&lt;/p&gt; &lt;p&gt;One thing that actually helped my MCP server handle large APIs — grouping 100+ endpoints into 10 focused tools instead of dumping everything.&lt;/p&gt; &lt;p&gt;When APIs have 100+ endpoints, LLM tool selection breaks completely and starts picking the wrong tools&lt;/p&gt; &lt;p&gt;What brought you here when you were looking for MCP tools? Trying to understand where developers actually discover these things.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HeyItsSufya"&gt; /u/HeyItsSufya &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;Live on the registry → https://registry.modelcontextprotocol.io/v0.1/servers?search=pixelcheck Built it with Claude Code. Designed it for Claude Code. Whole project shipped in 4 months. 12 tools split into: - 5 primitives: see / click / type / extract / judge - 2 audit presets: audit_url, explore_url - 5 meta: list_personas, list_scenarios, get_last_report Stack: - Real Chromium via Playwright (not headless) - Local SQLite for plan cache + cross-session memory - 18 bundled personas × 17 countries × 6 script systems - Result Schema 1.2.0 with dual Ajv + Zod validation - 33 ADRs in /docs/decisions for design rationale Differentiator from microsoft/playwright-mcp: the persona layer. Not just &amp;quot;interact with a page&amp;quot; — &amp;quot;interact AS a Tokyo housewife / Lagos Tecno user / Saudi RTL businessman&amp;quot;. Catches i18n + a11y bugs English-only testing misses. Repo: https://github.com/xcodethink/pixelcheck npm: pixelcheck@1.1.5 Author note: 20yr marketing background, started coding January 2026 — with Claude Code. The whole project was Claude-Code-assisted from day one. This is my first real OSS, would appreciate any harsh code review. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/waynelimx"&gt; /u/waynelimx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3lkzb/just_published_pixelcheck_built_with_claude_code/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3lkzb/just_published_pixelcheck_built_with_claude_code/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t3lkzb/just_published_pixelcheck_built_with_claude_code/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-05-04T15:10:18+00:00</published>
+    <published>2026-05-04T15:47:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1t3d7lh</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1t3icvh/mcp_cli_clients_shipping_without_oauth/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-04T13:52:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t3kig6</id>
+    <title>Launched api to mcp converter a week ago — 100 users already and still figuring out distribution?</title>
+    <updated>2026-05-04T15:10:18+00:00</updated>
+    <author>
+      <name>/u/HeyItsSufya</name>
+      <uri>https://old.reddit.com/user/HeyItsSufya</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;It converts any OpenAPI spec into a working MCP server automatically.&lt;/p&gt; &lt;p&gt;One thing that actually helped my MCP server handle large APIs — grouping 100+ endpoints into 10 focused tools instead of dumping everything.&lt;/p&gt; &lt;p&gt;When APIs have 100+ endpoints, LLM tool selection breaks completely and starts picking the wrong tools&lt;/p&gt; &lt;p&gt;What brought you here when you were looking for MCP tools? Trying to understand where developers actually discover these things.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HeyItsSufya"&gt; /u/HeyItsSufya &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t3kig6/launched_api_to_mcp_converter_a_week_ago_100/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T15:10:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1h7qe88</id>
