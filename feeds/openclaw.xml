@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-05-03T23:47:58+00:00</updated>
+  <updated>2026-05-04T00:55:40+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1t2hh5v</id>
-    <title>For Users Experiencing Looooong Delays and Bloat</title>
-    <updated>2026-05-03T10:09:50+00:00</updated>
-    <author>
-      <name>/u/Technical_Scallion_2</name>
-      <uri>https://old.reddit.com/user/Technical_Scallion_2</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'd been seeing slower and slower responses ever since 2026.4.26, and thought it was something to do with Openclaw itself - turns out it sort of was, but there was a lot I could do on my end too.&lt;/p&gt; &lt;p&gt;A few users have talked about how Openclaw now basically loads everything before every turn - if your md files and setup are pretty lean, this isn't a problem. But if you're like me and started &amp;quot;skillifying&amp;quot; everything and added more and more things to tools/skills, it creates a feedback loop where the initial load is so large it triggers compaction, then more delays, then more loading, etc. and you end up with an extremely slow session.&lt;/p&gt; &lt;p&gt;Here is my agent's summary of the situation and how to fix it, in case this is helpful for others:&lt;/p&gt; &lt;h1&gt;Fixing OpenClaw prompt/context bloat and slow response loops&lt;/h1&gt; &lt;p&gt;We had an OpenClaw setup where the main agent gradually got slower — sometimes taking minutes before acting. The root issue was not one bug, but &lt;strong&gt;baseline context bloat + large recent tool history + compaction/retry pressure&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;What was causing the bloat&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Always-injected Project Context&lt;/strong&gt; OpenClaw injects bootstrap files every turn, including things like: Our &lt;a href="http://AGENTS.md"&gt;&lt;code&gt;AGENTS.md&lt;/code&gt;&lt;/a&gt;, &lt;a href="http://HEARTBEAT.md"&gt;&lt;code&gt;HEARTBEAT.md&lt;/code&gt;&lt;/a&gt;, and &lt;a href="http://TOOLS.md"&gt;&lt;code&gt;TOOLS.md&lt;/code&gt;&lt;/a&gt; had grown into mini-manuals. So every request started with a big instruction backpack. &lt;ul&gt; &lt;li&gt;&lt;a href="http://AGENTS.md"&gt;&lt;code&gt;AGENTS.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://SOUL.md"&gt;&lt;code&gt;SOUL.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://TOOLS.md"&gt;&lt;code&gt;TOOLS.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://IDENTITY.md"&gt;&lt;code&gt;IDENTITY.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://USER.md"&gt;&lt;code&gt;USER.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://HEARTBEAT.md"&gt;&lt;code&gt;HEARTBEAT.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="http://MEMORY.md"&gt;&lt;code&gt;MEMORY.md&lt;/code&gt;&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Too many always-visible skills&lt;/strong&gt; We had “skillified” every past mistake. That made sense emotionally — prevent the error from recurring — but over time the main agent had &lt;strong&gt;60 visible skills&lt;/strong&gt;. OpenClaw was not injecting every full &lt;a href="http://SKILL.md"&gt;&lt;code&gt;SKILL.md&lt;/code&gt;&lt;/a&gt;, but it was injecting the skill catalog: name, description, and file path. Worse, the agent instructions told it to scan the skill list before replying, which created overhead and encouraged extra &lt;a href="http://SKILL.md"&gt;&lt;code&gt;SKILL.md&lt;/code&gt;&lt;/a&gt; reads.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tool schemas&lt;/strong&gt; Tool schemas are the JSON definitions of available tools: parameters, enums, descriptions, etc. They must be sent to the model so it knows how to call tools. This is normal, but it is real context cost.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Messages/tool history&lt;/strong&gt; LLM calls are stateless, so OpenClaw resends enough conversation history each round. If the main session contains giant logs, huge tool outputs, or long debug traces, those become part of the “recent history” burden.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Compaction/retry pressure&lt;/strong&gt; The pattern was roughly:baseline prompt already large → recent debug/tool history large → OpenClaw compacts → retries → still has large fixed baseline and preserved recent messages → remains slow Not an infinite loop exactly, but compaction can’t fix everything if the always-injected baseline and recent preserved outputs are still too large.&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;What we changed&lt;/h1&gt; &lt;h1&gt;1. Aggressively allowlisted main-agent skills&lt;/h1&gt; &lt;p&gt;We changed main from unrestricted skills to a small explicit allowlist.&lt;/p&gt; &lt;p&gt;Before:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;60 visible skills&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;After:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;10 visible skills&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Kept only safety/accuracy/network/process guardrails:&lt;/p&gt; &lt;p&gt;Copy&lt;/p&gt; &lt;pre&gt;&lt;code&gt;source-grounded-claims pre-send-check session-status-claim-check verify-after-edit transient-check-failure-disclosure failed-subagent-results-caveat gateway-change-guard openclaw-webui-tailscale-recovery tailscale-network-guard long-running-task-guard &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;2. Shrunk always-injected files&lt;/h1&gt; &lt;p&gt;We compacted:&lt;/p&gt; &lt;p&gt;Copy&lt;/p&gt; &lt;pre&gt;&lt;code&gt;AGENTS.md HEARTBEAT.md TOOLS.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Before:&lt;/p&gt; &lt;p&gt;Copy&lt;/p&gt; &lt;pre&gt;&lt;code&gt;AGENTS.md 8,618 bytes HEARTBEAT.md 4,970 bytes TOOLS.md 8,820 bytes Total 22,408 bytes &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;After:&lt;/p&gt; &lt;p&gt;Copy&lt;/p&gt; &lt;pre&gt;&lt;code&gt;AGENTS.md 4,804 bytes HEARTBEAT.md 2,177 bytes TOOLS.md 2,387 bytes Total 9,368 bytes &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The key move was turning these files back into &lt;strong&gt;routing/index files&lt;/strong&gt;, not giant manuals.&lt;/p&gt; &lt;h1&gt;3. Changed operating practice&lt;/h1&gt; &lt;p&gt;For audits, diagnostics, and log-heavy work:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;use subagents with &lt;code&gt;lightContext:true&lt;/code&gt;&lt;/li&gt; &lt;li&gt;save large logs/reports to files&lt;/li&gt; &lt;li&gt;summarize findings in the main session&lt;/li&gt; &lt;li&gt;do not paste giant logs/tool outputs into main chat&lt;/li&gt; &lt;li&gt;use limited &lt;code&gt;tail&lt;/code&gt;, &lt;code&gt;grep&lt;/code&gt;, &lt;code&gt;sed -n&lt;/code&gt;, saved artifacts, etc.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;4. Restarted Gateway and started fresh&lt;/h1&gt; &lt;p&gt;After changing config/context files:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;restart Gateway&lt;/li&gt; &lt;li&gt;verify health&lt;/li&gt; &lt;li&gt;start a new session so the new reduced context is actually used cleanly&lt;/li&gt; &lt;/ol&gt; &lt;h1&gt;Agent instruction you can paste&lt;/h1&gt; &lt;blockquote&gt; &lt;/blockquote&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technical_Scallion_2"&gt; /u/Technical_Scallion_2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2hh5v/for_users_experiencing_looooong_delays_and_bloat/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2hh5v/for_users_experiencing_looooong_delays_and_bloat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t2hh5v/for_users_experiencing_looooong_delays_and_bloat/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-03T10:09:50+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t2vty1</id>
     <title>Did openAI ban the use of codex through subscription (not tokens) ?</title>
@@ -125,6 +112,19 @@
     <published>2026-05-03T21:48:49+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t2mq63</id>
+    <title>OpenRouter-What free model to select ?</title>
+    <updated>2026-05-03T14:19:22+00:00</updated>
+    <author>
+      <name>/u/apeshave</name>
+      <uri>https://old.reddit.com/user/apeshave</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been trying to explore OpenClaw and save some money while doing so.. I previously set up model with auto and it spent almost $50 in 1 hour. Essentially used Opus-4.6-high for news summary, like what!?&lt;/p&gt; &lt;p&gt;Now I have configured it as “free” and get this error&lt;/p&gt; &lt;p&gt;404 No endpoints found that support tool use. Try disabling &amp;quot;read&amp;quot;. To learn more about provider routing, visit: &lt;a href="https://openrouter.ai/docs/guides/routing/provider-selection"&gt;https://openrouter.ai/docs/guides/routing/provider-selection&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Any idea which free model I should use here? I am still fairly new to the game so don’t want to spend a lot unless I have confidence in the tool.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/apeshave"&gt; /u/apeshave &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-03T14:19:22+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t2zh04</id>
     <title>What’s y’all’s cron jobs?</title>
     <updated>2026-05-03T22:23:10+00:00</updated>
@@ -149,19 +149,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t2zsuw/least_buggy_channel_telegram_vs_slack_vs_discord/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-03T22:37:04+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t2mq63</id>
-    <title>OpenRouter-What free model to select ?</title>
-    <updated>2026-05-03T14:19:22+00:00</updated>
-    <author>
-      <name>/u/apeshave</name>
-      <uri>https://old.reddit.com/user/apeshave</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been trying to explore OpenClaw and save some money while doing so.. I previously set up model with auto and it spent almost $50 in 1 hour. Essentially used Opus-4.6-high for news summary, like what!?&lt;/p&gt; &lt;p&gt;Now I have configured it as “free” and get this error&lt;/p&gt; &lt;p&gt;404 No endpoints found that support tool use. Try disabling &amp;quot;read&amp;quot;. To learn more about provider routing, visit: &lt;a href="https://openrouter.ai/docs/guides/routing/provider-selection"&gt;https://openrouter.ai/docs/guides/routing/provider-selection&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Any idea which free model I should use here? I am still fairly new to the game so don’t want to spend a lot unless I have confidence in the tool.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/apeshave"&gt; /u/apeshave &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t2mq63/openrouterwhat_free_model_to_select/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-03T14:19:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1t2pd2o</id>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t2ngdg/ollama_20month/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-03T14:48:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t32lzc</id>
+    <title>openclaw became painfully slow after reset</title>
+    <updated>2026-05-04T00:41:32+00:00</updated>
+    <author>
+      <name>/u/tinios</name>
+      <uri>https://old.reddit.com/user/tinios</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I reset OpenClaw and reinstalled it, but it became significantly slower afterward.&lt;/p&gt; &lt;p&gt;I reconfigured everything from scratch, including setting up a new API and a new Telegram bot. Since then, the performance has noticeably dropped. I’ve checked everything 4–5 times trying to figure out the issue, but no luck so far.&lt;/p&gt; &lt;p&gt;It’s getting pretty frustrating, and I’m honestly considering giving up. I also started exploring opencode, but I feel like openclaw suits my needs better.&lt;/p&gt; &lt;p&gt;any idea what might be causing this? Any suggestions would be really appreciated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tinios"&gt; /u/tinios &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t32lzc/openclaw_became_painfully_slow_after_reset/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t32lzc/openclaw_became_painfully_slow_after_reset/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t32lzc/openclaw_became_painfully_slow_after_reset/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-04T00:41:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1t2qjze</id>
