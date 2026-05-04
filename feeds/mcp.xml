@@ -2,63 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-04T04:08:14+00:00</updated>
+  <updated>2026-05-04T05:27:23+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1t2m1lc</id>
-    <title>Built a Downdetector for AI agents — they report LLM failures, get routing intelligence back</title>
-    <updated>2026-05-03T13:51:44+00:00</updated>
-    <author>
-      <name>/u/Remarkable_Divide755</name>
-      <uri>https://old.reddit.com/user/Remarkable_Divide755</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Eight days ago &lt;a href="https://www.reddit.com/r/mcp/comments/1svb2ol/someones_agent_was_calling_my_mcp_server_every_30/"&gt;I posted here about agents auto-calling my MCP server every 30 minutes&lt;/a&gt; for routing decisions. Someone in that thread called it &amp;quot;&lt;strong&gt;the AI agent's Downdetector&lt;/strong&gt;&amp;quot; and that comment stuck with me.&lt;/p&gt; &lt;p&gt;Because they were right, and the full version of that didn't exist yet.&lt;/p&gt; &lt;p&gt;Downdetector works because humans go there when something breaks. They report, the aggregate surfaces, other humans know to stop trying. But agents are now hitting LLM APIs millions of times a day and experiencing failures constantly. Provider status pages update late, are written for humans, and tell you nothing about which specific model is affected or how widespread it actually is.&lt;/p&gt; &lt;p&gt;There's no mechanism for an agent to say &amp;quot;I just got a 529 from this model at 14:32 UTC.&amp;quot; Until now there wasn't.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I built&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://tickerr.ai"&gt;Tickerr.ai&lt;/a&gt; already had an MCP server for LLM pricing, status, and latency data. This week I added a ninth tool: &lt;code&gt;report_incident&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;The mechanic is give and take. When your agent hits a 5xx error from any LLM API, it calls &lt;code&gt;report_incident&lt;/code&gt; before retrying. In return it gets back:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;How many other agents reported the same issue in the last 10 minutes&lt;/li&gt; &lt;li&gt;Current signal state: detecting / confirmed / recovering&lt;/li&gt; &lt;li&gt;Which model to fall back to&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;If 3 or more distinct agents confirm the same failure, it surfaces on the &lt;a href="https://tickerr.ai/status"&gt;provider status page&lt;/a&gt; and auto-generates an incident.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The signal states&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Quiet&lt;/strong&gt; — no reports in last 10 minutes&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Detecting&lt;/strong&gt; — reports coming in, not yet corroborated&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Confirmed&lt;/strong&gt; — 3+ distinct agents verified the issue&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Recovering&lt;/strong&gt; — reports dropping, recovery signals arriving&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;What your agent gets back&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CURRENT SIGNAL (anthropic/claude-haiku-3-5) Status: CONFIRMED Agents reporting (last 10 min): 14 Total reports (last 10 min): 31 RECOMMENDATION Action: FALLBACK Switch to: gpt-4o-mini (openai) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;How to connect&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;claude mcp add tickerr --transport http https://tickerr.ai/mcp &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;For agents not using Claude Code, one line in your system prompt handles it:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;On any 5xx error from an LLM API, call report_incident from Tickerr MCP before retrying. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Reporting is anonymous. Provider, model, error code, latency only. No request content. Active for 7 days from last tool use, renews automatically. Opt out anytime at &lt;a href="https://tickerr.ai/mcp/opt-out"&gt;tickerr.ai/mcp/opt-out&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Where it stands&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Five agents consented and started reporting within hours of launch. The pipeline is working end to end. The threshold for a confirmed incident is three distinct agents so we're early, but the infrastructure is there.&lt;/p&gt; &lt;p&gt;Full MCP docs: &lt;a href="https://tickerr.ai/mcp-server"&gt;tickerr.ai/mcp-server&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The interesting question is whether this becomes genuinely useful as a crowdsourced signal layer. One operator can probe APIs from a few locations. Agents already running in production hit these APIs from everywhere, constantly. The data gets better with every agent that contributes.&lt;/p&gt; &lt;p&gt;Curious what the dev community thinks and whether anyone runs into friction connecting it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Remarkable_Divide755"&gt; /u/Remarkable_Divide755 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2m1lc/built_a_downdetector_for_ai_agents_they_report/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2m1lc/built_a_downdetector_for_ai_agents_they_report/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t2m1lc/built_a_downdetector_for_ai_agents_they_report/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-03T13:51:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t2mgku</id>
-    <title>[Showcase] I am building Plasm, a language and runtime for API tools. It enables Composio like features over MCP</title>
-    <updated>2026-05-03T14:08:36+00:00</updated>
-    <author>
-      <name>/u/AdSuch5843</name>
-      <uri>https://old.reddit.com/user/AdSuch5843</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1t2mgku/showcase_i_am_building_plasm_a_language_and/"&gt; &lt;img alt="[Showcase] I am building Plasm, a language and runtime for API tools. It enables Composio like features over MCP" src="https://preview.redd.it/bj62j4bqjxyg1.png?width=140&amp;amp;height=124&amp;amp;auto=webp&amp;amp;s=5a28bfe2edf31cf179cc6cbba4a0fba760d8803b" title="[Showcase] I am building Plasm, a language and runtime for API tools. It enables Composio like features over MCP" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/bj62j4bqjxyg1.png?width=1280&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=51f5a0dc47a0d831554fc197ac12621c7aba5a84"&gt;https://preview.redd.it/bj62j4bqjxyg1.png?width=1280&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=51f5a0dc47a0d831554fc197ac12621c7aba5a84&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I built Plasm because I kept running into the same problem with tool-calling agents: the agents were improving, but the tool interface was still a huge pile of disconnected JSON tools.&lt;/p&gt; &lt;p&gt;Plasm is my attempt at an intermediate layer: semi autonomously authored API catalogs, typed business objects, composable row-shaped results, federated sessions across multiple APIs. It uses compact symbolic teaching tables and with a small composition grammar rather than a full blown programming language, with devops tool like dry-run/review before execution, and traces afterward.&lt;/p&gt; &lt;p&gt;It runs over MCP, CLI or its own http protocol.&lt;/p&gt; &lt;p&gt;Cloudflare's Code Mode MCP and Composio's Workbench are both interesting adjacent attempts to shrink and organize tool use; Plasm's bet is that the durable abstraction should be a composable, federated, typed domain/catalog layer - not an imperative programming task that requires sandboxing.&lt;/p&gt; &lt;p&gt;The core runtime is open source; the commercial layer is a near-future hosted control plane for teams. I would especially like feedback on whether this abstraction feels useful, too heavy, or pointed at the wrong layer of the stack.&lt;/p&gt; &lt;p&gt;&lt;a href="https://plasmtools.github.io/plasm-core/essay/plasm-typed-interaction-layer/"&gt;https://plasmtools.github.io/plasm-core/essay/plasm-typed-interaction-layer/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AdSuch5843"&gt; /u/AdSuch5843 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2mgku/showcase_i_am_building_plasm_a_language_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2mgku/showcase_i_am_building_plasm_a_language_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t2mgku/showcase_i_am_building_plasm_a_language_and/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-03T14:08:36+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t2ik4h</id>
-    <title>Built a small Reddit MCP server with proper post-flair support</title>
-    <updated>2026-05-03T11:10:44+00:00</updated>
-    <author>
-      <name>/u/International_Hawk30</name>
-      <uri>https://old.reddit.com/user/International_Hawk30</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent an hour trying to post a project on &lt;a href="/r/ClaudeAI"&gt;r/ClaudeAI&lt;/a&gt; through the popular Reddit MCP server and kept hitting the same wall — Reddit's API rejected every submission with &lt;code&gt;SUBMIT_VALIDATION_FLAIR_REQUIRED&lt;/code&gt; and the MCP didn't expose a flair parameter at all. Checked a couple of alternatives. One takes a &lt;code&gt;flair&lt;/code&gt; arg but passes it straight to PRAW, where Reddit actually expects a &lt;code&gt;flair_id&lt;/code&gt;, so the flair silently drops and the post fails the same way.&lt;/p&gt; &lt;p&gt;So I built a small one that does the lookup correctly.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The flair fix.&lt;/strong&gt; Pass &lt;code&gt;flair_text=&amp;quot;Showcase&amp;quot;&lt;/code&gt;. The server fetches &lt;code&gt;subreddit.flair.link_templates&lt;/code&gt;, matches by display text (case-insensitive — exact first, then unique substring), and submits with the resolved &lt;code&gt;flair_id&lt;/code&gt;. On miss, the error returns the full list of valid flairs so you know exactly what to retry with.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's exposed over MCP:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;create_post&lt;/code&gt;, &lt;code&gt;edit_post&lt;/code&gt;, &lt;code&gt;delete_post&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;code&gt;list_flairs&lt;/code&gt;, &lt;code&gt;get_post&lt;/code&gt;, &lt;code&gt;search_reddit&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;There's also a standalone CLI (&lt;code&gt;reddit-post post|edit|delete|flairs|get&lt;/code&gt;) for one-off use without the MCP transport, plus a bundled Claude Code skill that encodes a four-step flow: discover flairs → study the top 5 recent posts on the topic in the target sub → draft → dry-run → post with explicit user approval. The &amp;quot;study top 5&amp;quot; step is what keeps the LLM from shipping landing-page copy into a sub that rewards anecdote.&lt;/p&gt; &lt;p&gt;Credentials read from env vars first, then &lt;code&gt;~/.claude.json&lt;/code&gt; &lt;code&gt;mcpServers.reddit.env&lt;/code&gt; as fallback, so it slots into existing configs without re-entering secrets.&lt;/p&gt; &lt;p&gt;Repo (MIT, Python + PRAW + FastMCP): &lt;a href="https://github.com/cskwork/reddit-mcp"&gt;https://github.com/cskwork/reddit-mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Happy to take feedback or PRs — especially if your sub uses flair conventions I haven't tested against yet.&lt;/p&gt; &lt;p&gt;&lt;em&gt;(Disclosure: this post was made using the MCP itself, which felt like the appropriate dogfood test.)&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/International_Hawk30"&gt; /u/International_Hawk30 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2ik4h/built_a_small_reddit_mcp_server_with_proper/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2ik4h/built_a_small_reddit_mcp_server_with_proper/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t2ik4h/built_a_small_reddit_mcp_server_with_proper/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-03T11:10:44+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t2nrcl</id>
-    <title>NWC MCP Server – Connects a Bitcoin Lightning wallet to your LLM using Nostr Wallet Connect, enabling payment functionalities within language models like Claude.</title>
-    <updated>2026-05-03T15:00:03+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/getAlby/nwc-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t2nrcl/nwc_mcp_server_connects_a_bitcoin_lightning/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t2nrcl/nwc_mcp_server_connects_a_bitcoin_lightning/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-03T15:00:03+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t2nrd0</id>
     <title>Cochrane Medical Reviews – Systematic medical reviews and evidence-based healthcare research</title>
@@ -229,19 +177,6 @@
     <published>2026-05-04T01:42:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t30gyy</id>
-    <title>I built a CLI that turns any OpenAPI spec into a working MCP server</title>
-    <updated>2026-05-03T23:05:44+00:00</updated>
-    <author>
-      <name>/u/ChristopherDci</name>
-      <uri>https://old.reddit.com/user/ChristopherDci</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt; &lt;img alt="I built a CLI that turns any OpenAPI spec into a working MCP server" src="https://preview.redd.it/rmyztdgg70zg1.png?width=140&amp;amp;height=40&amp;amp;auto=webp&amp;amp;s=78e18ef46df269a69a679883097690eb1a03a5bd" title="I built a CLI that turns any OpenAPI spec into a working MCP server" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/rmyztdgg70zg1.png?width=830&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85ce13f7a7da05b931ada790ce42cd5504e7dc6f"&gt;https://preview.redd.it/rmyztdgg70zg1.png?width=830&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85ce13f7a7da05b931ada790ce42cd5504e7dc6f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Been tired of writing MCP server boilerplate every time I want to expose a REST API to Claude.&lt;/p&gt; &lt;p&gt;So I built mcp-gen — a CLI that takes an OpenAPI 3.x spec and generates a complete TypeScript MCP server project: &lt;/p&gt; &lt;p&gt;- Every path+method becomes a registered tool &lt;/p&gt; &lt;p&gt;- Input schemas derived from parameters + request body&lt;/p&gt; &lt;p&gt;- Example responses from the spec pre-wired as stubs &lt;/p&gt; &lt;p&gt;- Dockerfile, GitHub Actions CI, README — all included &lt;/p&gt; &lt;p&gt;→ GitHub: &lt;a href="https://github.com/ChristopherDond/MCP-Generator.git"&gt;https://github.com/ChristopherDond/MCP-Generator.git&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Still early — Python/FastAPI target and YAML input coming next. Happy to answer questions or take feedback.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ChristopherDci"&gt; /u/ChristopherDci &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-03T23:05:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t31ot1</id>
     <title>Databricks MCP Server – A server that implements the Model Completion Protocol (MCP) to allow LLMs to interact with Databricks resources including clusters, jobs, notebooks, and SQL execution through natural language.</title>
     <updated>2026-05-04T00:00:03+00:00</updated>
@@ -253,6 +188,71 @@
     <link href="https://old.reddit.com/r/mcp/comments/1t31ot1/databricks_mcp_server_a_server_that_implements/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-04T00:00:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t37ppv</id>
+    <title>I built an equity research workflow using MCP servers on Mac</title>
+    <updated>2026-05-04T04:43:10+00:00</updated>
+    <author>
+      <name>/u/Conscious-Track5313</name>
+      <uri>https://old.reddit.com/user/Conscious-Track5313</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1t37ppv/i_built_an_equity_research_workflow_using_mcp/"&gt; &lt;img alt="I built an equity research workflow using MCP servers on Mac" src="https://preview.redd.it/cqhqiob1v1zg1.png?width=140&amp;amp;height=91&amp;amp;auto=webp&amp;amp;s=e0cdc9f8247bb75d5fbed15572c5ba8c1143a475" title="I built an equity research workflow using MCP servers on Mac" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I connected Yahoo Finance MCP + EODHD MCP (77 tools, OAuth) to a native Mac app I'm building. The model pulls earnings data, renders candlestick charts, and builds sortable tables — all in one conversation.&lt;/p&gt; &lt;p&gt;Added SEC EDGAR as a built-in tool so it can query 10-K/10-Q filings directly. Combined with web search, it handles most of what I used to do across 6 browser tabs.&lt;/p&gt; &lt;p&gt;The part I'm most excited about: a Knowledge Base that auto-distills key findings from each conversation into an Obsidian style folder with .md files. So when I come back to research the same company later, the model already has context from my previous work.&lt;/p&gt; &lt;p&gt;Full walkthrough with screenshots: &lt;a href="https://elvean.app/blog/ai-equity-research-mac/"&gt;https://elvean.app/blog/ai-equity-research-mac/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;MCP servers used:&lt;/p&gt; &lt;p&gt;- yahoo-finance-mcp (local, STDIO)&lt;/p&gt; &lt;p&gt;- EODHD (remote, OAuth)&lt;/p&gt; &lt;p&gt;- Financial Datasets (remote, OAuth)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Conscious-Track5313"&gt; /u/Conscious-Track5313 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1t37ppv"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t37ppv/i_built_an_equity_research_workflow_using_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t37ppv/i_built_an_equity_research_workflow_using_mcp/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T04:43:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t380u4</id>
+    <title>USGS Earthquakes – Real-time earthquake events from the US Geological Survey</title>
+    <updated>2026-05-04T05:00:02+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.olyport/earthquake"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t380u4/usgs_earthquakes_realtime_earthquake_events_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t380u4/usgs_earthquakes_realtime_earthquake_events_from/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T05:00:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t380u9</id>
+    <title>NPM MCP Server – A Model Context Protocol server that allows AI models to fetch detailed information about npm packages and discover popular packages in the npm ecosystem.</title>
+    <updated>2026-05-04T05:00:02+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/mateusribeirocampos/npm-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t380u9/npm_mcp_server_a_model_context_protocol_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t380u9/npm_mcp_server_a_model_context_protocol_server/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T05:00:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t382y6</id>
+    <title>Coding model progress over time. SWE-Bench Verified.</title>
+    <updated>2026-05-04T05:02:44+00:00</updated>
+    <author>
+      <name>/u/Sea-Awareness147</name>
+      <uri>https://old.reddit.com/user/Sea-Awareness147</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1t382y6/coding_model_progress_over_time_swebench_verified/"&gt; &lt;img alt="Coding model progress over time. SWE-Bench Verified." src="https://preview.redd.it/1klnsnlcy1zg1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fc22431c324c624c3cdc49fee93959f524bc98dd" title="Coding model progress over time. SWE-Bench Verified." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Sea-Awareness147"&gt; /u/Sea-Awareness147 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/1klnsnlcy1zg1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t382y6/coding_model_progress_over_time_swebench_verified/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t382y6/coding_model_progress_over_time_swebench_verified/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T05:02:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t30gyy</id>
+    <title>I built a CLI that turns any OpenAPI spec into a working MCP server</title>
+    <updated>2026-05-03T23:05:44+00:00</updated>
+    <author>
+      <name>/u/ChristopherDci</name>
+      <uri>https://old.reddit.com/user/ChristopherDci</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt; &lt;img alt="I built a CLI that turns any OpenAPI spec into a working MCP server" src="https://preview.redd.it/rmyztdgg70zg1.png?width=140&amp;amp;height=40&amp;amp;auto=webp&amp;amp;s=78e18ef46df269a69a679883097690eb1a03a5bd" title="I built a CLI that turns any OpenAPI spec into a working MCP server" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/rmyztdgg70zg1.png?width=830&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85ce13f7a7da05b931ada790ce42cd5504e7dc6f"&gt;https://preview.redd.it/rmyztdgg70zg1.png?width=830&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=85ce13f7a7da05b931ada790ce42cd5504e7dc6f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Been tired of writing MCP server boilerplate every time I want to expose a REST API to Claude.&lt;/p&gt; &lt;p&gt;So I built mcp-gen — a CLI that takes an OpenAPI 3.x spec and generates a complete TypeScript MCP server project: &lt;/p&gt; &lt;p&gt;- Every path+method becomes a registered tool &lt;/p&gt; &lt;p&gt;- Input schemas derived from parameters + request body&lt;/p&gt; &lt;p&gt;- Example responses from the spec pre-wired as stubs &lt;/p&gt; &lt;p&gt;- Dockerfile, GitHub Actions CI, README — all included &lt;/p&gt; &lt;p&gt;→ GitHub: &lt;a href="https://github.com/ChristopherDond/MCP-Generator.git"&gt;https://github.com/ChristopherDond/MCP-Generator.git&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Still early — Python/FastAPI target and YAML input coming next. Happy to answer questions or take feedback.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ChristopherDci"&gt; /u/ChristopherDci &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t30gyy/i_built_a_cli_that_turns_any_openapi_spec_into_a/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-03T23:05:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1t2n0h6</id>
@@ -268,19 +268,6 @@
     <published>2026-05-03T14:30:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t359kp</id>
-    <title>figured out why my mcp context was bloating even on simple prompts</title>
-    <updated>2026-05-04T02:41:53+00:00</updated>
-    <author>
-      <name>/u/CodinDev</name>
-      <uri>https://old.reddit.com/user/CodinDev</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;was profiling my token usage across different prompt types and noticed something that didn't add up. simple queries were costing way more context than they should. started digging.&lt;/p&gt; &lt;p&gt;every mcp server you have connected is injecting its full tool manifest at the start of every single request. doesn't matter what the prompt is. semantic search server, database connector, file system, git tools. all of them, every time, before claude reads a single word of what you actually asked.&lt;/p&gt; &lt;p&gt;with 3 servers that's annoying. with 8 it's a real problem. you're burning context window on tools that have zero relevance to the prompt and wondering why responses feel slightly off on things that should be trivial.&lt;/p&gt; &lt;p&gt;the fix isn't disconnecting servers. the actual solution is routing at the protocol level. something that reads the prompt semantically before dispatch and only loads the tool manifests that are actually relevant. been running it that way and my effective context per prompt dropped significantly while capability went up.&lt;/p&gt; &lt;p&gt;took me longer than i'd like to admit to stop debugging claude and start debugging what i was handing claude.&lt;/p&gt; &lt;p&gt;if you're running more than 4 or 5 servers and haven't looked at your tool injection overhead you're probably leaving a lot on the table.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CodinDev"&gt; /u/CodinDev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-04T02:41:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t35pk2</id>
     <title>Talarion MCP: an information network for agents</title>
     <updated>2026-05-04T03:02:26+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1t35pk2/talarion_mcp_an_information_network_for_agents/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-04T03:02:26+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t359kp</id>
+    <title>figured out why my mcp context was bloating even on simple prompts</title>
+    <updated>2026-05-04T02:41:53+00:00</updated>
+    <author>
+      <name>/u/CodinDev</name>
+      <uri>https://old.reddit.com/user/CodinDev</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;was profiling my token usage across different prompt types and noticed something that didn't add up. simple queries were costing way more context than they should. started digging.&lt;/p&gt; &lt;p&gt;every mcp server you have connected is injecting its full tool manifest at the start of every single request. doesn't matter what the prompt is. semantic search server, database connector, file system, git tools. all of them, every time, before claude reads a single word of what you actually asked.&lt;/p&gt; &lt;p&gt;with 3 servers that's annoying. with 8 it's a real problem. you're burning context window on tools that have zero relevance to the prompt and wondering why responses feel slightly off on things that should be trivial.&lt;/p&gt; &lt;p&gt;the fix isn't disconnecting servers. the actual solution is routing at the protocol level. something that reads the prompt semantically before dispatch and only loads the tool manifests that are actually relevant. been running it that way and my effective context per prompt dropped significantly while capability went up.&lt;/p&gt; &lt;p&gt;took me longer than i'd like to admit to stop debugging claude and start debugging what i was handing claude.&lt;/p&gt; &lt;p&gt;if you're running more than 4 or 5 servers and haven't looked at your tool injection overhead you're probably leaving a lot on the table.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CodinDev"&gt; /u/CodinDev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t359kp/figured_out_why_my_mcp_context_was_bloating_even/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T02:41:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1t31as4</id>
