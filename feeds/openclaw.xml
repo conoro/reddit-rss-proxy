@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-05-05T11:32:40+00:00</updated>
+  <updated>2026-05-05T12:08:40+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1t41ukl</id>
-    <title>Codex /goal and OpenGUI: long-running tasks need state</title>
-    <updated>2026-05-05T01:58:58+00:00</updated>
-    <author>
-      <name>/u/zhenfengzhu</name>
-      <uri>https://old.reddit.com/user/zhenfengzhu</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Long-running agents tend to fail in the second half.&lt;/p&gt; &lt;p&gt;The first step is often fine. Fix a CI failure, open an app, tap a button, search for a keyword. Models can produce a reasonable first action. The trouble starts around step ten: what has already happened, where the task is stuck, what the original boundary was, and when the task is allowed to stop. Those details slide out of context.&lt;/p&gt; &lt;p&gt;Codex CLI 0.128.0 added &lt;code&gt;/goal&lt;/code&gt;. The release note describes a persisted goal workflow: app-server APIs, model tools, runtime continuation, and TUI controls for create, pause, resume, and clear. Simon Willison compared it to OpenAI's version of a Ralph loop: set a goal for Codex, then let it keep executing, checking, and correcting until the goal is done or the budget runs out.&lt;/p&gt; &lt;p&gt;In the context of long-running tasks, the change is about where the goal lives. It moves from text in a single prompt to state that can be resumed, paused, cleared, and referenced again later.&lt;/p&gt; &lt;h2&gt;Why coding agents need goal&lt;/h2&gt; &lt;p&gt;Take a CI failure. The immediate failure may be one broken test. The agent changes the test, then the implementation, then adjusts a type because the code now feels awkward. Each step can be justified, but the final diff is much larger than the original problem.&lt;/p&gt; &lt;p&gt;Code generation is rarely the hard part here. The run has no stable constraint attached to it. The original goal may have been as small as:&lt;/p&gt; &lt;p&gt;&lt;code&gt;text /goal 修复当前 failing tests，保持 diff 尽量小，最后跑完 npm test &lt;/code&gt;&lt;/p&gt; &lt;p&gt;Or:&lt;/p&gt; &lt;p&gt;&lt;code&gt;text /goal 处理这个 PR 的 review comments，不改无关文件，最后给出改动摘要 &lt;/code&gt;&lt;/p&gt; &lt;p&gt;That kind of goal carries the target, the boundary, and the acceptance condition. It tells the agent where to go, what not to touch, and when to stop.&lt;/p&gt; &lt;p&gt;Without that state, the agent is easily pulled around by the current error. A type looks awkward, so it changes the type. A test is hard to write, so it changes the test. The structure feels messy, so it refactors. Each local move can make sense, while the whole task drifts.&lt;/p&gt; &lt;h2&gt;On phones, the hard part is screen state&lt;/h2&gt; &lt;p&gt;OpenGUI works on a different kind of long-running task: letting AI operate a real Android phone.&lt;/p&gt; &lt;p&gt;Repository: &lt;a href="https://github.com/Core-Mate/open-gui"&gt;https://github.com/Core-Mate/open-gui&lt;/a&gt;&lt;/p&gt; &lt;p&gt;In a codebase, state can still land in files, tests, and diffs. On a phone, state is a live screen.&lt;/p&gt; &lt;p&gt;For example, ask the phone to open X, search for discussions about mobile AI agents, collect the main points, and summarize what people care about. As a sentence, this looks simple. On the phone, it becomes a series of state checks: is the app open, is this the home page, is the search box focused, did the results finish loading, did a login prompt, permission prompt, or follow recommendation appear in the middle.&lt;/p&gt; &lt;p&gt;The loop of screenshot, tap, screenshot can only carry short tasks. If the screen does not change, the system has to decide whether the tap missed, the network is slow, the page is loading, or the action has no visible feedback. If the page jumps somewhere else, it also has to decide whether to go back, retry, or continue from the new page.&lt;/p&gt; &lt;p&gt;So a goal on mobile has to answer a few concrete questions: which step is the task on, whether the current screen supports the next step, where to recover after a failure, and when the run can end.&lt;/p&gt; &lt;h2&gt;OpenGUI turns the goal into a state flow&lt;/h2&gt; &lt;p&gt;I ran OpenGUI and read through the source. It connects the backend graph, device connection, and Android-side action execution instead of leaving phone automation as a script.&lt;/p&gt; &lt;p&gt;On the backend, the main entry point is &lt;code&gt;server/apps/backend/src/modules/graph-agent/graph/mobile-agent.graph.ts&lt;/code&gt;. Complex tasks go through &lt;code&gt;Plan Supervisor&lt;/code&gt;, where the plan is split into executable subtasks. Concrete actions enter &lt;code&gt;executor.graph.ts&lt;/code&gt;, the device execution subgraph. The execution result goes back to the supervisor, which decides whether to continue, retry, replan, or hand off to &lt;code&gt;Summarizer&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;On Android, actions are applied to the real device. &lt;code&gt;client/core_accessibility/.../GestureService.kt&lt;/code&gt; executes GUI actions such as taps and typing. The device keeps a WebSocket connection to the backend, and &lt;code&gt;client/core_network/.../StandbySocketManager.kt&lt;/code&gt; handles the standby connection. Feishu/Lark, Telegram, and REST API can sit outside this as remote task entry points, turning the phone from a local demo device into something that can receive work.&lt;/p&gt; &lt;p&gt;OpenGUI spreads the goal across several pieces of state: the plan document, current subtask, device screenshot, execution result, failure classification, and final summary. After each device action, the backend gets fresh device state and decides the next move.&lt;/p&gt; &lt;p&gt;A simple script assumes the page will follow the expected order. OpenGUI assumes the page will change, so the executor has to keep reporting real state back to the backend.&lt;/p&gt; &lt;h2&gt;The cost&lt;/h2&gt; &lt;p&gt;Putting the goal into a graph makes the system heavier.&lt;/p&gt; &lt;p&gt;You have to maintain task state, keep WebSocket connections alive, handle device standby, send execution results and screenshots back, and design state transitions for continue, retry, cancel, and summarize. Model calls and screenshot analysis also cost money. The longer the task runs, the more that cost becomes an engineering concern instead of a small detail.&lt;/p&gt; &lt;p&gt;But on mobile, it is hard to avoid this cost. Real apps show popups, hang on loading screens, misread taps, and send users to completely different pages. A prompt loop alone quickly turns into screenshot-based &lt;code&gt;while true&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;OpenGUI puts that complexity into the system. A bad tap becomes an execution result for the supervisor to consume. The device keeps reporting state. It behaves more like a worker than a screen being clicked. The design is heavier, but it gives long-running tasks a place to be debugged, recovered, and reviewed.&lt;/p&gt; &lt;p&gt;The first use cases I would try are community research, mobile flow testing, ops tasks, and App-only workflows that web automation cannot reach. These tasks may not need the strongest model, but they do need an execution system that can keep following the goal, see failure, and send state back.&lt;/p&gt; &lt;p&gt;In coding agents, Codex &lt;code&gt;/goal&lt;/code&gt; keeps the goal as recoverable state. On phones, OpenGUI connects task progress, device feedback, and failure handling into a state flow. A long-running agent has to keep track of the run, not only execute the next step.&lt;/p&gt; &lt;h2&gt;References&lt;/h2&gt; &lt;ul&gt; &lt;li&gt;OpenAI Codex 0.128.0 release: &lt;a href="https://github.com/openai/codex/releases/tag/rust-v0.128.0"&gt;https://github.com/openai/codex/releases/tag/rust-v0.128.0&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Simon Willison: &lt;a href="https://simonwillison.net/2026/Apr/30/codex-goals/"&gt;https://simonwillison.net/2026/Apr/30/codex-goals/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;OpenGUI: &lt;a href="https://github.com/Core-Mate/open-gui"&gt;https://github.com/Core-Mate/open-gui&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/zhenfengzhu"&gt; /u/zhenfengzhu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t41ukl/codex_goal_and_opengui_longrunning_tasks_need/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t41ukl/codex_goal_and_opengui_longrunning_tasks_need/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t41ukl/codex_goal_and_opengui_longrunning_tasks_need/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-05T01:58:58+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t3wshq</id>
-    <title>My OpenClaw keeps repeating its previous answers on new messages within the same session -- how do I fix this?</title>
-    <updated>2026-05-04T22:23:55+00:00</updated>
-    <author>
-      <name>/u/TheRedGambit</name>
-      <uri>https://old.reddit.com/user/TheRedGambit</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am a new OpenClaw user. While I've been able to mostly figure things out, one issue is really annoying and I can't seem to find a way to fix it: My claw keeps repeating previous answers.&lt;/p&gt; &lt;p&gt;Throughout a session, our conversation looks like this:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;Me&lt;/strong&gt;: Hey, can you tell me about A &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Agent&lt;/strong&gt;: Sure! Here is some information about A &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Me&lt;/strong&gt;: Cool, can you now tell me about B? &lt;/p&gt; &lt;p&gt;&lt;strong&gt;Agent&lt;/strong&gt;: Good question. So A is &amp;lt;essentially repeats the same answer as before&amp;gt;. And B is &amp;lt;actual answer&amp;gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Its really frustrating. I've tried debugging it with the agent but they didn't give me any good answers (mainly that I should switch the queue &amp;quot;mode&amp;quot; from stear to compact, or some other value. I tried this and it didn't work.&lt;/p&gt; &lt;p&gt;When I ask why the agent does this, they reply with something along the lines that the previous message got included in the latest prompt so they just answered both.&lt;/p&gt; &lt;p&gt;Has this happened to anybody else? How do you fix it?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheRedGambit"&gt; /u/TheRedGambit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t3wshq/my_openclaw_keeps_repeating_its_previous_answers/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t3wshq/my_openclaw_keeps_repeating_its_previous_answers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t3wshq/my_openclaw_keeps_repeating_its_previous_answers/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-04T22:23:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t43if3</id>
-    <title>Has Anyone Successfully Used OpenClaw to Build Simple Incremental Games?</title>
-    <updated>2026-05-05T03:12:20+00:00</updated>
-    <author>
-      <name>/u/lucarioman555</name>
-      <uri>https://old.reddit.com/user/lucarioman555</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone here gotten OpenClaw to reliably create simple games like Cookie Clicker or Adventure Capitalist ish projects?&lt;/p&gt; &lt;p&gt;I’m not talking about anything ridiculously complex (not saying this is an easy task) but just basic incremental mechanics and a basic UI.&lt;/p&gt; &lt;p&gt;If you’ve had some success:&lt;br /&gt; What models are you running? (Ollama or otherwise)&lt;/p&gt; &lt;p&gt;Are you using any specific agents, frameworks, or tooling around it?&lt;/p&gt; &lt;p&gt;How much manual correction are you doing versus it working end-to-end?&lt;/p&gt; &lt;p&gt;And please show us what you’ve been able to make!&lt;/p&gt; &lt;p&gt;I’ve got a solid local setup (4090 24gb vram, multiple models available), but getting consistent, usable output for even simple games has been impossible. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lucarioman555"&gt; /u/lucarioman555 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43if3/has_anyone_successfully_used_openclaw_to_build/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43if3/has_anyone_successfully_used_openclaw_to_build/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t43if3/has_anyone_successfully_used_openclaw_to_build/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-05T03:12:20+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t3idsa</id>
     <title>the 3 things to set up on day 1 that prevent 90% of the problems i see on this sub every day</title>
@@ -71,19 +32,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t47rrq/which_is_most_oc_stable_version_so_far/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-05T06:54:09+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t43fl6</id>
-    <title>OpenClaw fails to respond</title>
-    <updated>2026-05-05T03:08:44+00:00</updated>
-    <author>
-      <name>/u/Visible-Bison-3636</name>
-      <uri>https://old.reddit.com/user/Visible-Bison-3636</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have installed OpenClaw on Oracle VPS and model I am using is ollama/qwen3.5:35b-a3b. But when i try to send a message it responds with &amp;quot;[agent turned failed before producing content]&amp;quot; I have tried all solutions but still getting this same error. If someone knows any solution, kindly let me know.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Visible-Bison-3636"&gt; /u/Visible-Bison-3636 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-05T03:08:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1t43ivn</id>
@@ -177,6 +125,32 @@
     <published>2026-05-05T04:03:51+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t49b5l</id>
+    <title>Clawbot Antiscalp</title>
+    <updated>2026-05-05T08:26:42+00:00</updated>
+    <author>
+      <name>/u/vayana</name>
+      <uri>https://old.reddit.com/user/vayana</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First of all, I'm not an openclaw user myself as I haven't found a purpose for to set it up yet, but today I was thinking about a concept which might make it worthwhile.&lt;/p&gt; &lt;p&gt;Everyone hates scalpers. Scalpers list their stuff above retail price on marketplaces like eBay, Facebook etc. for concert tickets, Pokemons cards, hardware like GPU's, consoles and now Steam controllers.&lt;/p&gt; &lt;p&gt;Wouldn't it be fun to create a Clawbot which specifically targets these scalpers and makes low bids, starts chats and/or asks stupid questions about these listings in order to waste their time?&lt;/p&gt; &lt;p&gt;I'd think we'd only need a small army of users running bots like this to annoy the hell out of a substantial number of scalpers, so perhaps this could be a fun little project for anyone who's got some experience and hates scalpers as much as the rest of us.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vayana"&gt; /u/vayana &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-05T08:26:42+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t43fl6</id>
+    <title>OpenClaw fails to respond</title>
+    <updated>2026-05-05T03:08:44+00:00</updated>
+    <author>
+      <name>/u/Visible-Bison-3636</name>
+      <uri>https://old.reddit.com/user/Visible-Bison-3636</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have installed OpenClaw on Oracle VPS and model I am using is ollama/qwen3.5:35b-a3b. But when i try to send a message it responds with &amp;quot;[agent turned failed before producing content]&amp;quot; I have tried all solutions but still getting this same error. If someone knows any solution, kindly let me know.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Visible-Bison-3636"&gt; /u/Visible-Bison-3636 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t43fl6/openclaw_fails_to_respond/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-05T03:08:44+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t3nwnn</id>
     <title>It bothers me how much people don’t use this combination</title>
     <updated>2026-05-04T17:08:15+00:00</updated>
@@ -201,19 +175,6 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t4ad35/evaluate_upgrades_before_upgrading_openclaw_using/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-05T09:29:22+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t4bsfh</id>
-    <title>Are these 15 Agentic AI projects any good?</title>
-    <updated>2026-05-05T10:46:21+00:00</updated>
-    <author>
-      <name>/u/Wribie</name>
-      <uri>https://old.reddit.com/user/Wribie</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anybody tested any of these ?&lt;/p&gt; &lt;p&gt;&lt;a href="https://deeptrendlab.com/article/15-solved-agentic-ai-projects-with-github-links-34ebb1"&gt;https://deeptrendlab.com/article/15-solved-agentic-ai-projects-with-github-links-34ebb1&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Wribie"&gt; /u/Wribie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4bsfh/are_these_15_agentic_ai_projects_any_good/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4bsfh/are_these_15_agentic_ai_projects_any_good/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t4bsfh/are_these_15_agentic_ai_projects_any_good/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-05T10:46:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1t3gsws</id>
@@ -242,17 +203,30 @@
     <published>2026-05-05T11:09:17+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t49b5l</id>
-    <title>Clawbot Antiscalp</title>
-    <updated>2026-05-05T08:26:42+00:00</updated>
+    <id>t3_1t4cruz</id>
+    <title>Try updating with the OpenClo using the Codex app.</title>
+    <updated>2026-05-05T11:33:49+00:00</updated>
     <author>
-      <name>/u/vayana</name>
-      <uri>https://old.reddit.com/user/vayana</uri>
+      <name>/u/Zestyclose_Garden628</name>
+      <uri>https://old.reddit.com/user/Zestyclose_Garden628</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First of all, I'm not an openclaw user myself as I haven't found a purpose for to set it up yet, but today I was thinking about a concept which might make it worthwhile.&lt;/p&gt; &lt;p&gt;Everyone hates scalpers. Scalpers list their stuff above retail price on marketplaces like eBay, Facebook etc. for concert tickets, Pokemons cards, hardware like GPU's, consoles and now Steam controllers.&lt;/p&gt; &lt;p&gt;Wouldn't it be fun to create a Clawbot which specifically targets these scalpers and makes low bids, starts chats and/or asks stupid questions about these listings in order to waste their time?&lt;/p&gt; &lt;p&gt;I'd think we'd only need a small army of users running bots like this to annoy the hell out of a substantial number of scalpers, so perhaps this could be a fun little project for anyone who's got some experience and hates scalpers as much as the rest of us.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vayana"&gt; /u/vayana &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t49b5l/clawbot_antiscalp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As the title suggests, use Peekaboo in OpenClo for GUI control and update to Codex.&lt;/p&gt; &lt;p&gt;After using this routine, I haven't experienced a disconnection since the update, and it automatically updates me every dawn when I sleep with Cron Job.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Zestyclose_Garden628"&gt; /u/Zestyclose_Garden628 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cruz/try_updating_with_the_openclo_using_the_codex_app/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cruz/try_updating_with_the_openclo_using_the_codex_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t4cruz/try_updating_with_the_openclo_using_the_codex_app/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-05T08:26:42+00:00</published>
+    <published>2026-05-05T11:33:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t4cs61</id>
+    <title>Are you paying for the Perplexity API? Just plug your own Perplexity account into Claw MCP and give Clawbot crazy search powers without paying per request - Opus/GPT all models Computer Agentic unlocked - [OpenSource] - [Experimental] - [Made 4 Educational Purposes]</title>
+    <updated>2026-05-05T11:34:12+00:00</updated>
+    <author>
+      <name>/u/Aggravating_Bad4639</name>
+      <uri>https://old.reddit.com/user/Aggravating_Bad4639</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Project Source: &lt;a href="https://github.com/Automations-Project/VSCode-Perplexity-MCP"&gt;Automations-Project/VSCode-Perplexity-MCP: Perplexity AI search, reasoning, research, and compute - MCP server, dashboard, and multi-IDE auto-config for VS Code.&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Video: &lt;a href="https://youtu.be/wErgEe9Pgqo"&gt;&lt;strong&gt;&lt;em&gt;https://youtu.be/wErgEe9Pgqo&lt;/em&gt;&lt;/strong&gt;&lt;/a&gt; &lt;/p&gt; &lt;p&gt;More Context on Claude Subreddit Comments: &lt;a href="https://www.reddit.com/r/ClaudeAI/comments/1t1pdqc"&gt;https://www.reddit.com/r/ClaudeAI/comments/1t1pdqc&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Aggravating_Bad4639"&gt; /u/Aggravating_Bad4639 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cs61/are_you_paying_for_the_perplexity_api_just_plug/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cs61/are_you_paying_for_the_perplexity_api_just_plug/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t4cs61/are_you_paying_for_the_perplexity_api_just_plug/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-05T11:34:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1t46rpg</id>
@@ -279,6 +253,32 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t4auqj/openclaw_ollama_on_rtx_4070_laptop_gpu_qwen35_9b/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-05T09:57:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t4d5c5</id>
+    <title>I need help with Openclaw</title>
+    <updated>2026-05-05T11:51:06+00:00</updated>
+    <author>
+      <name>/u/Negative_Print_6575</name>
+      <uri>https://old.reddit.com/user/Negative_Print_6575</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've tried many models, but I have the same problem with OpenClawn. When I message them in the chat, they reply with &amp;quot;[assistant turn failed before producing content]&amp;quot; even though I have 16 GB of RAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Negative_Print_6575"&gt; /u/Negative_Print_6575 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4d5c5/i_need_help_with_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4d5c5/i_need_help_with_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t4d5c5/i_need_help_with_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-05T11:51:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t4cwtg</id>
+    <title>Hi all, here’s my cheap OpenClaw setup that I’ve been having fun with. I think a lot of users here forget that the most important part of using OpenClaw is to enjoy it don’t expect too much, and don’t expect it to be completely free. But it can be pretty cheap.</title>
+    <updated>2026-05-05T11:40:11+00:00</updated>
+    <author>
+      <name>/u/Franceesios</name>
+      <uri>https://old.reddit.com/user/Franceesios</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&amp;#x200b;&lt;/p&gt; &lt;p&gt;I’m using a cheap VPS from Hetzner, which costs me about $5/month. To power OpenClaw, I’m currently trying out DeepSeek with just a $5 credit.&lt;/p&gt; &lt;p&gt;So far, I’m really enjoying the experience. I’ve had OpenClaw set up some fun cron job reminders that I receive via my linked Telegram bot. I also updated OpenClaw to the latest version it seems much faster now when starting and stopping the gateway.&lt;/p&gt; &lt;p&gt;For a more advanced setup, I asked OpenClaw to install a Grafana dashboard and configure it to track my DeepSeek API usage and other LLM costs. &lt;/p&gt; &lt;p&gt;**I previously used OpenRouter, but I made the mistake of leaving it on auto mode, which burned through my API credits quickly because it kept selecting high-end models, and yes this is completely my fault for not researching open router first.** That’s why I switched to using DeepSeek directly through their own API/payment setup.&lt;/p&gt; &lt;p&gt;For security, I had OpenClaw harden the VPS and generate a full security inventory (in PDF format) of everything installed, including what might be risky.&lt;/p&gt; &lt;p&gt;Last but not least, I also installed Netdata to monitor the VPS with clean, real time graphs.&lt;/p&gt; &lt;p&gt;BONUS FUN: I even had OpenClaw install a “Jarvis” style voice (more like a fancy butler) that reads out short cron job updates or system info.&lt;/p&gt; &lt;p&gt;All of this is costing me about $1 so far for a few hours of heavy DeepSeek usage. I don’t think I can get it much cheaper than this right now and honestly, I think it’s a great balance.&lt;/p&gt; &lt;p&gt;Feel free to rate my setup, suggest improvements, or recommend even cheaper models than DeepSeek that still perform this well 👏&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Franceesios"&gt; /u/Franceesios &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cwtg/hi_all_heres_my_cheap_openclaw_setup_that_ive/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t4cwtg/hi_all_heres_my_cheap_openclaw_setup_that_ive/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t4cwtg/hi_all_heres_my_cheap_openclaw_setup_that_ive/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-05T11:40:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1t3xitn</id>
