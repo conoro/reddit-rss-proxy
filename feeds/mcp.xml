@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-05T10:03:02+00:00</updated>
+  <updated>2026-05-05T10:52:42+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -190,19 +190,6 @@
     <published>2026-05-04T19:44:19+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t3uiwk</id>
-    <title>What I learned building a managed MCP infrastructure layer — auth, credential vault, and multi-tenancy</title>
-    <updated>2026-05-04T20:58:31+00:00</updated>
-    <author>
-      <name>/u/tomerlrn</name>
-      <uri>https://old.reddit.com/user/tomerlrn</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;After spending the last couple months building production MCP infrastructure, here are the decisions that mattered most and the ones I'd do differently.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. OpenAPI → MCP conversion is the easy part. Auth is the hard part.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Auto-generating MCP manifests from OpenAPI specs is straightforward — map paths to tools, extract schemas, done. The real complexity is auth. OAuth 2.1 + RFC 9728 (PRM) + PKCE is ~4 specs you need to get right before one tool call works. If you're building multiple MCP servers, do NOT implement OAuth in each one. Centralize it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Credential injection is the right pattern.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Never let the MCP client see the upstream API key. Issue each end user their own OAuth client_id/client_secret. The dispatch layer validates the OAuth token, looks up the user's encrypted credential, decrypts it, and injects it into the upstream request. The MCP server is a dumb proxy — it receives identity headers and forwards to the API.&lt;/p&gt; &lt;p&gt;Benefits: per-user revocation (invalidate their OAuth tokens, done), per-user rate limiting, audit trail of who called what, credential rotation without touching client configs.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Authorization at the dispatch layer, not the MCP server.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;OAuth gets you authentication (&amp;quot;who is this?&amp;quot;). Authorization (&amp;quot;can they call this tool?&amp;quot;) is entirely custom. The cleanest approach: check permissions at the dispatch layer before the request reaches the MCP server. One place to enforce policy, consistent across all your MCPs.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. STDIO is dev-only. Streamable HTTP for anything multi-user.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;STDIO is single-client by design. Under concurrent load it falls apart. The spec moving to Streamable HTTP was the right call. Stateless, standard HTTP, no SSE complexity.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Context window is the hidden cost.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A 1:1 OpenAPI→MCP mapping gives you 30+ tools from a typical REST API. That's thousands of tokens of tool schemas in every context window. Solution: dynamic tool filtering — only expose the tools the user actually needs, not all of them. Cuts schema waste by 60-70%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Things I'd do differently:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Don't bother with DCR (Dynamic Client Registration). Pre-register clients. Much simpler, fewer moving parts.&lt;/li&gt; &lt;li&gt;Start with a single D1/KV setup for all MCPs. Don't over-shard early.&lt;/li&gt; &lt;li&gt;Log every OAuth handshake step from day one. Debugging &amp;quot;invalid_grant&amp;quot; with no context is miserable.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Happy to dive deeper on any of these. Curious what others have landed on for multi-tenant auth and tool-level authorization.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tomerlrn"&gt; /u/tomerlrn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-04T20:58:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t44s16</id>
     <title>we built a free MCP server IDE</title>
     <updated>2026-05-05T04:13:19+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1t44s16/we_built_a_free_mcp_server_ide/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-05T04:13:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t3uiwk</id>
+    <title>What I learned building a managed MCP infrastructure layer — auth, credential vault, and multi-tenancy</title>
+    <updated>2026-05-04T20:58:31+00:00</updated>
+    <author>
+      <name>/u/tomerlrn</name>
+      <uri>https://old.reddit.com/user/tomerlrn</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;After spending the last couple months building production MCP infrastructure, here are the decisions that mattered most and the ones I'd do differently.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. OpenAPI → MCP conversion is the easy part. Auth is the hard part.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Auto-generating MCP manifests from OpenAPI specs is straightforward — map paths to tools, extract schemas, done. The real complexity is auth. OAuth 2.1 + RFC 9728 (PRM) + PKCE is ~4 specs you need to get right before one tool call works. If you're building multiple MCP servers, do NOT implement OAuth in each one. Centralize it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Credential injection is the right pattern.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Never let the MCP client see the upstream API key. Issue each end user their own OAuth client_id/client_secret. The dispatch layer validates the OAuth token, looks up the user's encrypted credential, decrypts it, and injects it into the upstream request. The MCP server is a dumb proxy — it receives identity headers and forwards to the API.&lt;/p&gt; &lt;p&gt;Benefits: per-user revocation (invalidate their OAuth tokens, done), per-user rate limiting, audit trail of who called what, credential rotation without touching client configs.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Authorization at the dispatch layer, not the MCP server.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;OAuth gets you authentication (&amp;quot;who is this?&amp;quot;). Authorization (&amp;quot;can they call this tool?&amp;quot;) is entirely custom. The cleanest approach: check permissions at the dispatch layer before the request reaches the MCP server. One place to enforce policy, consistent across all your MCPs.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. STDIO is dev-only. Streamable HTTP for anything multi-user.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;STDIO is single-client by design. Under concurrent load it falls apart. The spec moving to Streamable HTTP was the right call. Stateless, standard HTTP, no SSE complexity.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Context window is the hidden cost.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A 1:1 OpenAPI→MCP mapping gives you 30+ tools from a typical REST API. That's thousands of tokens of tool schemas in every context window. Solution: dynamic tool filtering — only expose the tools the user actually needs, not all of them. Cuts schema waste by 60-70%.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Things I'd do differently:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Don't bother with DCR (Dynamic Client Registration). Pre-register clients. Much simpler, fewer moving parts.&lt;/li&gt; &lt;li&gt;Start with a single D1/KV setup for all MCPs. Don't over-shard early.&lt;/li&gt; &lt;li&gt;Log every OAuth handshake step from day one. Debugging &amp;quot;invalid_grant&amp;quot; with no context is miserable.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Happy to dive deeper on any of these. Curious what others have landed on for multi-tenant auth and tool-level authorization.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tomerlrn"&gt; /u/tomerlrn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1t3uiwk/what_i_learned_building_a_managed_mcp/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-04T20:58:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1t45a9k</id>
