@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-08T16:00:32+00:00</updated>
+  <updated>2026-05-08T16:45:46+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1t6v7aa</id>
-    <title>DDR6 delayed again?????</title>
-    <updated>2026-05-08T02:38:24+00:00</updated>
-    <author>
-      <name>/u/Highwaytothebeach</name>
-      <uri>https://old.reddit.com/user/Highwaytothebeach</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;it was surely supposed to be available in 2026 just a few years ago,,&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.msn.com/en-us/money/other/don-t-expect-ddr5-to-go-anywhere-anytime-soon-as-ddr6-isn-t-planned-to-arrive-for-commercial-applications-until-2028/ar-AA22sKD6"&gt;https://www.msn.com/en-us/money/other/don-t-expect-ddr5-to-go-anywhere-anytime-soon-as-ddr6-isn-t-planned-to-arrive-for-commercial-applications-until-2028/ar-AA22sKD6&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Highwaytothebeach"&gt; /u/Highwaytothebeach &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6v7aa/ddr6_delayed_again/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6v7aa/ddr6_delayed_again/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6v7aa/ddr6_delayed_again/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T02:38:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t6susj</id>
-    <title>Benchmark Qwen 3.6 27B MTP on 2x3090 NVLINK</title>
-    <updated>2026-05-08T00:49:03+00:00</updated>
-    <author>
-      <name>/u/Mr_Moonsilver</name>
-      <uri>https://old.reddit.com/user/Mr_Moonsilver</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;On 4× RTX 3090 with NVLink bonded between GPU pairs (0↔2 and 1↔3), pinning TP=2 to a NVLinked pair gave &lt;strong&gt;+25% throughput&lt;/strong&gt; at concurrency 1 and &lt;strong&gt;+53%&lt;/strong&gt; at concurrency 4 vs running TP=2 over PCIe. Adding the other two GPUs to make it TP=4 made things worse, not better.&lt;/p&gt; &lt;h1&gt;Setup&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Hardware:&lt;/strong&gt; 4× RTX 3090 (24 GB), NVLink (NV4) between GPU0↔GPU2 and GPU1↔GPU3. Cross-pair traffic goes via PCIe Host Bridge (PHB).&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;$ nvidia-smi topo -m GPU0 GPU1 GPU2 GPU3 GPU0 X PHB NV4 PHB GPU1 PHB X PHB NV4 GPU2 NV4 PHB X PHB GPU3 PHB NV4 PHB X &lt;/code&gt;&lt;/pre&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Software:&lt;/strong&gt; vLLM 0.20.1, transformers 5.7.0, CUDA 12.8.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Model:&lt;/strong&gt; &lt;a href="https://huggingface.co/cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4"&gt;cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4&lt;/a&gt; — 27B-param dense hybrid (linear-attention + full-attention + mamba SSM), with an MTP head for speculative decoding.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Workload:&lt;/strong&gt; &lt;code&gt;vllm bench serve&lt;/code&gt; with random dataset, 1024 input / 256 output tokens, &lt;code&gt;--ignore-eos&lt;/code&gt;, &lt;code&gt;--seed 42&lt;/code&gt;. Two runs per config: concurrency 1 (8 prompts) and concurrency 4 (32 prompts).&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;vLLM serve command&lt;/h1&gt; &lt;p&gt;Identical for every config except &lt;code&gt;CUDA_VISIBLE_DEVICES&lt;/code&gt; and &lt;code&gt;--tensor-parallel-size&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;Bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;CUDA_VISIBLE_DEVICES=&amp;lt;see below&amp;gt; \ vllm serve cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4 \ --served-model-name Qwen3.6-27B-AWQ-BF16-INT4 \ --host 0.0.0.0 --port 8000 \ --tensor-parallel-size &amp;lt;2 or 4&amp;gt; \ --max-model-len 131072 \ --gpu-memory-utilization 0.85 \ --max-num-seqs 8 \ --dtype float16 \ --attention-backend FLASHINFER \ --enable-prefix-caching \ --mamba-cache-dtype auto \ --mamba-cache-mode align \ --enable-chunked-prefill \ --max-num-batched-tokens 4096 \ --reasoning-parser qwen3 \ --default-chat-template-kwargs '{&amp;quot;enable_thinking&amp;quot;: true, &amp;quot;preserve_thinking&amp;quot;: true}' \ --enable-auto-tool-choice \ --tool-call-parser qwen3_xml \ --speculative-config '{&amp;quot;method&amp;quot;:&amp;quot;qwen3_next_mtp&amp;quot;,&amp;quot;num_speculative_tokens&amp;quot;:2}' \ --trust-remote-code &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;The three configs:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Config&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;CUDA_VISIBLE_DEVICES&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TP&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Topology&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;A — TP=2 NVLink&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;0,2&lt;/td&gt; &lt;td align="left"&gt;2&lt;/td&gt; &lt;td align="left"&gt;NVLinked pair (NV4)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;B — TP=2 non-NVLink&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;0,1&lt;/td&gt; &lt;td align="left"&gt;2&lt;/td&gt; &lt;td align="left"&gt;Cross-pair, PCIe (PHB)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;C — TP=4 all GPUs&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;0,1,2,3&lt;/td&gt; &lt;td align="left"&gt;4&lt;/td&gt; &lt;td align="left"&gt;Mixed (2 NVLink edges + 4 PCIe edges)&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Benchmarks&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;Concurrency 1 (single-stream)&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Config&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Output tok/s&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TTFT med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TPOT med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;ITL med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Spec accept rate&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Spec accept len&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;A — TP=2 NVLink (0+2)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;66.0&lt;/td&gt; &lt;td align="left"&gt;509 ms&lt;/td&gt; &lt;td align="left"&gt;13.4 ms&lt;/td&gt; &lt;td align="left"&gt;32.1 ms&lt;/td&gt; &lt;td align="left"&gt;73.7 %&lt;/td&gt; &lt;td align="left"&gt;2.47&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;B — TP=2 non-NVLink (0+1)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;52.6&lt;/td&gt; &lt;td align="left"&gt;861 ms&lt;/td&gt; &lt;td align="left"&gt;15.7 ms&lt;/td&gt; &lt;td align="left"&gt;37.6 ms&lt;/td&gt; &lt;td align="left"&gt;70.4 %&lt;/td&gt; &lt;td align="left"&gt;2.41&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;C — TP=4 all GPUs&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;57.4&lt;/td&gt; &lt;td align="left"&gt;664 ms&lt;/td&gt; &lt;td align="left"&gt;14.7 ms&lt;/td&gt; &lt;td align="left"&gt;37.8 ms&lt;/td&gt; &lt;td align="left"&gt;79.2 %&lt;/td&gt; &lt;td align="left"&gt;2.58&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Concurrency 4 (4 in-flight requests)&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Config&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Output tok/s&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TTFT med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TPOT med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;ITL med&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Spec accept rate&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;A — TP=2 NVLink (0+2)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;181.9&lt;/td&gt; &lt;td align="left"&gt;551 ms&lt;/td&gt; &lt;td align="left"&gt;19.0 ms&lt;/td&gt; &lt;td align="left"&gt;34.3 ms&lt;/td&gt; &lt;td align="left"&gt;74.6 %&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;B — TP=2 non-NVLink (0+1)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;119.2&lt;/td&gt; &lt;td align="left"&gt;994 ms&lt;/td&gt; &lt;td align="left"&gt;27.1 ms&lt;/td&gt; &lt;td align="left"&gt;45.3 ms&lt;/td&gt; &lt;td align="left"&gt;75.0 %&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;C — TP=4 all GPUs&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;127.9&lt;/td&gt; &lt;td align="left"&gt;751 ms&lt;/td&gt; &lt;td align="left"&gt;24.5 ms&lt;/td&gt; &lt;td align="left"&gt;43.6 ms&lt;/td&gt; &lt;td align="left"&gt;75.6 %&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;What NVLink actually buys you&lt;/h1&gt; &lt;p&gt;Comparing &lt;strong&gt;A vs B&lt;/strong&gt; (same model, same TP=2, only the interconnect changes):&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Metric&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TP=2 NVLink (0+2)&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TP=2 non-NVLink (0+1)&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;NVLink advantage&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Output tok/s, conc=1&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;66.0&lt;/td&gt; &lt;td align="left"&gt;52.6&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+25.4 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Output tok/s, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;181.9&lt;/td&gt; &lt;td align="left"&gt;119.2&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+52.6 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;TTFT median, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;551 ms&lt;/td&gt; &lt;td align="left"&gt;994 ms&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;-45 %&lt;/strong&gt; (lower is better)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;TPOT median, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;19.0 ms&lt;/td&gt; &lt;td align="left"&gt;27.1 ms&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;-30 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;A few things stand out:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The premium is much bigger at higher concurrency (+53% at conc=4 vs +25% at conc=1). Per-step all-reduce traffic scales with batch size; NVLink's bandwidth advantage compounds.&lt;/li&gt; &lt;li&gt;TTFT nearly halves with NVLink (994 → 551 ms at conc=4). Prefill is comms-heavy because it ships large activation matrices between TP ranks.&lt;/li&gt; &lt;li&gt;The MTP speculative decoding still works fine over PCIe (acceptance rate barely shifted, 73 → 70%), so the gap is purely interconnect, not draft quality.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Bonus: what about all 4 GPUs?&lt;/h1&gt; &lt;p&gt;The natural follow-up was: if NVLink is so good, what if I use all four GPUs (TP=4)? The two NVLink edges still help, and now I'm sharding weights across four devices instead of two — surely faster?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Nope.&lt;/strong&gt; TP=4 was slower than TP=2-NVLinked across the board.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Metric&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TP=2 NVLink&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;TP=4 all GPUs&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Δ&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Output tok/s, conc=1&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;66.0&lt;/td&gt; &lt;td align="left"&gt;57.4&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;-13.0 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Output tok/s, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;181.9&lt;/td&gt; &lt;td align="left"&gt;127.9&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;-29.7 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;TPOT median, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;19.0 ms&lt;/td&gt; &lt;td align="left"&gt;24.5 ms&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+29 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;TTFT median, conc=4&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;551 ms&lt;/td&gt; &lt;td align="left"&gt;751 ms&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;+36 %&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Why:&lt;/strong&gt; TP=4 needs every GPU pair to participate in the all-reduce ring. With 4 GPUs there are 6 unique pairs; on this topology only 2 of those (0↔2, 1↔3) are NVLinked — the other 4 are PCIe. So you're doing 4-way all-reduces where most of the edges are slow, and the savings from sharding weights into smaller chunks don't make up for it. Adding the second pair of GPUs hurts more than it helps unless every-pair-to-every-pair has a fast link.&lt;/p&gt; &lt;p&gt;In single-stream theory, TP=4 should give a ~1.5–1.8× speedup from per-GPU bandwidth pressure dropping. &lt;strong&gt;Reality: -13%.&lt;/strong&gt; Topology beats theoretical bandwidth math.&lt;/p&gt; &lt;h1&gt;Takeaways&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;NVLink is worth ~25% at conc=1 and ~50%+ at higher batch sizes&lt;/strong&gt; for TP=2 serving on 3090s. Always pin TP=2 to the NVLinked pair.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;TP=N is only as good as the worst link in your topology.&lt;/strong&gt; Adding the other two GPUs (TP=4) on a &amp;quot;two-NVLinked-pair&amp;quot; 3090 chassis loses ~30% throughput vs TP=2-NVLinked. Don't reach for TP=4 just because you have 4 GPUs.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;MTP speculative decoding survived all topologies&lt;/strong&gt; — acceptance rate stayed in the 70–79% range with length 2.4–2.6. The bottleneck wasn't the draft model, it was the all-reduce.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;For two-pair NVLink 3090 boxes, the optimal serving pattern is probably two TP=2 services&lt;/strong&gt;, one on each NVLinked pair (e.g. one model on 0+2, another on 1+3) rather than one TP=4. Or run a single TP=2 and let the other pair host a different model entirely.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;If anyone has a 4-way NVSwitch box (e.g. SXM 3090s, A100s, or H100s) and can run the same TP=4 vs TP=2 comparison there, I'd be very curious whether TP=4 wins back its theoretical advantage when all pairs are NVLinked.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mr_Moonsilver"&gt; /u/Mr_Moonsilver &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6susj/benchmark_qwen_36_27b_mtp_on_2x3090_nvlink/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6susj/benchmark_qwen_36_27b_mtp_on_2x3090_nvlink/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6susj/benchmark_qwen_36_27b_mtp_on_2x3090_nvlink/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T00:49:03+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t7a6og</id>
     <title>How many models do you have?</title>
@@ -58,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6x2yx/hardware_is_the_only_moat_should_we_buy_new/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-08T04:09:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7d9h0</id>
+    <title>The amount of new agent APIs/harnesses are dizzying, with everyone and their dog releasing their own. Can we do a compilation thread of comparisons?</title>
+    <updated>2026-05-08T16:39:44+00:00</updated>
+    <author>
+      <name>/u/jinnyjuice</name>
+      <uri>https://old.reddit.com/user/jinnyjuice</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Assuming you have tried multiple, please compare them. Please also post your hardware specs and software stack, along with any modifications.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jinnyjuice"&gt; /u/jinnyjuice &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7d9h0/the_amount_of_new_agent_apisharnesses_are/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7d9h0/the_amount_of_new_agent_apisharnesses_are/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7d9h0/the_amount_of_new_agent_apisharnesses_are/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-08T16:39:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6p0zk</id>
@@ -86,19 +73,6 @@
     <published>2026-05-07T22:50:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t7bvmq</id>
-    <title>Ring 2.6 1T</title>
-    <updated>2026-05-08T15:50:00+00:00</updated>
-    <author>
-      <name>/u/Middle_Bullfrog_6173</name>
-      <uri>https://old.reddit.com/user/Middle_Bullfrog_6173</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Listed on Open Router only so far: &lt;a href="https://openrouter.ai/inclusionai/ring-2.6-1t:free"&gt;https://openrouter.ai/inclusionai/ring-2.6-1t:free&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ling 2.6 is open weights, so was Ring 2.5 so hopefully this will be released as well.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Middle_Bullfrog_6173"&gt; /u/Middle_Bullfrog_6173 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T15:50:00+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t6yra2</id>
     <title>A new generation of AI models and one of the most powerful research papers out there.</title>
     <updated>2026-05-08T05:38:10+00:00</updated>
@@ -112,6 +86,32 @@
     <published>2026-05-08T05:38:10+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t7cf7r</id>
+    <title>What is the next SOTA model you are excited about?</title>
+    <updated>2026-05-08T16:09:21+00:00</updated>
+    <author>
+      <name>/u/MrMrsPotts</name>
+      <uri>https://old.reddit.com/user/MrMrsPotts</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We had deepseek v4 preview recently but it wasn't much better than v3.2. What is the next SOTA local/open model you are excited about?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrMrsPotts"&gt; /u/MrMrsPotts &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7cf7r/what_is_the_next_sota_model_you_are_excited_about/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7cf7r/what_is_the_next_sota_model_you_are_excited_about/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7cf7r/what_is_the_next_sota_model_you_are_excited_about/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-08T16:09:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7bvmq</id>
+    <title>Ring 2.6 1T</title>
+    <updated>2026-05-08T15:50:00+00:00</updated>
+    <author>
+      <name>/u/Middle_Bullfrog_6173</name>
+      <uri>https://old.reddit.com/user/Middle_Bullfrog_6173</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Listed on Open Router only so far: &lt;a href="https://openrouter.ai/inclusionai/ring-2.6-1t:free"&gt;https://openrouter.ai/inclusionai/ring-2.6-1t:free&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ling 2.6 is open weights, so was Ring 2.5 so hopefully this will be released as well.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Middle_Bullfrog_6173"&gt; /u/Middle_Bullfrog_6173 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bvmq/ring_26_1t/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-08T15:50:00+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t6orv0</id>
     <title>guess what? if you are a chrome user, technically you are localllama member!</title>
     <updated>2026-05-07T21:54:34+00:00</updated>
@@ -123,19 +123,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T21:54:34+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t7btln</id>
-    <title>Unpopular Opinion: The DGX Spark Forum community of devs is talented AF and will make the crippled hardware a success through their sheer force of will.</title>
-    <updated>2026-05-08T15:47:54+00:00</updated>
-    <author>
-      <name>/u/Porespellar</name>
-      <uri>https://old.reddit.com/user/Porespellar</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There is a lot of disdain for DGX Sparks here on the sub. And I get it. A lot of people say “It could have been great if it had been better memory bandwidth”, “SM-121 is a fake /second-class Blackwell chip” yadda, yadda. These criticisms are valid. &lt;/p&gt; &lt;p&gt;I bought one anyway because I’m pursuing a Masters in AI and I wanted it for training models, tool dev, testing, etc.&lt;br /&gt; I was an early adopter, and like many, I was disappointed by the inference performance and software stack initially. Recently, my opinion and experience has changed.&lt;/p&gt; &lt;p&gt;NVIDIA has an “official” DGX Spark Development community forum that is thriving. The people in the DGX forum community are some of the kindest, smartest, most tenacious group of developers I’ve met. These dudes have one common goal: Squeeze every last drop of performance out of this hardware to prove to themselves and the world that they didn’t make a bad purchase by buying a Spark. I know that sounds snarky, but I don’t think it’s a bad goal. &lt;/p&gt; &lt;p&gt;The vibe on the forum is like “Ok bros, we all bought this thing, the peeps over at &lt;a href="/r/LocalLLama"&gt;r/LocalLLama&lt;/a&gt; are all laughing at us right now, let’s show those sons-of-bitches what we can do” I mean, none of them would actually say that, because they are all really nice and helpful people, but that’s the vibe I get when I’m browsing through the posts. Everyone there has the same goal: optimize the hell out of DGX Spark to the highest level possible.. It’s wild seeing such a harmonious atmosphere. No one really argues, trolls, rage baits, none of that. Just everyone in the same boat, working together and encouraging each other, sharing benchmarks, code, vLLM recipes, etc. Reminds me of the vibe of this sub like 2 years ago before all the bot posts flooded the place.&lt;/p&gt; &lt;p&gt;If you don’t believe me, about the DGX dev community, go check it out for yourself:&lt;/p&gt; &lt;p&gt;&lt;a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10"&gt;https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Check out some of the cool projects they’ve spun up like Sparkrun (&lt;a href="http://sparkrun.dev"&gt;http://sparkrun.dev&lt;/a&gt;), PrismaQuant, Spark Lesderboard, eugr vLLM, and all the other amazing projects these guys are working on. &lt;/p&gt; &lt;p&gt;The one big advantage of the DGX hardware for these developers is the fact that the HW and OS is all exactly the same for everyone. You know your shit is going to work on every other Spark box that is out there and that is powerful for a unified community with one common goal. &lt;/p&gt; &lt;p&gt;So yes, DGX Spark could have been a lot better and was probably crippled by design, but that’s not stopping the DGX Spark Forum community, these MFers are going to use their sheer force of will and talent to make this thing a success just to spite all the naysayers. My two cents, agree or disagree? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T15:47:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6u1os</id>
@@ -162,19 +149,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6febk/warning_openossprivacyfilter_malware/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T16:20:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t7bfpw</id>
-    <title>Reports suggest DeepSeek is seeking $7.35 billion in funding and plans to release its V4.1 update next month.</title>
-    <updated>2026-05-08T15:34:12+00:00</updated>
-    <author>
-      <name>/u/External_Mood4719</name>
-      <uri>https://old.reddit.com/user/External_Mood4719</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek Reportedly Seeking to Raise Over RMB 50 Billion ($7.35 Billion), Accelerating Its Commercialization and Monetization Strategy&lt;/p&gt; &lt;p&gt;According to two people familiar with the matter, DeepSeek founder and CEO Liang Wenfeng plans to contribute the maximum allowable amount in the company’s first funding round.&lt;/p&gt; &lt;p&gt;DeepSeek is targeting a fundraising size of up to RMB 50 billion, or approximately $7.35 billion, in this round. If completed, it could mark the largest single fundraising round in the history of Chinese AI companies.&lt;/p&gt; &lt;p&gt;The financing is also prompting DeepSeek to accelerate the implementation of its revenue-generation plans and push forward with commercialization and profitability.&lt;/p&gt; &lt;p&gt;The people familiar with the matter said DeepSeek has recently told some investors that it plans to speed up the iteration and release cadence of its large language models to align with mainstream industry practices.&lt;/p&gt; &lt;p&gt;One of the people said the company plans to launch V4.1, an updated version of its V4 model, in June.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.theinformation.com/articles/deepseek-raise-7-billion-startup-plots-revenue-efforts"&gt;https://www.theinformation.com/articles/deepseek-raise-7-billion-startup-plots-revenue-efforts&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T15:34:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6tvfw</id>
@@ -255,17 +229,17 @@
     <published>2026-05-08T00:27:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t79ayh</id>
-    <title>z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?</title>
-    <updated>2026-05-08T14:18:09+00:00</updated>
+    <id>t3_1t7bfpw</id>
+    <title>Reports suggest DeepSeek is seeking $7.35 billion in funding and plans to release its V4.1 update next month.</title>
+    <updated>2026-05-08T15:34:12+00:00</updated>
     <author>
-      <name>/u/PaceZealousideal6091</name>
-      <uri>https://old.reddit.com/user/PaceZealousideal6091</uri>
+      <name>/u/External_Mood4719</name>
+      <uri>https://old.reddit.com/user/External_Mood4719</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"&gt; &lt;img alt="z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?" src="https://external-preview.redd.it/NmpyT9q4AjVZat2aE9T88BjsGJIYTHwFVU2RLO326Cw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3cc84d2d10a93fc2ffaa55ab671c69a8298be6e7" title="z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Past few days, its all been about MTPs. Somehow people missed out the fact that Z lab released the Dflash for Gemma4 26B a couple of days ago. As far as my understanding goes, Dflash should be a better alternative than MTP because of faster parallel block diffusion drafting and the fact that it is stateful (it can have a persistent state across iterations for context buffers, KV cache positions, and RoPE offsets). This basically should mean that dflash should be drastically better as the session extends and context grows. MTP should technically degrade faster because the kv cache will start balooning faster. I am very curious though how much of a speed difference does dflash bring to sparse models like Gemma 4 26B and Qwen 3.6 35B. Unfortunately, I can't test it since it's vllm only . Anybody tried using this? Any significant gains in speed? And what's the state of dflash support over lcpp? Are we any close? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PaceZealousideal6091"&gt; /u/PaceZealousideal6091 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/z-lab/gemma-4-26B-A4B-it-DFlash"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;DeepSeek Reportedly Seeking to Raise Over RMB 50 Billion ($7.35 Billion), Accelerating Its Commercialization and Monetization Strategy&lt;/p&gt; &lt;p&gt;According to two people familiar with the matter, DeepSeek founder and CEO Liang Wenfeng plans to contribute the maximum allowable amount in the company’s first funding round.&lt;/p&gt; &lt;p&gt;DeepSeek is targeting a fundraising size of up to RMB 50 billion, or approximately $7.35 billion, in this round. If completed, it could mark the largest single fundraising round in the history of Chinese AI companies.&lt;/p&gt; &lt;p&gt;The financing is also prompting DeepSeek to accelerate the implementation of its revenue-generation plans and push forward with commercialization and profitability.&lt;/p&gt; &lt;p&gt;The people familiar with the matter said DeepSeek has recently told some investors that it plans to speed up the iteration and release cadence of its large language models to align with mainstream industry practices.&lt;/p&gt; &lt;p&gt;One of the people said the company plans to launch V4.1, an updated version of its V4 model, in June.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.theinformation.com/articles/deepseek-raise-7-billion-startup-plots-revenue-efforts"&gt;https://www.theinformation.com/articles/deepseek-raise-7-billion-startup-plots-revenue-efforts&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7bfpw/reports_suggest_deepseek_is_seeking_735_billion/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T14:18:09+00:00</published>
+    <published>2026-05-08T15:34:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1t720ac</id>
@@ -279,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t720ac/gift_to_myself_tiny_lab/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-08T08:40:00+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t79ayh</id>
+    <title>z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?</title>
+    <updated>2026-05-08T14:18:09+00:00</updated>
+    <author>
+      <name>/u/PaceZealousideal6091</name>
+      <uri>https://old.reddit.com/user/PaceZealousideal6091</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"&gt; &lt;img alt="z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?" src="https://external-preview.redd.it/NmpyT9q4AjVZat2aE9T88BjsGJIYTHwFVU2RLO326Cw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3cc84d2d10a93fc2ffaa55ab671c69a8298be6e7" title="z-lab released gemma-4-26B-A4B-it-DFlash. Anybody tried it yet?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Past few days, its all been about MTPs. Somehow people missed out the fact that Z lab released the Dflash for Gemma4 26B a couple of days ago. As far as my understanding goes, Dflash should be a better alternative than MTP because of faster parallel block diffusion drafting and the fact that it is stateful (it can have a persistent state across iterations for context buffers, KV cache positions, and RoPE offsets). This basically should mean that dflash should be drastically better as the session extends and context grows. MTP should technically degrade faster because the kv cache will start balooning faster. I am very curious though how much of a speed difference does dflash bring to sparse models like Gemma 4 26B and Qwen 3.6 35B. Unfortunately, I can't test it since it's vllm only . Anybody tried using this? Any significant gains in speed? And what's the state of dflash support over lcpp? Are we any close? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PaceZealousideal6091"&gt; /u/PaceZealousideal6091 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/z-lab/gemma-4-26B-A4B-it-DFlash"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t79ayh/zlab_released_gemma426ba4bitdflash_anybody_tried/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-08T14:18:09+00:00</published>
   </entry>
   <entry>
     <id>t3_1t796qe</id>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6pw92/collected_the_infinity_stones/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T22:39:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7btln</id>
+    <title>Unpopular Opinion: The DGX Spark Forum community of devs is talented AF and will make the crippled hardware a success through their sheer force of will.</title>
+    <updated>2026-05-08T15:47:54+00:00</updated>
+    <author>
+      <name>/u/Porespellar</name>
+      <uri>https://old.reddit.com/user/Porespellar</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There is a lot of disdain for DGX Sparks here on the sub. And I get it. A lot of people say “It could have been great if it had been better memory bandwidth”, “SM-121 is a fake /second-class Blackwell chip” yadda, yadda. These criticisms are valid. &lt;/p&gt; &lt;p&gt;I bought one anyway because I’m pursuing a Masters in AI and I wanted it for training models, tool dev, testing, etc.&lt;br /&gt; I was an early adopter, and like many, I was disappointed by the inference performance and software stack initially. Recently, my opinion and experience has changed.&lt;/p&gt; &lt;p&gt;NVIDIA has an “official” DGX Spark Development community forum that is thriving. The people in the DGX forum community are some of the kindest, smartest, most tenacious group of developers I’ve met. These dudes have one common goal: Squeeze every last drop of performance out of this hardware to prove to themselves and the world that they didn’t make a bad purchase by buying a Spark. I know that sounds snarky, but I don’t think it’s a bad goal. &lt;/p&gt; &lt;p&gt;The vibe on the forum is like “Ok bros, we all bought this thing, the peeps over at &lt;a href="/r/LocalLLama"&gt;r/LocalLLama&lt;/a&gt; are all laughing at us right now, let’s show those sons-of-bitches what we can do” I mean, none of them would actually say that, because they are all really nice and helpful people, but that’s the vibe I get when I’m browsing through the posts. Everyone there has the same goal: optimize the hell out of DGX Spark to the highest level possible.. It’s wild seeing such a harmonious atmosphere. No one really argues, trolls, rage baits, none of that. Just everyone in the same boat, working together and encouraging each other, sharing benchmarks, code, vLLM recipes, etc. Reminds me of the vibe of this sub like 2 years ago before all the bot posts flooded the place.&lt;/p&gt; &lt;p&gt;If you don’t believe me, about the DGX dev community, go check it out for yourself:&lt;/p&gt; &lt;p&gt;&lt;a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10"&gt;https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Check out some of the cool projects they’ve spun up like Sparkrun (&lt;a href="http://sparkrun.dev"&gt;http://sparkrun.dev&lt;/a&gt;), PrismaQuant, Spark Lesderboard, eugr vLLM, and all the other amazing projects these guys are working on. &lt;/p&gt; &lt;p&gt;The one big advantage of the DGX hardware for these developers is the fact that the HW and OS is all exactly the same for everyone. You know your shit is going to work on every other Spark box that is out there and that is powerful for a unified community with one common goal. &lt;/p&gt; &lt;p&gt;So yes, DGX Spark could have been a lot better and was probably crippled by design, but that’s not stopping the DGX Spark Forum community, these MFers are going to use their sheer force of will and talent to make this thing a success just to spite all the naysayers. My two cents, agree or disagree? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7btln/unpopular_opinion_the_dgx_spark_forum_community/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-08T15:47:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1sknx6n</id>
