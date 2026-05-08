@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-07T23:33:47+00:00</updated>
+  <updated>2026-05-08T00:04:34+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1t6r1ny</id>
-    <title>Extracted MTP tensor GGUFs - smaller donor models for grafting.</title>
-    <updated>2026-05-07T23:28:41+00:00</updated>
+    <id>t3_1t5tnzl</id>
+    <title>Get faster qwen 3.6 27b</title>
+    <updated>2026-05-06T23:33:07+00:00</updated>
     <author>
-      <name>/u/AzerbaijanNyan</name>
-      <uri>https://old.reddit.com/user/AzerbaijanNyan</uri>
+      <name>/u/admajic</name>
+      <uri>https://old.reddit.com/user/admajic</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The &lt;a href="https://gist.github.com/buzz/1c439684d5e3f36492ae9f64ef7e3f67"&gt;script&lt;/a&gt; to graft MTP tensors requires a full GGUF model file. I felt that was a bit hefty, so I asked local Gemma to write something to just extract what's required.&lt;/p&gt; &lt;p&gt;The results are two faux GGUFs weighing in at just 900MB (&lt;a href="https://huggingface.co/IHaveNoClueAndIMustPost/Qwen3.6-35A3B-MTP-TENSORS-ONLY"&gt;35A3B&lt;/a&gt;) and 450MB (&lt;a href="https://huggingface.co/IHaveNoClueAndIMustPost/Qwen3.6-27b-MTP-TENSORS-ONLY"&gt;27B&lt;/a&gt;), containing only the tensors and fully compatible with the script. A lot quicker to download compared to the original 38GB and 29GB models for those who just want to convert their existing library or save some bandwidth.&lt;/p&gt; &lt;p&gt;Testing was done using SHA256 hashes, comparing the models made with these mini-GGUFs to those using the full models (identical results), along with some brief chats.&lt;/p&gt; &lt;p&gt;Credits: &lt;a href="https://huggingface.co/am17an"&gt;am17an&lt;/a&gt; for the original GGUFs, and &lt;a href="https://gist.github.com/buzz"&gt;buzz&lt;/a&gt; for the original script.&lt;/p&gt; &lt;p&gt;Disclaimers: The MTP implementation isn't finalized. These models might break or become obsolete at any time. Do not delete the original models in case there are updates to the conversion process. Testing was only done on the two models I use myself; other variants might not work well/at all. Also, 100% clueless vibecoding with a Q4_1 model.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AzerbaijanNyan"&gt; /u/AzerbaijanNyan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Using 100k context with 3090 with MTP GGUF and getting 50 t/s on llama.cpp&lt;/p&gt; &lt;p&gt;Thought I would knowledge share&lt;/p&gt; &lt;p&gt;Use &lt;a href="https://huggingface.co/RDson/Qwen3.6-27B-MTP-Q4_K_M-GGUF"&gt;https://huggingface.co/RDson/Qwen3.6-27B-MTP-Q4_K_M-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;And am17an commit - &lt;a href="https://github.com/ggml-org/llama.cpp/pull/22673"&gt;https://github.com/ggml-org/llama.cpp/pull/22673&lt;/a&gt; How to apply - Steps&lt;/p&gt; &lt;p&gt;```bash cd path/to/llama.cpp&lt;/p&gt; &lt;p&gt;git fetch origin pull/22673/head:pr-22673&lt;/p&gt; &lt;p&gt;git checkout pr-22673&lt;/p&gt; &lt;p&gt;Rebuild llama.cpp ```&lt;/p&gt; &lt;p&gt;My exact setup in Llama-cpp&lt;/p&gt; &lt;p&gt;```bash ./llama-server \ -m &amp;quot;/media/model/Qwen3.6-27B-MTP-Q4_K_M.gguf&amp;quot; \ --alias qwen3.6-27b-am17am \ -c 100000 \ --host 0.0.0.0 --port 8080 \ --slot-save-path /media/llama-swap/kv_cache/qwen3.6-27b-am17am \ -ngl 99 \ -fa \ --cache-type-k q4_0 --cache-type-v q4_0 \ --spec-type mtp --spec-draft-n-max 2 \ -b 2048 -ub 512 \ -t 8 \ (Im on a 8 core CPU) --no-mmap \ --prio 3 \ --parallel 1 \ --reasoning-format deepseek \ -np 8192 \ --temp 0.8 --top-p 0.95 --top-k 40 --min-p 0.05 --repeat-penalty 1.1 \ --metrics&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;p&gt;Note: Spec draft 3 seemed to much for the 3090 at higher context&lt;/p&gt; &lt;p&gt;Why 100k context? Beside it slows down and 100k is enough for most tasks then compact and continue. &lt;/p&gt; &lt;p&gt;Edit yes i used q4 k and v cache so it's 19gb VRAM and very stable. With larger context at above 90k it gets in loops, makes mistakes falls off a cliff for coding Updated add temperature etc&lt;/p&gt; &lt;p&gt;Edit2: Yes there is a MAC version apparently &lt;/p&gt; &lt;h1&gt;Install via Homebrew&lt;/h1&gt; &lt;p&gt;brew install youssofal/mtplx/mtplx&lt;/p&gt; &lt;h1&gt;Start the server (it will auto-detect MTP heads in supported models)&lt;/h1&gt; &lt;p&gt;mtplx start --model /path/to/your/Qwen3.6-27B-MTP&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/admajic"&gt; /u/admajic &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5tnzl/get_faster_qwen_36_27b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5tnzl/get_faster_qwen_36_27b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t5tnzl/get_faster_qwen_36_27b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T23:28:41+00:00</published>
+    <published>2026-05-06T23:33:07+00:00</published>
   </entry>
   <entry>
     <id>t3_1t5nll0</id>
@@ -45,19 +45,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t65vl8/running_qwen35_qwen36_with_nextn_mtp_multitoken/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T09:56:06+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t6qirs</id>
-    <title>how i can improve inference speed</title>
-    <updated>2026-05-07T23:06:08+00:00</updated>
-    <author>
-      <name>/u/Askmasr_mod</name>
-      <uri>https://old.reddit.com/user/Askmasr_mod</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6qirs/how_i_can_improve_inference_speed/"&gt; &lt;img alt="how i can improve inference speed" src="https://preview.redd.it/lj58sd33rszg1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=4ff3b5e589582ebe38b24e2a7da0c921a0a7a9d0" title="how i can improve inference speed" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;specs :&lt;/p&gt; &lt;p&gt;core i5 14400F&lt;/p&gt; &lt;p&gt;32gb ram d4 3200mhz&lt;/p&gt; &lt;p&gt;rtx 4060&lt;/p&gt; &lt;p&gt;current speeds&lt;/p&gt; &lt;p&gt;30tps in output&lt;/p&gt; &lt;p&gt;500 tps in prefill&lt;/p&gt; &lt;p&gt;command i currently use&lt;/p&gt; &lt;p&gt;.\llama-server.exe `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -m &amp;quot;H:\model\unsloth\Qwen3.6-35B-A3B-GGUF\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf&amp;quot; `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --host &lt;a href="http://0.0.0.0/"&gt;0.0.0.0&lt;/a&gt; --port 8080 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --alias &amp;quot;claude-sonnet-4-5&amp;quot; `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -ngl 999 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --n-cpu-moe 36 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -c 65535 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -b 4096 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -ub 2048 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -t 6 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -tb 10 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --cont-batching `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --mlock `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -ctk turbo4 -ctv turbo3 `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; -fa on `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --jinja `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --warmup `&lt;/p&gt; &lt;p&gt;&amp;gt;&amp;gt; --perf `&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/lj58sd33rszg1.png?width=1920&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0f7aca149f29f9cb219ea384780a88d191f58ccd"&gt;https://preview.redd.it/lj58sd33rszg1.png?width=1920&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0f7aca149f29f9cb219ea384780a88d191f58ccd&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Askmasr_mod"&gt; /u/Askmasr_mod &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6qirs/how_i_can_improve_inference_speed/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6qirs/how_i_can_improve_inference_speed/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6qirs/how_i_can_improve_inference_speed/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T23:06:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6inju</id>
@@ -99,17 +86,17 @@
     <published>2026-05-07T20:46:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t6c6vs</id>
-    <title>Qwen/WebWorld 32B/14B/8B (Qwen3 finetune)</title>
-    <updated>2026-05-07T14:28:47+00:00</updated>
+    <id>t3_1t6bsil</id>
+    <title>Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6</title>
+    <updated>2026-05-07T14:14:11+00:00</updated>
     <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
+      <name>/u/Excellent_Jelly2788</name>
+      <uri>https://old.reddit.com/user/Excellent_Jelly2788</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;WebWorld&lt;/strong&gt; is a large-scale &lt;strong&gt;open-web world model&lt;/strong&gt; series for training and evaluating web agents. It is trained on &lt;strong&gt;1M+ real-world web interaction trajectories&lt;/strong&gt; via a scalable hierarchical data pipeline, supporting:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Long-horizon simulation&lt;/strong&gt; (30+ steps)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multi-format state representations&lt;/strong&gt;: A11y Tree, HTML, XML, Markdown, and natural language&lt;/li&gt; &lt;li&gt;&lt;strong&gt;CoT-activated reasoning&lt;/strong&gt; for transition prediction&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Cross-domain generalization&lt;/strong&gt; to code, GUI, and game environments&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Agents trained on WebWorld-synthesized trajectories achieve &lt;strong&gt;+9.9% on MiniWob++&lt;/strong&gt; and &lt;strong&gt;+10.9% on WebArena&lt;/strong&gt;. When used for inference-time lookahead search, WebWorld &lt;strong&gt;outperforms GPT-5&lt;/strong&gt; as a world model.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-32B"&gt;https://huggingface.co/Qwen/WebWorld-32B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-14B"&gt;https://huggingface.co/Qwen/WebWorld-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-8B"&gt;https://huggingface.co/Qwen/WebWorld-8B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"&gt; &lt;img alt="Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6" src="https://preview.redd.it/ded3kcwk0qzg1.png?width=140&amp;amp;height=96&amp;amp;auto=webp&amp;amp;s=c5a64c0fdb3e782a9d77b9fcc2c6be7a34ba3cad" title="Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With every new model release there's the &amp;quot;better than Opus 6.13&amp;quot; guys vs the &amp;quot;this is so bad, why did they even release it&amp;quot; camp and I'm always wondering which one is using it wrong.&lt;/p&gt; &lt;p&gt;So I did a little test with 2 related prompts, 3 models and ran each combination 10 times.&lt;/p&gt; &lt;p&gt;Short prompt:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Mike grew up as one of 6 siblings and has 3 sisters. He has $25 and bought 5 boxes of apples for his organic apples business. To support him, his siblings also gifted some apples, with each of his brothers giving him 4 boxes and his sisters 2 boxes each. One of the brothers bought the cheap apples for Mike which were not organic, so Mike can't sell them and returned them. In his first week, Mike sold all boxes of apples and using all the money he earned from that bought twice the amount of apples for the second week. How much money would Mike earn in the second week if he was able to sell all of them?&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Expected Answer: 300. &lt;/p&gt; &lt;p&gt;Assumption: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;shorter prompt = better. The longer version contains more fluff, not more facts.&lt;/li&gt; &lt;li&gt;Qwen 3.6 &amp;gt; Qwen 3.5 &lt;/li&gt; &lt;li&gt;IQ2 dumb&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Result: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;Most wrong answers were assuming &amp;quot;one box is $5&amp;quot; no matter if buying or selling and answered 150 instead of 300 (except Qwen 3.6 IQ2 which, in the longer story, 50% of the time ignored the sibling boxes and said $25*2=$50).&lt;/li&gt; &lt;li&gt;Gemma 4 really liked the longer version. With the story around it, Gemma 4 saw it more as a &amp;quot;business&amp;quot; with different buying and selling prices instead of a purely mathematical, assumption based question. &lt;/li&gt; &lt;li&gt;Qwen 3.6 performed surprisingly bad with the long prompt, even in Q8. It mostly either missed the business part and said $150 or forgot about the sibling boxes and said $50.&lt;/li&gt; &lt;li&gt;IQ2 was surprisingly good&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;I was really surprised by this, turns out there's not just good prompts and bad prompts but even apparently similar models (Qwen 3.5 vs 3.6) can require different prompting styles.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For context: the other prompt contains the exact same sentences, but embedded in a longer story:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;The Organic Apple Enterprise&lt;br /&gt; The sun barely peeked over the rolling hills of the valley when Mike was already awake, brewing his morning coffee and lacing up his work boots. The peaceful, quiet calm of the dawn was a stark contrast to the memories of his childhood home. It had always been a loud, energetic household, filled with constant chatter, shared chores, and the occasional battle over the television remote. &lt;strong&gt;Mike grew up as one of 6 siblings and has 3 sisters.&lt;/strong&gt; Growing up in such a bustling environment taught him the value of hard work, compromise, and the sheer determination required to stand out...&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;The full long prompt can be found&lt;a href="https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/?view=model&amp;amp;tab=templates"&gt; here&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The full data of the comparison (token in- and output numbers, model answers etc): &lt;a href="https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/"&gt;https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Disclaimer: that's my website, I created it specifically to compare (local) LLMs. You can create one or several prompts, point it at your local endpoint and then compare the results.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Jelly2788"&gt; /u/Excellent_Jelly2788 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1t6bsil"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T14:28:47+00:00</published>
+    <published>2026-05-07T14:14:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6d9la</id>
@@ -125,17 +112,30 @@
     <published>2026-05-07T15:06:26+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t6bsil</id>
-    <title>Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6</title>
-    <updated>2026-05-07T14:14:11+00:00</updated>
+    <id>t3_1t6c6vs</id>
+    <title>Qwen/WebWorld 32B/14B/8B (Qwen3 finetune)</title>
+    <updated>2026-05-07T14:28:47+00:00</updated>
     <author>
-      <name>/u/Excellent_Jelly2788</name>
-      <uri>https://old.reddit.com/user/Excellent_Jelly2788</uri>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"&gt; &lt;img alt="Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6" src="https://preview.redd.it/ded3kcwk0qzg1.png?width=140&amp;amp;height=96&amp;amp;auto=webp&amp;amp;s=c5a64c0fdb3e782a9d77b9fcc2c6be7a34ba3cad" title="Two related prompts, different results: Qwen 3.5 and Gemma 4 need different prompting than Qwen 3.6" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With every new model release there's the &amp;quot;better than Opus 6.13&amp;quot; guys vs the &amp;quot;this is so bad, why did they even release it&amp;quot; camp and I'm always wondering which one is using it wrong.&lt;/p&gt; &lt;p&gt;So I did a little test with 2 related prompts, 3 models and ran each combination 10 times.&lt;/p&gt; &lt;p&gt;Short prompt:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Mike grew up as one of 6 siblings and has 3 sisters. He has $25 and bought 5 boxes of apples for his organic apples business. To support him, his siblings also gifted some apples, with each of his brothers giving him 4 boxes and his sisters 2 boxes each. One of the brothers bought the cheap apples for Mike which were not organic, so Mike can't sell them and returned them. In his first week, Mike sold all boxes of apples and using all the money he earned from that bought twice the amount of apples for the second week. How much money would Mike earn in the second week if he was able to sell all of them?&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Expected Answer: 300. &lt;/p&gt; &lt;p&gt;Assumption: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;shorter prompt = better. The longer version contains more fluff, not more facts.&lt;/li&gt; &lt;li&gt;Qwen 3.6 &amp;gt; Qwen 3.5 &lt;/li&gt; &lt;li&gt;IQ2 dumb&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Result: &lt;/p&gt; &lt;ul&gt; &lt;li&gt;Most wrong answers were assuming &amp;quot;one box is $5&amp;quot; no matter if buying or selling and answered 150 instead of 300 (except Qwen 3.6 IQ2 which, in the longer story, 50% of the time ignored the sibling boxes and said $25*2=$50).&lt;/li&gt; &lt;li&gt;Gemma 4 really liked the longer version. With the story around it, Gemma 4 saw it more as a &amp;quot;business&amp;quot; with different buying and selling prices instead of a purely mathematical, assumption based question. &lt;/li&gt; &lt;li&gt;Qwen 3.6 performed surprisingly bad with the long prompt, even in Q8. It mostly either missed the business part and said $150 or forgot about the sibling boxes and said $50.&lt;/li&gt; &lt;li&gt;IQ2 was surprisingly good&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;I was really surprised by this, turns out there's not just good prompts and bad prompts but even apparently similar models (Qwen 3.5 vs 3.6) can require different prompting styles.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For context: the other prompt contains the exact same sentences, but embedded in a longer story:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;The Organic Apple Enterprise&lt;br /&gt; The sun barely peeked over the rolling hills of the valley when Mike was already awake, brewing his morning coffee and lacing up his work boots. The peaceful, quiet calm of the dawn was a stark contrast to the memories of his childhood home. It had always been a loud, energetic household, filled with constant chatter, shared chores, and the occasional battle over the television remote. &lt;strong&gt;Mike grew up as one of 6 siblings and has 3 sisters.&lt;/strong&gt; Growing up in such a bustling environment taught him the value of hard work, compromise, and the sheer determination required to stand out...&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;The full long prompt can be found&lt;a href="https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/?view=model&amp;amp;tab=templates"&gt; here&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The full data of the comparison (token in- and output numbers, model answers etc): &lt;a href="https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/"&gt;https://evaluateai.ai/app/comparisons/7d1baf23-49d0-484b-8c59-854dcc2e4f64/results/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Disclaimer: that's my website, I created it specifically to compare (local) LLMs. You can create one or several prompts, point it at your local endpoint and then compare the results.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Excellent_Jelly2788"&gt; /u/Excellent_Jelly2788 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1t6bsil"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6bsil/two_related_prompts_different_results_qwen_35_and/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;WebWorld&lt;/strong&gt; is a large-scale &lt;strong&gt;open-web world model&lt;/strong&gt; series for training and evaluating web agents. It is trained on &lt;strong&gt;1M+ real-world web interaction trajectories&lt;/strong&gt; via a scalable hierarchical data pipeline, supporting:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Long-horizon simulation&lt;/strong&gt; (30+ steps)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Multi-format state representations&lt;/strong&gt;: A11y Tree, HTML, XML, Markdown, and natural language&lt;/li&gt; &lt;li&gt;&lt;strong&gt;CoT-activated reasoning&lt;/strong&gt; for transition prediction&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Cross-domain generalization&lt;/strong&gt; to code, GUI, and game environments&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Agents trained on WebWorld-synthesized trajectories achieve &lt;strong&gt;+9.9% on MiniWob++&lt;/strong&gt; and &lt;strong&gt;+10.9% on WebArena&lt;/strong&gt;. When used for inference-time lookahead search, WebWorld &lt;strong&gt;outperforms GPT-5&lt;/strong&gt; as a world model.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-32B"&gt;https://huggingface.co/Qwen/WebWorld-32B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-14B"&gt;https://huggingface.co/Qwen/WebWorld-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/Qwen/WebWorld-8B"&gt;https://huggingface.co/Qwen/WebWorld-8B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6c6vs/qwenwebworld_32b14b8b_qwen3_finetune/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T14:14:11+00:00</published>
+    <published>2026-05-07T14:28:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t6r1ny</id>
+    <title>Extracted MTP tensor GGUFs - smaller donor models for grafting.</title>
+    <updated>2026-05-07T23:28:41+00:00</updated>
+    <author>
+      <name>/u/AzerbaijanNyan</name>
+      <uri>https://old.reddit.com/user/AzerbaijanNyan</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The &lt;a href="https://gist.github.com/buzz/1c439684d5e3f36492ae9f64ef7e3f67"&gt;script&lt;/a&gt; to graft MTP tensors requires a full GGUF model file. I felt that was a bit hefty, so I asked local Gemma to write something to just extract what's required.&lt;/p&gt; &lt;p&gt;The results are two faux GGUFs weighing in at just 900MB (&lt;a href="https://huggingface.co/IHaveNoClueAndIMustPost/Qwen3.6-35A3B-MTP-TENSORS-ONLY"&gt;35A3B&lt;/a&gt;) and 450MB (&lt;a href="https://huggingface.co/IHaveNoClueAndIMustPost/Qwen3.6-27b-MTP-TENSORS-ONLY"&gt;27B&lt;/a&gt;), containing only the tensors and fully compatible with the script. A lot quicker to download compared to the original 38GB and 29GB models for those who just want to convert their existing library or save some bandwidth.&lt;/p&gt; &lt;p&gt;Testing was done using SHA256 hashes, comparing the models made with these mini-GGUFs to those using the full models (identical results), along with some brief chats.&lt;/p&gt; &lt;p&gt;Credits: &lt;a href="https://huggingface.co/am17an"&gt;am17an&lt;/a&gt; for the original GGUFs, and &lt;a href="https://gist.github.com/buzz"&gt;buzz&lt;/a&gt; for the original script.&lt;/p&gt; &lt;p&gt;Disclaimers: The MTP implementation isn't finalized. These models might break or become obsolete at any time. Do not delete the original models in case there are updates to the conversion process. Testing was only done on the two models I use myself; other variants might not work well/at all. Also, 100% clueless vibecoding with a Q4_1 model.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AzerbaijanNyan"&gt; /u/AzerbaijanNyan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-07T23:28:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1t67lvx</id>
@@ -151,19 +151,6 @@
     <published>2026-05-07T11:23:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t5yajb</id>
-    <title>Qwen3.6 27B uncensored heretic v2 Native MTP Preserved is Out Now With KLD 0.0021, 6/100 Refusals and the Full 15 MTPs Preserved and Retained, Available in Safetensors, GGUFs and NVFP4s formats.</title>
-    <updated>2026-05-07T02:59:31+00:00</updated>
-    <author>
-      <name>/u/LLMFan46</name>
-      <uri>https://old.reddit.com/user/LLMFan46</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;All are confirmed to have their full 15 MTPs retained and preserved.&lt;/p&gt; &lt;p&gt;Comes with benchmark too.&lt;/p&gt; &lt;p&gt;Find all my models here: &lt;a href="https://huggingface.co/llmfan46/models"&gt;HuggingFace-LLMFan46&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LLMFan46"&gt; /u/LLMFan46 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T02:59:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t6iy5s</id>
     <title>New Gemma 4 MTP on MLX?</title>
     <updated>2026-05-07T18:24:05+00:00</updated>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6iy5s/new_gemma_4_mtp_on_mlx/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T18:24:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t5yajb</id>
+    <title>Qwen3.6 27B uncensored heretic v2 Native MTP Preserved is Out Now With KLD 0.0021, 6/100 Refusals and the Full 15 MTPs Preserved and Retained, Available in Safetensors, GGUFs and NVFP4s formats.</title>
+    <updated>2026-05-07T02:59:31+00:00</updated>
+    <author>
+      <name>/u/LLMFan46</name>
+      <uri>https://old.reddit.com/user/LLMFan46</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-NVFP4-MLP-Only&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4: &lt;a href="https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4"&gt;https://huggingface.co/llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GPTQ-Int4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;All are confirmed to have their full 15 MTPs retained and preserved.&lt;/p&gt; &lt;p&gt;Comes with benchmark too.&lt;/p&gt; &lt;p&gt;Find all my models here: &lt;a href="https://huggingface.co/llmfan46/models"&gt;HuggingFace-LLMFan46&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LLMFan46"&gt; /u/LLMFan46 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t5yajb/qwen36_27b_uncensored_heretic_v2_native_mtp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-07T02:59:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6nuhz</id>
@@ -190,19 +190,6 @@
     <published>2026-05-07T21:18:26+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t6q58n</id>
-    <title>ZAYA1-74B-Preview: Scaling Pretraining on AMD</title>
-    <updated>2026-05-07T22:50:22+00:00</updated>
-    <author>
-      <name>/u/TKGaming_11</name>
-      <uri>https://old.reddit.com/user/TKGaming_11</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"&gt; &lt;img alt="ZAYA1-74B-Preview: Scaling Pretraining on AMD" src="https://external-preview.redd.it/i4WJfW6p4Uj9gIVSsX0OO33lOO35GrZY_skMyQ-4Cyo.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9dd9ac4fef8ca24e3960106eba28b77c1b992f67" title="ZAYA1-74B-Preview: Scaling Pretraining on AMD" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TKGaming_11"&gt; /u/TKGaming_11 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.zyphra.com/post/zaya1-74b-preview"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T22:50:22+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t6n97x</id>
     <title>11.67% ARC-AGI-2 Local Eval on a Single 4090: The TOPAS Recursive Architecture</title>
     <updated>2026-05-07T20:56:47+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6n97x/1167_arcagi2_local_eval_on_a_single_4090_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T20:56:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t6q58n</id>
+    <title>ZAYA1-74B-Preview: Scaling Pretraining on AMD</title>
+    <updated>2026-05-07T22:50:22+00:00</updated>
+    <author>
+      <name>/u/TKGaming_11</name>
+      <uri>https://old.reddit.com/user/TKGaming_11</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"&gt; &lt;img alt="ZAYA1-74B-Preview: Scaling Pretraining on AMD" src="https://external-preview.redd.it/i4WJfW6p4Uj9gIVSsX0OO33lOO35GrZY_skMyQ-4Cyo.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9dd9ac4fef8ca24e3960106eba28b77c1b992f67" title="ZAYA1-74B-Preview: Scaling Pretraining on AMD" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TKGaming_11"&gt; /u/TKGaming_11 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.zyphra.com/post/zaya1-74b-preview"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6q58n/zaya174bpreview_scaling_pretraining_on_amd/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-07T22:50:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6gmcn</id>
@@ -242,19 +242,6 @@
     <published>2026-05-07T16:54:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t6orv0</id>
-    <title>guess what? if you are a chrome user, technically you are localllama member!</title>
-    <updated>2026-05-07T21:54:34+00:00</updated>
-    <author>
-      <name>/u/LambdaHominem</name>
-      <uri>https://old.reddit.com/user/LambdaHominem</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"&gt; &lt;img alt="guess what? if you are a chrome user, technically you are localllama member!" src="https://external-preview.redd.it/RNJfwkp4er5yQVduItXEMvNmQM6-8c7od9FmBdU-teI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dbdefba0fc37f43b33b0cbd2ac1e324661058699" title="guess what? if you are a chrome user, technically you are localllama member!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TLDR chrome silently download a 4gb model checkpoint in your pc without user consent&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LambdaHominem"&gt; /u/LambdaHominem &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.thatprivacyguy.com/blog/chrome-silent-nano-install/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-07T21:54:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t6p0zk</id>
     <title>Are local models becoming “good enough” faster than expected?</title>
     <updated>2026-05-07T22:04:25+00:00</updated>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6p0zk/are_local_models_becoming_good_enough_faster_than/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-07T22:04:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t6orv0</id>
+    <title>guess what? if you are a chrome user, technically you are localllama member!</title>
+    <updated>2026-05-07T21:54:34+00:00</updated>
+    <author>
+      <name>/u/LambdaHominem</name>
+      <uri>https://old.reddit.com/user/LambdaHominem</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"&gt; &lt;img alt="guess what? if you are a chrome user, technically you are localllama member!" src="https://external-preview.redd.it/RNJfwkp4er5yQVduItXEMvNmQM6-8c7od9FmBdU-teI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dbdefba0fc37f43b33b0cbd2ac1e324661058699" title="guess what? if you are a chrome user, technically you are localllama member!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TLDR chrome silently download a 4gb model checkpoint in your pc without user consent&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LambdaHominem"&gt; /u/LambdaHominem &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.thatprivacyguy.com/blog/chrome-silent-nano-install/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t6orv0/guess_what_if_you_are_a_chrome_user_technically/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-07T21:54:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1t6b2x8</id>
