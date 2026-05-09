@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-05-09T07:20:02+00:00</updated>
+  <updated>2026-05-09T08:10:46+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1t7okxi</id>
-    <title>Are people actually making their AI agents pay for themselves now?</title>
-    <updated>2026-05-08T23:43:02+00:00</updated>
-    <author>
-      <name>/u/bibbletrash</name>
-      <uri>https://old.reddit.com/user/bibbletrash</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Saw this X post about someone making their AI agents pay for themselves by selling their workflows. &lt;/p&gt; &lt;p&gt;Is this actually real? &lt;/p&gt; &lt;p&gt;Feels like prompt marketplaces were mostly garbage, but agent workflows might be different because they include execution, tools, and process! &lt;/p&gt; &lt;p&gt;Anyone seen this work in practice?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bibbletrash"&gt; /u/bibbletrash &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7okxi/are_people_actually_making_their_ai_agents_pay/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7okxi/are_people_actually_making_their_ai_agents_pay/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7okxi/are_people_actually_making_their_ai_agents_pay/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-08T23:43:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t772wi</id>
-    <title>The "Navigate Unsupported" Saga: A Guide to Fixing OpenClaw Browser Plugins on Docker/Hostinger</title>
-    <updated>2026-05-08T12:53:46+00:00</updated>
-    <author>
-      <name>/u/UnfallenTDS</name>
-      <uri>https://old.reddit.com/user/UnfallenTDS</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you are self-hosting &lt;strong&gt;OpenClaw&lt;/strong&gt; on a VPS (like Hostinger) and your agent keeps apologizing because it can't &amp;quot;see&amp;quot; the web, you aren't alone. I spent my morning in the trenches moving my setup to a new server, and the browser plugin was the &amp;quot;Final Boss.&amp;quot;&lt;/p&gt; &lt;p&gt;Here is the step-by-step breakdown of how we moved from &lt;strong&gt;&amp;quot;Permission Denied&amp;quot;&lt;/strong&gt; to a successful Google screenshot.&lt;/p&gt; &lt;h1&gt;1. The Permission Wall (EACCES)&lt;/h1&gt; &lt;p&gt;Initially, the browser plugin was listed as &amp;quot;failed to initialize.&amp;quot; Looking at the logs (&lt;code&gt;docker logs [container-name]&lt;/code&gt;), we saw &lt;code&gt;npm error Error: EACCES: permission denied, mkdir&lt;/code&gt;. The container didn't have the rights to create the necessary &lt;code&gt;node_modules&lt;/code&gt; folders for the browser.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Fix:&lt;/strong&gt; Update your &lt;code&gt;docker-compose.yml&lt;/code&gt;. Under the &lt;code&gt;openclaw&lt;/code&gt; service, you need to explicitly tell it to run as root. YAMLservices: openclaw: image: &lt;a href="http://ghcr.io/hostinger/hvps-openclaw:latest"&gt;ghcr.io/hostinger/hvps-openclaw:latest&lt;/a&gt;user: root # &amp;lt;--- The &amp;quot;Master Key&amp;quot; init: true &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. Wiring the &amp;quot;Eyes&amp;quot; (Browserless)&lt;/h1&gt; &lt;p&gt;You need a separate engine to actually render the pages. We added a &lt;code&gt;browserless&lt;/code&gt; service to the YAML and connected it via an environment variable.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;YAML Addition:&lt;/strong&gt; YAML browserless: image: &lt;a href="http://ghcr.io/browserless/chromium:latest"&gt;ghcr.io/browserless/chromium:latest&lt;/a&gt;ports: - &amp;quot;3000:3000&amp;quot; environment: - CONCURRENT=5 - TOKEN=[YOUR-CUSTOM-TOKEN] &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Environment Variable (OpenClaw Side):&lt;/strong&gt; &lt;code&gt;BROWSERLESS_URL=ws://browserless:3000?token=[YOUR-CUSTOM-TOKEN]&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. The &amp;quot;Navigate Unsupported&amp;quot; Mystery&lt;/h1&gt; &lt;p&gt;Even with the engine running, the agent kept saying: &lt;em&gt;&amp;quot;Playwright is not available in this gateway build; 'navigate' is unsupported.&amp;quot;&lt;/em&gt; This means the &amp;quot;brain&amp;quot; and the &amp;quot;eyes&amp;quot; didn't have a steering wheel (Playwright).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Surgical Fix:&lt;/strong&gt; We had to force-install the exact version of &lt;code&gt;playwright-core&lt;/code&gt; that the plugin was looking for (v1.59.1) directly into the plugin's folder inside the container. Bashdocker exec -u root -it [container-name] bash -c &amp;quot;npm install &lt;a href="mailto:playwright-core@1.59.1"&gt;playwright-core@1.59.1&lt;/a&gt; --prefix /usr/local/lib/node_modules/openclaw/dist/extensions/browser&amp;quot; &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;4. Downloading the Eyeballs (Binaries)&lt;/h1&gt; &lt;p&gt;The library was there, but the actual Chromium browser files weren't! Since my VPS used a Homebrew-style environment, the standard &lt;code&gt;--with-deps&lt;/code&gt; install failed. We had to download just the Chromium binaries manually.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Command:&lt;/strong&gt; Bashdocker exec -u root -it [container-name] npx playwright install chromium &lt;em&gt;Note: This downloads about 170MB of data into the container's cache.&lt;/em&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;5. The &amp;quot;Doctor&amp;quot; and the Final Bridge&lt;/h1&gt; &lt;p&gt;The Gateway still couldn't &amp;quot;see&amp;quot; the library. We used the built-in diagnostic tool and then manually linked the folders so the Gateway couldn't ignore them.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Step A:&lt;/strong&gt; &lt;code&gt;docker exec -u root -it [container-name] openclaw doctor --fix&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Step B (The Bridge):&lt;/strong&gt; We created a symbolic link so the main OpenClaw directory could &amp;quot;see&amp;quot; the Playwright install located in the extensions folder.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;The Result&lt;/h1&gt; &lt;p&gt;After a final restart, the &amp;quot;Navigate Unsupported&amp;quot; error vanished. I sent a command via Telegram, and for the first time, my agent didn't apologize—she sent back a clear, crisp screenshot of Google.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; If it's failing, it’s usually a mix of root permissions, missing Chromium binaries in the &lt;code&gt;.cache&lt;/code&gt; folder, and a version mismatch with &lt;code&gt;playwright-core&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;I did all the with Gemini as I really have no idea what I am doing!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/UnfallenTDS"&gt; /u/UnfallenTDS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-08T12:53:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t797bu</id>
-    <title>Malicious skills on claw hub and hugging face</title>
-    <updated>2026-05-08T14:14:27+00:00</updated>
-    <author>
-      <name>/u/openingshots</name>
-      <uri>https://old.reddit.com/user/openingshots</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://x.com/i/status/2052646258280432027"&gt;https://x.com/i/status/2052646258280432027&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Evidently both sites have been hacked and there are 575 malicious skills on the sites. Be careful what you use from there.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/openingshots"&gt; /u/openingshots &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t797bu/malicious_skills_on_claw_hub_and_hugging_face/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t797bu/malicious_skills_on_claw_hub_and_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t797bu/malicious_skills_on_claw_hub_and_hugging_face/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-08T14:14:27+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t7h7u7</id>
     <title>OpenClaw to generate images using Google — is there a better way, or do I just have the agent use the browser?</title>
@@ -229,30 +190,56 @@
     <published>2026-05-09T06:25:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t7xp0y</id>
-    <title>大模型和AI到 202309 的重要进展</title>
-    <updated>2026-05-09T07:09:26+00:00</updated>
+    <id>t3_1t7y5dm</id>
+    <title>OpenClaw Error - Rate Limited</title>
+    <updated>2026-05-09T07:34:40+00:00</updated>
+    <author>
+      <name>/u/Various_Ask3655</name>
+      <uri>https://old.reddit.com/user/Various_Ask3655</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey! I’ve been using OpenClaw for a few months and I’ve suddenly run into an issue with the OpenAI Auth / Codex integration.&lt;/p&gt; &lt;p&gt;My agent stopped responding and now I only get:&lt;/p&gt; &lt;p&gt;&lt;code&gt;FallbackSummaryError: All models failed (1): openai-codex/gpt-5.5: Provider openai-codex is in cooldown (all profiles unavailable) (rate_limit)&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It also says:&lt;/p&gt; &lt;p&gt;&lt;code&gt;Rate-limited — ready in ~222 min. Please try again shortly.&lt;/code&gt;&lt;/p&gt; &lt;p&gt;The confusing part is that my ChatGPT subscription still works normally in the browser, so I’m not sure if this is a real Codex/Auth rate limit, a misconfigured provider, or if OpenClaw has somehow fallen back from &lt;code&gt;openai-codex&lt;/code&gt; auth to the regular &lt;code&gt;openai&lt;/code&gt; API provider, where I don’t have API billing configured.&lt;/p&gt; &lt;p&gt;Has anyone else seen this? Any idea how to reset the cooldown or confirm whether OpenClaw is actually using &lt;code&gt;openai-codex&lt;/code&gt; OAuth instead of &lt;code&gt;openai&lt;/code&gt; API key auth?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Various_Ask3655"&gt; /u/Various_Ask3655 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7y5dm/openclaw_error_rate_limited/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7y5dm/openclaw_error_rate_limited/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7y5dm/openclaw_error_rate_limited/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-09T07:34:40+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7y8n6</id>
+    <title>The latest version stability of OpenClaw 2026.5.7 and Hermes Agent v0.13.0</title>
+    <updated>2026-05-09T07:39:49+00:00</updated>
     <author>
       <name>/u/EchidnaEducational19</name>
       <uri>https://old.reddit.com/user/EchidnaEducational19</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The new version Hermes Agent v0.13.0 (2026.5.7) is scored as 0.4 in a score range of [0,10] in the Agent Watch dashboard.&lt;/p&gt; &lt;p&gt;Also for the OpenClaw 2026.5.7 is fairly unstable too, it has a score of 0 on the dashboard. &lt;a href="https://agentwatch.aicompass.dev/"&gt;https://agentwatch.aicompass.dev/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I created the dashboard which analyze Github issues of OpenClaw and Hermes by LLM, co-relate each issue with specified release, and score the release stability and show it on the dashboard.&lt;/p&gt; &lt;p&gt;If you are seeking a stable version of OpenClaw, it should help.&lt;/p&gt; &lt;p&gt;It is the evaluation process for each release of the 2 projects:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Pipeline to compute a 0–10 stability score per GitHub Release: 1. Collect — Cron to incrementally fetches issues on github. 2. Classify — LLM (gpt-5.4-mini) tags each issue as positive/negative/neutral, picks a target_version if matched. 3. Score — Per release: score the release by all github issues related, and user stars on Agent Watch. &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EchidnaEducational19"&gt; /u/EchidnaEducational19 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7xp0y/大模型和ai到_202309_的重要进展/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7xp0y/大模型和ai到_202309_的重要进展/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7xp0y/大模型和ai到_202309_的重要进展/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The new version Hermes Agent v0.13.0 (2026.5.7) is scored as 0.4 in a score range of [0,10] in the Agent Watch dashboard.&lt;/p&gt; &lt;p&gt;Also for the OpenClaw 2026.5.7 is fairly unstable too, it has a score of 0 on the dashboard. &lt;a href="https://agentwatch.aicompass.dev/"&gt;https://agentwatch.aicompass.dev/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I created the dashboard which analyze Github issues of OpenClaw and Hermes by LLM, co-relate each issue with specified release, and score the release stability and show it on the dashboard.&lt;/p&gt; &lt;p&gt;If you are seeking a stable version of OpenClaw, it should help.&lt;/p&gt; &lt;p&gt;It is the evaluation process for each release of the 2 projects:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Pipeline to compute a 0–10 stability score per GitHub Release: 1. Collect — Cron to incrementally fetches issues on github. 2. Classify — LLM (gpt-5.4-mini) tags each issue as positive/negative/neutral, picks a target_version if matched. 3. Score — Per release: score the release by all github issues related, and user stars on Agent Watch. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The version at the end of April for both OpenClaw and Hermes is more stable than the latest version of 2026.05.07.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EchidnaEducational19"&gt; /u/EchidnaEducational19 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7y8n6/the_latest_version_stability_of_openclaw_202657/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7y8n6/the_latest_version_stability_of_openclaw_202657/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7y8n6/the_latest_version_stability_of_openclaw_202657/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-09T07:09:26+00:00</published>
+    <published>2026-05-09T07:39:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t7uayc</id>
-    <title>OpenClaw calling without paying</title>
-    <updated>2026-05-09T04:10:06+00:00</updated>
+    <id>t3_1t7yi5h</id>
+    <title>I’ve deployed 100+ AI agents. Half my clients picked the wrong tool and paid for it.</title>
+    <updated>2026-05-09T07:55:07+00:00</updated>
     <author>
-      <name>/u/Outrageous-Front-868</name>
-      <uri>https://old.reddit.com/user/Outrageous-Front-868</uri>
+      <name>/u/RepairOld9423</name>
+      <uri>https://old.reddit.com/user/RepairOld9423</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, I have this use case where i want openclaw to call me for my reminders. Like a real phone call. And i answer it and it speaks the reminder to me. &lt;/p&gt; &lt;p&gt;Right now, most of the phone calls is through Twillion or Clawdtalk which is a paid service calling to your mobile and etc. &lt;/p&gt; &lt;p&gt;But we have integrations with existing channels that supports phone calls like Telegram, Nextcloud Talk or even Element Matrix. &lt;/p&gt; &lt;p&gt;Been searching high and low , but couldnt find anything about the bot making a phone call to my NC Talk ( i self host nctalk with hpb server ) or even element. For element i must make a room, and the bot joins the call but thats the the use case for this. &lt;/p&gt; &lt;p&gt;Any ideas about this. ?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Outrageous-Front-868"&gt; /u/Outrageous-Front-868 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Let me save you the mistake I see every single week.&lt;/p&gt; &lt;p&gt;Two tools dominate the self-hosted AI agent space right now &lt;strong&gt;OpenClaw&lt;/strong&gt; and &lt;strong&gt;Hermes&lt;/strong&gt;. Both open-source. Both powerful. Both completely different in ways nobody explains clearly.&lt;/p&gt; &lt;p&gt;Here’s what I’ve learned after deploying them for over 100 clients:&lt;/p&gt; &lt;p&gt;🦀 &lt;strong&gt;OpenClaw The Workhorse&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Think of this as your reliable, battle-tested option.&lt;/p&gt; &lt;p&gt;- 149K+ GitHub stars&lt;br /&gt; - Runs on Claude, GPT-4, Llama, Gemini &amp;amp; swap models anytime&lt;br /&gt; - Huge skill/extension ecosystem&lt;br /&gt; - Your code never leaves your servers&lt;/p&gt; &lt;p&gt;The catch? Self-hosting it correctly is harder than it looks. Most people spend a weekend on it and end up with their gateway wide open to the internet without realising it. Seen it happen more times than I can count.&lt;/p&gt; &lt;p&gt;Get the setup right though it just runs. Beautifully.&lt;/p&gt; &lt;p&gt;🤖 &lt;strong&gt;Hermes: The Orchestrator&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This one’s built for when your agents need to talk to each other.&lt;/p&gt; &lt;p&gt;Parallel workflows. Coordinated tasks. Complex multi-agent pipelines. If that’s your use case, nothing beats it.&lt;/p&gt; &lt;p&gt;But this is important, the community is a fraction of OpenClaw’s size. When something breaks at 2am, you’re mostly on your own.&lt;/p&gt; &lt;p&gt;So which one do you actually need?&lt;/p&gt; &lt;p&gt;&lt;strong&gt;OpenClaw&lt;/strong&gt; if:&lt;/p&gt; &lt;p&gt;- You’re running one agent or a small fleet&lt;br /&gt; - Privacy and data control matter to you&lt;br /&gt; - You want model flexibility without rebuilding everything&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hermes&lt;/strong&gt; if:&lt;/p&gt; &lt;p&gt;- Your agents need to coordinate with each other&lt;br /&gt; - You’re building complex parallel pipelines&lt;br /&gt; - You have solid DevOps experience&lt;/p&gt; &lt;p&gt;The mistake that keeps costing people weeks:&lt;/p&gt; &lt;p&gt;Choosing &lt;strong&gt;Hermes&lt;/strong&gt; because it &lt;strong&gt;sounds&lt;/strong&gt; more powerful: then realising two weeks later that a properly configured &lt;strong&gt;OpenClaw&lt;/strong&gt; would’ve done everything they needed.&lt;/p&gt; &lt;p&gt;Don’t be that person.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Drop your use case in the comments. Happy to help you make a choice for what you’re building&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RepairOld9423"&gt; /u/RepairOld9423 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7yi5h/ive_deployed_100_ai_agents_half_my_clients_picked/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7yi5h/ive_deployed_100_ai_agents_half_my_clients_picked/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7yi5h/ive_deployed_100_ai_agents_half_my_clients_picked/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-09T04:10:06+00:00</published>
+    <published>2026-05-09T07:55:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7ynai</id>
+    <title>LLM peak schedule, to avoid usage penalties</title>
+    <updated>2026-05-09T08:03:05+00:00</updated>
+    <author>
+      <name>/u/marcoleongdev</name>
+      <uri>https://old.reddit.com/user/marcoleongdev</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Some LLM providers decide to punish us when we are using the coding plan a certain hour. I have created &lt;a href="https://peak.marco-leong.com/"&gt;a LLM peak schedule&lt;/a&gt; so visually it is easy to see the penalty times using a 24-hour clocks style&lt;/p&gt; &lt;p&gt;I had tried my best to include as many LLM providers as possible, feel free to fork, create issue or send PR if you see anything to improve&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/marcoleongdev"&gt; /u/marcoleongdev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7ynai/llm_peak_schedule_to_avoid_usage_penalties/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7ynai/llm_peak_schedule_to_avoid_usage_penalties/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7ynai/llm_peak_schedule_to_avoid_usage_penalties/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-09T08:03:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1t7qjae</id>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t78kjt/just_upgraded_to_20260507/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-08T13:51:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7uayc</id>
+    <title>OpenClaw calling without paying</title>
+    <updated>2026-05-09T04:10:06+00:00</updated>
+    <author>
+      <name>/u/Outrageous-Front-868</name>
+      <uri>https://old.reddit.com/user/Outrageous-Front-868</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, I have this use case where i want openclaw to call me for my reminders. Like a real phone call. And i answer it and it speaks the reminder to me. &lt;/p&gt; &lt;p&gt;Right now, most of the phone calls is through Twillion or Clawdtalk which is a paid service calling to your mobile and etc. &lt;/p&gt; &lt;p&gt;But we have integrations with existing channels that supports phone calls like Telegram, Nextcloud Talk or even Element Matrix. &lt;/p&gt; &lt;p&gt;Been searching high and low , but couldnt find anything about the bot making a phone call to my NC Talk ( i self host nctalk with hpb server ) or even element. For element i must make a room, and the bot joins the call but thats the the use case for this. &lt;/p&gt; &lt;p&gt;Any ideas about this. ?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Outrageous-Front-868"&gt; /u/Outrageous-Front-868 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7uayc/openclaw_calling_without_paying/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-09T04:10:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1t7qse8</id>
