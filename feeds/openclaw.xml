@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-05-09T01:57:23+00:00</updated>
+  <updated>2026-05-09T03:18:02+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -47,19 +47,6 @@
     <published>2026-05-07T22:01:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t772wi</id>
-    <title>The "Navigate Unsupported" Saga: A Guide to Fixing OpenClaw Browser Plugins on Docker/Hostinger</title>
-    <updated>2026-05-08T12:53:46+00:00</updated>
-    <author>
-      <name>/u/UnfallenTDS</name>
-      <uri>https://old.reddit.com/user/UnfallenTDS</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you are self-hosting &lt;strong&gt;OpenClaw&lt;/strong&gt; on a VPS (like Hostinger) and your agent keeps apologizing because it can't &amp;quot;see&amp;quot; the web, you aren't alone. I spent my morning in the trenches moving my setup to a new server, and the browser plugin was the &amp;quot;Final Boss.&amp;quot;&lt;/p&gt; &lt;p&gt;Here is the step-by-step breakdown of how we moved from &lt;strong&gt;&amp;quot;Permission Denied&amp;quot;&lt;/strong&gt; to a successful Google screenshot.&lt;/p&gt; &lt;h1&gt;1. The Permission Wall (EACCES)&lt;/h1&gt; &lt;p&gt;Initially, the browser plugin was listed as &amp;quot;failed to initialize.&amp;quot; Looking at the logs (&lt;code&gt;docker logs [container-name]&lt;/code&gt;), we saw &lt;code&gt;npm error Error: EACCES: permission denied, mkdir&lt;/code&gt;. The container didn't have the rights to create the necessary &lt;code&gt;node_modules&lt;/code&gt; folders for the browser.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Fix:&lt;/strong&gt; Update your &lt;code&gt;docker-compose.yml&lt;/code&gt;. Under the &lt;code&gt;openclaw&lt;/code&gt; service, you need to explicitly tell it to run as root. YAMLservices: openclaw: image: &lt;a href="http://ghcr.io/hostinger/hvps-openclaw:latest"&gt;ghcr.io/hostinger/hvps-openclaw:latest&lt;/a&gt;user: root # &amp;lt;--- The &amp;quot;Master Key&amp;quot; init: true &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. Wiring the &amp;quot;Eyes&amp;quot; (Browserless)&lt;/h1&gt; &lt;p&gt;You need a separate engine to actually render the pages. We added a &lt;code&gt;browserless&lt;/code&gt; service to the YAML and connected it via an environment variable.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;YAML Addition:&lt;/strong&gt; YAML browserless: image: &lt;a href="http://ghcr.io/browserless/chromium:latest"&gt;ghcr.io/browserless/chromium:latest&lt;/a&gt;ports: - &amp;quot;3000:3000&amp;quot; environment: - CONCURRENT=5 - TOKEN=[YOUR-CUSTOM-TOKEN] &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Environment Variable (OpenClaw Side):&lt;/strong&gt; &lt;code&gt;BROWSERLESS_URL=ws://browserless:3000?token=[YOUR-CUSTOM-TOKEN]&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. The &amp;quot;Navigate Unsupported&amp;quot; Mystery&lt;/h1&gt; &lt;p&gt;Even with the engine running, the agent kept saying: &lt;em&gt;&amp;quot;Playwright is not available in this gateway build; 'navigate' is unsupported.&amp;quot;&lt;/em&gt; This means the &amp;quot;brain&amp;quot; and the &amp;quot;eyes&amp;quot; didn't have a steering wheel (Playwright).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Surgical Fix:&lt;/strong&gt; We had to force-install the exact version of &lt;code&gt;playwright-core&lt;/code&gt; that the plugin was looking for (v1.59.1) directly into the plugin's folder inside the container. Bashdocker exec -u root -it [container-name] bash -c &amp;quot;npm install &lt;a href="mailto:playwright-core@1.59.1"&gt;playwright-core@1.59.1&lt;/a&gt; --prefix /usr/local/lib/node_modules/openclaw/dist/extensions/browser&amp;quot; &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;4. Downloading the Eyeballs (Binaries)&lt;/h1&gt; &lt;p&gt;The library was there, but the actual Chromium browser files weren't! Since my VPS used a Homebrew-style environment, the standard &lt;code&gt;--with-deps&lt;/code&gt; install failed. We had to download just the Chromium binaries manually.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Command:&lt;/strong&gt; Bashdocker exec -u root -it [container-name] npx playwright install chromium &lt;em&gt;Note: This downloads about 170MB of data into the container's cache.&lt;/em&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;5. The &amp;quot;Doctor&amp;quot; and the Final Bridge&lt;/h1&gt; &lt;p&gt;The Gateway still couldn't &amp;quot;see&amp;quot; the library. We used the built-in diagnostic tool and then manually linked the folders so the Gateway couldn't ignore them.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Step A:&lt;/strong&gt; &lt;code&gt;docker exec -u root -it [container-name] openclaw doctor --fix&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Step B (The Bridge):&lt;/strong&gt; We created a symbolic link so the main OpenClaw directory could &amp;quot;see&amp;quot; the Playwright install located in the extensions folder.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;The Result&lt;/h1&gt; &lt;p&gt;After a final restart, the &amp;quot;Navigate Unsupported&amp;quot; error vanished. I sent a command via Telegram, and for the first time, my agent didn't apologize—she sent back a clear, crisp screenshot of Google.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; If it's failing, it’s usually a mix of root permissions, missing Chromium binaries in the &lt;code&gt;.cache&lt;/code&gt; folder, and a version mismatch with &lt;code&gt;playwright-core&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;I did all the with Gemini as I really have no idea what I am doing!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/UnfallenTDS"&gt; /u/UnfallenTDS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-08T12:53:46+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t7okxi</id>
     <title>Are people actually making their AI agents pay for themselves now?</title>
     <updated>2026-05-08T23:43:02+00:00</updated>
@@ -71,6 +58,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t7okxi/are_people_actually_making_their_ai_agents_pay/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-08T23:43:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t772wi</id>
+    <title>The "Navigate Unsupported" Saga: A Guide to Fixing OpenClaw Browser Plugins on Docker/Hostinger</title>
+    <updated>2026-05-08T12:53:46+00:00</updated>
+    <author>
+      <name>/u/UnfallenTDS</name>
+      <uri>https://old.reddit.com/user/UnfallenTDS</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you are self-hosting &lt;strong&gt;OpenClaw&lt;/strong&gt; on a VPS (like Hostinger) and your agent keeps apologizing because it can't &amp;quot;see&amp;quot; the web, you aren't alone. I spent my morning in the trenches moving my setup to a new server, and the browser plugin was the &amp;quot;Final Boss.&amp;quot;&lt;/p&gt; &lt;p&gt;Here is the step-by-step breakdown of how we moved from &lt;strong&gt;&amp;quot;Permission Denied&amp;quot;&lt;/strong&gt; to a successful Google screenshot.&lt;/p&gt; &lt;h1&gt;1. The Permission Wall (EACCES)&lt;/h1&gt; &lt;p&gt;Initially, the browser plugin was listed as &amp;quot;failed to initialize.&amp;quot; Looking at the logs (&lt;code&gt;docker logs [container-name]&lt;/code&gt;), we saw &lt;code&gt;npm error Error: EACCES: permission denied, mkdir&lt;/code&gt;. The container didn't have the rights to create the necessary &lt;code&gt;node_modules&lt;/code&gt; folders for the browser.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Fix:&lt;/strong&gt; Update your &lt;code&gt;docker-compose.yml&lt;/code&gt;. Under the &lt;code&gt;openclaw&lt;/code&gt; service, you need to explicitly tell it to run as root. YAMLservices: openclaw: image: &lt;a href="http://ghcr.io/hostinger/hvps-openclaw:latest"&gt;ghcr.io/hostinger/hvps-openclaw:latest&lt;/a&gt;user: root # &amp;lt;--- The &amp;quot;Master Key&amp;quot; init: true &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;2. Wiring the &amp;quot;Eyes&amp;quot; (Browserless)&lt;/h1&gt; &lt;p&gt;You need a separate engine to actually render the pages. We added a &lt;code&gt;browserless&lt;/code&gt; service to the YAML and connected it via an environment variable.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;YAML Addition:&lt;/strong&gt; YAML browserless: image: &lt;a href="http://ghcr.io/browserless/chromium:latest"&gt;ghcr.io/browserless/chromium:latest&lt;/a&gt;ports: - &amp;quot;3000:3000&amp;quot; environment: - CONCURRENT=5 - TOKEN=[YOUR-CUSTOM-TOKEN] &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Environment Variable (OpenClaw Side):&lt;/strong&gt; &lt;code&gt;BROWSERLESS_URL=ws://browserless:3000?token=[YOUR-CUSTOM-TOKEN]&lt;/code&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. The &amp;quot;Navigate Unsupported&amp;quot; Mystery&lt;/h1&gt; &lt;p&gt;Even with the engine running, the agent kept saying: &lt;em&gt;&amp;quot;Playwright is not available in this gateway build; 'navigate' is unsupported.&amp;quot;&lt;/em&gt; This means the &amp;quot;brain&amp;quot; and the &amp;quot;eyes&amp;quot; didn't have a steering wheel (Playwright).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Surgical Fix:&lt;/strong&gt; We had to force-install the exact version of &lt;code&gt;playwright-core&lt;/code&gt; that the plugin was looking for (v1.59.1) directly into the plugin's folder inside the container. Bashdocker exec -u root -it [container-name] bash -c &amp;quot;npm install &lt;a href="mailto:playwright-core@1.59.1"&gt;playwright-core@1.59.1&lt;/a&gt; --prefix /usr/local/lib/node_modules/openclaw/dist/extensions/browser&amp;quot; &lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;4. Downloading the Eyeballs (Binaries)&lt;/h1&gt; &lt;p&gt;The library was there, but the actual Chromium browser files weren't! Since my VPS used a Homebrew-style environment, the standard &lt;code&gt;--with-deps&lt;/code&gt; install failed. We had to download just the Chromium binaries manually.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The Command:&lt;/strong&gt; Bashdocker exec -u root -it [container-name] npx playwright install chromium &lt;em&gt;Note: This downloads about 170MB of data into the container's cache.&lt;/em&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;5. The &amp;quot;Doctor&amp;quot; and the Final Bridge&lt;/h1&gt; &lt;p&gt;The Gateway still couldn't &amp;quot;see&amp;quot; the library. We used the built-in diagnostic tool and then manually linked the folders so the Gateway couldn't ignore them.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Step A:&lt;/strong&gt; &lt;code&gt;docker exec -u root -it [container-name] openclaw doctor --fix&lt;/code&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Step B (The Bridge):&lt;/strong&gt; We created a symbolic link so the main OpenClaw directory could &amp;quot;see&amp;quot; the Playwright install located in the extensions folder.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;The Result&lt;/h1&gt; &lt;p&gt;After a final restart, the &amp;quot;Navigate Unsupported&amp;quot; error vanished. I sent a command via Telegram, and for the first time, my agent didn't apologize—she sent back a clear, crisp screenshot of Google.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; If it's failing, it’s usually a mix of root permissions, missing Chromium binaries in the &lt;code&gt;.cache&lt;/code&gt; folder, and a version mismatch with &lt;code&gt;playwright-core&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;I did all the with Gemini as I really have no idea what I am doing!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/UnfallenTDS"&gt; /u/UnfallenTDS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t772wi/the_navigate_unsupported_saga_a_guide_to_fixing/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-08T12:53:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1t797bu</id>
@@ -190,19 +190,6 @@
     <published>2026-05-08T15:13:55+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t7jgzm</id>
-    <title>ChatGPT Plus - does GPT5.4 mini consumes less credit than bigger models?</title>
-    <updated>2026-05-08T20:20:54+00:00</updated>
-    <author>
-      <name>/u/maisun1983</name>
-      <uri>https://old.reddit.com/user/maisun1983</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have ChatGPT plus and as you can imagine during the setup of OpenClaw I quickly approach the 5H and weekly limit (I'm now on day 2 and already 86% of weekly usage).&lt;/p&gt; &lt;p&gt;My question: if I continue with codex OAuth but switch model to GPT5.4 mini, will the smaller model burn less credit? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/maisun1983"&gt; /u/maisun1983 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-08T20:20:54+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t7gcyf</id>
     <title>OpenClaw inside Ollama Docker: simpler networking, brutal RAM usage</title>
     <updated>2026-05-08T18:27:10+00:00</updated>
@@ -216,30 +203,17 @@
     <published>2026-05-08T18:27:10+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t7qjae</id>
-    <title>How are you connecting to claude code subscription?</title>
-    <updated>2026-05-09T01:11:26+00:00</updated>
+    <id>t3_1t7jgzm</id>
+    <title>ChatGPT Plus - does GPT5.4 mini consumes less credit than bigger models?</title>
+    <updated>2026-05-08T20:20:54+00:00</updated>
     <author>
-      <name>/u/ReadMoreWatchLess</name>
-      <uri>https://old.reddit.com/user/ReadMoreWatchLess</uri>
+      <name>/u/maisun1983</name>
+      <uri>https://old.reddit.com/user/maisun1983</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have heard people using Claude code subscription after anthropic gave an ambiguous statement. however, when I use it (via claude-cli) it’s pretty broken- times out a lot and not showing context completely. Even after I get context after fixing openclaw settings it's at 200k (used to be 1M) context window. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ReadMoreWatchLess"&gt; /u/ReadMoreWatchLess &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have ChatGPT plus and as you can imagine during the setup of OpenClaw I quickly approach the 5H and weekly limit (I'm now on day 2 and already 86% of weekly usage).&lt;/p&gt; &lt;p&gt;My question: if I continue with codex OAuth but switch model to GPT5.4 mini, will the smaller model burn less credit? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/maisun1983"&gt; /u/maisun1983 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7jgzm/chatgpt_plus_does_gpt54_mini_consumes_less_credit/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-09T01:11:26+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t7qse8</id>
-    <title>What’s the most useless skill you have made?</title>
-    <updated>2026-05-09T01:22:49+00:00</updated>
-    <author>
-      <name>/u/ireccomendit</name>
-      <uri>https://old.reddit.com/user/ireccomendit</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have made my fair share of dumb skills. What is yours? &lt;/p&gt; &lt;p&gt;I’ll start. Every time my less than pleasant coworker sends me a email, I get a telegram reminding me the weekend is only x amount of time away with a fun fact to soften the blow. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ireccomendit"&gt; /u/ireccomendit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-09T01:22:49+00:00</published>
+    <published>2026-05-08T20:20:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1t7phb0</id>
@@ -268,6 +242,19 @@
     <published>2026-05-08T21:17:59+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t7qjae</id>
+    <title>How are you connecting to claude code subscription?</title>
+    <updated>2026-05-09T01:11:26+00:00</updated>
+    <author>
+      <name>/u/ReadMoreWatchLess</name>
+      <uri>https://old.reddit.com/user/ReadMoreWatchLess</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have heard people using Claude code subscription after anthropic gave an ambiguous statement. however, when I use it (via claude-cli) it’s pretty broken- times out a lot and not showing context completely. Even after I get context after fixing openclaw settings it's at 200k (used to be 1M) context window. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ReadMoreWatchLess"&gt; /u/ReadMoreWatchLess &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7qjae/how_are_you_connecting_to_claude_code_subscription/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-09T01:11:26+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t7j6ds</id>
     <title>Which OpenClaw version are you all using?</title>
     <updated>2026-05-08T20:10:10+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1t78kjt/just_upgraded_to_20260507/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-08T13:51:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t7qse8</id>
+    <title>What’s the most useless skill you have made?</title>
+    <updated>2026-05-09T01:22:49+00:00</updated>
+    <author>
+      <name>/u/ireccomendit</name>
+      <uri>https://old.reddit.com/user/ireccomendit</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have made my fair share of dumb skills. What is yours? &lt;/p&gt; &lt;p&gt;I’ll start. Every time my less than pleasant coworker sends me a email, I get a telegram reminding me the weekend is only x amount of time away with a fun fact to soften the blow. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ireccomendit"&gt; /u/ireccomendit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1t7qse8/whats_the_most_useless_skill_you_have_made/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-09T01:22:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1t7n05q</id>
