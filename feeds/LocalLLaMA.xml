@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-10T16:23:39+00:00</updated>
+  <updated>2026-05-10T16:48:40+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1t86j45</id>
-    <title>More Qwen3.6-27B MTP success but on dual Mi50s</title>
-    <updated>2026-05-09T14:29:36+00:00</updated>
-    <author>
-      <name>/u/legit_split_</name>
-      <uri>https://old.reddit.com/user/legit_split_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TLDR:&lt;/strong&gt; The hype is real! 1.5x speedup. Up to 2x speedup with tensor parallelism!&lt;/p&gt; &lt;p&gt;After reading the PR I immediately hunted for MTP-compatible Q4_1 quants (they offer a small speedup on these compute-lacking older cards) but couldn't find any.&lt;/p&gt; &lt;p&gt;Luckily I came across &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1t6r1ny/extracted_mtp_tensor_ggufs_smaller_donor_models/"&gt;this&lt;/a&gt; post which highlighted how to transplant MTP grafting onto your own quants, and thus attached it to an Unsloth quant I already had.&lt;/p&gt; &lt;h1&gt;Setup&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;CachyOS (Arch Linux)&lt;/li&gt; &lt;li&gt;ROCm 7.2&lt;/li&gt; &lt;li&gt;Both cards running at PCIe 4.0 x 8&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Built the llama.cpp fork &lt;a href="https://github.com/skyne98/llama.cpp-gfx906"&gt;https://github.com/skyne98/llama.cpp-gfx906&lt;/a&gt; with &lt;a href="https://github.com/ggml-org/llama.cpp/pull/22673"&gt;https://github.com/ggml-org/llama.cpp/pull/22673&lt;/a&gt; and ran the following command with the included PR benchmark script:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-server -m ~/models/Qwen3.6-27B-MTP-Q4_1.gguf \ --temp 1.0 --min-p 0.0 --top-k 20 --top-p 0.95 \ --jinja --presence-penalty 1.5 \ --chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' \ -ub 2048 -b 2048 \ -fa 1 -np 1 \ --no-mmap --no-warmup \ -dev ROCm0,ROCm1 --fit on -fitt 256 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Script Benchmark&lt;/h1&gt; &lt;p&gt;Stock:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;code_python pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.2 code_cpp pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.2 explain_concept pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.3 summarize pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.4 qa_factual pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.4 translation pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.4 creative_short pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.4 stepwise_math pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.3 long_code_review pred= 192 draft= 0 acc= 0 rate=n/a tok/s=26.0 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;With MTP on: &lt;code&gt;--spec-type mtp --spec-draft-n-max 2&lt;/code&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;code_python pred= 192 draft= 144 acc= 119 rate=0.826 tok/s=39.6 code_cpp pred= 192 draft= 156 acc= 113 rate=0.724 tok/s=36.5 explain_concept pred= 192 draft= 154 acc= 113 rate=0.734 tok/s=36.7 summarize pred= 192 draft= 138 acc= 121 rate=0.877 tok/s=40.7 qa_factual pred= 192 draft= 144 acc= 119 rate=0.826 tok/s=39.4 translation pred= 192 draft= 152 acc= 115 rate=0.757 tok/s=37.5 creative_short pred= 192 draft= 156 acc= 113 rate=0.724 tok/s=36.6 stepwise_math pred= 192 draft= 146 acc= 118 rate=0.808 tok/s=39.0 long_code_review pred= 192 draft= 150 acc= 115 rate=0.767 tok/s=37.8 Aggregate: { &amp;quot;n_requests&amp;quot;: 9, &amp;quot;total_predicted&amp;quot;: 1728, &amp;quot;total_draft&amp;quot;: 1340, &amp;quot;total_draft_accepted&amp;quot;: 1046, &amp;quot;aggregate_accept_rate&amp;quot;: 0.7806, &amp;quot;wall_s_total&amp;quot;: 51.42 } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;With tensor parallelism on: &lt;code&gt;-sm tensor&lt;/code&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;code_python pred= 192 draft= 0 acc= 0 rate=n/a tok/s=35.0 code_cpp pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.8 explain_concept pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.6 summarize pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.6 qa_factual pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.7 translation pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.7 creative_short pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.7 stepwise_math pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.6 long_code_review pred= 192 draft= 0 acc= 0 rate=n/a tok/s=34.3 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Combining MTP and tensor parallelism:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;code_python pred= 192 draft= 142 acc= 120 rate=0.845 tok/s=59.8 code_cpp pred= 192 draft= 148 acc= 116 rate=0.784 tok/s=56.6 explain_concept pred= 192 draft= 146 acc= 117 rate=0.801 tok/s=56.8 summarize pred= 53 draft= 42 acc= 31 rate=0.738 tok/s=54.5 qa_factual pred= 192 draft= 148 acc= 117 rate=0.790 tok/s=56.8 translation pred= 192 draft= 146 acc= 117 rate=0.801 tok/s=57.3 creative_short pred= 192 draft= 154 acc= 114 rate=0.740 tok/s=54.8 stepwise_math pred= 192 draft= 140 acc= 121 rate=0.864 tok/s=59.6 long_code_review pred= 192 draft= 148 acc= 117 rate=0.790 tok/s=56.2 Aggregate: { &amp;quot;n_requests&amp;quot;: 9, &amp;quot;total_predicted&amp;quot;: 1589, &amp;quot;total_draft&amp;quot;: 1214, &amp;quot;total_draft_accepted&amp;quot;: 970, &amp;quot;aggregate_accept_rate&amp;quot;: 0.799, &amp;quot;wall_s_total&amp;quot;: 32.24 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Real-world benchmark&lt;/h1&gt; &lt;p&gt;The numbers above look absolutely insane, however in the real-world the speed up dwindles very quickly - not to mention there's a regression in prefill speed which is currently being worked on. I ran &lt;a href="https://github.com/alexziskind1/machine_tests/blob/main/ml/auto_prompter/prompts/extra_long_programming_code_heavy_17947t.txt"&gt;this&lt;/a&gt; 18k coding prompt and it's clear the 60t/s is only observable for very short prompts, but combining MTP and tensor parallelism does indeed net a hefty 2x speedup.&lt;/p&gt; &lt;p&gt;Stock:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 53173.24 ms / 19191 tokens ( 2.77 ms per token, 360.91 tokens per second) eval time = 337695.94 ms / 7791 tokens ( 43.34 ms per token, 23.07 tokens per second) total time = 390869.18 ms / 26982 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;With MTP on:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 84388.11 ms / 19191 tokens ( 4.40 ms per token, 227.41 tokens per second) eval time = 260732.83 ms / 8408 tokens ( 31.01 ms per token, 32.25 tokens per second) total time = 345120.94 ms / 27599 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;With tensor parallelism:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 41925.27 ms / 19191 tokens ( 2.18 ms per token, 457.74 tokens per second) eval time = 253262.25 ms / 8104 tokens ( 31.25 ms per token, 32.00 tokens per second) total time = 295187.53 ms / 27295 tokens &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Combining MTP and tensor parallelism:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;prompt eval time = 49696.04 ms / 19191 tokens ( 2.59 ms per token, 386.17 tokens per second) eval time = 155821.64 ms / 7440 tokens ( 20.94 ms per token, 47.75 tokens per second) total time = 205517.69 ms / 26631 tokens &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/legit_split_"&gt; /u/legit_split_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t86j45/more_qwen3627b_mtp_success_but_on_dual_mi50s/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t86j45/more_qwen3627b_mtp_success_but_on_dual_mi50s/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t86j45/more_qwen3627b_mtp_success_but_on_dual_mi50s/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-09T14:29:36+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t7s9n4</id>
     <title>Shel Silverstein predicts LLM's (and its hallucinations), cira 1981</title>
@@ -86,6 +73,19 @@
     <published>2026-05-09T19:31:12+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t9bhsq</id>
+    <title>Deepseek tui alternatives, when do you jump from single model terminal agents</title>
+    <updated>2026-05-10T16:25:59+00:00</updated>
+    <author>
+      <name>/u/Electrical-Shape-266</name>
+      <uri>https://old.reddit.com/user/Electrical-Shape-266</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been using Deepseek-Tui for days. solid for v4 workflows. But the constraints add up eventually. model lock in is the obvious one. v4 is great but sometimes you need claude for reasoning or gemini for multimodal. no path to that in deepseek tui's architecture.&lt;/p&gt; &lt;p&gt;single maintainer risk hit me when i caught a bug in v0.8.7. waited 2 weeks for a fix. fine for personal use, not great for production. then theres the terminal only thing. no ide integration. context switching between terminal and vscode gets old fast.&lt;/p&gt; &lt;p&gt;been testing alternatives.&lt;/p&gt; &lt;p&gt;aider, genuinely multi model. works with deepseek, claude, gpt, local via ollama. pair programming style though, not autonomous. no parallel sub agent system which is deepseek tui's rlm advantage.&lt;/p&gt; &lt;p&gt;cline, vscode extension. solves the ide integration constraint. multi model including v4. but sequential execution, no parallel agents.&lt;/p&gt; &lt;p&gt;claude code, anthropic maintained. mature subagent pattern via task tool. claude family only though.&lt;/p&gt; &lt;p&gt;opencode, go based tui, model agnostic. lighter than deepseek tui's rust binaries. mcp support in recent versions. no rlm equivalent yet.&lt;/p&gt; &lt;p&gt;different category worth mentioning, multi agent platforms that ship parallel execution and git worktree isolation as first class features. verdent is one. closer to &amp;quot;platform for agent workflows&amp;quot; than &amp;quot;terminal coding assistant.&amp;quot;&lt;/p&gt; &lt;p&gt;decision frame i landed on. same terminal ux different model, aider or opencode. ide integration not terminal, cline. anthropic ecosystem and enterprise support, claude code. multi model routing plus parallel execution as a platform thing, multi agent platforms.&lt;/p&gt; &lt;p&gt;deepseek tui still actively dev'd. v0.8.8 shipped this month. alternatives arent about replacing it, they just match different constraints.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Electrical-Shape-266"&gt; /u/Electrical-Shape-266 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9bhsq/deepseek_tui_alternatives_when_do_you_jump_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9bhsq/deepseek_tui_alternatives_when_do_you_jump_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9bhsq/deepseek_tui_alternatives_when_do_you_jump_from/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T16:25:59+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t975bx</id>
     <title>LM Studio / Windows / Vulkan possible to prioritize GPU order?</title>
     <updated>2026-05-10T13:36:01+00:00</updated>
@@ -110,19 +110,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-10T04:21:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t993om</id>
-    <title>I cannot decide for local OCR model for most of the tasks preferably I would like more individual experiences than reviews.</title>
-    <updated>2026-05-10T14:54:47+00:00</updated>
-    <author>
-      <name>/u/thecowmilk_</name>
-      <uri>https://old.reddit.com/user/thecowmilk_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have a 16GB VRAM GPU and I'm looking for a reliable local OCR model.&lt;/p&gt; &lt;p&gt;Ideally it should stay under ~60% VRAM usage, so around 9–10GB max, because I want to keep it available on-demand rather than loading a huge model only for occasional batch jobs.&lt;/p&gt; &lt;p&gt;There are a lot of OCR models claiming to be &amp;quot;the best&amp;quot;, but I care more about reliability and practical day-to-day use than benchmark hype.&lt;/p&gt; &lt;p&gt;Use cases:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;screenshots&lt;/li&gt; &lt;li&gt;scanned documents / PDFs&lt;/li&gt; &lt;li&gt;eceipts or forms&lt;/li&gt; &lt;li&gt;general image-to-text extraction&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm looking at options like PaddleOCR, Surya, Tesseract, and maybe small vision-language models, but I'm not sure what people are actually using locally in 2026.&lt;/p&gt; &lt;p&gt;What would you recommend for a good balance of accuracy, VRAM usage, and reliability?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/thecowmilk_"&gt; /u/thecowmilk_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T14:54:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1t8olv3</id>
@@ -164,6 +151,19 @@
     <published>2026-05-09T20:21:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t993om</id>
+    <title>I cannot decide for local OCR model for most of the tasks preferably I would like more individual experiences than reviews.</title>
+    <updated>2026-05-10T14:54:47+00:00</updated>
+    <author>
+      <name>/u/thecowmilk_</name>
+      <uri>https://old.reddit.com/user/thecowmilk_</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have a 16GB VRAM GPU and I'm looking for a reliable local OCR model.&lt;/p&gt; &lt;p&gt;Ideally it should stay under ~60% VRAM usage, so around 9–10GB max, because I want to keep it available on-demand rather than loading a huge model only for occasional batch jobs.&lt;/p&gt; &lt;p&gt;There are a lot of OCR models claiming to be &amp;quot;the best&amp;quot;, but I care more about reliability and practical day-to-day use than benchmark hype.&lt;/p&gt; &lt;p&gt;Use cases:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;screenshots&lt;/li&gt; &lt;li&gt;scanned documents / PDFs&lt;/li&gt; &lt;li&gt;eceipts or forms&lt;/li&gt; &lt;li&gt;general image-to-text extraction&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm looking at options like PaddleOCR, Surya, Tesseract, and maybe small vision-language models, but I'm not sure what people are actually using locally in 2026.&lt;/p&gt; &lt;p&gt;What would you recommend for a good balance of accuracy, VRAM usage, and reliability?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/thecowmilk_"&gt; /u/thecowmilk_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t993om/i_cannot_decide_for_local_ocr_model_for_most_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T14:54:47+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t82zxv</id>
     <title>80 tok/sec and 128K context on 12GB VRAM with Qwen3.6 35B A3B and llama.cpp MTP</title>
     <updated>2026-05-09T11:57:52+00:00</updated>
@@ -190,6 +190,19 @@
     <published>2026-05-09T16:05:05+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t95k73</id>
+    <title>DS4</title>
+    <updated>2026-05-10T12:25:12+00:00</updated>
+    <author>
+      <name>/u/jonathantn</name>
+      <uri>https://old.reddit.com/user/jonathantn</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The developer that created Redis, Salvatore Sanfilippo, has released a new project on GitHub named DS4. &lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/antirez/ds4/"&gt;https://github.com/antirez/ds4/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The TL;DR on this one is getting DeepSeek V4 Flash running with a 1M context windows on Mac Metal hardware. Some novel techniques going on.&lt;/p&gt; &lt;p&gt;A few hours ago he posted a video of it running on a DGX:&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/antirez/status/2053381973226184749"&gt;https://x.com/antirez/status/2053381973226184749&lt;/a&gt;&lt;/p&gt; &lt;p&gt;So if they can get it running on a DGX, maybe a Pro 6000 at a slightly smaller context window at a high speed.&lt;/p&gt; &lt;p&gt;I also think that they could figure out the AMD chips as well in the future.&lt;/p&gt; &lt;p&gt;The server already has an OpenAI and Anthropic endpoints for use with Agentic code tools. &lt;/p&gt; &lt;p&gt;I know the people on this sub-reddit have AMAZING hardware. I would encourage people to check out this project and see if there is a contribution that they can make.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jonathantn"&gt; /u/jonathantn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T12:25:12+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t92h41</id>
     <title>Has anyone bought a 3080 20GB mod recently?</title>
     <updated>2026-05-10T09:43:17+00:00</updated>
@@ -214,19 +227,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t96kfh/speeding_up_local_llm_for_usable_coding_agent/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-10T13:11:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t95k73</id>
-    <title>DS4</title>
-    <updated>2026-05-10T12:25:12+00:00</updated>
-    <author>
-      <name>/u/jonathantn</name>
-      <uri>https://old.reddit.com/user/jonathantn</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The developer that created Redis, Salvatore Sanfilippo, has released a new project on GitHub named DS4. &lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/antirez/ds4/"&gt;https://github.com/antirez/ds4/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The TL;DR on this one is getting DeepSeek V4 Flash running with a 1M context windows on Mac Metal hardware. Some novel techniques going on.&lt;/p&gt; &lt;p&gt;A few hours ago he posted a video of it running on a DGX:&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/antirez/status/2053381973226184749"&gt;https://x.com/antirez/status/2053381973226184749&lt;/a&gt;&lt;/p&gt; &lt;p&gt;So if they can get it running on a DGX, maybe a Pro 6000 at a slightly smaller context window at a high speed.&lt;/p&gt; &lt;p&gt;I also think that they could figure out the AMD chips as well in the future.&lt;/p&gt; &lt;p&gt;The server already has an OpenAI and Anthropic endpoints for use with Agentic code tools. &lt;/p&gt; &lt;p&gt;I know the people on this sub-reddit have AMAZING hardware. I would encourage people to check out this project and see if there is a contribution that they can make.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jonathantn"&gt; /u/jonathantn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t95k73/ds4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T12:25:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1t8f33t</id>
