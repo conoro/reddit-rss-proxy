@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-10T09:07:52+00:00</updated>
+  <updated>2026-05-10T09:47:57+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1t7l56a</id>
-    <title>Qwen 35B-A3B is very usable with 12GB of VRAM</title>
-    <updated>2026-05-08T21:22:55+00:00</updated>
-    <author>
-      <name>/u/jwestra</name>
-      <uri>https://old.reddit.com/user/jwestra</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hardware:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;RTX 3060 12GB 32GB DDR4-3200 Windows CUDA 13.x &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Model:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Qwen3.6-35B-A3B-MTP-IQ4_XS.gguf &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The model is a 35B MoE, so &lt;code&gt;-ncmoe&lt;/code&gt; matters a lot. Lower &lt;code&gt;-ncmoe&lt;/code&gt; means more MoE blocks stay on GPU.&lt;/p&gt; &lt;h1&gt;Main takeaway&lt;/h1&gt; &lt;p&gt;&lt;strong&gt;12GB VRAM feels like a very practical size for this model.&lt;/strong&gt; It lets you keep enough MoE blocks on GPU that plain decoding becomes quite strong, while still leaving room for useful context sizes like 16k/32k.&lt;/p&gt; &lt;p&gt;For prompt processing / prefill, I trust the &lt;code&gt;llama-bench&lt;/code&gt; numbers more than &lt;code&gt;llama-cli&lt;/code&gt;’s interactive &lt;code&gt;Prompt:&lt;/code&gt; line, because &lt;code&gt;llama-bench&lt;/code&gt; gives a cleaner &lt;code&gt;pp512&lt;/code&gt; measurement.&lt;/p&gt; &lt;p&gt;Best plain &lt;code&gt;llama-bench&lt;/code&gt; result:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-ncmoe 18 -t 9 -ctk q8_0 -ctv q8_0 pp512: ~914 t/s tg128: ~46.8 t/s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So raw prefill is very fast on this setup.&lt;/p&gt; &lt;h1&gt;Best practical coding profile&lt;/h1&gt; &lt;p&gt;For daily coding, I would use this:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-cli.exe ^ -m &amp;quot;Qwen3.6-35B-A3B-MTP-IQ4_XS.gguf&amp;quot; ^ -p &amp;quot;...&amp;quot; ^ -n 512 ^ -c 32768 ^ --temp 0 --top-k 1 ^ -ngl 999 -ncmoe 20 ^ -fa on ^ -ctk q8_0 -ctv q8_0 ^ --no-mmap ^ --no-jinja ^ -t 9 ^ --perf &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Result:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Context: 32k Prompt: ~88.9 t/s in llama-cli Generation: ~43.4 t/s VRAM free: ~273 MiB &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This is a nice balance: large enough context for coding, still fast, and not completely out of VRAM.&lt;/p&gt; &lt;h1&gt;Faster 16k profile&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;-c 16384 -ncmoe 19 -ctk q8_0 -ctv q8_0 -t 9 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Result:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Prompt: ~91.5 t/s in llama-cli Generation: ~44.5 t/s VRAM free: ~37 MiB &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This is slightly faster, but very close to the VRAM edge.&lt;/p&gt; &lt;h1&gt;MoE offload sweep&lt;/h1&gt; &lt;p&gt;Plain decoding, q4 KV, &lt;code&gt;-t 11&lt;/code&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-ncmoe 22: tg128 ~41.6 t/s -ncmoe 20: tg128 ~41.7 t/s -ncmoe 19: tg128 ~44.2 t/s -ncmoe 18: tg128 ~45.9 t/s -ncmoe 17: tg128 ~46.6 t/s -ncmoe 16: tg128 ~25.8 t/s &amp;lt;-- cliff / too aggressive &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So for plain decoding:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;safe: -ncmoe 18 edge: -ncmoe 17 avoid: -ncmoe 16 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;KV cache sweep&lt;/h1&gt; &lt;p&gt;At &lt;code&gt;-ncmoe 18&lt;/code&gt;, &lt;code&gt;-t 11&lt;/code&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;q4_0 KV: pp512 ~913 t/s, tg128 ~45.8 t/s q8_0 KV: pp512 ~915 t/s, tg128 ~45.9 t/s q5_0 KV: much slower mixed q8 K + q4/q5 V: much slower &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So on this GPU, q8 KV is basically free and preferable:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-ctk q8_0 -ctv q8_0 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;MTP / speculative decoding&lt;/h1&gt; &lt;p&gt;I also tested MTP with the llama.cpp MTP branch.&lt;/p&gt; &lt;p&gt;Best MTP command:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-cli.exe ^ -m &amp;quot;Qwen3.6-35B-A3B-MTP-IQ4_XS.gguf&amp;quot; ^ --spec-type mtp ^ -p &amp;quot;...&amp;quot; ^ -n 512 ^ --spec-draft-n-max 2 ^ -c 4096 ^ --temp 0 --top-k 1 ^ -ngl 999 -ncmoe 19 ^ -fa on ^ -ctk q4_0 -ctv q4_0 ^ --no-mmap ^ --no-jinja ^ -t 11 ^ --perf &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Result:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Generation: ~47.7 t/s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;MTP sweep:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-ncmoe 24, depth 2: ~43.8 t/s -ncmoe 20, depth 2: ~46.6 t/s -ncmoe 19, depth 2: ~47.7 t/s -ncmoe 18: failed / invalid vector subscript -ncmoe 16: failed / invalid vector subscript &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Depth 3 was worse:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;depth 3, -ncmoe 20: ~39.8 t/s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So the MTP sweet spot was:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;--spec-draft-n-max 2 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Conclusion&lt;/h1&gt; &lt;p&gt;With 12GB VRAM, plain decoding is already very strong:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Plain llama-bench: ~914 t/s pp512, ~46.8 t/s tg128 Best MTP observed: ~47.7 t/s generation &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So MTP only gave about a &lt;strong&gt;2% generation speedup&lt;/strong&gt; over well-tuned plain decoding. For coding, I would personally use plain decoding with 32k context:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-c 32768 -ncmoe 20 -ctk q8_0 -ctv q8_0 -t 9 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The big lesson: for this MoE model, &lt;strong&gt;12GB VRAM is a very practical sweet spot&lt;/strong&gt;. It keeps enough experts on GPU that plain decoding becomes fast, q8 KV is usable, and 32k context is realistic.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jwestra"&gt; /u/jwestra &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7l56a/qwen_35ba3b_is_very_usable_with_12gb_of_vram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7l56a/qwen_35ba3b_is_very_usable_with_12gb_of_vram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7l56a/qwen_35ba3b_is_very_usable_with_12gb_of_vram/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T21:22:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t7op5e</id>
-    <title>Tribue to April's LLM releases</title>
-    <updated>2026-05-08T23:48:14+00:00</updated>
-    <author>
-      <name>/u/Everlier</name>
-      <uri>https://old.reddit.com/user/Everlier</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7op5e/tribue_to_aprils_llm_releases/"&gt; &lt;img alt="Tribue to April's LLM releases" src="https://external-preview.redd.it/bjQwYjZyOWEzMDBoMfxgsJ3NuZiMqg3moXuSJ5SOm_-RC10RVClnAFmx8Id2.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b1ab67ed987e19a7d3dc86a591f79a20ffd231bb" title="Tribue to April's LLM releases" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;April 2026 was a turning point for local LLMs.&lt;br /&gt; Ths is my tribute.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Everlier"&gt; /u/Everlier &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/1knzmj9a300h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7op5e/tribue_to_aprils_llm_releases/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7op5e/tribue_to_aprils_llm_releases/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-08T23:48:14+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t7ur1f</id>
-    <title>How long for llama.cpp official support of MTP?</title>
-    <updated>2026-05-09T04:32:39+00:00</updated>
-    <author>
-      <name>/u/Manaberryio</name>
-      <uri>https://old.reddit.com/user/Manaberryio</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello there (beginner here)&lt;/p&gt; &lt;p&gt;I've been unable to build myself llama.cpp for my Strix Halo (Windows 11) (cmake errors, I have not digged too much into it, already burned hours...), so I was wondering when an official release for Vulkan/HIP with MTP support would be available?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Manaberryio"&gt; /u/Manaberryio &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7ur1f/how_long_for_llamacpp_official_support_of_mtp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t7ur1f/how_long_for_llamacpp_official_support_of_mtp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t7ur1f/how_long_for_llamacpp_official_support_of_mtp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-09T04:32:39+00:00</published>
-  </entry>
   <entry>
     <id>t3_1t8ad37</id>
     <title>9070xt inference for q3 qwen 27B</title>
@@ -71,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8db1j/model_add_sarvam_moe_architecture_support_by/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-09T18:46:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t8yf4d</id>
-    <title>am I running this llama-bench of Qwen3.6-27B on these V100s right?</title>
-    <updated>2026-05-10T05:52:58+00:00</updated>
-    <author>
-      <name>/u/starkruzr</name>
-      <uri>https://old.reddit.com/user/starkruzr</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;basically what I'm doing here is trying to validate whether or not it's a reasonable idea to get a couple of V100s, either SXMs with PCIe adapters or straight-up PCIe cards in the first place, for the sake of running this model or models like it, for codegen and other mostly-text applications. a pair of these is around $1200 for 64GB RAM, compared to $1100 for 24GB RAM from a 3090. my sense is that with 64GB RAM you are simply not going to run out of context with an arrangement like this, with the model running at INT8 and the KV cache unquantized, for any remotely reasonable amount of context.&lt;/p&gt; &lt;p&gt;one thing though is that I'm not sure why pp takes a dive at 64K context in this series of benchmarks. I'm just wondering if there are obvious things I'm not remembering to do here. TIA. &lt;/p&gt; &lt;pre&gt;&lt;code&gt;4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 4096,16384,65536 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d4096 | 797.25 ± 3.55 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d4096 | 31.16 ± 0.40 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d16384 | 702.58 ± 8.55 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d16384 | 30.27 ± 0.36 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d65536 | 473.34 ± 2.69 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d65536 | 26.71 ± 0.29 | build: 2496f9c14 (9049) 4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 200000 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d200000 | 267.16 ± 0.29 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d200000 | 18.53 ± 0.14 | build: 2496f9c14 (9049) 4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 128000 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d128000 | 352.66 ± 0.61 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d128000 | 23.06 ± 0.23 | build: 2496f9c14 (9049) &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/starkruzr"&gt; /u/starkruzr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T05:52:58+00:00</published>
   </entry>
   <entry>
     <id>t3_1t7qfaq</id>
@@ -125,6 +73,19 @@
     <published>2026-05-09T18:10:55+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t929wu</id>
+    <title>Human Interaction Protocol - For AI and Humans to work together as a team more effectively</title>
+    <updated>2026-05-10T09:31:34+00:00</updated>
+    <author>
+      <name>/u/opensourcecolumbus</name>
+      <uri>https://old.reddit.com/user/opensourcecolumbus</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/opensourcecolumbus"&gt; /u/opensourcecolumbus &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://humaninteractionprotocol.org"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t929wu/human_interaction_protocol_for_ai_and_humans_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t929wu/human_interaction_protocol_for_ai_and_humans_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T09:31:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t7x5cn</id>
     <title>Qwen doesn't work for free</title>
     <updated>2026-05-09T06:39:52+00:00</updated>
@@ -138,6 +99,19 @@
     <published>2026-05-09T06:39:52+00:00</published>
   </entry>
   <entry>
+    <id>t3_1t8yf4d</id>
+    <title>am I running this llama-bench of Qwen3.6-27B on these V100s right?</title>
+    <updated>2026-05-10T05:52:58+00:00</updated>
+    <author>
+      <name>/u/starkruzr</name>
+      <uri>https://old.reddit.com/user/starkruzr</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;basically what I'm doing here is trying to validate whether or not it's a reasonable idea to get a couple of V100s, either SXMs with PCIe adapters or straight-up PCIe cards in the first place, for the sake of running this model or models like it, for codegen and other mostly-text applications. a pair of these is around $1200 for 64GB RAM, compared to $1100 for 24GB RAM from a 3090. my sense is that with 64GB RAM you are simply not going to run out of context with an arrangement like this, with the model running at INT8 and the KV cache unquantized, for any remotely reasonable amount of context.&lt;/p&gt; &lt;p&gt;one thing though is that I'm not sure why pp takes a dive at 64K context in this series of benchmarks. I'm just wondering if there are obvious things I'm not remembering to do here. TIA. &lt;/p&gt; &lt;pre&gt;&lt;code&gt;4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 4096,16384,65536 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d4096 | 797.25 ± 3.55 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d4096 | 31.16 ± 0.40 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d16384 | 702.58 ± 8.55 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d16384 | 30.27 ± 0.36 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d65536 | 473.34 ± 2.69 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d65536 | 26.71 ± 0.29 | build: 2496f9c14 (9049) 4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 200000 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d200000 | 267.16 ± 0.29 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d200000 | 18.53 ± 0.14 | build: 2496f9c14 (9049) 4478180@pdgx0001:~/llama.cpp/build/bin$ CUDA_VISIBLE_DEVICES=0,1 ./llama-bench -hf unsloth/Qwen3.6-27B-GGUF:Q8_0 -sm tensor -ngl 999 -t 64 --flash-attn 1 -p 2048 -d 128000 ggml_cuda_init: found 2 CUDA devices (Total VRAM: 65002 MiB): Device 0: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB Device 1: Tesla V100-SXM2-32GB, compute capability 7.0, VMM: yes, VRAM: 32501 MiB | model | size | params | backend | ngl | threads | sm | fa | test | t/s | | ------------------------------ | ---------: | ---------: | ---------- | --: | ------: | -----: | -: | --------------: | -------------------: | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | pp2048 @ d128000 | 352.66 ± 0.61 | | qwen35 27B Q8_0 | 26.62 GiB | 26.90 B | CUDA | 999 | 64 | tensor | 1 | tg128 @ d128000 | 23.06 ± 0.23 | build: 2496f9c14 (9049) &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/starkruzr"&gt; /u/starkruzr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8yf4d/am_i_running_this_llamabench_of_qwen3627b_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T05:52:58+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1t81u76</id>
     <title>DeepSeek Rejects Alibaba: Prioritizing Corporate Independence Over Big Tech Ecosystems</title>
     <updated>2026-05-09T10:59:18+00:00</updated>
@@ -149,6 +123,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t81u76/deepseek_rejects_alibaba_prioritizing_corporate/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-09T10:59:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t92h41</id>
+    <title>Has anyone bought a 3080 20GB mod recently?</title>
+    <updated>2026-05-10T09:43:17+00:00</updated>
+    <author>
+      <name>/u/quickreactor</name>
+      <uri>https://old.reddit.com/user/quickreactor</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think it would suit my needs perfectly, but I'm scared of getting scammed on Alibaba so looking for some sellers who have delivered.&lt;/p&gt; &lt;p&gt;Follow-up question for those who have the card, how well does it run Qwen 3.6 27B?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/quickreactor"&gt; /u/quickreactor &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t92h41/has_anyone_bought_a_3080_20gb_mod_recently/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t92h41/has_anyone_bought_a_3080_20gb_mod_recently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t92h41/has_anyone_bought_a_3080_20gb_mod_recently/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T09:43:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t92hff</id>
+    <title>Hello from 10KM high! - Thanks to Qwen 3.6 35b a3b!</title>
+    <updated>2026-05-10T09:43:47+00:00</updated>
+    <author>
+      <name>/u/Qwen30bEnjoyer</name>
+      <uri>https://old.reddit.com/user/Qwen30bEnjoyer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Typing this on a cramped flight, but I was having issues connecting to the plane's wifi on my ubuntu laptop, when it was effortless on my phone. &lt;/p&gt; &lt;p&gt;The issue I was having was the Laptop WiFi connected to the plane wifi network, but captive portal wouldn't load. Turns out systemd-resolved was using Docker's DNS instead of the network gateway. Luckily I brought Qwen with me, the agent found a nmcli fix in seconds, and the portal loaded soon after! Could this have been avoided by me somehow not fucking it up in the first place? Probably, but ignore my incompetence for now, I'm not a super technical linux guy.&lt;/p&gt; &lt;p&gt;Anyways I'm quite thankful, this would have been a bit of a boring 5 hr flight otherwise.&lt;/p&gt; &lt;p&gt;Cheers to the Qwen team from up high! :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Qwen30bEnjoyer"&gt; /u/Qwen30bEnjoyer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t92hff/hello_from_10km_high_thanks_to_qwen_36_35b_a3b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t92hff/hello_from_10km_high_thanks_to_qwen_36_35b_a3b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t92hff/hello_from_10km_high_thanks_to_qwen_36_35b_a3b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T09:43:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1t81dq7</id>
@@ -216,19 +216,6 @@
     <published>2026-05-09T02:32:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t8wne7</id>
-    <title>The gap between knowing something and actually understanding it — AI accelerated my learning curve</title>
-    <updated>2026-05-10T04:21:21+00:00</updated>
-    <author>
-      <name>/u/No_Run8812</name>
-      <uri>https://old.reddit.com/user/No_Run8812</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been experimenting with setting up local LLMs lately, and here's what hit me hard:&lt;/p&gt; &lt;p&gt;Just because it's cheap to build something doesn't mean you should. If a compatible tool already exists for your use case, use it first. Only roll your own once you've confirmed the existing option falls short.&lt;/p&gt; &lt;p&gt;I &lt;em&gt;knew&lt;/em&gt; this before — but knowing something in theory and truly &lt;strong&gt;understanding&lt;/strong&gt; it through experience? Completely different.&lt;/p&gt; &lt;p&gt;This is especially important for people who love building things or are early in their careers. AI makes it look like anyone can build anything nowadays, which is both inspiring and misleading. The barrier to start looks low, sure — but the path to actually &lt;em&gt;getting it right&lt;/em&gt; still takes time and patience.&lt;/p&gt; &lt;p&gt;Trust me, you'll save yourself a lot of frustration if you internalize this sooner rather than later.&lt;/p&gt; &lt;p&gt;To the experienced folks here: what's one piece of advice you'd give to newbies to help them avoid common mistakes?&lt;/p&gt; &lt;p&gt;This post is refined by minimax2.7 local in openweb UI&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Run8812"&gt; /u/No_Run8812 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T04:21:21+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t8olv3</id>
     <title>Exactly a year ago, I started working on an MCP server I launched on reddit that became by far my most active open source project!</title>
     <updated>2026-05-09T22:08:54+00:00</updated>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8olv3/exactly_a_year_ago_i_started_working_on_an_mcp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-09T22:08:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t8wne7</id>
+    <title>The gap between knowing something and actually understanding it — AI accelerated my learning curve</title>
+    <updated>2026-05-10T04:21:21+00:00</updated>
+    <author>
+      <name>/u/No_Run8812</name>
+      <uri>https://old.reddit.com/user/No_Run8812</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been experimenting with setting up local LLMs lately, and here's what hit me hard:&lt;/p&gt; &lt;p&gt;Just because it's cheap to build something doesn't mean you should. If a compatible tool already exists for your use case, use it first. Only roll your own once you've confirmed the existing option falls short.&lt;/p&gt; &lt;p&gt;I &lt;em&gt;knew&lt;/em&gt; this before — but knowing something in theory and truly &lt;strong&gt;understanding&lt;/strong&gt; it through experience? Completely different.&lt;/p&gt; &lt;p&gt;This is especially important for people who love building things or are early in their careers. AI makes it look like anyone can build anything nowadays, which is both inspiring and misleading. The barrier to start looks low, sure — but the path to actually &lt;em&gt;getting it right&lt;/em&gt; still takes time and patience.&lt;/p&gt; &lt;p&gt;Trust me, you'll save yourself a lot of frustration if you internalize this sooner rather than later.&lt;/p&gt; &lt;p&gt;To the experienced folks here: what's one piece of advice you'd give to newbies to help them avoid common mistakes?&lt;/p&gt; &lt;p&gt;This post is refined by minimax2.7 local in openweb UI&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Run8812"&gt; /u/No_Run8812 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8wne7/the_gap_between_knowing_something_and_actually/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T04:21:21+00:00</published>
   </entry>
   <entry>
     <id>t3_1t8k6fg</id>
