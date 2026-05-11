@@ -2,11 +2,37 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-10T23:48:44+00:00</updated>
+  <updated>2026-05-11T00:59:07+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
+  <entry>
+    <id>t3_1t8k6fg</id>
+    <title>Running Minimax 2.7 at 100k context on strix halo</title>
+    <updated>2026-05-09T20:21:11+00:00</updated>
+    <author>
+      <name>/u/Zc5Gwu</name>
+      <uri>https://old.reddit.com/user/Zc5Gwu</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8k6fg/running_minimax_27_at_100k_context_on_strix_halo/"&gt; &lt;img alt="Running Minimax 2.7 at 100k context on strix halo" src="https://preview.redd.it/695zwpa6660h1.png?width=140&amp;amp;height=84&amp;amp;auto=webp&amp;amp;s=fe9d398dfdabbe8108bccf06626bfde52c6dd61c" title="Running Minimax 2.7 at 100k context on strix halo" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just wanted to share because it took me a lot of tweaking to get here:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-server -hf unsloth/MiniMax-M2.7-GGUF:UD-IQ3_XXS --temp 1.0 --top-k 40 --top-p 0.95 --host 0.0.0.0 --port 8080 -c 100000 -fa on -ngl 999 --no-context-shift -fit off --no-mmap -np 2 --kv-unified --cache-ram 0 -b 1024 -ub 1024 --cache-reuse 256 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Reasoning behind the various options&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--no-context-shift&lt;/code&gt; I want to know when I run out of context instead of silently corrupting stuff&lt;/p&gt; &lt;p&gt;&lt;code&gt;--no-mmap&lt;/code&gt; Recommended by Donato&lt;/p&gt; &lt;p&gt;&lt;code&gt;-np 2&lt;/code&gt; Retain context for up to two concurrent sessions&lt;/p&gt; &lt;p&gt;&lt;code&gt;--kv-unified&lt;/code&gt; Make the two session share the same cache to save vram&lt;/p&gt; &lt;p&gt;&lt;code&gt;--cache-ram 0&lt;/code&gt; Do not swap cache to ram, stays in vram instead. This solved a lot of OOMs for me.&lt;/p&gt; &lt;p&gt;&lt;code&gt;-b 1024 -ub 1024&lt;/code&gt; Improve prefill performance.&lt;/p&gt; &lt;p&gt;&lt;code&gt;--cache-reuse 256&lt;/code&gt; Attempt to reuse cache &amp;quot;smartly&amp;quot;. This sometimes helps avoid having to reprocess cache but also sometimes hurts, so use at your own discretion.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Additional setup&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Headless Fedora Linux according to &lt;a href="https://strix-halo-toolboxes.com"&gt;Donato's setup guides&lt;/a&gt; (but sans-toolbox). I also recommend increasing your swap size and setting &lt;code&gt;OOMScoreAdjust=500&lt;/code&gt; in your systemd service file, otherwise, you risk the oom killer killing important things if you do run out of ram.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Intelligence&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I've found minimax to be great at coding but not necessarily as &amp;quot;well rounded&amp;quot; as Qwen3.6 27b. It's not as strong at coding architecture discussions or code review. Qwen may also be stronger at non-coding stuff.&lt;/p&gt; &lt;p&gt;Where minimax shines is in coding &amp;quot;intuition&amp;quot;, it &amp;quot;just gets you&amp;quot;. When Qwen would take things too literally or fail to get the gist of things, Minimax better understands &amp;quot;intent&amp;quot;. It may also have more &amp;quot;knowledge&amp;quot; than Qwen 27b due to having more parameters.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Performance&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/695zwpa6660h1.png?width=1000&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c4a584f1aa9e2e8c406f44194097f66ce86cce13"&gt;https://preview.redd.it/695zwpa6660h1.png?width=1000&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=c4a584f1aa9e2e8c406f44194097f66ce86cce13&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/2ojq0ts7660h1.png?width=1000&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=029f583fb4344be00c3681cf3a24722cf59123c7"&gt;https://preview.redd.it/2ojq0ts7660h1.png?width=1000&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=029f583fb4344be00c3681cf3a24722cf59123c7&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;EDIT&lt;/strong&gt; &lt;a href="/user/Look_0ver_There/"&gt;Look_0ver_There&lt;/a&gt; suggested I add a little disclaimer that this only works for &amp;quot;concurrency = 1&amp;quot; scenarios. Because we're using &lt;code&gt;--kv-unified&lt;/code&gt;, if you have concurrent requests, the second request has a chance of poisoning the cache of the first session.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Zc5Gwu"&gt; /u/Zc5Gwu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8k6fg/running_minimax_27_at_100k_context_on_strix_halo/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t8k6fg/running_minimax_27_at_100k_context_on_strix_halo/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t8k6fg/running_minimax_27_at_100k_context_on_strix_halo/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-09T20:21:11+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t975bx</id>
+    <title>LM Studio / Windows / Vulkan possible to prioritize GPU order?</title>
+    <updated>2026-05-10T13:36:01+00:00</updated>
+    <author>
+      <name>/u/MarcusAurelius68</name>
+      <uri>https://old.reddit.com/user/MarcusAurelius68</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With CUDA you can prioritize GPU usage which worked well with a 3090ti and 3060 12GB. Under 24GB, fastest, under 36GB, slower, &amp;gt;36GB moving some layers to CPU so slowest. &lt;/p&gt; &lt;p&gt;I just added a R9700 so while my GPU VRAM has increased greatly to 68GB I need to use Vulkan as I’m mixing green and red. The only option showing is to distribute layers across cards so now everything is a bit slower. It does work, however.&lt;/p&gt; &lt;p&gt;Aside from upgrading the 3060 to increase the GPU with slowest speed, is there a way to prioritize GPUs in Vulkan?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MarcusAurelius68"&gt; /u/MarcusAurelius68 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t975bx/lm_studio_windows_vulkan_possible_to_prioritize/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t975bx/lm_studio_windows_vulkan_possible_to_prioritize/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t975bx/lm_studio_windows_vulkan_possible_to_prioritize/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T13:36:01+00:00</published>
+  </entry>
   <entry>
     <id>t3_1t82zxv</id>
     <title>80 tok/sec and 128K context on 12GB VRAM with Qwen3.6 35B A3B and llama.cpp MTP</title>
@@ -34,19 +60,6 @@
     <published>2026-05-09T16:05:05+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t9i65e</id>
-    <title>Is there any image2image model better than Qwen-Image-Edit-2511 and of comparable size?</title>
-    <updated>2026-05-10T20:35:07+00:00</updated>
-    <author>
-      <name>/u/HumanDrone8721</name>
-      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've tried with FLUX.2-9B but was not really better and FLUX.2-dev is too big. Any (tested) suggestions are most welcome.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9i65e/is_there_any_image2image_model_better_than/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9i65e/is_there_any_image2image_model_better_than/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9i65e/is_there_any_image2image_model_better_than/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T20:35:07+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t92h41</id>
     <title>Has anyone bought a 3080 20GB mod recently?</title>
     <updated>2026-05-10T09:43:17+00:00</updated>
@@ -58,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t92h41/has_anyone_bought_a_3080_20gb_mod_recently/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-10T09:43:17+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1t9mi48</id>
-    <title>Is hosting an SLM cheaper than using APIs with 20$ cost per user?</title>
-    <updated>2026-05-10T23:35:57+00:00</updated>
-    <author>
-      <name>/u/metalvendetta</name>
-      <uri>https://old.reddit.com/user/metalvendetta</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello,&lt;/p&gt; &lt;p&gt;A non technical client discussed the possibility of having an SLM to reduce inference costs per user for the product we're using that has some AI layer to some tasks. I mentioned that using an SLM to host and scale might be costlier and requires consistent maintenance as in updating or training the model each time. In any scenario, would hosting an SLM be cheaper and better than using a frontier model API?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/metalvendetta"&gt; /u/metalvendetta &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9mi48/is_hosting_an_slm_cheaper_than_using_apis_with_20/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9mi48/is_hosting_an_slm_cheaper_than_using_apis_with_20/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9mi48/is_hosting_an_slm_cheaper_than_using_apis_with_20/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T23:35:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1t95k73</id>
@@ -255,19 +255,6 @@
     <published>2026-05-10T11:35:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1t9eo83</id>
-    <title>Running Qwen3.6 35b a3b on 8gb vram and 32gb ram ~190k context</title>
-    <updated>2026-05-10T18:24:29+00:00</updated>
-    <author>
-      <name>/u/Atul_Kumar_97</name>
-      <uri>https://old.reddit.com/user/Atul_Kumar_97</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If anyone is looking for a good high-speed setup with ~190k context, this config has been working insanely well for me.&lt;/p&gt; &lt;p&gt;I’m using my laptop as a server over Tailscale. Installed Linux on it and running:&lt;/p&gt; &lt;p&gt;- Qwen3.6 35B A3B&lt;/p&gt; &lt;p&gt;- RTX 4060 8GB VRAM&lt;/p&gt; &lt;p&gt;- 32GB DDR5 5600MHz RAM&lt;/p&gt; &lt;p&gt;- Q5 quant models&lt;/p&gt; &lt;p&gt;Current models tested:&lt;/p&gt; &lt;p&gt;- `mudler/Qwen3.6-35B-A3B-APEX-GGUF`&lt;/p&gt; &lt;p&gt;- ~40 tok/sec → 37 tok/sec&lt;/p&gt; &lt;p&gt;- `hesamation/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GGUF`&lt;/p&gt; &lt;p&gt;- ~43 tok/sec → 37 tok/sec&lt;/p&gt; &lt;p&gt;I can push it up to ~51 tok/sec by tweaking:&lt;/p&gt; &lt;p&gt;- `--ctx-size 192640`&lt;/p&gt; &lt;p&gt;- `--n-gpu-layers 430`&lt;/p&gt; &lt;p&gt;- `--n-cpu-moe 35`&lt;/p&gt; &lt;p&gt;and adjusting those values slightly higher/lower depending on stability and memory usage.&lt;/p&gt; &lt;p&gt;Here’s my current config:&lt;/p&gt; &lt;p&gt;#!/bin/bash&lt;/p&gt; &lt;p&gt;# --- LLAMA SERVER LAUNCHER SCRIPT ---&lt;/p&gt; &lt;p&gt;#SELECTED_MODEL=&amp;quot;/home/atulloq/.lmstudio/models/hesamation/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GGUF/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled.Q5_K_M.gguf&amp;quot;&lt;/p&gt; &lt;p&gt;SELECTED_MODEL=&amp;quot;/home/atulloq/.lmstudio/models/mudler/Qwen3.6-35B-A3B-APEX-GGUF/Qwen3.6-35B-A3B-APEX-I-Balanced.gguf&amp;quot;&lt;/p&gt; &lt;p&gt;echo &amp;quot;Starting Llama Server...&amp;quot;&lt;/p&gt; &lt;p&gt;echo &amp;quot;Model: $SELECTED_MODEL&amp;quot;&lt;/p&gt; &lt;p&gt;/home/atulloq/llama-cpp-turboquant/build/bin/llama-server \&lt;/p&gt; &lt;p&gt;--model &amp;quot;$SELECTED_MODEL&amp;quot; \&lt;/p&gt; &lt;p&gt;--host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; \&lt;/p&gt; &lt;p&gt;--port 8085 \&lt;/p&gt; &lt;p&gt;--ctx-size 192640 \&lt;/p&gt; &lt;p&gt;--n-gpu-layers 430 \&lt;/p&gt; &lt;p&gt;--n-cpu-moe 35 \&lt;/p&gt; &lt;p&gt;--cache-type-k &amp;quot;turbo4&amp;quot; \&lt;/p&gt; &lt;p&gt;--cache-type-v &amp;quot;turbo4&amp;quot; \&lt;/p&gt; &lt;p&gt;--flash-attn on \&lt;/p&gt; &lt;p&gt;--batch-size 2048 \&lt;/p&gt; &lt;p&gt;--parallel 1 \&lt;/p&gt; &lt;p&gt;--no-mmap \&lt;/p&gt; &lt;p&gt;--mlock \&lt;/p&gt; &lt;p&gt;--ubatch-size 512 \&lt;/p&gt; &lt;p&gt;--threads 6 \&lt;/p&gt; &lt;p&gt;--cont-batching \&lt;/p&gt; &lt;p&gt;--timeout 300 \&lt;/p&gt; &lt;p&gt;--temp 0.2 \&lt;/p&gt; &lt;p&gt;--top-p 0.95 \&lt;/p&gt; &lt;p&gt;--min-p 0.05 \&lt;/p&gt; &lt;p&gt;--top-k 20 \&lt;/p&gt; &lt;p&gt;--metrics \&lt;/p&gt; &lt;p&gt;--chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}'&lt;/p&gt; &lt;p&gt;I’m using this fork of llama.cpp with TurboQuant support:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/TheTom/turboquant_plus#build-llamacpp-with-turboquant"&gt;https://github.com/TheTom/turboquant_plus#build-llamacpp-with-turboquant&lt;/a&gt;&lt;/p&gt; &lt;p&gt;A few honest notes:&lt;/p&gt; &lt;p&gt;- Q4 is noticeably worse for long-context reasoning compared to Q5 on these models.&lt;/p&gt; &lt;p&gt;- `--no-mmap` + `--mlock` helped reduce weird slowdowns for me.&lt;/p&gt; &lt;p&gt;- TurboQuant KV cache makes a massive difference at high context sizes.&lt;/p&gt; &lt;p&gt;- Linux performs way better than Windows for this setup.&lt;/p&gt; &lt;p&gt;- Don’t expect these speeds if your RAM bandwidth is bad. DDR5 matters here.&lt;/p&gt; &lt;p&gt;If anyone has optimizations for:&lt;/p&gt; &lt;p&gt;- better long-context stability,&lt;/p&gt; &lt;p&gt;- higher token throughput,&lt;/p&gt; &lt;p&gt;- or smarter `n-cpu-moe` tuning,&lt;/p&gt; &lt;p&gt;I’d love to test them.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Atul_Kumar_97"&gt; /u/Atul_Kumar_97 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-10T18:24:29+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1t9gcar</id>
     <title>MTP benchmark results: the nature of the generative task dictates whether you will benefit (coding) or get slower inference (creative) from speculative inference. No other factor comes close.</title>
     <updated>2026-05-10T19:25:50+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9gcar/mtp_benchmark_results_the_nature_of_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-10T19:25:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1t9eo83</id>
+    <title>Running Qwen3.6 35b a3b on 8gb vram and 32gb ram ~190k context</title>
+    <updated>2026-05-10T18:24:29+00:00</updated>
+    <author>
+      <name>/u/Atul_Kumar_97</name>
+      <uri>https://old.reddit.com/user/Atul_Kumar_97</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If anyone is looking for a good high-speed setup with ~190k context, this config has been working insanely well for me.&lt;/p&gt; &lt;p&gt;I’m using my laptop as a server over Tailscale. Installed Linux on it and running:&lt;/p&gt; &lt;p&gt;- Qwen3.6 35B A3B&lt;/p&gt; &lt;p&gt;- RTX 4060 8GB VRAM&lt;/p&gt; &lt;p&gt;- 32GB DDR5 5600MHz RAM&lt;/p&gt; &lt;p&gt;- Q5 quant models&lt;/p&gt; &lt;p&gt;Current models tested:&lt;/p&gt; &lt;p&gt;- `mudler/Qwen3.6-35B-A3B-APEX-GGUF`&lt;/p&gt; &lt;p&gt;- ~40 tok/sec → 37 tok/sec&lt;/p&gt; &lt;p&gt;- `hesamation/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GGUF`&lt;/p&gt; &lt;p&gt;- ~43 tok/sec → 37 tok/sec&lt;/p&gt; &lt;p&gt;I can push it up to ~51 tok/sec by tweaking:&lt;/p&gt; &lt;p&gt;- `--ctx-size 192640`&lt;/p&gt; &lt;p&gt;- `--n-gpu-layers 430`&lt;/p&gt; &lt;p&gt;- `--n-cpu-moe 35`&lt;/p&gt; &lt;p&gt;and adjusting those values slightly higher/lower depending on stability and memory usage.&lt;/p&gt; &lt;p&gt;Here’s my current config:&lt;/p&gt; &lt;p&gt;#!/bin/bash&lt;/p&gt; &lt;p&gt;# --- LLAMA SERVER LAUNCHER SCRIPT ---&lt;/p&gt; &lt;p&gt;#SELECTED_MODEL=&amp;quot;/home/atulloq/.lmstudio/models/hesamation/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GGUF/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled.Q5_K_M.gguf&amp;quot;&lt;/p&gt; &lt;p&gt;SELECTED_MODEL=&amp;quot;/home/atulloq/.lmstudio/models/mudler/Qwen3.6-35B-A3B-APEX-GGUF/Qwen3.6-35B-A3B-APEX-I-Balanced.gguf&amp;quot;&lt;/p&gt; &lt;p&gt;echo &amp;quot;Starting Llama Server...&amp;quot;&lt;/p&gt; &lt;p&gt;echo &amp;quot;Model: $SELECTED_MODEL&amp;quot;&lt;/p&gt; &lt;p&gt;/home/atulloq/llama-cpp-turboquant/build/bin/llama-server \&lt;/p&gt; &lt;p&gt;--model &amp;quot;$SELECTED_MODEL&amp;quot; \&lt;/p&gt; &lt;p&gt;--host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; \&lt;/p&gt; &lt;p&gt;--port 8085 \&lt;/p&gt; &lt;p&gt;--ctx-size 192640 \&lt;/p&gt; &lt;p&gt;--n-gpu-layers 430 \&lt;/p&gt; &lt;p&gt;--n-cpu-moe 35 \&lt;/p&gt; &lt;p&gt;--cache-type-k &amp;quot;turbo4&amp;quot; \&lt;/p&gt; &lt;p&gt;--cache-type-v &amp;quot;turbo4&amp;quot; \&lt;/p&gt; &lt;p&gt;--flash-attn on \&lt;/p&gt; &lt;p&gt;--batch-size 2048 \&lt;/p&gt; &lt;p&gt;--parallel 1 \&lt;/p&gt; &lt;p&gt;--no-mmap \&lt;/p&gt; &lt;p&gt;--mlock \&lt;/p&gt; &lt;p&gt;--ubatch-size 512 \&lt;/p&gt; &lt;p&gt;--threads 6 \&lt;/p&gt; &lt;p&gt;--cont-batching \&lt;/p&gt; &lt;p&gt;--timeout 300 \&lt;/p&gt; &lt;p&gt;--temp 0.2 \&lt;/p&gt; &lt;p&gt;--top-p 0.95 \&lt;/p&gt; &lt;p&gt;--min-p 0.05 \&lt;/p&gt; &lt;p&gt;--top-k 20 \&lt;/p&gt; &lt;p&gt;--metrics \&lt;/p&gt; &lt;p&gt;--chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}'&lt;/p&gt; &lt;p&gt;I’m using this fork of llama.cpp with TurboQuant support:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/TheTom/turboquant_plus#build-llamacpp-with-turboquant"&gt;https://github.com/TheTom/turboquant_plus#build-llamacpp-with-turboquant&lt;/a&gt;&lt;/p&gt; &lt;p&gt;A few honest notes:&lt;/p&gt; &lt;p&gt;- Q4 is noticeably worse for long-context reasoning compared to Q5 on these models.&lt;/p&gt; &lt;p&gt;- `--no-mmap` + `--mlock` helped reduce weird slowdowns for me.&lt;/p&gt; &lt;p&gt;- TurboQuant KV cache makes a massive difference at high context sizes.&lt;/p&gt; &lt;p&gt;- Linux performs way better than Windows for this setup.&lt;/p&gt; &lt;p&gt;- Don’t expect these speeds if your RAM bandwidth is bad. DDR5 matters here.&lt;/p&gt; &lt;p&gt;If anyone has optimizations for:&lt;/p&gt; &lt;p&gt;- better long-context stability,&lt;/p&gt; &lt;p&gt;- higher token throughput,&lt;/p&gt; &lt;p&gt;- or smarter `n-cpu-moe` tuning,&lt;/p&gt; &lt;p&gt;I’d love to test them.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Atul_Kumar_97"&gt; /u/Atul_Kumar_97 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1t9eo83/running_qwen36_35b_a3b_on_8gb_vram_and_32gb_ram/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-10T18:24:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1t9jyfu</id>
