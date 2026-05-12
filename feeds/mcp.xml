@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-12T15:41:20+00:00</updated>
+  <updated>2026-05-12T16:32:26+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1tacsse</id>
-    <title>Can MCP servers bundle Agent Skills, so any MCP host loads both the skill instructions and the server tools?</title>
-    <updated>2026-05-11T18:57:26+00:00</updated>
-    <author>
-      <name>/u/Longjumping_Bad_879</name>
-      <uri>https://old.reddit.com/user/Longjumping_Bad_879</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m exploring a pattern that combines &lt;strong&gt;Agent Skills&lt;/strong&gt; with &lt;strong&gt;MCP servers&lt;/strong&gt;, and I’m curious whether current MCP server frameworks/SDKs and MCP hosts support this workflow, or if this would require a new convention/spec extension.&lt;/p&gt; &lt;p&gt;Instead of exposing many MCP tools directly, the MCP server exposes only one generic tool:&lt;/p&gt; &lt;p&gt;&lt;code&gt;execute_tool({ function_name: string, parameters: object })&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Internally, the MCP server knows how to execute functions like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;get_customer(customer_id) list_invoices(customer_id) create_invoice(customer_id, line_items) send_invoice(invoice_id) search_docs(query) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;But from the MCP host’s point of view, only &lt;code&gt;execute_tool&lt;/code&gt; is visible.&lt;/p&gt; &lt;p&gt;Alongside that, I want the MCP server to also provide an &lt;strong&gt;Agent Skill bundle&lt;/strong&gt; consisting of multiple &lt;code&gt;.md&lt;/code&gt; files.&lt;/p&gt; &lt;p&gt;The structure would look something like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;skills/ ├── SKILL.md ├── billing_reference.md ├── crm_reference.md ├── docs_reference.md └── escalation_rules.md &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The idea is that the root &lt;code&gt;SKILL.md&lt;/code&gt; acts as a router/orchestrator. It determines the user’s objective and redirects the LLM to the appropriate domain-specific reference file.&lt;/p&gt; &lt;p&gt;For example:&lt;/p&gt; &lt;p&gt;# &lt;a href="http://SKILL.MD"&gt;SKILL.MD&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Your job is to determine the user's intent and then consult the appropriate reference file before calling `execute_tool`. &lt;/p&gt; &lt;p&gt;## Routing Rules &lt;/p&gt; &lt;p&gt;&lt;code&gt;- Billing, invoices, payments → \&lt;/code&gt;billing_reference.md`&lt;code&gt; &lt;/code&gt;- CRM/customer lookup → `crm_reference.md`&lt;code&gt; &lt;/code&gt;- Documentation search → `docs_reference.md`&lt;code&gt; &lt;/code&gt;- Escalations/compliance → `escalation_rules.md`` &lt;/p&gt; &lt;p&gt;Always read the relevant reference file before calling `execute_tool`.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;Then each domain-specific reference file contains detailed workflow guidance and instructions on how to pass arguments into &lt;code&gt;execute_tool&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;For example:&lt;/p&gt; &lt;p&gt;# billing_reference.md&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Use this reference when handling invoices, payments, reminders, or billing workflows. ## Available backend functions All backend operations must be executed through: ```ts execute_tool({ function_name: string, parameters: object }) &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Supported function names&lt;/h1&gt; &lt;h1&gt;get_customer&lt;/h1&gt; &lt;p&gt;Use when customer billing status or profile information is needed.&lt;/p&gt; &lt;p&gt;Example:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;function_name&amp;quot;: &amp;quot;get_customer&amp;quot;, &amp;quot;parameters&amp;quot;: { &amp;quot;customer_id&amp;quot;: &amp;quot;cus_123&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;list_invoices&lt;/h1&gt; &lt;p&gt;Use before answering invoice history or unpaid invoice questions.&lt;/p&gt; &lt;p&gt;Example:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;function_name&amp;quot;: &amp;quot;list_invoices&amp;quot;, &amp;quot;parameters&amp;quot;: { &amp;quot;customer_id&amp;quot;: &amp;quot;cus_123&amp;quot;, &amp;quot;status&amp;quot;: &amp;quot;unpaid&amp;quot; } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;So the MCP server provides two things: &lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Authenticated execution&lt;br /&gt; - The MCP server owns OAuth/API credentials and secure backend access.&lt;br /&gt; - The LLM never gets raw credentials.&lt;br /&gt; - The host only sees/calls `execute_tool`. &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Progressive disclosure / tool-use guidance&lt;br /&gt; - The root `SKILL.md` routes the model to the correct domain reference file.&lt;br /&gt; - Domain-specific reference files explain workflows, valid function names, parameter formats, safety rules, edge cases, and examples.&lt;br /&gt; - The LLM does not need all function details exposed as top-level MCP tools.&lt;br /&gt; - The skill bundle can guide the model on where to look and what process to follow based on the user query. &lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The reason I’m interested in this approach instead of putting executable scripts directly inside Agent Skills is authentication/security. Scripts bundled with skills are useful for deterministic local logic, but for real business systems I’d rather keep authenticated execution inside an MCP server, where credentials, access control, audit logging, rate limiting, and backend validation can be centralized. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;My Doubts:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Do current MCP server frameworks or SDKs support bundling multi-file Agent Skills (&lt;code&gt;SKILL.md&lt;/code&gt; + reference &lt;code&gt;.md&lt;/code&gt; files) with an MCP server in a way that MCP hosts automatically load? (I’m especially interested in whether this is possible today with existing MCP hosts) &lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Is there any work happening to make Agent Skills portable across MCP hosts, so that connecting an MCP server could also install/load the matching skill bundle automatically?&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Are there any better patterns ?&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Note: I've used AI to help make this draft. I am basically looking for a way to couple agent skills to MCP Servers so that while the server is connected, skills are automatically loaded to MCP hosts. Is someone already doing something like this ? &lt;/p&gt; &lt;p&gt;Thanks in Advance :))&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Longjumping_Bad_879"&gt; /u/Longjumping_Bad_879 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tacsse/can_mcp_servers_bundle_agent_skills_so_any_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tacsse/can_mcp_servers_bundle_agent_skills_so_any_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tacsse/can_mcp_servers_bundle_agent_skills_so_any_mcp/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-11T18:57:26+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tauwhg</id>
-    <title>outputSchema in MCP: useful feature or token tax with no payoff?</title>
-    <updated>2026-05-12T08:03:29+00:00</updated>
-    <author>
-      <name>/u/MucaGinger33</name>
-      <uri>https://old.reddit.com/user/MucaGinger33</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick refresher for anyone who hasn't kept up with the 2025-06-18 spec: &lt;code&gt;outputSchema&lt;/code&gt; is a per-tool JSON Schema that sits next to &lt;code&gt;inputSchema&lt;/code&gt; in the tool definition. The server advertises it during &lt;code&gt;tools/list&lt;/code&gt;, and clients are supposed to validate the &lt;code&gt;structuredContent&lt;/code&gt; field on tool results against it.&lt;/p&gt; &lt;p&gt;In theory it's nice. Typed outputs, clients can render structured data, downstream code can rely on shape instead of grepping JSON-in-text.&lt;/p&gt; &lt;p&gt;In practice I'm not sure it pulls its weight, and I want to gut-check this with the sub before I commit to adding it across my servers.&lt;/p&gt; &lt;p&gt;Two things bother me.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;It's not free at the wire.&lt;/strong&gt; &lt;code&gt;outputSchema&lt;/code&gt; ships in every &lt;code&gt;tools/list&lt;/code&gt; response, which means it's in the LLM's context for the entire session. And response schemas tend to be way heavier than parameter schemas. A tool takes maybe 2-3 inputs, but it returns a deeply nested object with arrays of records, each with 10+ fields, optional fields, enums, the works. I haven't measured it carefully but eyeballing a few of my own servers, output schemas look like 3-5x the size of input schemas, sometimes more if the response has any real nesting.&lt;/p&gt; &lt;p&gt;Multiply that by 30-40 tools on a server (or worse, an aggregated client connected to several servers) and you're paying a real token tax on every single turn. There's already a known problem where typical MCP setups burn 10k+ tokens on tool definitions before the user even types anything. Adding outputSchemas makes that worse, not better.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Client support is rough.&lt;/strong&gt; Claude Code has an open bug (#25081) where tools with &lt;code&gt;outputSchema&lt;/code&gt; get silently dropped from the tool list. opencode has the same issue (#21373). Both are recent, both are still open as of a few weeks ago. So even when you do the &amp;quot;right&amp;quot; thing per the spec, some clients just disappear your tools with no error. That's not a great tradeoff for a feature whose benefit is mostly theoretical.&lt;/p&gt; &lt;p&gt;Where I think it actually earns its place: dynamic tool discovery. If you're using something like FastMCP's &lt;code&gt;search_tools()&lt;/code&gt; or a BM25-based approach where only a handful of tools get materialized into context on demand, then sure, pay for the schema when the tool is selected. The schema cost gets amortized against actual use instead of getting taxed on every turn.&lt;/p&gt; &lt;p&gt;But dumping outputSchemas on every tool in a static &lt;code&gt;tools/list&lt;/code&gt; response? I think it makes things worse for the model (more low-signal context) and worse for the operator (more tokens, more client bugs).&lt;/p&gt; &lt;p&gt;So my question for the sub: are you adding outputSchema to your servers? If yes, what's the actual win you're seeing, is it client-side rendering, downstream validation in agent code, something else? If no, is it for the same reasons or am I missing something obvious?&lt;/p&gt; &lt;p&gt;Also want to hear from anyone who's measured the token delta. I'd believe my &amp;quot;3-5x&amp;quot; eyeball is off in either direction.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MucaGinger33"&gt; /u/MucaGinger33 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tauwhg/outputschema_in_mcp_useful_feature_or_token_tax/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tauwhg/outputschema_in_mcp_useful_feature_or_token_tax/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tauwhg/outputschema_in_mcp_useful_feature_or_token_tax/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-12T08:03:29+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tam8tz</id>
     <title>omni-dev - Atlassian (Jira/Confluence) MCP server with schema-validated Markdown↔ADF roundtrips</title>
@@ -177,19 +151,6 @@
     <published>2026-05-12T08:07:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tatatb</id>
-    <title>What are good vulnerability management tools for container-heavy environments?</title>
-    <updated>2026-05-12T06:33:52+00:00</updated>
-    <author>
-      <name>/u/RasheedaDeals</name>
-      <uri>https://old.reddit.com/user/RasheedaDeals</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We’re supporting a few clients now that are heavily container-based, and vulnerability management is quickly becoming the biggest bottleneck. Every scan produces hundreds (sometimes thousands) of CVEs. A lot come from open source base images and third-party components, and it’s not always clear what’s actually exploitable vs just noise. The result is constant triage, slow approvals, and teams either burning time on low-risk issues or ignoring alerts altogether.&lt;/p&gt; &lt;p&gt;I’m trying to get a better handle on what tools people are using in production, especially those that go beyond just reporting and help reduce the volume in a meaningful way.&lt;/p&gt; &lt;p&gt;Some of the options I’ve been looking at:&lt;/p&gt; &lt;p&gt;* Wiz: strong visibility across cloud and containers, good for identifying risks but still produces a lot of findings to work through&lt;/p&gt; &lt;p&gt;* RapidFort: focuses more on reducing vulnerabilities upfront by hardening images and filtering out non-exploitable CVEs&lt;/p&gt; &lt;p&gt;* Snyk: popular with dev teams, integrates well into pipelines but can get noisy at scale&lt;/p&gt; &lt;p&gt;* Aqua Security: more full-stack container security with runtime protection and policy controls&lt;/p&gt; &lt;p&gt;* Qualys: broad vulnerability management, but not always container-native in approach&lt;/p&gt; &lt;p&gt;Curious what’s actually working for MSPs managing multiple environments. Are you focusing on better prioritisation, or trying to reduce CVEs earlier in the pipeline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RasheedaDeals"&gt; /u/RasheedaDeals &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-12T06:33:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tarqha</id>
     <title>Vulnerability scanner for any MCP server</title>
     <updated>2026-05-12T05:11:50+00:00</updated>
@@ -255,6 +216,19 @@
     <published>2026-05-12T00:00:03+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tatatb</id>
+    <title>What are good vulnerability management tools for container-heavy environments?</title>
+    <updated>2026-05-12T06:33:52+00:00</updated>
+    <author>
+      <name>/u/RasheedaDeals</name>
+      <uri>https://old.reddit.com/user/RasheedaDeals</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;We’re supporting a few clients now that are heavily container-based, and vulnerability management is quickly becoming the biggest bottleneck. Every scan produces hundreds (sometimes thousands) of CVEs. A lot come from open source base images and third-party components, and it’s not always clear what’s actually exploitable vs just noise. The result is constant triage, slow approvals, and teams either burning time on low-risk issues or ignoring alerts altogether.&lt;/p&gt; &lt;p&gt;I’m trying to get a better handle on what tools people are using in production, especially those that go beyond just reporting and help reduce the volume in a meaningful way.&lt;/p&gt; &lt;p&gt;Some of the options I’ve been looking at:&lt;/p&gt; &lt;p&gt;* Wiz: strong visibility across cloud and containers, good for identifying risks but still produces a lot of findings to work through&lt;/p&gt; &lt;p&gt;* RapidFort: focuses more on reducing vulnerabilities upfront by hardening images and filtering out non-exploitable CVEs&lt;/p&gt; &lt;p&gt;* Snyk: popular with dev teams, integrates well into pipelines but can get noisy at scale&lt;/p&gt; &lt;p&gt;* Aqua Security: more full-stack container security with runtime protection and policy controls&lt;/p&gt; &lt;p&gt;* Qualys: broad vulnerability management, but not always container-native in approach&lt;/p&gt; &lt;p&gt;Curious what’s actually working for MSPs managing multiple environments. Are you focusing on better prioritisation, or trying to reduce CVEs earlier in the pipeline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RasheedaDeals"&gt; /u/RasheedaDeals &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tatatb/what_are_good_vulnerability_management_tools_for/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-12T06:33:52+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tb46ka</id>
     <title>Smartlead Simplified MCP Server – A Multi-Channel Proxy server that provides a structured interface for interacting with Smartlead's API, organizing functionality into logical tools for campaign management, lead management, and other marketing automation features.</title>
     <updated>2026-05-12T15:00:03+00:00</updated>
@@ -281,6 +255,19 @@
     <published>2026-05-12T15:00:04+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tb6jap</id>
+    <title>I built Capsule Bash, an MCP server that gives an instant local sandboxed Bash without setup</title>
+    <updated>2026-05-12T16:21:04+00:00</updated>
+    <author>
+      <name>/u/Tall_Insect7119</name>
+      <uri>https://old.reddit.com/user/Tall_Insect7119</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Existing Bash is quite annoying to set up securely. We either need to set up Docker or use some cloud-based solutions. On top of that, standard Bash doesn't always return feedback after a command to help enrich the context history.&lt;/p&gt; &lt;p&gt;I've been rebuilding a more suitable Bash for agents. Not all Bash commands and shell features, only the ones that suit agents' needs. The solution is based on three main features.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Session&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Sessions are mainly for organizing agents' workspaces. Each session includes its own isolated filesystem, and agents can easily navigate between them. You can either use one session per agent or share the same session across multiple ones. For example, one agent can create a file in a common session, and later another agent can use that file and then move it back to its own session.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Sandboxing&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every execution is sandboxed in an isolated WebAssembly environment (via WASI 0.2 specifications). This becomes essential for commands like &lt;code&gt;python3&lt;/code&gt; or &lt;code&gt;node&lt;/code&gt;, available in Capsule Bash, that might execute untrusted code. I wanted to make sure you can download anything and execute it without risk to the host system.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Enriched returns&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The idea is to give agents a structured feedback on each command executed with what was created, modified, or deleted. It also helps keep a trace in conversations so the LLM can understand context when resuming. If an agent runs &lt;code&gt;rm -rf&lt;/code&gt;, it will know directly what actions were performed; no need to run &lt;code&gt;ls&lt;/code&gt; afterwards.&lt;/p&gt; &lt;p&gt;--&lt;/p&gt; &lt;p&gt;More details on how it works, here's the main repository: &lt;a href="https://github.com/capsulerun/bash"&gt;https://github.com/capsulerun/bash&lt;/a&gt;&lt;br /&gt; And you can check the MCP part directly here: &lt;a href="https://github.com/capsulerun/bash/tree/main/packages/bash-mcp"&gt;https://github.com/capsulerun/bash/tree/main/packages/bash-mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'd love to know what you think about this approach.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tall_Insect7119"&gt; /u/Tall_Insect7119 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tb6jap/i_built_capsule_bash_an_mcp_server_that_gives_an/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tb6jap/i_built_capsule_bash_an_mcp_server_that_gives_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tb6jap/i_built_capsule_bash_an_mcp_server_that_gives_an/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-12T16:21:04+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1taz9hq</id>
     <title>What do you wish existed for MCP?</title>
     <updated>2026-05-12T11:51:30+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/mcp/comments/1taz9hq/what_do_you_wish_existed_for_mcp/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-12T11:51:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tb628y</id>
+    <title>The State of Postgres MCP Servers in 2026</title>
+    <updated>2026-05-12T16:04:51+00:00</updated>
+    <author>
+      <name>/u/Other-Faithlessness4</name>
+      <uri>https://old.reddit.com/user/Other-Faithlessness4</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tb628y/the_state_of_postgres_mcp_servers_in_2026/"&gt; &lt;img alt="The State of Postgres MCP Servers in 2026" src="https://external-preview.redd.it/UZiFoyeVnjkXLPHNj7ql4Ju3eiQj9ezQGPCGy-ORpDM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e63bd07aef78097341730feaf157459e2c050297" title="The State of Postgres MCP Servers in 2026" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Other-Faithlessness4"&gt; /u/Other-Faithlessness4 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://querybear.com/blog/state-of-postgres-mcp-2026"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tb628y/the_state_of_postgres_mcp_servers_in_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tb628y/the_state_of_postgres_mcp_servers_in_2026/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-12T16:04:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1tb2851</id>
