@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-05-13T01:44:33+00:00</updated>
+  <updated>2026-05-13T02:47:36+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1tant4e</id>
-    <title>Cannot receive responses or replies in WhatsApp groups after updating to OpenClaw Version 5.7</title>
-    <updated>2026-05-12T02:06:09+00:00</updated>
-    <author>
-      <name>/u/Fantastic-Luck-5132</name>
-      <uri>https://old.reddit.com/user/Fantastic-Luck-5132</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently upgraded to OpenClaw Version 5.7 and it broke some things in WhatsApp. My Claw is still connected and inside of the various WhatsApp groups, but when I @ tag it or text it inside of the group, it shows typing for a while but can never reply&lt;/p&gt; &lt;p&gt;- In contrast, when I DM it in WhatsApp everything works fine.&lt;br /&gt; - Separately if I force it to send a message in the group via prompting it in another session, it will send the message&lt;br /&gt; - Previously scheduled cron job messages also still send through&lt;/p&gt; &lt;p&gt;Is anyone else experiencing this issue? Has anyone else successfully fixed it? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fantastic-Luck-5132"&gt; /u/Fantastic-Luck-5132 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tant4e/cannot_receive_responses_or_replies_in_whatsapp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tant4e/cannot_receive_responses_or_replies_in_whatsapp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tant4e/cannot_receive_responses_or_replies_in_whatsapp/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-12T02:06:09+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tasmg9</id>
-    <title>Post-Mortem] Claude Max + OpenClaw: Agent breaking randomly with billing errors despite usage well under quota</title>
-    <updated>2026-05-12T05:58:17+00:00</updated>
-    <author>
-      <name>/u/Redoudou</name>
-      <uri>https://old.reddit.com/user/Redoudou</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Spent two days debugging this. Sharing the full breakdown so nobody else loses time on it.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Self-hosted OpenClaw on a VPS, Claude Max subscription, &lt;code&gt;anthropic:claude-cli&lt;/code&gt; OAuth, Telegram interface. Running smoothly for weeks.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Symptoms&lt;/h2&gt; &lt;p&gt;Out of nowhere, the agent started returning this:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;⚠️ API provider returned a billing error — your API key has run out of credits or has an insufficient balance.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Checked claude.ai usage: &lt;strong&gt;well under the weekly limit.&lt;/strong&gt; Tried &lt;code&gt;/new&lt;/code&gt; — still broken. Restarted the gateway — works for a few minutes, then breaks again.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Root Cause 1 — Stale OAuth token poisoning the entire provider&lt;/h2&gt; &lt;p&gt;&lt;code&gt;auth-profiles.json&lt;/code&gt; had two profiles: one valid &lt;code&gt;anthropic:claude-cli&lt;/code&gt; OAuth profile, and one &lt;code&gt;anthropic:manual&lt;/code&gt; profile using an &lt;code&gt;sk-ant-oat01-...&lt;/code&gt; token added manually.&lt;/p&gt; &lt;p&gt;OAuth access tokens are short-lived. When &lt;code&gt;anthropic:manual&lt;/code&gt; expired, OpenClaw didn't just fail that profile — it classified it as a &lt;strong&gt;provider-level billing failure&lt;/strong&gt; and blacklisted the entire &lt;code&gt;anthropic&lt;/code&gt; provider, skipping every model including the healthy &lt;code&gt;claude-cli&lt;/code&gt; profile.&lt;/p&gt; &lt;p&gt;From the logs:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;reason: &amp;quot;billing&amp;quot; errorPreview: &amp;quot;Provider anthropic has billing issue (skipping all models)&amp;quot; chain_exhausted &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The healthy profile with a valid refresh token was never tried.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Fix:&lt;/strong&gt; Remove &lt;code&gt;anthropic:manual&lt;/code&gt; entirely from &lt;code&gt;auth-profiles.json&lt;/code&gt; and &lt;code&gt;openclaw.json&lt;/code&gt;. Keep only &lt;code&gt;anthropic:claude-cli&lt;/code&gt;.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Root Cause 2 — Cron jobs hit a completely separate billing bucket&lt;/h2&gt; &lt;p&gt;After fixing the profile issue, cron jobs kept triggering:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;You're out of extra usage. Add more at claude.ai/settings/usage and keep going. or &lt;/p&gt; &lt;p&gt;⚠️ API provider returned a billing error — your API key has run out of credits or has an insufficient balance. Check your provider's billing dashboard and top up or switch to a different API key.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Still well under quota. Here's why.&lt;/p&gt; &lt;p&gt;OpenClaw has two execution paths:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Path&lt;/th&gt; &lt;th&gt;Mechanism&lt;/th&gt; &lt;th&gt;Billed to&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Main sessions&lt;/td&gt; &lt;td&gt;Runs &lt;code&gt;/usr/bin/claude&lt;/code&gt; binary&lt;/td&gt; &lt;td&gt;Max/Pro subscription ✅&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Isolated/embedded runs&lt;/td&gt; &lt;td&gt;Direct HTTP to Anthropic API&lt;/td&gt; &lt;td&gt;Extra Usage bucket ❌&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Cron jobs with &lt;code&gt;sessionTarget: isolated&lt;/code&gt; spin up a standalone embedded agent that calls the Anthropic API directly via HTTP — &lt;strong&gt;without the Claude Code headers&lt;/strong&gt; the CLI sends. Anthropic routes it to the Extra Usage bucket, a completely separate quota. With Extra Usage off, every isolated cron run returns a 400.&lt;/p&gt; &lt;p&gt;OpenClaw then makes this worse: &lt;strong&gt;one billing error sets &lt;code&gt;disabledUntil&lt;/code&gt; ~24 hours forward&lt;/strong&gt; in &lt;code&gt;auth-state.json&lt;/code&gt;, locking out all requests — including normal chat — until cooldown fires.&lt;/p&gt; &lt;p&gt;The lockout survives gateway restarts and is stored here:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;~/.openclaw/agents/main/agent/auth-state.json &lt;/code&gt;&lt;/pre&gt; &lt;hr /&gt; &lt;h2&gt;Why it broke suddenly after working fine&lt;/h2&gt; &lt;p&gt;Every gateway restart triggers catch-up on missed cron jobs. The isolated cron fires 2 minutes after startup, hits the extra usage wall, locks the auth profile, and everything stops — including normal chat. It appeared &amp;quot;random&amp;quot; because it always happened shortly after a restart.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;The Full Kill Chain&lt;/h2&gt; &lt;pre&gt;&lt;code&gt;Gateway restart → Missed cron job queues for catch-up → Isolated agentTurn fires via embedded runner → Direct HTTP call to Anthropic API (no CLI headers) → Extra Usage bucket → 400 error → OpenClaw locks auth profile for ~24h → All requests blocked including normal chat &lt;/code&gt;&lt;/pre&gt; &lt;hr /&gt; &lt;h2&gt;Fixes&lt;/h2&gt; &lt;p&gt;&lt;strong&gt;1. Clear the billing lockout immediately:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;python3 -c &amp;quot; import json with open('/home/USER/.openclaw/agents/main/agent/auth-state.json') as f: d = json.load(f) if 'usageStats' in d: for profile in d['usageStats']: d['usageStats'][profile].pop('disabledUntil', None) d['usageStats'][profile].pop('failureCounts', None) d['usageStats'][profile].pop('errorCount', None) d['usageStats'][profile].pop('disabledReason', None) d['usageStats'][profile].pop('lastFailureAt', None) with open('/home/USER/.openclaw/agents/main/agent/auth-state.json', 'w') as f: json.dump(d, f, indent=2) print('Cleared.') &amp;quot; openclaw gateway restart &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;2. Move all cron jobs from &lt;code&gt;isolated&lt;/code&gt; to &lt;code&gt;main&lt;/code&gt;:&lt;/strong&gt;&lt;/p&gt; &lt;pre&gt;&lt;code&gt;python3 -c &amp;quot; import json with open('/home/USER/.openclaw/cron/jobs.json') as f: d = json.load(f) jobs = d if isinstance(d, list) else d.get('jobs', []) for j in jobs: if j.get('sessionTarget') == 'isolated': print(f'Fixing: {j[\&amp;quot;name\&amp;quot;]}') j['sessionTarget'] = 'main' with open('/home/USER/.openclaw/cron/jobs.json', 'w') as f: json.dump(d, f, indent=2) print('Done.') &amp;quot; openclaw gateway restart &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;All working cron jobs in a default OpenClaw setup use &lt;code&gt;sessionTarget: main&lt;/code&gt; with &lt;code&gt;payload.kind: systemEvent&lt;/code&gt;. If you created &lt;code&gt;agentTurn&lt;/code&gt; crons left as &lt;code&gt;isolated&lt;/code&gt;, they will hit the extra usage wall every time.&lt;/p&gt; &lt;hr /&gt; &lt;h2&gt;Summary&lt;/h2&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Issue&lt;/th&gt; &lt;th&gt;Symptom&lt;/th&gt; &lt;th&gt;Fix&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Expired token in second auth profile&lt;/td&gt; &lt;td&gt;Entire &lt;code&gt;anthropic&lt;/code&gt; provider blacklisted&lt;/td&gt; &lt;td&gt;Remove &lt;code&gt;anthropic:manual&lt;/code&gt; from all config&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Isolated cron bypasses CLI runtime&lt;/td&gt; &lt;td&gt;&amp;quot;Out of extra usage&amp;quot; despite under quota&lt;/td&gt; &lt;td&gt;Change &lt;code&gt;sessionTarget: isolated&lt;/code&gt; → &lt;code&gt;main&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Billing error locks auth for ~24h&lt;/td&gt; &lt;td&gt;All requests blocked after one cron failure&lt;/td&gt; &lt;td&gt;Clear &lt;code&gt;usageStats&lt;/code&gt; in &lt;code&gt;auth-state.json&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Both failures look like billing problems. Neither is. They are routing and configuration issues. The usage console shows nothing wrong because the subscription is never actually hit.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Environment:&lt;/strong&gt; OpenClaw 2026.5.2 · Claude Max · Ubuntu 24.04&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Redoudou"&gt; /u/Redoudou &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tasmg9/postmortem_claude_max_openclaw_agent_breaking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tasmg9/postmortem_claude_max_openclaw_agent_breaking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tasmg9/postmortem_claude_max_openclaw_agent_breaking/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-12T05:58:17+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tbd7gx</id>
-    <title>Does anyone still use openclaw today?</title>
-    <updated>2026-05-12T20:10:09+00:00</updated>
-    <author>
-      <name>/u/AssociationSure6273</name>
-      <uri>https://old.reddit.com/user/AssociationSure6273</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Was all great a month ago. But I don’t see any updates or anything recently. Do you guys still use it? If so what’s your best use case?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AssociationSure6273"&gt; /u/AssociationSure6273 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbd7gx/does_anyone_still_use_openclaw_today/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbd7gx/does_anyone_still_use_openclaw_today/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tbd7gx/does_anyone_still_use_openclaw_today/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-12T20:10:09+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tawtu9</id>
     <title>OpenClaw and Zulip</title>
@@ -60,19 +21,6 @@
     <published>2026-05-12T09:52:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ta7294</id>
-    <title>what are you actually using OpenClaw for that genuinely works?</title>
-    <updated>2026-05-11T15:41:50+00:00</updated>
-    <author>
-      <name>/u/nanaphan32</name>
-      <uri>https://old.reddit.com/user/nanaphan32</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;be honest… what are you actually using OpenClaw for that genuinely works? 😅&lt;/p&gt; &lt;p&gt;not “AI agent future” stuff.&lt;br /&gt; not another demo workflow that breaks after 5 minutes.&lt;/p&gt; &lt;p&gt;I mean real use cases you’re running today that are actually useful.&lt;/p&gt; &lt;p&gt;Looking for ideas before I disappear into another 3-hour workflow rabbit hole.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nanaphan32"&gt; /u/nanaphan32 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-11T15:41:50+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tatkyt</id>
     <title>How can you operate a more serious system from the limited weekly budget of the Codex Plus package? I'll tell you!</title>
     <updated>2026-05-12T06:49:35+00:00</updated>
@@ -84,6 +32,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1tatkyt/how_can_you_operate_a_more_serious_system_from/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-12T06:49:35+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ta7294</id>
+    <title>what are you actually using OpenClaw for that genuinely works?</title>
+    <updated>2026-05-11T15:41:50+00:00</updated>
+    <author>
+      <name>/u/nanaphan32</name>
+      <uri>https://old.reddit.com/user/nanaphan32</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;be honest… what are you actually using OpenClaw for that genuinely works? 😅&lt;/p&gt; &lt;p&gt;not “AI agent future” stuff.&lt;br /&gt; not another demo workflow that breaks after 5 minutes.&lt;/p&gt; &lt;p&gt;I mean real use cases you’re running today that are actually useful.&lt;/p&gt; &lt;p&gt;Looking for ideas before I disappear into another 3-hour workflow rabbit hole.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nanaphan32"&gt; /u/nanaphan32 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1ta7294/what_are_you_actually_using_openclaw_for_that/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-11T15:41:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1taotla</id>
@@ -177,19 +138,6 @@
     <published>2026-05-12T18:15:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tb4xxf</id>
-    <title>What’s the most useful openclaw agent you’ve actually used?</title>
-    <updated>2026-05-12T15:26:33+00:00</updated>
-    <author>
-      <name>/u/Which-Strawberry-964</name>
-      <uri>https://old.reddit.com/user/Which-Strawberry-964</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Not demos. Not hype. I mean something that really works in the real world.&lt;/h1&gt; &lt;p&gt;- Saves time&lt;/p&gt; &lt;p&gt;- Automates a boring task&lt;/p&gt; &lt;p&gt;- Actually helps people or a team&lt;/p&gt; &lt;p&gt;If you’ve seen or used one, drop a quick reply:&lt;/p&gt; &lt;p&gt;- What it does&lt;/p&gt; &lt;p&gt;- Where it’s used&lt;/p&gt; &lt;p&gt;- How well it works&lt;/p&gt; &lt;p&gt;Even small examples count! Curious to see which AI agents are actually making a difference.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Which-Strawberry-964"&gt; /u/Which-Strawberry-964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-12T15:26:33+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tb58r8</id>
     <title>Did GPT5.5 get dumber/lazier yesterday for anyone else?</title>
     <updated>2026-05-12T15:36:57+00:00</updated>
@@ -201,6 +149,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1tb58r8/did_gpt55_get_dumberlazier_yesterday_for_anyone/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-12T15:36:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tb4xxf</id>
+    <title>What’s the most useful openclaw agent you’ve actually used?</title>
+    <updated>2026-05-12T15:26:33+00:00</updated>
+    <author>
+      <name>/u/Which-Strawberry-964</name>
+      <uri>https://old.reddit.com/user/Which-Strawberry-964</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Not demos. Not hype. I mean something that really works in the real world.&lt;/h1&gt; &lt;p&gt;- Saves time&lt;/p&gt; &lt;p&gt;- Automates a boring task&lt;/p&gt; &lt;p&gt;- Actually helps people or a team&lt;/p&gt; &lt;p&gt;If you’ve seen or used one, drop a quick reply:&lt;/p&gt; &lt;p&gt;- What it does&lt;/p&gt; &lt;p&gt;- Where it’s used&lt;/p&gt; &lt;p&gt;- How well it works&lt;/p&gt; &lt;p&gt;Even small examples count! Curious to see which AI agents are actually making a difference.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Which-Strawberry-964"&gt; /u/Which-Strawberry-964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1tb4xxf/whats_the_most_useful_openclaw_agent_youve/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-12T15:26:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1tbfi8x</id>
@@ -242,6 +203,19 @@
     <published>2026-05-12T23:40:14+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tbm0b5</id>
+    <title>More with less, memory</title>
+    <updated>2026-05-13T02:06:01+00:00</updated>
+    <author>
+      <name>/u/dcnotpc</name>
+      <uri>https://old.reddit.com/user/dcnotpc</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone tried a folder system?&lt;/p&gt; &lt;p&gt;Sticking all in context gets expensive. &lt;/p&gt; &lt;p&gt;Just knowing where to get truth, the map is lighter. &lt;/p&gt; &lt;p&gt;Thoughts?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dcnotpc"&gt; /u/dcnotpc &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbm0b5/more_with_less_memory/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbm0b5/more_with_less_memory/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1tbm0b5/more_with_less_memory/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-13T02:06:01+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tb8yl0</id>
     <title>Getting bored with the assistants</title>
     <updated>2026-05-12T17:44:29+00:00</updated>
@@ -253,6 +227,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1tb8yl0/getting_bored_with_the_assistants/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-05-12T17:44:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tbgqqp</id>
+    <title>Mí experiencia con Openclaw.</title>
+    <updated>2026-05-12T22:21:27+00:00</updated>
+    <author>
+      <name>/u/sebaaa_rd</name>
+      <uri>https://old.reddit.com/user/sebaaa_rd</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Después de dejar de joderme con actualizarlo a cada rato, logré hacer foco en estabilizarlo y customizarlo para la version 4.22.&lt;/p&gt; &lt;p&gt;Para que lo uso? Solo para que me avise por Whatsapp cuando detecto humanos en cámaras que estoy monitoreando de varios domicilios. &lt;/p&gt; &lt;p&gt;Tengo varias cámaras wifi obsoletas multi protocolos que sin estar conectadas a un DVR, mandan capturas a un FTP , ante la detección de movimiento en espacios abiertos. A cada hora analizo las imágenes con Yolo (Api local) y aquellas que tengan humanos, para descartar falsos positivos, las dejo en un repositorio que luego Openclaw las levanta y me las envía por Whatsapp. &lt;/p&gt; &lt;p&gt;Este es mí caso de uso el cual me dio mucha satisfacción, dado que me evita horas y horas de ver miles de fotos para ver los movimientos recientes. &lt;/p&gt; &lt;p&gt;Tengo openclaw corriendo en docker conectado a Claude- Haiku 4.5 y Openrouter, con modelos gratis como fallback.&lt;/p&gt; &lt;p&gt;Me costó hacerlo andar para Whatsapp dado que tuve que ajustar varias dependencias acordes al CPU del VPS.&lt;/p&gt; &lt;p&gt;Lo tengo corriendo en un VPS de $8000 pesos argentinos por mes ( 4 CPU, 8 GB RAM, disco de 160 GB) y gasto 10 dólares aprox de tokens porque también le pido capturas y análisis en tiempo real , lo que me evita entrar a apps de monitoreo de cámaras como IPCamViewer o TinyCam. Probé varios modelos usando OLLAMA local, pero sin GPU , se arrastra.&lt;/p&gt; &lt;p&gt;Con esto me evito pedidos como: &amp;quot;Te fijas si alguien estuvo en el patio de casa? , jajajajajaja. &lt;/p&gt; &lt;p&gt;Estoy fascinado con OC. &lt;/p&gt; &lt;p&gt;Y vos , para que lo usas?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sebaaa_rd"&gt; /u/sebaaa_rd &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-12T22:21:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1tb4jck</id>
@@ -281,17 +268,30 @@
     <published>2026-05-12T22:53:48+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tbgqqp</id>
-    <title>Mí experiencia con Openclaw.</title>
-    <updated>2026-05-12T22:21:27+00:00</updated>
+    <id>t3_1tbm33w</id>
+    <title>Teenager Wants To Learn Openclaw</title>
+    <updated>2026-05-13T02:09:29+00:00</updated>
     <author>
-      <name>/u/sebaaa_rd</name>
-      <uri>https://old.reddit.com/user/sebaaa_rd</uri>
+      <name>/u/Calm-Landscape9640</name>
+      <uri>https://old.reddit.com/user/Calm-Landscape9640</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Después de dejar de joderme con actualizarlo a cada rato, logré hacer foco en estabilizarlo y customizarlo para la version 4.22.&lt;/p&gt; &lt;p&gt;Para que lo uso? Solo para que me avise por Whatsapp cuando detecto humanos en cámaras que estoy monitoreando de varios domicilios. &lt;/p&gt; &lt;p&gt;Tengo varias cámaras wifi obsoletas multi protocolos que sin estar conectadas a un DVR, mandan capturas a un FTP , ante la detección de movimiento en espacios abiertos. A cada hora analizo las imágenes con Yolo (Api local) y aquellas que tengan humanos, para descartar falsos positivos, las dejo en un repositorio que luego Openclaw las levanta y me las envía por Whatsapp. &lt;/p&gt; &lt;p&gt;Este es mí caso de uso el cual me dio mucha satisfacción, dado que me evita horas y horas de ver miles de fotos para ver los movimientos recientes. &lt;/p&gt; &lt;p&gt;Tengo openclaw corriendo en docker conectado a Claude- Haiku 4.5 y Openrouter, con modelos gratis como fallback.&lt;/p&gt; &lt;p&gt;Me costó hacerlo andar para Whatsapp dado que tuve que ajustar varias dependencias acordes al CPU del VPS.&lt;/p&gt; &lt;p&gt;Lo tengo corriendo en un VPS de $8000 pesos argentinos por mes ( 4 CPU, 8 GB RAM, disco de 160 GB) y gasto 10 dólares aprox de tokens porque también le pido capturas y análisis en tiempo real , lo que me evita entrar a apps de monitoreo de cámaras como IPCamViewer o TinyCam. Probé varios modelos usando OLLAMA local, pero sin GPU , se arrastra.&lt;/p&gt; &lt;p&gt;Con esto me evito pedidos como: &amp;quot;Te fijas si alguien estuvo en el patio de casa? , jajajajajaja. &lt;/p&gt; &lt;p&gt;Estoy fascinado con OC. &lt;/p&gt; &lt;p&gt;Y vos , para que lo usas?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sebaaa_rd"&gt; /u/sebaaa_rd &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tbgqqp/mí_experiencia_con_openclaw/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Need some fresh ideas of how male teenager can use Openclaw other than for coding or building games. Any suggestions?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Calm-Landscape9640"&gt; /u/Calm-Landscape9640 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbm33w/teenager_wants_to_learn_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tbm33w/teenager_wants_to_learn_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1tbm33w/teenager_wants_to_learn_openclaw/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-05-12T22:21:27+00:00</published>
+    <published>2026-05-13T02:09:29+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tblqen</id>
+    <title>Why do people spend so much time fixing OpenClaw errors?</title>
+    <updated>2026-05-13T01:54:13+00:00</updated>
+    <author>
+      <name>/u/Zestyclose_Garden628</name>
+      <uri>https://old.reddit.com/user/Zestyclose_Garden628</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone. I’m from Korea, and I’m not a developer, an IT professional, or someone with a computer science background. I’m just a guy who enjoys games.&lt;/p&gt; &lt;p&gt;I’ve mostly been lurking here, but there’s something I don’t fully understand, so I’m writing this with the help of a translator.&lt;/p&gt; &lt;p&gt;I started using OpenClaw shortly after one of its developers joined OpenAI, and I connected it to my ChatGPT subscription plan right away.&lt;/p&gt; &lt;p&gt;The first thing I automated was part of my actual job. I work at a small company in Korea, so I handle many different tasks, including managing the company website. I delegated that website management work to OpenClaw.&lt;/p&gt; &lt;p&gt;Every day, OpenClaw checks the Google search rankings for 10 posts. If a post is ranking poorly, it writes a new post related to that topic.&lt;/p&gt; &lt;p&gt;I also run four WordPress sites as a side business. Before using OpenClaw, the total monthly revenue from all four sites was only around 200,000 to 300,000 KRW. I used to spend about four to five hours a day working on them. It was honestly a tough grind.&lt;/p&gt; &lt;p&gt;After OpenClaw was released, I automated almost 90% of my WordPress workflow. OpenClaw handled the writing, and I only had to edit images and make small paragraph adjustments. Work that used to take four to five hours a day was reduced to around 30 minutes.&lt;/p&gt; &lt;p&gt;Recently, after the GPT image tool was integrated, I was able to automate nearly 100% of the process. The number of posts also doubled. I now publish about four posts per site every day, and the only time I spend is briefly reading through the posts while eating outside.&lt;/p&gt; &lt;p&gt;Maybe because of this, my last payout increased sharply to about 1.9 million KRW. I also think there is still plenty of room for further growth.&lt;/p&gt; &lt;p&gt;When I read Reddit, I see many people having problems with OpenClaw. I wonder if some of those problems might actually be related to the model being used, rather than OpenClaw itself.&lt;/p&gt; &lt;p&gt;In my case, I installed a base-model Mac mini M4 at home and gave OpenClaw full access to it. It hasn’t been completely problem-free. I did have issues whenever updates happened.&lt;/p&gt; &lt;p&gt;However, after I set up an automation job in the Codex app, I haven’t really had update-related problems anymore. Every morning, OpenClaw is already set up with the latest version.&lt;/p&gt; &lt;p&gt;So I’m genuinely curious. Why do so many people seem to spend so much time fixing system issues just to use OpenClaw?&lt;/p&gt; &lt;p&gt;Am I missing something? Is my setup just unusually simple, or are other people using it in much more complicated ways?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Zestyclose_Garden628"&gt; /u/Zestyclose_Garden628 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tblqen/why_do_people_spend_so_much_time_fixing_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tblqen/why_do_people_spend_so_much_time_fixing_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1tblqen/why_do_people_spend_so_much_time_fixing_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-05-13T01:54:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1tbfw94</id>
