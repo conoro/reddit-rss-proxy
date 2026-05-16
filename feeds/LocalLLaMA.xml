@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-16T12:39:15+00:00</updated>
+  <updated>2026-05-16T13:11:28+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
-  <entry>
-    <id>t3_1te6os6</id>
-    <title>Gemma4 26b MoE running in MLX with turboquant (and custom kernel)</title>
-    <updated>2026-05-15T19:34:12+00:00</updated>
-    <author>
-      <name>/u/maddie-lovelace</name>
-      <uri>https://old.reddit.com/user/maddie-lovelace</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TL;DR I spent a few crazy evenings this past week seeing if I could get Gemma4 running with proper turbo quant and rotating KV cache support. The answer was yes, and I'm now able to run Gemma4 26b on my MacBook Air M5 at 128k context with 4 concurrent batches 😄&lt;/p&gt; &lt;p&gt;At 8k context running with no mmap, it beats llama.cpp at prompt processing, generation speed, and runtime memory:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;backend&lt;/th&gt; &lt;th align="left"&gt;model&lt;/th&gt; &lt;th align="left"&gt;bpw&lt;/th&gt; &lt;th align="left"&gt;pp tok/s&lt;/th&gt; &lt;th align="left"&gt;gen tok/s&lt;/th&gt; &lt;th align="left"&gt;runtime mem&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;llama.cpp&lt;/td&gt; &lt;td align="left"&gt;IQ4_XS + q4_0 KV + flash-attn&lt;/td&gt; &lt;td align="left"&gt;4.25&lt;/td&gt; &lt;td align="left"&gt;260.6&lt;/td&gt; &lt;td align="left"&gt;14.66&lt;/td&gt; &lt;td align="left"&gt;16.0 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;MLX (ours)&lt;/td&gt; &lt;td align="left"&gt;nvfp4 + polar2&lt;/td&gt; &lt;td align="left"&gt;4.5&lt;/td&gt; &lt;td align="left"&gt;348.4&lt;/td&gt; &lt;td align="left"&gt;17.15&lt;/td&gt; &lt;td align="left"&gt;15.22 GB&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;It took a lot of hand-tuning to get to this speed, including a custom kernel for the SWA layers in order to get the actual runtime 2bit memory savings that enable higher batch sizes whilst staying close to full fp16 prompt processing speed&lt;/p&gt; &lt;p&gt;The prompt processing speed scales relatively well with batch size - the major gains though are in the text generation - running a 512 token-long prompt on a 32 GB M5:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;B&lt;/th&gt; &lt;th align="left"&gt;pp tok/s&lt;/th&gt; &lt;th align="left"&gt;gen tok/s&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;1&lt;/td&gt; &lt;td align="left"&gt;353&lt;/td&gt; &lt;td align="left"&gt;16.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;4&lt;/td&gt; &lt;td align="left"&gt;429&lt;/td&gt; &lt;td align="left"&gt;24.9&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;8&lt;/td&gt; &lt;td align="left"&gt;451&lt;/td&gt; &lt;td align="left"&gt;32.4&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;16&lt;/td&gt; &lt;td align="left"&gt;451&lt;/td&gt; &lt;td align="left"&gt;44.2&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;32&lt;/td&gt; &lt;td align="left"&gt;450&lt;/td&gt; &lt;td align="left"&gt;48.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;64&lt;/td&gt; &lt;td align="left"&gt;448&lt;/td&gt; &lt;td align="left"&gt;54.6&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;128&lt;/td&gt; &lt;td align="left"&gt;440&lt;/td&gt; &lt;td align="left"&gt;54.0&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;If you want to download it and serve it yourself, you can open a terminal to a directory you want to download the repo to and run:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;git clone https://github.com/lovelacemadeline/gemma4-turboquant-mlx &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;And then if you have uv installed (can also be done with pip3 but I prefer uv) you then:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;cd gemma4-turboquant-mlx uv tool install --from . --reinstall gemma4-turboquant-mlx &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then once it's installed, you can spin up the backend with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;mlx_lm.server --model mlx-community/gemma-4-26b-a4b-it-nvfp4 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;And it should work 😄&lt;/p&gt; &lt;p&gt;(Note that if you're running on a Mac with 16 GB of RAM then you'll need to do the wired memory hack in order to get most quants of the Gemma MoE model running - I've included instructions for that in the repo)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/maddie-lovelace"&gt; /u/maddie-lovelace &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1te6os6/gemma4_26b_moe_running_in_mlx_with_turboquant_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1te6os6/gemma4_26b_moe_running_in_mlx_with_turboquant_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1te6os6/gemma4_26b_moe_running_in_mlx_with_turboquant_and/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-15T19:34:12+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tdtaqt</id>
-    <title>ByteDance-Seed/Cola-DLM · Hugging Face</title>
-    <updated>2026-05-15T11:19:29+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tdtaqt/bytedanceseedcoladlm_hugging_face/"&gt; &lt;img alt="ByteDance-Seed/Cola-DLM · Hugging Face" src="https://external-preview.redd.it/jvlFwt7Xuq31hiAAwUg4LjvvyoNTWzIgn-fJtr4qfwI.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f3af088e14575188aeee059e1c5c386c0d955f49" title="ByteDance-Seed/Cola-DLM · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;Cola DLM&lt;/strong&gt; (&lt;code&gt;Co&lt;/code&gt;ntinuous &lt;code&gt;La&lt;/code&gt;tent &lt;code&gt;D&lt;/code&gt;iffusion &lt;code&gt;L&lt;/code&gt;anguage &lt;code&gt;M&lt;/code&gt;odel) is a hierarchical continuous latent-space diffusion language model. It combines a Text VAE with a block-causal Diffusion Transformer (DiT) prior: the VAE maps text into continuous latent sequences and decodes latents back to tokens, while the DiT performs latent prior transport through Flow Matching.&lt;/p&gt; &lt;p&gt;This model repository contains the HuggingFace-format checkpoint for the paper &lt;strong&gt;Continuous Latent Diffusion Language Model&lt;/strong&gt;.&lt;/p&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Cola-DLM#links"&gt;&lt;/a&gt;Links&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Model repository:&lt;/strong&gt; &lt;a href="https://huggingface.co/ByteDance-Seed/Cola-DLM"&gt;https://huggingface.co/ByteDance-Seed/Cola-DLM&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;GitHub repository:&lt;/strong&gt; &lt;a href="https://github.com/ByteDance-Seed/Cola-DLM"&gt;https://github.com/ByteDance-Seed/Cola-DLM&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Paper:&lt;/strong&gt; &lt;a href="https://arxiv.org/abs/2605.06548"&gt;https://arxiv.org/abs/2605.06548&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;HuggingFace Daily Paper:&lt;/strong&gt; &lt;a href="https://huggingface.co/papers/2605.06548"&gt;https://huggingface.co/papers/2605.06548&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Project page:&lt;/strong&gt; &lt;a href="https://hongcanguo.github.io/Cola-DLM/"&gt;https://hongcanguo.github.io/Cola-DLM/&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Blog post:&lt;/strong&gt; &lt;a href="https://hongcanguo.github.io/posts/2026-cola-dlm.html"&gt;https://hongcanguo.github.io/posts/2026-cola-dlm.html&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Zhihu article:&lt;/strong&gt; &lt;a href="https://zhuanlan.zhihu.com/p/2038324180920313704"&gt;https://zhuanlan.zhihu.com/p/2038324180920313704&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Model Details&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Architecture:&lt;/strong&gt; Text VAE + block-causal DiT latent prior.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Training objective:&lt;/strong&gt; two-stage training with Text VAE pretraining followed by joint Text VAE + DiT training using Flow Matching.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Training-compute checkpoint:&lt;/strong&gt; the released weights correspond to the 2000 EFLOPs checkpoint reported in the paper's RQ4 scaling curve.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tokenizer:&lt;/strong&gt; OLMo 2 tokenizer with a 100,278-entry vocabulary.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Special token ids:&lt;/strong&gt; &lt;code&gt;pad_token_id=100277&lt;/code&gt;, &lt;code&gt;eos_token_id=100257&lt;/code&gt;, &lt;code&gt;im_end_token_id=100265&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Framework:&lt;/strong&gt; PyTorch 2.1+ and HuggingFace Transformers 4.40+.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;License:&lt;/strong&gt; Apache License 2.0.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/ByteDance-Seed/Cola-DLM"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tdtaqt/bytedanceseedcoladlm_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tdtaqt/bytedanceseedcoladlm_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-15T11:19:29+00:00</published>
-  </entry>
   <entry>
     <id>t3_1te9381</id>
     <title>[Release] Nexidion – A private knowledge vault with an autonomous local AI background worker.</title>
@@ -112,6 +86,19 @@
     <published>2026-05-15T14:43:15+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tesqmo</id>
+    <title>What’s are the best abliterated or uncensored local models that allow financial advice-related questions?</title>
+    <updated>2026-05-16T12:46:29+00:00</updated>
+    <author>
+      <name>/u/Porespellar</name>
+      <uri>https://old.reddit.com/user/Porespellar</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Not trying to get rich quick or anything, but I’m just tired of models refusing to answer questions related to their opinions on money matters or having them be wishy-washy about financial decision making advice. Seems like this can be a blocker with both frontier closed source models and local models as well (because lawyers have to friggin ruin everything). &lt;/p&gt; &lt;p&gt;What uncensored local models released lately are you finding that allow financial advice type questions without refusals? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Porespellar"&gt; /u/Porespellar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tesqmo/whats_are_the_best_abliterated_or_uncensored/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tesqmo/whats_are_the_best_abliterated_or_uncensored/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tesqmo/whats_are_the_best_abliterated_or_uncensored/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-16T12:46:29+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1te93s3</id>
     <title>RAG on Snapdragon X2 Laptop, 200K documents.</title>
     <updated>2026-05-15T21:02:32+00:00</updated>
@@ -162,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tensq0/whats_in_a_gguf_besides_the_weights_and_whats/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-16T08:30:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1test2u</id>
+    <title>Built a 6x cheaper CodeRabbit alternative using open source models</title>
+    <updated>2026-05-16T12:49:36+00:00</updated>
+    <author>
+      <name>/u/Axintwo</name>
+      <uri>https://old.reddit.com/user/Axintwo</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1test2u/built_a_6x_cheaper_coderabbit_alternative_using/"&gt; &lt;img alt="Built a 6x cheaper CodeRabbit alternative using open source models" src="https://preview.redd.it/3j9qt4mruh1h1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=01d3aedb11f96a85c72147e8c85aa573afdca3cc" title="Built a 6x cheaper CodeRabbit alternative using open source models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Coderabbit apparently uses GPT + Claude models to review PRs and it costed $60/month. &lt;/p&gt; &lt;p&gt;So I grabbed a friend and made a alternative which does the same things but uses open source models as backend instead( because inference costs are wayyyy cheaper)&lt;/p&gt; &lt;p&gt;We tested it on a PR containing 10 intentionally planted issues.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/3j9qt4mruh1h1.png?width=846&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3e9fa3559b315d09b8c65e2324165e412ac325b4"&gt;https://preview.redd.it/3j9qt4mruh1h1.png?width=846&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3e9fa3559b315d09b8c65e2324165e412ac325b4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/2c9qb4mruh1h1.png?width=842&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d0bf9296639ef5bedd915869043755b5610a73a"&gt;https://preview.redd.it/2c9qb4mruh1h1.png?width=842&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d0bf9296639ef5bedd915869043755b5610a73a&lt;/a&gt;&lt;/p&gt; &lt;p&gt;and the result?&lt;br /&gt; ~detected all 10/10 issues&lt;br /&gt; ~much faster and accurate&lt;br /&gt; ~has the ability to auto fix&lt;br /&gt; ~has almost all the features that coderabbit offers including a prompt to fix the bug using AI agents&lt;br /&gt; ~practically infinite reviews at 6x less prize &lt;/p&gt; &lt;p&gt;This made me think that are the Chinese models really that ahead of the curve while also being open sourced as well or did we really just managed to create a better review architecture than a 550 million$ company. &lt;/p&gt; &lt;p&gt;Full pr: &lt;a href="https://github.com/testingPrix/TestRepo/pull/2"&gt;https://github.com/testingPrix/TestRepo/pull/2&lt;/a&gt;&lt;/p&gt; &lt;p&gt;We have done tests even with 11k line PRs and PrixAI manages to be scarily accurate.&lt;/p&gt; &lt;p&gt;Would genuinely appreciate feedback, criticism, or suggestions from the community. Our Cactopus might go all out against the big rabbit.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Axintwo"&gt; /u/Axintwo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1test2u/built_a_6x_cheaper_coderabbit_alternative_using/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1test2u/built_a_6x_cheaper_coderabbit_alternative_using/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1test2u/built_a_6x_cheaper_coderabbit_alternative_using/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-16T12:49:36+00:00</published>
   </entry>
   <entry>
     <id>t3_1tecfxm</id>
@@ -268,19 +268,6 @@
     <published>2026-05-16T12:11:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tes1wx</id>
-    <title>MTP support merged into llama.cpp</title>
-    <updated>2026-05-16T12:15:54+00:00</updated>
-    <author>
-      <name>/u/tacticaltweaker</name>
-      <uri>https://old.reddit.com/user/tacticaltweaker</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;PR &lt;a href="https://github.com/ggml-org/llama.cpp/pull/22673"&gt;22673&lt;/a&gt; has been merged into master! 🎉&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tacticaltweaker"&gt; /u/tacticaltweaker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-16T12:15:54+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1teca8q</id>
     <title>Opencode you naughty minx</title>
     <updated>2026-05-15T23:08:45+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1temio0/qwen3635ba3b_and_9b_are_officially_on_the_public/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-16T07:19:25+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tes1wx</id>
+    <title>MTP support merged into llama.cpp</title>
+    <updated>2026-05-16T12:15:54+00:00</updated>
+    <author>
+      <name>/u/tacticaltweaker</name>
+      <uri>https://old.reddit.com/user/tacticaltweaker</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;PR &lt;a href="https://github.com/ggml-org/llama.cpp/pull/22673"&gt;22673&lt;/a&gt; has been merged into master! 🎉&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tacticaltweaker"&gt; /u/tacticaltweaker &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tes1wx/mtp_support_merged_into_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-16T12:15:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1terzq4</id>
