@@ -2,36 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-17T08:32:36+00:00</updated>
+  <updated>2026-05-17T09:21:33+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI</subtitle>
   <entry>
-    <id>t3_1tf954z</id>
-    <title>Anyone else running one of the pre-release branches of MTP support to maintain the higher speeds?</title>
-    <updated>2026-05-16T23:39:51+00:00</updated>
+    <id>t3_1tfh6u0</id>
+    <title>Strix Halo ROCm + MTP Notes (May 2026)</title>
+    <updated>2026-05-17T06:14:58+00:00</updated>
     <author>
-      <name>/u/Creative-Type9411</name>
-      <uri>https://old.reddit.com/user/Creative-Type9411</uri>
+      <name>/u/IvGranite</name>
+      <uri>https://old.reddit.com/user/IvGranite</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I cant help myself its ~20% faster for me, I took the highest speed branch(for me), added the vision fix, and am just riding it out for now&lt;/p&gt; &lt;p&gt;Dual Xeon 8268, 1.5t 2666, Tesla T4&lt;/p&gt; &lt;p&gt;~122eval ~38t/s out&lt;/p&gt; &lt;p&gt;i tried using the release today and during some light coding lamma.cpp crashed and the model restarted, and I didn't experience any crashes on the pre-release versions personally so I jumped back into it&lt;/p&gt; &lt;p&gt;on the actual release branch now I get ~110eval ~30t/s out&lt;/p&gt; &lt;p&gt;just curious what everyone else is doing and if there were any major downsides on the early builds, anyone is aware of&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Creative-Type9411"&gt; /u/Creative-Type9411 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tf954z/anyone_else_running_one_of_the_prerelease/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tf954z/anyone_else_running_one_of_the_prerelease/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tf954z/anyone_else_running_one_of_the_prerelease/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With the MTP merge into mainline llama.cpp I wanted to try out some other optimizations i could think of. Ended up tested backends, mtp, and bumping to ROCm nightlies.&lt;/p&gt; &lt;p&gt;What's changed:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ROCm 7.13 works on gfx1151 (7.2.2 could see the GPU but couldn't compile shaders)&lt;/li&gt; &lt;li&gt;MTP merged to llama.cpp main yesterday (May 16)&lt;/li&gt; &lt;li&gt;I ran 3 models x 2 backends x 3 prompt lengths + a full-context decode test&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The headline: ROCm drops 64% at full context, but MTP recovers most of it. Vulkan barely drops.&lt;/p&gt; &lt;p&gt;Full writeup with all tables: &lt;a href="https://kmarble.dev/posts/strix-halo-full-context-decode-drops/"&gt;https://kmarble.dev/posts/strix-halo-full-context-decode-drops/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;But the quick version:&lt;/p&gt; &lt;p&gt;35B MoE at full context (76k prompt tokens, 5k output):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ROCm non-MTP: 16.6 tok/s (was 46.2 empty)&lt;/li&gt; &lt;li&gt;ROCm MTP: 37.5 tok/s (was 63.7 empty)&lt;/li&gt; &lt;li&gt;Vulkan non-MTP: 28.9 tok/s (was 32.7 empty)&lt;/li&gt; &lt;li&gt;Vulkan MTP: 34.3 tok/s (was 46.8 empty)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;122B MoE:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Vulkan non-MTP: 23.7 tok/s (only 12% drop)&lt;/li&gt; &lt;li&gt;ROCm MTP: 19.2 tok/s (38% drop)&lt;/li&gt; &lt;li&gt;Vulkan MTP: 21.9 tok/s (6% drop) &lt;/li&gt; &lt;/ul&gt; &lt;p&gt;27B dense (avoid it): 6-9 tok/s at full context regardless of backend.&lt;/p&gt; &lt;p&gt;Insights:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;ROCm was 2.3x Vulkan at empty context (46 vs 32 tok/s), but at full context the gap narrows to 1.3x (37.5 vs 28.9)&lt;/li&gt; &lt;li&gt;Vulkan is way more stable at full context - only 12% drop vs ROCm's 64%&lt;/li&gt; &lt;li&gt;MTP on 122B Vulkan actually helps slightly (-6% vs non-MTP) while MTP on 122B ROCm drops 38%&lt;/li&gt; &lt;li&gt;The dense 27B is unusable - 5x slower than 35B MoE because it processes 27B active params per token vs 3B&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Setup: ROCm 7.13 with therock-gfx1151 codegen path from kyuz0's toolbox. Vulkan 1.3 RADV. llama.cpp b9188. All live llama-swap proxy tests, not synthetic llama-bench runs.&lt;/p&gt; &lt;p&gt;BF16 models don't work at full context on Strix Halo. Q8 for 35B, Q4 for 122B.&lt;/p&gt; &lt;p&gt;For my setup, ROCm MTP on 35B MoE stays the production choice: 37.5 tok/s at full context, under 100W, 262k context available. But if you care more about quality than speed, 122B on Vulkan at 23-24 tok/s is competitive.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IvGranite"&gt; /u/IvGranite &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-16T23:39:51+00:00</published>
+    <published>2026-05-17T06:14:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tez37r</id>
-    <title>Qwen 27b MTP Config, Llama.cpp Single 3090</title>
-    <updated>2026-05-16T16:55:34+00:00</updated>
+    <id>t3_1tfjln0</id>
+    <title>Is that was a right purchase for Qwen3.6 27/35</title>
+    <updated>2026-05-17T08:27:51+00:00</updated>
     <author>
-      <name>/u/GotHereLateNameTaken</name>
-      <uri>https://old.reddit.com/user/GotHereLateNameTaken</uri>
+      <name>/u/Thin_Pollution8843</name>
+      <uri>https://old.reddit.com/user/Thin_Pollution8843</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What setup are you using for qwen 27b on a single 3090?&lt;/p&gt; &lt;p&gt;Here's what I've started using today. It has to compact often but I'm worried about giving up more accuracy and reliability with a lower quant: &lt;/p&gt; &lt;p&gt;&lt;code&gt;llama-server -m /Models/q3.6/Qwen3.6-27B-Q5_K_S.gguf -c 65536 -ngl -1 -t 8 -ctk q8_0 -ctv q8_0 --chat-template-kwargs &amp;quot;{\&amp;quot;preserve_thinking\&amp;quot;: true}&amp;quot; --spec-type draft-mtp --spec-draft-n-max 2 --fit off --mmproj /Models/q3.6/mmproj-Qwen3.6-27B-f16.gguf --no-mmproj-offload&lt;/code&gt; &lt;/p&gt; &lt;p&gt;I'm getting around 65tk/s.&lt;/p&gt; &lt;p&gt;I've also seen these recommendations: &lt;a href="https://github.com/noonghunna/club-3090/blob/master/docs/SINGLE_CARD.md"&gt;https://github.com/noonghunna/club-3090/blob/master/docs/SINGLE_CARD.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;They seem to be using the q4 quant. How are you weighing the tradeoffs? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GotHereLateNameTaken"&gt; /u/GotHereLateNameTaken &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi. I had a pc (b550 + 3900x + 32GB DDR4 + 3080 10GB). But it vram amount is miserable. after long investigation I decided to sell 3080 and buy used RX7900XTX. After some time waiting I bought one for ~760$. But now I’m thinking isn’t it was smarter Idea to save more money for something with 32GB vram? Like AI PRO R9700 (there is no used rn) but this thing is more than double in price (around 1800$ here). I wanted to have STT + Qwen3.6 27/35 with good quant (Q5 at least) + some context for coding/researching. &lt;/p&gt; &lt;p&gt;So now I’m thinking like I was to hurry and not sure will I achieve good performance on my pc. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Thin_Pollution8843"&gt; /u/Thin_Pollution8843 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjln0/is_that_was_a_right_purchase_for_qwen36_2735/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjln0/is_that_was_a_right_purchase_for_qwen36_2735/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjln0/is_that_was_a_right_purchase_for_qwen36_2735/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-16T16:55:34+00:00</published>
+    <published>2026-05-17T08:27:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1temio0</id>
@@ -47,6 +47,19 @@
     <published>2026-05-16T07:19:25+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tez37r</id>
+    <title>Qwen 27b MTP Config, Llama.cpp Single 3090</title>
+    <updated>2026-05-16T16:55:34+00:00</updated>
+    <author>
+      <name>/u/GotHereLateNameTaken</name>
+      <uri>https://old.reddit.com/user/GotHereLateNameTaken</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What setup are you using for qwen 27b on a single 3090?&lt;/p&gt; &lt;p&gt;Here's what I've started using today. It has to compact often but I'm worried about giving up more accuracy and reliability with a lower quant: &lt;/p&gt; &lt;p&gt;&lt;code&gt;llama-server -m /Models/q3.6/Qwen3.6-27B-Q5_K_S.gguf -c 65536 -ngl -1 -t 8 -ctk q8_0 -ctv q8_0 --chat-template-kwargs &amp;quot;{\&amp;quot;preserve_thinking\&amp;quot;: true}&amp;quot; --spec-type draft-mtp --spec-draft-n-max 2 --fit off --mmproj /Models/q3.6/mmproj-Qwen3.6-27B-f16.gguf --no-mmproj-offload&lt;/code&gt; &lt;/p&gt; &lt;p&gt;I'm getting around 65tk/s.&lt;/p&gt; &lt;p&gt;I've also seen these recommendations: &lt;a href="https://github.com/noonghunna/club-3090/blob/master/docs/SINGLE_CARD.md"&gt;https://github.com/noonghunna/club-3090/blob/master/docs/SINGLE_CARD.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;They seem to be using the q4 quant. How are you weighing the tradeoffs? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/GotHereLateNameTaken"&gt; /u/GotHereLateNameTaken &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tez37r/qwen_27b_mtp_config_llamacpp_single_3090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-16T16:55:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tf7auf</id>
     <title>Now that MTP is merged... What's the best outputs you're getting on Qwen 3.6 35B on 2x3090s?</title>
     <updated>2026-05-16T22:19:11+00:00</updated>
@@ -60,43 +73,30 @@
     <published>2026-05-16T22:19:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfj9jv</id>
-    <title>Qwen 3.6-27B Dense with MTP on Strix Halo Windows - Benchmarks</title>
-    <updated>2026-05-17T08:08:51+00:00</updated>
+    <id>t3_1tfjwkt</id>
+    <title>Using Local LLMs for research</title>
+    <updated>2026-05-17T08:45:35+00:00</updated>
     <author>
-      <name>/u/PromptInjection_</name>
-      <uri>https://old.reddit.com/user/PromptInjection_</uri>
+      <name>/u/AggressiveMention359</name>
+      <uri>https://old.reddit.com/user/AggressiveMention359</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfj9jv/qwen_3627b_dense_with_mtp_on_strix_halo_windows/"&gt; &lt;img alt="Qwen 3.6-27B Dense with MTP on Strix Halo Windows - Benchmarks" src="https://preview.redd.it/bsrlgslasn1h1.png?width=140&amp;amp;height=94&amp;amp;auto=webp&amp;amp;s=6c74f3ca393b67ffaae6ac1e9c3201451fa62bb0" title="Qwen 3.6-27B Dense with MTP on Strix Halo Windows - Benchmarks" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here are some results (llama.cpp)!&lt;/p&gt; &lt;p&gt;Task 1: write a short poem&lt;br /&gt; 27B Dense: 12.5 tokens/s&lt;br /&gt; 27B Dense MTP: (spec-draft-n-max 6): 14.5 tokens/s&lt;br /&gt; 27B Dense MTP (spec-draft-n-max 3): 18.7 tokens/s&lt;/p&gt; &lt;p&gt;Task 2: edit a hello word html artifact&lt;br /&gt; 27B Dense: 12.6 tokens/s&lt;br /&gt; 27B Dense MTP (spec-draft-n-max 6): 14.2 tokens/s&lt;/p&gt; &lt;p&gt;Task 3: create a hello world html directly in chat&lt;br /&gt; 27B Dense: 12.6 tokens/s&lt;br /&gt; 27B Dense MTP (spec-draft-n-max 6): 17.9 tokens/s&lt;br /&gt; 27B Dense MTP (spec-draft-n-max 3): 23.2 tokens/s&lt;/p&gt; &lt;p&gt;It's fascinating how it varies with tasks!&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/bsrlgslasn1h1.png?width=1802&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=8aba6c751bf7c47494ce11697b91a4347fec79af"&gt;https://preview.redd.it/bsrlgslasn1h1.png?width=1802&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=8aba6c751bf7c47494ce11697b91a4347fec79af&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Settings used:&lt;/p&gt; &lt;p&gt;{&lt;br /&gt; &amp;quot;name&amp;quot;: &amp;quot;Qwen3.6-27B-UD-Q4_K_M&amp;quot;,&lt;br /&gt; &amp;quot;file&amp;quot;: &amp;quot;Qwen3.6-27B-UD-Q4_K_M.gguf&amp;quot;,&lt;br /&gt; &amp;quot;custom&amp;quot;: [&amp;quot;--mmproj&amp;quot;, &amp;quot;C:/CarlAI/models/mmproj-Qwen_Qwen3.6-27B-bf16.gguf&amp;quot;],&lt;/p&gt; &lt;p&gt;&amp;quot;backend&amp;quot;: &amp;quot;vulkan&amp;quot;,&lt;/p&gt; &lt;p&gt;&amp;quot;parameters&amp;quot;: {&lt;br /&gt; &amp;quot;temp&amp;quot;: 0.8,&lt;br /&gt; &amp;quot;top_k&amp;quot;: 20,&lt;br /&gt; &amp;quot;top_p&amp;quot;: 0.95,&lt;br /&gt; &amp;quot;min_p&amp;quot;: 0.00,&lt;br /&gt; &amp;quot;repeat_penalty&amp;quot;: 1.0,&lt;br /&gt; &amp;quot;ngl&amp;quot;: 99,&lt;br /&gt; &amp;quot;context_length&amp;quot;: 65000,&lt;br /&gt; &amp;quot;jinja&amp;quot;: true,&lt;br /&gt; &amp;quot;flash_attn&amp;quot;: &amp;quot;on&amp;quot;&lt;br /&gt; }&lt;/p&gt; &lt;p&gt;},&lt;/p&gt; &lt;p&gt;{&lt;/p&gt; &lt;p&gt;&amp;quot;name&amp;quot;: &amp;quot;Qwen3.6-27B-UD-Q4_K_XL_MTP&amp;quot;,&lt;br /&gt; &amp;quot;file&amp;quot;: &amp;quot;Qwen3.6-27B-UD-Q4_K_XL_MTP.gguf&amp;quot;,&lt;br /&gt; &amp;quot;custom&amp;quot;: [&amp;quot;-np&amp;quot;, &amp;quot;1&amp;quot;, &amp;quot;--spec-type&amp;quot;, &amp;quot;draft-mtp&amp;quot;, &amp;quot;--spec-draft-n-max&amp;quot;, &amp;quot;6&amp;quot;],&lt;/p&gt; &lt;p&gt;&amp;quot;backend&amp;quot;: &amp;quot;vulkan&amp;quot;,&lt;/p&gt; &lt;p&gt;&amp;quot;parameters&amp;quot;: {&lt;br /&gt; &amp;quot;temp&amp;quot;: 0.8,&lt;br /&gt; &amp;quot;top_k&amp;quot;: 20,&lt;br /&gt; &amp;quot;top_p&amp;quot;: 0.95,&lt;br /&gt; &amp;quot;min_p&amp;quot;: 0.00,&lt;br /&gt; &amp;quot;repeat_penalty&amp;quot;: 1.0,&lt;br /&gt; &amp;quot;ngl&amp;quot;: 99,&lt;br /&gt; &amp;quot;context_length&amp;quot;: 65000,&lt;br /&gt; &amp;quot;jinja&amp;quot;: true,&lt;br /&gt; &amp;quot;flash_attn&amp;quot;: &amp;quot;on&amp;quot;&lt;br /&gt; }&lt;/p&gt; &lt;p&gt;},&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PromptInjection_"&gt; /u/PromptInjection_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfj9jv/qwen_3627b_dense_with_mtp_on_strix_halo_windows/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfj9jv/qwen_3627b_dense_with_mtp_on_strix_halo_windows/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfj9jv/qwen_3627b_dense_with_mtp_on_strix_halo_windows/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey there. I am an undergrad who has been doing mostly SWE, but will be doing ML research under my professor over the summer. So I am new to research - I ask not to be judged too harshly. Generally, we will be working on Physics-Informed Neural Networks. &lt;/p&gt; &lt;p&gt;I have seen some articles people using AI agents for research. Of course, I am not expecting (nor do I desire to) write an entire paper with an AI. Rather, I am looking for an agent that would help me with retrieval or, for example, finding relevant papers while I'm asleep or away from my PC.&lt;/p&gt; &lt;p&gt;I have an access to NVIDIA RTX6000 PRO, and can selfhost a big enough model. But I don't really know how to build a research agent. Right now, I have a qwen-3.6-35b running as a base for my hermes agent that I use occasionally. But how do I make a research agent that is actually useful? The only solution I could see now is either creating a skill for my hermes agent or using something like Karpathy's LLM Wiki Agent?&lt;/p&gt; &lt;p&gt;I am really confused but really curious and motivated to learn about this matter. I would incredibly value any guidance!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AggressiveMention359"&gt; /u/AggressiveMention359 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjwkt/using_local_llms_for_research/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjwkt/using_local_llms_for_research/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfjwkt/using_local_llms_for_research/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T08:08:51+00:00</published>
+    <published>2026-05-17T08:45:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfi772</id>
-    <title>Very happy with Qwen 3.5 122B output. But is slowness expected?</title>
-    <updated>2026-05-17T07:09:12+00:00</updated>
+    <id>t3_1tfh1wf</id>
+    <title>How does Pi coding agent control Qwen's thinking verbosity? (Qwen 35B A3B, llama-server)</title>
+    <updated>2026-05-17T06:07:33+00:00</updated>
     <author>
-      <name>/u/breksyt</name>
-      <uri>https://old.reddit.com/user/breksyt</uri>
+      <name>/u/pilibitti</name>
+      <uri>https://old.reddit.com/user/pilibitti</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfi772/very_happy_with_qwen_35_122b_output_but_is/"&gt; &lt;img alt="Very happy with Qwen 3.5 122B output. But is slowness expected?" src="https://preview.redd.it/sja5b0uedn1h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=02f648eb32ad5943f359658e295c2ecd28a350e2" title="Very happy with Qwen 3.5 122B output. But is slowness expected?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm running the 122-billion Qwen 3.5, specifically &lt;code&gt;Qwen3.5-122B-A10B-Q5_K_M&lt;/code&gt;, on DGX Spark (128 GB contiguous memory). &lt;/p&gt; &lt;p&gt;I'm (very!) impressed with the general knowledge output. I can talk to it in multiple languages, and don't feel the need to consult online frontier models for any encyclopaedic, general &amp;quot;handyman&amp;quot; or other day-to-day questions. My local Qwen seems sufficient.&lt;/p&gt; &lt;p&gt;This said, the output seems slow, around 19 tokens/s. Is this speed expected? I'm running the model from llama-server (latest compile as of yesterday), and the chat UI is Open WebUI. Are there any speed optimizations I can make in this setup without compromising the quality of output/&lt;/p&gt; &lt;p&gt;&lt;code&gt;nice -n -10 ./llama-server -m ~/modelki/Qwen3.5-122B-A10B-Q5_K_M-00001-of-00003.gguf --alias &amp;quot;Qwen3.5_122&amp;quot; --fit on -ngl 999 --min_p 0.01 --temp 0.6 --top-p 0.95 --ctx-size 262144 --port 8002 --jinja --host&lt;/code&gt; &lt;a href="http://0.0.0.0"&gt;&lt;code&gt;0.0.0.0&lt;/code&gt;&lt;/a&gt; &lt;code&gt;--flash-attn on&lt;/code&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/breksyt"&gt; /u/breksyt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/sja5b0uedn1h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfi772/very_happy_with_qwen_35_122b_output_but_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfi772/very_happy_with_qwen_35_122b_output_but_is/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm running Qwen 35B A3B via llama-server with reasoning budget set to -1 (unlimited) for testing. In every client I've tried, the model just thinks endlessly before responding. But with Pi, it does the bare minimum thinking and still responds fairly accurately - which is a stark difference.&lt;/p&gt; &lt;p&gt;My first instinct was that it's the system prompt, so I copied Pi's default system prompt into other clients. No change - still runaway thinking.&lt;/p&gt; &lt;p&gt;I also ruled out thinking-level controls, because llama-server doesn't advertise Qwen as a thinking-capable model for some reason, so those knobs shouldn't even apply here. And when trying to set thinking verbosity with Pi, it says &amp;quot;Current model does not support thinking&amp;quot; anyways.&lt;/p&gt; &lt;p&gt;So what is Pi actually doing differently under the hood to reign in the thinking? Doesn't even truncate because all thinking blocks end naturally.&lt;/p&gt; &lt;p&gt;Bonus question: how do some clients manage to toggle thinking on/off on the fly without reloading the model? Is that a sampler trick, a special token injection, or something at the server level?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pilibitti"&gt; /u/pilibitti &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh1wf/how_does_pi_coding_agent_control_qwens_thinking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh1wf/how_does_pi_coding_agent_control_qwens_thinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh1wf/how_does_pi_coding_agent_control_qwens_thinking/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T07:09:12+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tfh6u0</id>
-    <title>Strix Halo ROCm + MTP Notes (May 2026)</title>
-    <updated>2026-05-17T06:14:58+00:00</updated>
-    <author>
-      <name>/u/IvGranite</name>
-      <uri>https://old.reddit.com/user/IvGranite</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With the MTP merge into mainline llama.cpp I wanted to try out some other optimizations i could think of. Ended up tested backends, mtp, and bumping to ROCm nightlies.&lt;/p&gt; &lt;p&gt;What's changed:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ROCm 7.13 works on gfx1151 (7.2.2 could see the GPU but couldn't compile shaders)&lt;/li&gt; &lt;li&gt;MTP merged to llama.cpp main yesterday (May 16)&lt;/li&gt; &lt;li&gt;I ran 3 models x 2 backends x 3 prompt lengths + a full-context decode test&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The headline: ROCm drops 64% at full context, but MTP recovers most of it. Vulkan barely drops.&lt;/p&gt; &lt;p&gt;Full writeup with all tables: &lt;a href="https://kmarble.dev/posts/strix-halo-full-context-decode-drops/"&gt;https://kmarble.dev/posts/strix-halo-full-context-decode-drops/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;But the quick version:&lt;/p&gt; &lt;p&gt;35B MoE at full context (76k prompt tokens, 5k output):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ROCm non-MTP: 16.6 tok/s (was 46.2 empty)&lt;/li&gt; &lt;li&gt;ROCm MTP: 37.5 tok/s (was 63.7 empty)&lt;/li&gt; &lt;li&gt;Vulkan non-MTP: 28.9 tok/s (was 32.7 empty)&lt;/li&gt; &lt;li&gt;Vulkan MTP: 34.3 tok/s (was 46.8 empty)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;122B MoE:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Vulkan non-MTP: 23.7 tok/s (only 12% drop)&lt;/li&gt; &lt;li&gt;ROCm MTP: 19.2 tok/s (38% drop)&lt;/li&gt; &lt;li&gt;Vulkan MTP: 21.9 tok/s (6% drop) &lt;/li&gt; &lt;/ul&gt; &lt;p&gt;27B dense (avoid it): 6-9 tok/s at full context regardless of backend.&lt;/p&gt; &lt;p&gt;Insights:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;ROCm was 2.3x Vulkan at empty context (46 vs 32 tok/s), but at full context the gap narrows to 1.3x (37.5 vs 28.9)&lt;/li&gt; &lt;li&gt;Vulkan is way more stable at full context - only 12% drop vs ROCm's 64%&lt;/li&gt; &lt;li&gt;MTP on 122B Vulkan actually helps slightly (-6% vs non-MTP) while MTP on 122B ROCm drops 38%&lt;/li&gt; &lt;li&gt;The dense 27B is unusable - 5x slower than 35B MoE because it processes 27B active params per token vs 3B&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Setup: ROCm 7.13 with therock-gfx1151 codegen path from kyuz0's toolbox. Vulkan 1.3 RADV. llama.cpp b9188. All live llama-swap proxy tests, not synthetic llama-bench runs.&lt;/p&gt; &lt;p&gt;BF16 models don't work at full context on Strix Halo. Q8 for 35B, Q4 for 122B.&lt;/p&gt; &lt;p&gt;For my setup, ROCm MTP on 35B MoE stays the production choice: 37.5 tok/s at full context, under 100W, 262k context available. But if you care more about quality than speed, 122B on Vulkan at 23-24 tok/s is competitive.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IvGranite"&gt; /u/IvGranite &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfh6u0/strix_halo_rocm_mtp_notes_may_2026/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T06:14:58+00:00</published>
+    <published>2026-05-17T06:07:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1tf2cxh</id>
@@ -151,19 +151,6 @@
     <published>2026-05-16T20:45:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfeo3k</id>
-    <title>"Elias Thorne" is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon</title>
-    <updated>2026-05-17T04:03:50+00:00</updated>
-    <author>
-      <name>/u/prescorn</name>
-      <uri>https://old.reddit.com/user/prescorn</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"&gt; &lt;img alt="&amp;quot;Elias Thorne&amp;quot; is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon" src="https://external-preview.redd.it/S3ysOoivVQ6v-ysqFPEE6IY1bJtsmwcE1zkc_G2mlTU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=15021f67059da84b27645a529d96fb15b511bf45" title="&amp;quot;Elias Thorne&amp;quot; is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: I wrote this article with the purpose of contributing to the wider conversation of how we keep a useful internet when the cost of generating low-quality content reaches the floor, likely driven by agentic content generation. I'd love to hear the feedback this community has!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/prescorn"&gt; /u/prescorn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://danielmay.co.uk/posts/cheap-agents-alumni-shirts-and-elias-thorne/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T04:03:50+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tf9iyk</id>
     <title>Ran the same models across Strix Halo, RTX 3090, and RTX 5070 because I wanted my own numbers</title>
     <updated>2026-05-16T23:57:06+00:00</updated>
@@ -177,19 +164,6 @@
     <published>2026-05-16T23:57:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfin40</id>
-    <title>Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face</title>
-    <updated>2026-05-17T07:33:35+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"&gt; &lt;img alt="Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face" src="https://external-preview.redd.it/T9RE3LDtINwehIu0A2priXEpnkJVRnQuH-dC00XZOE4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bec7f6eb79f52da98aa3dc7749717edb3323f461" title="Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;Qwopus3.5-9B-coder&lt;/strong&gt; is specially optimized and fine-tuned for high-performance &lt;strong&gt;🤖 Agentic Coding, complex Tool Calling, and logical reasoning.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;💡&lt;/em&gt; &lt;strong&gt;&lt;em&gt;Why the 9B Dense Model?&lt;/em&gt;&lt;/strong&gt; &lt;em&gt;We believe that the 9B dense architecture represents the perfect&lt;/em&gt; &lt;strong&gt;&lt;em&gt;&amp;quot;sweet spot&amp;quot;&lt;/em&gt;&lt;/strong&gt; &lt;em&gt;for large language models. It runs seamlessly at 8-bit precision on entry-level 16GB RAM devices—such as standard laptops and the Mac mini—making it exceptionally lightweight yet highly versatile. Without requiring expensive hardware, it allows you to achieve excellent performance paired with impressive inference speeds. Simply put,&lt;/em&gt; &lt;strong&gt;&lt;em&gt;Qwen3.5-9B is currently the best open-source model in its class.&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;h1&gt;🛠 Training Strategy&lt;/h1&gt; &lt;p&gt;The fine-tuning process of this model deeply integrates &lt;strong&gt;Trace Inversion&lt;/strong&gt; data augmentation technology with high-quality &lt;strong&gt;Agent Traces&lt;/strong&gt;. This systematic approach not only strengthens the model's ability to solve complex programming tasks, but also greatly improves its logical coherence and accuracy when using various tools.&lt;/p&gt; &lt;p&gt;This model is designed specifically for the following goals:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🧩 More structured and stronger logical reasoning capabilities, reducing repetitive thinking&lt;/li&gt; &lt;li&gt;💻 More powerful capabilities in code writing, debugging, and repository-level task processing&lt;/li&gt; &lt;li&gt;🛠 More stable and accurate Tool Calling capabilities for terminal commands, file operations, and browsers&lt;/li&gt; &lt;li&gt;🔁 Better cross-data source distillation alignment&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Check model card for all benchmarks.&lt;/p&gt; &lt;p&gt;With MTP, hope this could be better &amp;amp; faster on ~10GB VRAM. Nice to do Agentic coding while getting good t/s just with 8GB VRAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/Jackrong/Qwopus3.5-9B-Coder-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T07:33:35+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1teypb8</id>
     <title>Strix Halo Llama.cpp MTP Benchmarks: 27B Gets Much Faster, 35B Is Mixed</title>
     <updated>2026-05-16T16:41:06+00:00</updated>
@@ -201,6 +175,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1teypb8/strix_halo_llamacpp_mtp_benchmarks_27b_gets_much/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-16T16:41:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tfeo3k</id>
+    <title>"Elias Thorne" is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon</title>
+    <updated>2026-05-17T04:03:50+00:00</updated>
+    <author>
+      <name>/u/prescorn</name>
+      <uri>https://old.reddit.com/user/prescorn</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"&gt; &lt;img alt="&amp;quot;Elias Thorne&amp;quot; is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon" src="https://external-preview.redd.it/S3ysOoivVQ6v-ysqFPEE6IY1bJtsmwcE1zkc_G2mlTU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=15021f67059da84b27645a529d96fb15b511bf45" title="&amp;quot;Elias Thorne&amp;quot; is what eight different LLMs name a lighthouse keeper. He's also selling cancer treatment advice on Amazon" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: I wrote this article with the purpose of contributing to the wider conversation of how we keep a useful internet when the cost of generating low-quality content reaches the floor, likely driven by agentic content generation. I'd love to hear the feedback this community has!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/prescorn"&gt; /u/prescorn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://danielmay.co.uk/posts/cheap-agents-alumni-shirts-and-elias-thorne/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfeo3k/elias_thorne_is_what_eight_different_llms_name_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-17T04:03:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1tezqlb</id>
@@ -242,19 +229,6 @@
     <published>2026-05-17T06:35:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfilwx</id>
-    <title>Llama.cpp MTP with Qwen3.6 27B on Headless RTX 3090</title>
-    <updated>2026-05-17T07:31:41+00:00</updated>
-    <author>
-      <name>/u/cleversmoke</name>
-      <uri>https://old.reddit.com/user/cleversmoke</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Saw some posts around PP being slower, so they were cautious on trying it.&lt;/p&gt; &lt;p&gt;Here's a real-world datapoint.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Settings:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Headless RTX 3090 24G&lt;/li&gt; &lt;li&gt;OpenCode&lt;/li&gt; &lt;li&gt;Model unsloth's Qwen3.6-27B-MTP-Q4_K_M.gguf&lt;/li&gt; &lt;li&gt;128k context&lt;/li&gt; &lt;li&gt;q8_0 kv cache&lt;/li&gt; &lt;li&gt;--spec-draft-n-max: 3&lt;/li&gt; &lt;li&gt;--draft-p-min: 0&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Use Cases:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Research task that uses ~85,000 tokens&lt;/li&gt; &lt;li&gt;Coding task that uses ~85,000 tokens.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Without MTP (llama.cpp:server-cuda13-b9174):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;PP: 1,050 tok/s&lt;/li&gt; &lt;li&gt;TG: 27 toks/s&lt;/li&gt; &lt;li&gt;Total time to complete 85k tokens: ~39 mins&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;With MTP (latest master fork):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;PP: 600 tok/s (down 42%)&lt;/li&gt; &lt;li&gt;TG: 50 tok/s (up 85%)&lt;/li&gt; &lt;li&gt;Total time to complete 85k tokens: &lt;strong&gt;~23 mins (1.7x faster or 41% reduction)&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;A 41% time savings is quite huge, so unless you're PP heavy, I'd recommend giving MTP a try on your use cases! I have it on a dual agent set-up so your total processing times may be better since I have another critic agent check the main agent's work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cleversmoke"&gt; /u/cleversmoke &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T07:31:41+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tes1wx</id>
     <title>MTP support merged into llama.cpp</title>
     <updated>2026-05-16T12:15:54+00:00</updated>
@@ -279,6 +253,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1teqnf2/thats_a_good_news/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-16T11:09:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tfilwx</id>
+    <title>Llama.cpp MTP with Qwen3.6 27B on Headless RTX 3090</title>
+    <updated>2026-05-17T07:31:41+00:00</updated>
+    <author>
+      <name>/u/cleversmoke</name>
+      <uri>https://old.reddit.com/user/cleversmoke</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Saw some posts around PP being slower, so they were cautious on trying it.&lt;/p&gt; &lt;p&gt;Here's a real-world datapoint.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Settings:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Headless RTX 3090 24G&lt;/li&gt; &lt;li&gt;OpenCode&lt;/li&gt; &lt;li&gt;Model unsloth's Qwen3.6-27B-MTP-Q4_K_M.gguf&lt;/li&gt; &lt;li&gt;128k context&lt;/li&gt; &lt;li&gt;q8_0 kv cache&lt;/li&gt; &lt;li&gt;--spec-draft-n-max: 3&lt;/li&gt; &lt;li&gt;--draft-p-min: 0&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Use Cases:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Research task that uses ~85,000 tokens&lt;/li&gt; &lt;li&gt;Coding task that uses ~85,000 tokens.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Without MTP (llama.cpp:server-cuda13-b9174):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;PP: 1,050 tok/s&lt;/li&gt; &lt;li&gt;TG: 27 toks/s&lt;/li&gt; &lt;li&gt;Total time to complete 85k tokens: ~39 mins&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;With MTP (latest master fork):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;PP: 600 tok/s (down 42%)&lt;/li&gt; &lt;li&gt;TG: 50 tok/s (up 85%)&lt;/li&gt; &lt;li&gt;Total time to complete 85k tokens: &lt;strong&gt;~23 mins (1.7x faster or 41% reduction)&lt;/strong&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;A 41% time savings is quite huge, so unless you're PP heavy, I'd recommend giving MTP a try on your use cases! I have it on a dual agent set-up so your total processing times may be better since I have another critic agent check the main agent's work.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/cleversmoke"&gt; /u/cleversmoke &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfilwx/llamacpp_mtp_with_qwen36_27b_on_headless_rtx_3090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-17T07:31:41+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tfin40</id>
+    <title>Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face</title>
+    <updated>2026-05-17T07:33:35+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"&gt; &lt;img alt="Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face" src="https://external-preview.redd.it/T9RE3LDtINwehIu0A2priXEpnkJVRnQuH-dC00XZOE4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bec7f6eb79f52da98aa3dc7749717edb3323f461" title="Jackrong/Qwopus3.5-9B-Coder-GGUF · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;&lt;strong&gt;Qwopus3.5-9B-coder&lt;/strong&gt; is specially optimized and fine-tuned for high-performance &lt;strong&gt;🤖 Agentic Coding, complex Tool Calling, and logical reasoning.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;💡&lt;/em&gt; &lt;strong&gt;&lt;em&gt;Why the 9B Dense Model?&lt;/em&gt;&lt;/strong&gt; &lt;em&gt;We believe that the 9B dense architecture represents the perfect&lt;/em&gt; &lt;strong&gt;&lt;em&gt;&amp;quot;sweet spot&amp;quot;&lt;/em&gt;&lt;/strong&gt; &lt;em&gt;for large language models. It runs seamlessly at 8-bit precision on entry-level 16GB RAM devices—such as standard laptops and the Mac mini—making it exceptionally lightweight yet highly versatile. Without requiring expensive hardware, it allows you to achieve excellent performance paired with impressive inference speeds. Simply put,&lt;/em&gt; &lt;strong&gt;&lt;em&gt;Qwen3.5-9B is currently the best open-source model in its class.&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;h1&gt;🛠 Training Strategy&lt;/h1&gt; &lt;p&gt;The fine-tuning process of this model deeply integrates &lt;strong&gt;Trace Inversion&lt;/strong&gt; data augmentation technology with high-quality &lt;strong&gt;Agent Traces&lt;/strong&gt;. This systematic approach not only strengthens the model's ability to solve complex programming tasks, but also greatly improves its logical coherence and accuracy when using various tools.&lt;/p&gt; &lt;p&gt;This model is designed specifically for the following goals:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;🧩 More structured and stronger logical reasoning capabilities, reducing repetitive thinking&lt;/li&gt; &lt;li&gt;💻 More powerful capabilities in code writing, debugging, and repository-level task processing&lt;/li&gt; &lt;li&gt;🛠 More stable and accurate Tool Calling capabilities for terminal commands, file operations, and browsers&lt;/li&gt; &lt;li&gt;🔁 Better cross-data source distillation alignment&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Check model card for all benchmarks.&lt;/p&gt; &lt;p&gt;With MTP, hope this could be better &amp;amp; faster on ~10GB VRAM. Nice to do Agentic coding while getting good t/s just with 8GB VRAM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/Jackrong/Qwopus3.5-9B-Coder-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfin40/jackrongqwopus359bcodergguf_hugging_face/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-17T07:33:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1tf9tws</id>
@@ -307,19 +307,6 @@
     <published>2026-05-16T12:13:08+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tfgxc8</id>
-    <title>Testing llama.cpp MTP support on Qwen3.6 - RTX 5090</title>
-    <updated>2026-05-17T06:00:43+00:00</updated>
-    <author>
-      <name>/u/3VITAERC</name>
-      <uri>https://old.reddit.com/user/3VITAERC</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"&gt; &lt;img alt="Testing llama.cpp MTP support on Qwen3.6 - RTX 5090" src="https://preview.redd.it/etfdid7h0n1h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7fc9097251e65c11f4818c5d964bf8ad023cc993" title="Testing llama.cpp MTP support on Qwen3.6 - RTX 5090" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Setup:&lt;/p&gt; &lt;p&gt;- RTX 5090, 32 GB, Linux&lt;/p&gt; &lt;p&gt;- Built llama.cpp from 4f13cb7 (the official &lt;a href="http://ghcr.io/ggml-org/llama.cpp:server-cuda"&gt;ghcr.io/ggml-org/llama.cpp:server-cuda&lt;/a&gt; image hasn't picked up the merge yet as of writing — had to docker build from source with CUDA_DOCKER_ARCH=120)&lt;/p&gt; &lt;p&gt;- Unsloth's Qwen3.6-27B-MTP-GGUF Q5_K_M and Qwen3.6-35B-A3B-MTP-GGUF UD-Q4_K_M&lt;/p&gt; &lt;p&gt;- 128k context, flash-attn, q8_0 KV cache, temp 0.8, --parallel 1 (required for MTP)&lt;/p&gt; &lt;p&gt;- Same GGUF for &amp;quot;MTP on&amp;quot; and &amp;quot;MTP off&amp;quot; — only the --spec-type draft-mtp --spec-draft-n-max 3 flag toggled. This isolates MTP from quant differences.&lt;/p&gt; &lt;p&gt;- 2 prompts: &amp;quot;short story about a cat&amp;quot; (~400 tokens) and &amp;quot;Flappy Bird clone as a single HTML file&amp;quot; (~3000 tokens)&lt;/p&gt; &lt;p&gt;- 3 seeds per config, averaged&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3VITAERC"&gt; /u/3VITAERC &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/etfdid7h0n1h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-17T06:00:43+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tf3p6c</id>
     <title>Local Qwen 3.6 vs frontier models on a coding primitive: single-file HTML canvas driving animation - results and GIFs</title>
     <updated>2026-05-16T19:51:05+00:00</updated>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tf3p6c/local_qwen_36_vs_frontier_models_on_a_coding/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-16T19:51:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tfgxc8</id>
+    <title>Testing llama.cpp MTP support on Qwen3.6 - RTX 5090</title>
+    <updated>2026-05-17T06:00:43+00:00</updated>
+    <author>
+      <name>/u/3VITAERC</name>
+      <uri>https://old.reddit.com/user/3VITAERC</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"&gt; &lt;img alt="Testing llama.cpp MTP support on Qwen3.6 - RTX 5090" src="https://preview.redd.it/etfdid7h0n1h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7fc9097251e65c11f4818c5d964bf8ad023cc993" title="Testing llama.cpp MTP support on Qwen3.6 - RTX 5090" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Setup:&lt;/p&gt; &lt;p&gt;- RTX 5090, 32 GB, Linux&lt;/p&gt; &lt;p&gt;- Built llama.cpp from 4f13cb7 (the official &lt;a href="http://ghcr.io/ggml-org/llama.cpp:server-cuda"&gt;ghcr.io/ggml-org/llama.cpp:server-cuda&lt;/a&gt; image hasn't picked up the merge yet as of writing — had to docker build from source with CUDA_DOCKER_ARCH=120)&lt;/p&gt; &lt;p&gt;- Unsloth's Qwen3.6-27B-MTP-GGUF Q5_K_M and Qwen3.6-35B-A3B-MTP-GGUF UD-Q4_K_M&lt;/p&gt; &lt;p&gt;- 128k context, flash-attn, q8_0 KV cache, temp 0.8, --parallel 1 (required for MTP)&lt;/p&gt; &lt;p&gt;- Same GGUF for &amp;quot;MTP on&amp;quot; and &amp;quot;MTP off&amp;quot; — only the --spec-type draft-mtp --spec-draft-n-max 3 flag toggled. This isolates MTP from quant differences.&lt;/p&gt; &lt;p&gt;- 2 prompts: &amp;quot;short story about a cat&amp;quot; (~400 tokens) and &amp;quot;Flappy Bird clone as a single HTML file&amp;quot; (~3000 tokens)&lt;/p&gt; &lt;p&gt;- 3 seeds per config, averaged&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/3VITAERC"&gt; /u/3VITAERC &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/etfdid7h0n1h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tfgxc8/testing_llamacpp_mtp_support_on_qwen36_rtx_5090/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-17T06:00:43+00:00</published>
   </entry>
 </feed>
