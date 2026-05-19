@@ -2,36 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-19T21:35:59+00:00</updated>
+  <updated>2026-05-19T22:11:31+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
   <entry>
-    <id>t3_1thu987</id>
-    <title>An overview of modern LLM compiler stack: writing an interactive and hackable compiler</title>
-    <updated>2026-05-19T17:39:54+00:00</updated>
+    <id>t3_1ti150n</id>
+    <title>New SOTA 1B model? HRM-text</title>
+    <updated>2026-05-19T21:34:04+00:00</updated>
     <author>
-      <name>/u/NoVibeCoding</name>
-      <uri>https://old.reddit.com/user/NoVibeCoding</uri>
+      <name>/u/vandalieu_zakkart</name>
+      <uri>https://old.reddit.com/user/vandalieu_zakkart</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/LocalLLaMA"&gt;r/LocalLLaMA&lt;/a&gt;,&lt;/p&gt; &lt;p&gt;Production ML compiler stack is brutal: TVM is 500K+ lines of C++. PyTorch piles Dynamo, Inductor, and Triton on top of each other. XLA, MLIR, Halide, Mojo.&lt;/p&gt; &lt;p&gt;It is, arguably, the most important piece of modern compute infrastructure, and there is little information available on core concepts. To fill the gap, I built a small ML compiler from scratch: pure Python and raw CUDA, no library use. It takes a small transformer (TinyLlama, Qwen2.5-7B) and lowers it to a sequence of CUDA kernels through six IRs. On RTX 5090, the autotuned stack lands at a geomean of 0.96× vs. the PyTorch production stack, with 32 of 84 kernel shapes beating PyTorch hand-optimized kernels (max 5.6× speedup).&lt;/p&gt; &lt;p&gt;After a month of work, the three-part series is finally finished:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Part 1&lt;/strong&gt; walks an RMSNorm layer end-to-end through the upper half of the pipeline: - Torch IR — captured FX graph (rmsnorm, linear, softmax, ...) - Tensor IR — every op decomposed into Elementwise / Reduction / IndexMap - Loop IR — a kernel written as a loop nest fused with other kernels - Tile IR — a kernel scheduled onto the GPU (threads, blocks, shared memory) - Kernel IR — schedule materialized into hardware primitives - CUDA — emitted source ready for nvcc&lt;/p&gt; &lt;p&gt;For example, a PyTorch expression walked through IR levels: &lt;code&gt;python torch.relu(torch.matmul(x + bias, w)) # x: (16, 64), bias: (64,), w: (64, 16) &lt;/code&gt; Torch IR: &lt;code&gt; bias_bc = bias[j] -&amp;gt; (16, 64) float32 add = add(x, bias_bc) -&amp;gt; (16, 64) float32 matmul = matmul(add, w, has_bias=False) -&amp;gt; (16, 16) float32 relu = relu(matmul) -&amp;gt; (16, 16) float32 &lt;/code&gt; Tensor IR: &lt;code&gt; bias_bc = bias[j] -&amp;gt; (16, 64) float32 w_bc = w[j, k] -&amp;gt; (16, 64, 16) float32 add = add(x, bias_bc) -&amp;gt; (16, 64) float32 add_bc = add[i, j] -&amp;gt; (16, 64, 16) float32 prod = multiply(add_bc, w_bc) -&amp;gt; (16, 64, 16) float32 red = sum(prod, axis=-2) -&amp;gt; (16, 1, 16) float32 matmul = red[i, na, j] -&amp;gt; (16, 16) float32 relu = relu(matmul) -&amp;gt; (16, 16) float32 &lt;/code&gt; Loop IR &lt;code&gt;python === merged_relu -&amp;gt; relu === for a0 in 0..16: # free (M) for a1 in 0..16: # free (N) for a2 in 0..64: # reduce (K) in0 = load bias[a2] in1 = load x[a0, a2] in2 = load w[a2, a1] v0 = add(in1, in0) # prologue (inside reduce) v1 = multiply(v0, in2) acc0 &amp;lt;- add(acc0, v1) v2 = relu(acc0) # epilogue (outside reduce) merged_relu[a0, a1] = v2 &lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Part 2&lt;/strong&gt; explains the lower half: how a loop nest becomes a GPU schedule. Sixteen mechanical Tile-IR passes to split computations into blocks, map to threads, stage inputs into smem, etc. Each pass is one diff in the CLI. It mimics the sequence of optimizations a CUDA engineer would make.&lt;/p&gt; &lt;p&gt;For example, a pass that stages inputs into the smem: &lt;code&gt;bash deplodock compile \ -c &amp;quot;torch.nn.RMSNorm(2048)(torch.randn(1,32,2048))&amp;quot; \ --ir tile -vv \ | awk '/^&amp;gt;&amp;gt;&amp;gt; t:007/,/^&amp;lt;&amp;lt;&amp;lt; t:007/' &lt;/code&gt; ```diff&lt;/p&gt; &lt;blockquote&gt; &lt;blockquote&gt; &lt;blockquote&gt; &lt;p&gt;t:007_stage_inputs @@ matched at rms_norm (in-place) @@ @@ -2,6 +2,7 @@ v0 = reciprocal(2048) Tile(axes=(a0:256=THREAD, a1:32=BLOCK)): + x_smem = Stage(x, origin=(0, a1, 0), slab=(a2:2048@2)) StridedLoop(a2 = a0; &amp;lt; 2048; += 256): # reduce - in2 = load x[0, a1, a2] + in2 = load x_smem[a2] v1 = multiply(in2, in2) acc0 &amp;lt;- add(acc0, v1) @@ -11,5 +12,5 @@ v4 = rsqrt(v3) StridedLoop(a2 = a0; &amp;lt; 2048; += 256): # free - in3 = load x[0, a1, a2] + in3 = load x_smem[a2] in4 = load p_weight[a2] v5 = multiply(in3, v4) &amp;lt;&amp;lt;&amp;lt; t:007_stage_inputs ```&lt;/p&gt; &lt;/blockquote&gt; &lt;/blockquote&gt; &lt;/blockquote&gt; &lt;p&gt;&lt;strong&gt;Part 3&lt;/strong&gt; finishes the series with autotuning. Every parameter in part 2 (block size, register tile, K-chunk, whether to stage, whether to double-buffer, etc.) was hand-picked using heuristics. Those heuristics worked on the shapes I fit them to, but fell over elsewhere. Part 3 replaces heuristics with a search loop: &lt;a href="https://en.wikipedia.org/wiki/Monte_Carlo_tree_search"&gt;SP-MCTS&lt;/a&gt; over the cross-product of rule parameters.&lt;/p&gt; &lt;p&gt;The whole pipeline is one CLI: ```bash&lt;/p&gt; &lt;h1&gt;inspect any IR stage&lt;/h1&gt; &lt;p&gt;deplodock compile -c &amp;quot;nn.RMSNorm(2048)(torch.randn(1,32,2048))&amp;quot; --ir tensor|loop|tile|kernel|cuda&lt;/p&gt; &lt;h1&gt;bench end-to-end&lt;/h1&gt; &lt;p&gt;deplodock run --bench -c &amp;quot;torch.nn.Softmax(dim=-1)(torch.randn(1,28,2048,2048))&amp;quot;&lt;/p&gt; &lt;h1&gt;autotune on the live GPU&lt;/h1&gt; &lt;p&gt;deplodock tune -c &amp;quot;nn.RMSNorm(2048)(torch.randn(1,32,2048))&amp;quot; -v&lt;/p&gt; &lt;h1&gt;full model&lt;/h1&gt; &lt;p&gt;deplodock compile Qwen/Qwen2.5-7B ```&lt;/p&gt; &lt;p&gt;Each part is self-contained enough that you can skip ahead if you only care about one layer: - &lt;a href="https://medium.com/data-science-collective/a-principled-ml-compiler-stack-in-5-000-lines-of-python-17f2db9549d4"&gt;Part 1. IR Hierarchy — From PyTorch to Emitted CUDA&lt;/a&gt; - &lt;a href="https://medium.com/data-science-collective/a-principled-ml-compiler-stack-in-5-000-lines-of-python-2337d208f278"&gt;Part 2. Tile IR — Scheduling Loops onto a GPU&lt;/a&gt; - &lt;a href="https://medium.com/data-science-collective/a-principled-ml-compiler-stack-in-5-000-lines-of-python-ea8242d20221"&gt;Part 3. Autotuning — A Search Loop Over Tile-IR Rewrites&lt;/a&gt; - Repo: &lt;a href="https://github.com/cloudrift-ai/deplodock"&gt;https://github.com/cloudrift-ai/deplodock&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NoVibeCoding"&gt; /u/NoVibeCoding &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thu987/an_overview_of_modern_llm_compiler_stack_writing/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thu987/an_overview_of_modern_llm_compiler_stack_writing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thu987/an_overview_of_modern_llm_compiler_stack_writing/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti150n/new_sota_1b_model_hrmtext/"&gt; &lt;img alt="New SOTA 1B model? HRM-text" src="https://external-preview.redd.it/2aHEaFi1ZCySIsatrfSWIwDWkE357luukL_wDgVm_mc.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dbed27dee34d7e9d3081750895b188e8e9ab667b" title="New SOTA 1B model? HRM-text" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Saw this video by them. Seems interesting but Tbh the benchmarks seem too good to be true. I'm not super knowledgeable on how models think so can anyone more knowledgeable explain what exactly is happening. And it's pros and cons?&lt;/p&gt; &lt;p&gt;GitHub: https: //github.com/sapientinc/HRM-Text Hugging face: &lt;a href="https://huggingface.co/sapientinc/HRM-Text-1B"&gt;https://huggingface.co/sapientinc/HRM-Text-1B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm not affiliated with them in anyway, just saw the video on YouTube.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vandalieu_zakkart"&gt; /u/vandalieu_zakkart &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtu.be/U6K2MP6VseM"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti150n/new_sota_1b_model_hrmtext/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti150n/new_sota_1b_model_hrmtext/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T17:39:54+00:00</published>
+    <published>2026-05-19T21:34:04+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thjgwr</id>
-    <title>Sapient Intelligence releases HRM-Text 1B: 40B tokens, ~$1k pretrain, beats Llama3.2 3B on MATH and DROP</title>
-    <updated>2026-05-19T11:01:48+00:00</updated>
+    <id>t3_1ti1f2k</id>
+    <title>Newbie vibe coding experience: Shifting from Claude Sonnet 4.6 to Qwen3.6-35B-A3B-UD-Q6_K</title>
+    <updated>2026-05-19T21:44:18+00:00</updated>
     <author>
-      <name>/u/Turbulent-Sky5396</name>
-      <uri>https://old.reddit.com/user/Turbulent-Sky5396</uri>
+      <name>/u/sooki10</name>
+      <uri>https://old.reddit.com/user/sooki10</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thjgwr/sapient_intelligence_releases_hrmtext_1b_40b/"&gt; &lt;img alt="Sapient Intelligence releases HRM-Text 1B: 40B tokens, ~$1k pretrain, beats Llama3.2 3B on MATH and DROP" src="https://preview.redd.it/18dykreus22h1.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=d870e6b5d3cf4a3bc77dece69c8d0279c127683a" title="Sapient Intelligence releases HRM-Text 1B: 40B tokens, ~$1k pretrain, beats Llama3.2 3B on MATH and DROP" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Sapient Intelligence (the HRM/hierarchical reasoning folks) dropped HRM-Text 1B today. Posting because the benchmark chart is interesting enough to be worth a look even if you're skeptical of the marketing.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The training numbers:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;1B params, trained from scratch on 16 GPUs in 1.9 days&lt;/li&gt; &lt;li&gt;40B unique tokens (they claim ~1/1000 the data of comparable models — chart shows 100×–900× less than Gemma3 4B / Llama3.2 3B / Qwen3.5 2B / Olmo3 7B)&lt;/li&gt; &lt;li&gt;~$1,000 reported budget&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/18dykreus22h1.png?width=1978&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=05c33d8682ccfec8d8ebb6e6ed96c7fba57bb2b1"&gt;https://preview.redd.it/18dykreus22h1.png?width=1978&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=05c33d8682ccfec8d8ebb6e6ed96c7fba57bb2b1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Where it actually wins (per their chart):&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MATH: 56.2&lt;/strong&gt; vs Llama3.2 3B 48.0, Olmo3 7B 40.0, GPT-3.5 34.1&lt;/li&gt; &lt;li&gt;&lt;strong&gt;DROP: 82.2&lt;/strong&gt; vs Olmo3 7B 71.5, Llama3.2 3B 45.2, GPT-3.5 64.1&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Where it's roughly tied or behind:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;ARC-C: 81.9&lt;/strong&gt; — basically a tie with Olmo3 7B (81.6) and Qwen3.5 2B (81.2)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;MMLU: 60.7&lt;/strong&gt; — &lt;em&gt;behind&lt;/em&gt; Qwen3.5 2B (64.7) and Olmo3 7B (65.8)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So the pattern is what you'd expect from something called a &amp;quot;Hierarchical Reasoning Model&amp;quot; — punches well above weight on multi-step reasoning (MATH, DROP), only middling on knowledge recall (MMLU). The MMLU gap is the validating part of the story: 40B tokens is just not enough to pack in world knowledge.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GitHub: &lt;a href="https://github.com/sapientinc/HRM-Text"&gt;https://github.com/sapientinc/HRM-Text&lt;/a&gt;&lt;/li&gt; &lt;li&gt;HF: &lt;a href="https://huggingface.co/sapientinc/HRM-Text-1B"&gt;https://huggingface.co/sapientinc/HRM-Text-1B&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Caveats worth flagging before anyone gets too hyped:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;These are their own self-reported numbers on their own chart. Independent eval pending.&lt;/li&gt; &lt;li&gt;MATH/DROP are exactly the kinds of benchmarks most vulnerable to test-set contamination in &amp;quot;structured token&amp;quot; pretraining curricula. Curious what people find with held-out reasoning evals.&lt;/li&gt; &lt;li&gt;The original HRM paper got mixed reception on whether the hierarchical mechanism generalizes — would love to hear from anyone who actually runs it whether it feels qualitatively different from a normal 1B.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Anyone tried it yet?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Turbulent-Sky5396"&gt; /u/Turbulent-Sky5396 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thjgwr/sapient_intelligence_releases_hrmtext_1b_40b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thjgwr/sapient_intelligence_releases_hrmtext_1b_40b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thjgwr/sapient_intelligence_releases_hrmtext_1b_40b/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is really just a post for those with shallow understanding of all this stuff, those not yet ready or capable of diving into the deeper end of vibe coding/llms. It might not be a helpful post for anyone more advanced than that. &lt;/p&gt; &lt;p&gt;I have been working on a Python Pygame project for about two months. It is now sitting at roughly 30k lines of code across 55 modules. I have been using Visual Studio Code, Copilot Pro+, and around three times the cost of pro+ in additional premium requests per month.&lt;/p&gt; &lt;p&gt;I initially started with Claude Opus, which was brilliant, but it became too expensive. I then moved to Claude Sonnet 4.6, which worked reasonably well at first. But over time I started seeing more and more messages like, “Sorry, the response hit the length limit. Please rephrase your prompt.” It also began struggling to resolve some bugs, even after many prompt attempts.&lt;/p&gt; &lt;p&gt;Generally, the thinking and reasoning periods seemed to get longer without producing useful outcomes, which meant tokens were being spent for very little return. I tried several ways to minimise this, but the same issues kept coming up.&lt;/p&gt; &lt;p&gt;I decided to install Ollama and Cline and use Qwen3.6... which has been going really well. It has already solved a few bugs that Sonnet seemed unable to resolve. I do need to be more mindful with prompts and context window management, but that feels like less of an obstacle than the issues I was having with Sonnet.&lt;/p&gt; &lt;p&gt;When my Copilot Pro+ allowance refreshes, I plan to get Claude Opus to review the code and give me a sense of how well Qwen3.6 has handled things. If the review is positive, I think that may be the end of my Copilot subscription for now.&lt;/p&gt; &lt;p&gt;I also want to acknowledge that before leaving Opus, I used it to modularise the program from one large monolithic Python file into smaller files and modules, with each file responsible for a specific part of the game. I think that made a big difference and helped both Sonnet and Qwen3.6 work much more effectively. For any newbie coders, I do think there is good merit in getting Claude Opus to setup and structure your program initially.&lt;/p&gt; &lt;p&gt;For context, my hardware is probably above average, with a 5090 and a 4000 Pro (56 GB of VRAM) , running a 250k context on Qwen3.6 within Cline.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sooki10"&gt; /u/sooki10 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T11:01:48+00:00</published>
+    <published>2026-05-19T21:44:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1th3r5q</id>
@@ -60,6 +60,19 @@
     <published>2026-05-19T12:34:32+00:00</published>
   </entry>
   <entry>
+    <id>t3_1thw066</id>
+    <title>Open weights GLM and Mimo are better than Gemini 3.5 flash according to arena</title>
+    <updated>2026-05-19T18:37:08+00:00</updated>
+    <author>
+      <name>/u/Terminator857</name>
+      <uri>https://old.reddit.com/user/Terminator857</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While we are weathering the gemini 3.5 flash hype, keep in mind that according to arena, GLM and Mimo are better.&lt;/p&gt; &lt;p&gt;&lt;a href="https://arena.ai/leaderboard/text/coding-no-style-control"&gt;https://arena.ai/leaderboard/text/coding-no-style-control&lt;/a&gt;&lt;/p&gt; &lt;p&gt;#7 GLM&lt;/p&gt; &lt;p&gt;#9 Mimo&lt;/p&gt; &lt;p&gt;#12 Gemini 3.5 Flash&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T18:37:08+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1thm9ek</id>
     <title>Simple Multi-Agent Architecture Running Across Our Entire Org. Keeping everything in Loop.</title>
     <updated>2026-05-19T13:00:14+00:00</updated>
@@ -86,19 +99,6 @@
     <published>2026-05-19T18:44:14+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thw066</id>
-    <title>Open weights GLM and Mimo are better than Gemini 3.5 flash according to arena</title>
-    <updated>2026-05-19T18:37:08+00:00</updated>
-    <author>
-      <name>/u/Terminator857</name>
-      <uri>https://old.reddit.com/user/Terminator857</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;While we are weathering the gemini 3.5 flash hype, keep in mind that according to arena, GLM and Mimo are better.&lt;/p&gt; &lt;p&gt;&lt;a href="https://arena.ai/leaderboard/text/coding-no-style-control"&gt;https://arena.ai/leaderboard/text/coding-no-style-control&lt;/a&gt;&lt;/p&gt; &lt;p&gt;#7 GLM&lt;/p&gt; &lt;p&gt;#9 Mimo&lt;/p&gt; &lt;p&gt;#12 Gemini 3.5 Flash&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thw066/open_weights_glm_and_mimo_are_better_than_gemini/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T18:37:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1thsset</id>
     <title>Floor for local meeting summarization on a 6GB GPU: qwen3.5:0.8b works at 57s, Granite 4 350M hallucinates</title>
     <updated>2026-05-19T16:50:50+00:00</updated>
@@ -112,19 +112,6 @@
     <published>2026-05-19T16:50:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thx8eo</id>
-    <title>Why is LM-Studio download page showing me 0.4.7 to download when the latest version is 0.4.13?</title>
-    <updated>2026-05-19T19:17:46+00:00</updated>
-    <author>
-      <name>/u/bgravato</name>
-      <uri>https://old.reddit.com/user/bgravato</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm currently running LM-Studio 0.4.12. In the app if I check for updates it says there's a new version (0.4.13), I can read the changelog for 0.4.13, but when I go to &lt;a href="https://lmstudio.ai/download"&gt;https://lmstudio.ai/download&lt;/a&gt; it shows 0.4.7.&lt;/p&gt; &lt;p&gt;What's going on here? Anyone knows?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bgravato"&gt; /u/bgravato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T19:17:46+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tgrpqc</id>
     <title>Qwen cant wait to release 3.7 models</title>
     <updated>2026-05-18T16:25:14+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tgrpqc/qwen_cant_wait_to_release_37_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-18T16:25:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1thx8eo</id>
+    <title>Why is LM-Studio download page showing me 0.4.7 to download when the latest version is 0.4.13?</title>
+    <updated>2026-05-19T19:17:46+00:00</updated>
+    <author>
+      <name>/u/bgravato</name>
+      <uri>https://old.reddit.com/user/bgravato</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm currently running LM-Studio 0.4.12. In the app if I check for updates it says there's a new version (0.4.13), I can read the changelog for 0.4.13, but when I go to &lt;a href="https://lmstudio.ai/download"&gt;https://lmstudio.ai/download&lt;/a&gt; it shows 0.4.7.&lt;/p&gt; &lt;p&gt;What's going on here? Anyone knows?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bgravato"&gt; /u/bgravato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thx8eo/why_is_lmstudio_download_page_showing_me_047_to/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T19:17:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1thyvum</id>
@@ -190,19 +190,6 @@
     <published>2026-05-19T15:00:37+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thv6du</id>
-    <title>Nemotron-Labs-Diffusion from NVIDIA</title>
-    <updated>2026-05-19T18:09:52+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt; &lt;img alt="Nemotron-Labs-Diffusion from NVIDIA" src="https://preview.redd.it/mwyq7b7hx42h1.png?width=140&amp;amp;height=32&amp;amp;auto=webp&amp;amp;s=526dcd78772e9e6925693a9187f5a943bc5ef59a" title="Nemotron-Labs-Diffusion from NVIDIA" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Overview&lt;/p&gt; &lt;p&gt;Nemotron-Labs-Diffusion is a tri-mode language model that supports both AR decoding and diffusion-based parallel decoding by simply switching the attention pattern of the same model during inference. The synergy between these two modes enables a third mode, called self-speculation: the same model performs diffusion-based parallel drafting and AR verification with shared KV cache, achieving high acceptance lengths and decoding efficiency. The seamless mode switching by simply changing attention patterns enables high efficiency at different concurrency levels in varying deployment scenarios with one single model.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/mwyq7b7hx42h1.png?width=3915&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=744bd87267338a6236269a8d915b185cff8a82d2"&gt;https://preview.redd.it/mwyq7b7hx42h1.png?width=3915&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=744bd87267338a6236269a8d915b185cff8a82d2&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Highlights&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;SOTA 3B, 8B, 14B dense LM family (base, instruct, and vision-language variants) supporting AR, diffusion, and self-speculation with the focus on decode efficiency.&lt;/li&gt; &lt;li&gt;Generation moved from a memory-bound regime toward a compute-bound regime. Model weights are loaded once and reused to compute multiple tokens during generation.&lt;/li&gt; &lt;li&gt;Self-speculation uses diffusion for drafting and AR for verification, providing a stronger alternative to MTP approaches: &lt;ul&gt; &lt;li&gt;3x higher acceptance length and 2.2x speed-up vs. Qwen3-8B-Eagle3 in SGLang.&lt;/li&gt; &lt;li&gt;5.9× tokens per forward over Qwen3-8B (no MTP) with the same accuracy.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;Real-device speed-up across platforms: &lt;ul&gt; &lt;li&gt;DGX Spark (8B, concurrency 1): 2.7x faster with 112 tok/sec vs. 41.8 tok/sec AR using w4a16.&lt;/li&gt; &lt;li&gt;GB200 (8B, concurrency 1): 3.3x faster with 850 tok/sec vs. 253 tok/sec AR and 360 tok/sec Eagle3. Custom CUDA kernels boost to 1015 tok/sec (4x).&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;Diffusion speedup-of-light analysis shows that throughput can be further doubled (vs. current best) for a single user with better sampling - future research.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-VLM-8B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-VLM-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T18:09:52+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1thkcor</id>
     <title>Meet the Fleet of BlackBeard</title>
     <updated>2026-05-19T11:42:50+00:00</updated>
@@ -216,17 +203,17 @@
     <published>2026-05-19T11:42:50+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ti0g0k</id>
-    <title>Google AI Edge Gallery v1.0.13 &amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history</title>
-    <updated>2026-05-19T21:09:13+00:00</updated>
+    <id>t3_1thv6du</id>
+    <title>Nemotron-Labs-Diffusion from NVIDIA</title>
+    <updated>2026-05-19T18:09:52+00:00</updated>
     <author>
-      <name>/u/AnticitizenPrime</name>
-      <uri>https://old.reddit.com/user/AnticitizenPrime</uri>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"&gt; &lt;img alt="Google AI Edge Gallery v1.0.13 &amp;amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history" src="https://external-preview.redd.it/1plV-ztbkeezVq2WWqgohL2vGQugJGAZDbJWRjgFPk8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d6e6e3678794bedc3184cd106c53807689366586" title="Google AI Edge Gallery v1.0.13 &amp;amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AnticitizenPrime"&gt; /u/AnticitizenPrime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/google-ai-edge/gallery/releases"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt; &lt;img alt="Nemotron-Labs-Diffusion from NVIDIA" src="https://preview.redd.it/mwyq7b7hx42h1.png?width=140&amp;amp;height=32&amp;amp;auto=webp&amp;amp;s=526dcd78772e9e6925693a9187f5a943bc5ef59a" title="Nemotron-Labs-Diffusion from NVIDIA" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Model Overview&lt;/p&gt; &lt;p&gt;Nemotron-Labs-Diffusion is a tri-mode language model that supports both AR decoding and diffusion-based parallel decoding by simply switching the attention pattern of the same model during inference. The synergy between these two modes enables a third mode, called self-speculation: the same model performs diffusion-based parallel drafting and AR verification with shared KV cache, achieving high acceptance lengths and decoding efficiency. The seamless mode switching by simply changing attention patterns enables high efficiency at different concurrency levels in varying deployment scenarios with one single model.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/mwyq7b7hx42h1.png?width=3915&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=744bd87267338a6236269a8d915b185cff8a82d2"&gt;https://preview.redd.it/mwyq7b7hx42h1.png?width=3915&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=744bd87267338a6236269a8d915b185cff8a82d2&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Highlights&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;SOTA 3B, 8B, 14B dense LM family (base, instruct, and vision-language variants) supporting AR, diffusion, and self-speculation with the focus on decode efficiency.&lt;/li&gt; &lt;li&gt;Generation moved from a memory-bound regime toward a compute-bound regime. Model weights are loaded once and reused to compute multiple tokens during generation.&lt;/li&gt; &lt;li&gt;Self-speculation uses diffusion for drafting and AR for verification, providing a stronger alternative to MTP approaches: &lt;ul&gt; &lt;li&gt;3x higher acceptance length and 2.2x speed-up vs. Qwen3-8B-Eagle3 in SGLang.&lt;/li&gt; &lt;li&gt;5.9× tokens per forward over Qwen3-8B (no MTP) with the same accuracy.&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;Real-device speed-up across platforms: &lt;ul&gt; &lt;li&gt;DGX Spark (8B, concurrency 1): 2.7x faster with 112 tok/sec vs. 41.8 tok/sec AR using w4a16.&lt;/li&gt; &lt;li&gt;GB200 (8B, concurrency 1): 3.3x faster with 850 tok/sec vs. 253 tok/sec AR and 360 tok/sec Eagle3. Custom CUDA kernels boost to 1015 tok/sec (4x).&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;Diffusion speedup-of-light analysis shows that throughput can be further doubled (vs. current best) for a single user with better sampling - future research.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-VLM-8B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-VLM-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-14B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B-Base"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B-Base&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B"&gt;https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-3B&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thv6du/nemotronlabsdiffusion_from_nvidia/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T21:09:13+00:00</published>
+    <published>2026-05-19T18:09:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1thlmsx</id>
@@ -268,17 +255,17 @@
     <published>2026-05-19T17:37:34+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thxig9</id>
-    <title>Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage</title>
-    <updated>2026-05-19T19:26:48+00:00</updated>
+    <id>t3_1ti0g0k</id>
+    <title>Google AI Edge Gallery v1.0.13 &amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history</title>
+    <updated>2026-05-19T21:09:13+00:00</updated>
     <author>
-      <name>/u/FullstackSensei</name>
-      <uri>https://old.reddit.com/user/FullstackSensei</uri>
+      <name>/u/AnticitizenPrime</name>
+      <uri>https://old.reddit.com/user/AnticitizenPrime</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"&gt; &lt;img alt="Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage" src="https://external-preview.redd.it/SNHEvU7K3EFGJXZReaKGh0MH1vSD89SJUT8aTxnB1QM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ffc451fa69899b297d300491166af81e9d4e671e" title="Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Upcoming Intel Xe3P data center GPU with 20 8GBLPDDR5X modules for a total of 160GB, bypassing HBM shortages.&lt;/p&gt; &lt;p&gt;Assuming a 32-bit interface, that's a 640-bit wide memory interface, or 10 channel memory interface if converted to the 64-bit wide desktop equivalent. At 8800-9500MT, that's a 704-760GB/s memory bandwidth.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullstackSensei"&gt; /u/FullstackSensei &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://wccftech.com/intel-crescent-island-pcb-leaks-massive-xe3p-gpu-160gb-lpddr5x/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"&gt; &lt;img alt="Google AI Edge Gallery v1.0.13 &amp;amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history" src="https://external-preview.redd.it/1plV-ztbkeezVq2WWqgohL2vGQugJGAZDbJWRjgFPk8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d6e6e3678794bedc3184cd106c53807689366586" title="Google AI Edge Gallery v1.0.13 &amp;amp; v1.0.14 updates: Gemma 4 Multi-Token Prediction, Pixel TPU support, experimental MCP, new skills, now saves chat history" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AnticitizenPrime"&gt; /u/AnticitizenPrime &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/google-ai-edge/gallery/releases"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti0g0k/google_ai_edge_gallery_v1013_v1014_updates_gemma/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T19:26:48+00:00</published>
+    <published>2026-05-19T21:09:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1theffd</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1theffd/qwen_is_cooking_hard/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-19T06:28:31+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1thxig9</id>
+    <title>Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage</title>
+    <updated>2026-05-19T19:26:48+00:00</updated>
+    <author>
+      <name>/u/FullstackSensei</name>
+      <uri>https://old.reddit.com/user/FullstackSensei</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"&gt; &lt;img alt="Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage" src="https://external-preview.redd.it/SNHEvU7K3EFGJXZReaKGh0MH1vSD89SJUT8aTxnB1QM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ffc451fa69899b297d300491166af81e9d4e671e" title="Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Upcoming Intel Xe3P data center GPU with 20 8GBLPDDR5X modules for a total of 160GB, bypassing HBM shortages.&lt;/p&gt; &lt;p&gt;Assuming a 32-bit interface, that's a 640-bit wide memory interface, or 10 channel memory interface if converted to the 64-bit wide desktop equivalent. At 8800-9500MT, that's a 704-760GB/s memory bandwidth.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FullstackSensei"&gt; /u/FullstackSensei &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://wccftech.com/intel-crescent-island-pcb-leaks-massive-xe3p-gpu-160gb-lpddr5x/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T19:26:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1thucyj</id>
