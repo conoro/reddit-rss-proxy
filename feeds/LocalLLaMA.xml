@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-19T23:42:37+00:00</updated>
+  <updated>2026-05-20T00:12:59+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1thllwg</id>
-    <title>Number-aware embeddings</title>
-    <updated>2026-05-19T12:34:32+00:00</updated>
-    <author>
-      <name>/u/Academic_Sleep1118</name>
-      <uri>https://old.reddit.com/user/Academic_Sleep1118</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If you look at the cosine sim between the embeddings of &amp;quot;a 500 hp car&amp;quot;, &amp;quot;a 1,200 hp car&amp;quot; and &amp;quot;a 73 hp car&amp;quot;, you'll soon see that embedding models have no sense of number ordering at all. (I tested Qwen and ModernBERT-based embeddings)&lt;/p&gt; &lt;p&gt;It mostly comes from how the tokenizer and the log likelihood loss excessively reward exact prediction over Order Of Magnitude prediction, during the MLM pre-training phase.&lt;/p&gt; &lt;p&gt;I've tried to mitigate this by overriding the default tokenizer/prediction head for numbers, and MLM fine-tuning the modified architecture on 300M tokens (of which ~ 4M numbers)&lt;/p&gt; &lt;p&gt;And it works. The idea is to regex number patterns, and represent them in log magnitude. Each number then gets smooth-encoded into 128 bins (linear interpolation between adjacent bins), with an embedding dict entry for each of these 128 bins. Decoding works much the same: I've used a classification-regression head, with 128 output bins and smooth CE loss.&lt;/p&gt; &lt;p&gt;Making the MLM-pre-trained model into an embedding model was the most interesting part. I've tried JEPA and it failed, so I went for an encoder/decoder setup, that worked fine.&lt;/p&gt; &lt;p&gt;End result, after 6 H100-hours or training : on my custom benchmarks (this sentence is a complete red flag, isn't it?), it's able to correctly sort triplets of sentences 59% of the time, vs. 38% for ModernBERT (mean-pooling) and 34% for BGE-base-v1.5 (CLS).&lt;/p&gt; &lt;p&gt;It's also quite good at extracting structured/quantitative data from number-heavy HTML tables.&lt;/p&gt; &lt;p&gt;The (rather undertrained) model is here: &lt;a href="https://huggingface.co/edereynal/financial_bert"&gt;https://huggingface.co/edereynal/financial_bert&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you're interested in the full engineering, please check the blog post. It's quite dense, technically speaking, but I think it's interesting: &lt;a href="https://www.eloidereynal.com/p/i-spent-1-year-trying-to-predict"&gt;https://www.eloidereynal.com/p/i-spent-1-year-trying-to-predict&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Academic_Sleep1118"&gt; /u/Academic_Sleep1118 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thllwg/numberaware_embeddings/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thllwg/numberaware_embeddings/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thllwg/numberaware_embeddings/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T12:34:32+00:00</published>
-  </entry>
   <entry>
     <id>t3_1thw066</id>
     <title>Open weights GLM and Mimo are better than Gemini 3.5 flash according to arena</title>
@@ -86,6 +73,19 @@
     <published>2026-05-19T16:50:50+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ti4jrq</id>
+    <title>Claude Code plugins a risk to local ecosystem?</title>
+    <updated>2026-05-19T23:47:40+00:00</updated>
+    <author>
+      <name>/u/dtdisapointingresult</name>
+      <uri>https://old.reddit.com/user/dtdisapointingresult</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;There's an increasingly popular way to ship complex extensions for agentic work, that is specific to Claude Code, which is Code plugins. For example here's &lt;a href="https://github.com/microsoft/skills/tree/main/.github/plugins/deep-wiki"&gt;deep-wiki&lt;/a&gt; by Microsoft, a plugin to create a wiki from analyzing your project's repo. There's a lot in there. It's far more powerful than a skill, it can let the user do manual activation via slash commands (/deep-wiki:generate, /deek-wiki:ask, etc), it can spawns different subagent profiles depending on the task requested, plus whatever else Anthropic comes up with later on.&lt;/p&gt; &lt;p&gt;TLDR of plugins (LLM generated): &lt;em&gt;A skill is a single capability: one SKILL.md file with a name, a description, and a prompt body that the model auto-invokes when the description matches the user's request. A plugin is a distribution unit — a directory with a plugin.json manifest that bundles together multiple capabilities of different kinds: skills (auto-invoked), slash commands (explicitly invoked under a /plugin-name:command namespace), and subagents (spawned with their own context). So skills and plugins aren't alternatives at the same level — a plugin is the package, and skills are one of several things a plugin can contain alongside commands and agents. You can ship a lone skill without a plugin, but you can't ship a slash command or a namespaced bundle of capabilities without one.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;Plugins allow some pretty heavy work, for example deep-wiki is 3.5k LOC. This is a huge amount of guidance/prompts and custom paths packed in a single cohesive bundle.&lt;/p&gt; &lt;p&gt;But plugins are not an open standard like Skills. And it's not something agentic apps can easily implement. Most agentic apps don't support subagents or custom slash commands at the moment, let alone have them be Code plugin compatible.&lt;/p&gt; &lt;p&gt;Do you think this is something that will allow Claude Code to completely pull ahead of the competition (moreso) due to an implicit form of vendor lock-in, as power users focus on Code plugins?&lt;/p&gt; &lt;p&gt;(By the way, I did some research, and among open-source agents, AFAIK only Qwen Code supports installing Code plugins, even straight from the Claude marketplace. Alibaba get it. But that's just 1 app and not one I see discussed much.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/dtdisapointingresult"&gt; /u/dtdisapointingresult &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti4jrq/claude_code_plugins_a_risk_to_local_ecosystem/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti4jrq/claude_code_plugins_a_risk_to_local_ecosystem/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti4jrq/claude_code_plugins_a_risk_to_local_ecosystem/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T23:47:40+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1thx8eo</id>
     <title>Why is LM-Studio download page showing me 0.4.7 to download when the latest version is 0.4.13?</title>
     <updated>2026-05-19T19:17:46+00:00</updated>
@@ -112,17 +112,17 @@
     <published>2026-05-19T13:52:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ti1f2k</id>
-    <title>Newbie vibe coding experience: Shifting from Claude Sonnet 4.6 to Qwen3.6-35B-A3B-UD-Q6_K</title>
-    <updated>2026-05-19T21:44:18+00:00</updated>
+    <id>t3_1th1mqx</id>
+    <title>Still happy for yall</title>
+    <updated>2026-05-18T21:19:14+00:00</updated>
     <author>
-      <name>/u/sooki10</name>
-      <uri>https://old.reddit.com/user/sooki10</uri>
+      <name>/u/SilverRegion9394</name>
+      <uri>https://old.reddit.com/user/SilverRegion9394</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is really just a post for those with shallow understanding of all this stuff, those not yet ready or capable of diving into the deeper end of vibe coding/llms. It might not be a helpful post for anyone more advanced than that. &lt;/p&gt; &lt;p&gt;I have been working on a Python Pygame project for about two months. It is now sitting at roughly 30k lines of code across 55 modules. I have been using Visual Studio Code, Copilot Pro+, and around three times the cost of pro+ in additional premium requests per month.&lt;/p&gt; &lt;p&gt;I initially started with Claude Opus, which was brilliant, but it became too expensive. I then moved to Claude Sonnet 4.6, which worked reasonably well at first. But over time I started seeing more and more messages like, “Sorry, the response hit the length limit. Please rephrase your prompt.” It also began struggling to resolve some bugs, even after many prompt attempts.&lt;/p&gt; &lt;p&gt;Generally, the thinking and reasoning periods seemed to get longer without producing useful outcomes, which meant tokens were being spent for very little return. I tried several ways to minimise this, but the same issues kept coming up.&lt;/p&gt; &lt;p&gt;I decided to install Ollama and Cline and use Qwen3.6... which has been going really well. It has already solved a few bugs that Sonnet seemed unable to resolve. I do need to be more mindful with prompts and context window management, but that feels like less of an obstacle than the issues I was having with Sonnet.&lt;/p&gt; &lt;p&gt;When my Copilot Pro+ allowance refreshes, I plan to get Claude Opus to review the code and give me a sense of how well Qwen3.6 has handled things. If the review is positive, I think that may be the end of my Copilot subscription for now.&lt;/p&gt; &lt;p&gt;I also want to acknowledge that before leaving Opus, I used it to modularise the program from one large monolithic Python file into smaller files and modules, with each file responsible for a specific part of the game. I think that made a big difference and helped both Sonnet and Qwen3.6 work much more effectively. For any newbie coders, I do think there is good merit in getting Claude Opus to setup and structure your program initially.&lt;/p&gt; &lt;p&gt;For context, my hardware is probably above average, with a 5090 and a 4000 Pro (56 GB of VRAM) , running a 250k context on Qwen3.6 within Cline.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sooki10"&gt; /u/sooki10 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"&gt; &lt;img alt="Still happy for yall" src="https://preview.redd.it/hop70iuspy1h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1247c8a71e72cdacd2a68ff323ee68a546e38d04" title="Still happy for yall" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SilverRegion9394"&gt; /u/SilverRegion9394 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hop70iuspy1h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T21:44:18+00:00</published>
+    <published>2026-05-18T21:19:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1thyvum</id>
@@ -136,19 +136,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thyvum/qwen3627b_vram_16gb_5080_mtp_quant_speeds_and/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-19T20:14:11+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1th1mqx</id>
-    <title>Still happy for yall</title>
-    <updated>2026-05-18T21:19:14+00:00</updated>
-    <author>
-      <name>/u/SilverRegion9394</name>
-      <uri>https://old.reddit.com/user/SilverRegion9394</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"&gt; &lt;img alt="Still happy for yall" src="https://preview.redd.it/hop70iuspy1h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1247c8a71e72cdacd2a68ff323ee68a546e38d04" title="Still happy for yall" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SilverRegion9394"&gt; /u/SilverRegion9394 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hop70iuspy1h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1th1mqx/still_happy_for_yall/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-18T21:19:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1thpkka</id>
@@ -175,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thkcor/meet_the_fleet_of_blackbeard/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-19T11:42:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ti1f2k</id>
+    <title>Newbie vibe coding experience: Shifting from Claude Sonnet 4.6 to Qwen3.6-35B-A3B-UD-Q6_K</title>
+    <updated>2026-05-19T21:44:18+00:00</updated>
+    <author>
+      <name>/u/sooki10</name>
+      <uri>https://old.reddit.com/user/sooki10</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is really just a post for those with shallow understanding of all this stuff, those not yet ready or capable of diving into the deeper end of vibe coding/llms. It might not be a helpful post for anyone more advanced than that. &lt;/p&gt; &lt;p&gt;I have been working on a Python Pygame project for about two months. It is now sitting at roughly 30k lines of code across 55 modules. I have been using Visual Studio Code, Copilot Pro+, and around three times the cost of pro+ in additional premium requests per month.&lt;/p&gt; &lt;p&gt;I initially started with Claude Opus, which was brilliant, but it became too expensive. I then moved to Claude Sonnet 4.6, which worked reasonably well at first. But over time I started seeing more and more messages like, “Sorry, the response hit the length limit. Please rephrase your prompt.” It also began struggling to resolve some bugs, even after many prompt attempts.&lt;/p&gt; &lt;p&gt;Generally, the thinking and reasoning periods seemed to get longer without producing useful outcomes, which meant tokens were being spent for very little return. I tried several ways to minimise this, but the same issues kept coming up.&lt;/p&gt; &lt;p&gt;I decided to install Ollama and Cline and use Qwen3.6... which has been going really well. It has already solved a few bugs that Sonnet seemed unable to resolve. I do need to be more mindful with prompts and context window management, but that feels like less of an obstacle than the issues I was having with Sonnet.&lt;/p&gt; &lt;p&gt;When my Copilot Pro+ allowance refreshes, I plan to get Claude Opus to review the code and give me a sense of how well Qwen3.6 has handled things. If the review is positive, I think that may be the end of my Copilot subscription for now.&lt;/p&gt; &lt;p&gt;I also want to acknowledge that before leaving Opus, I used it to modularise the program from one large monolithic Python file into smaller files and modules, with each file responsible for a specific part of the game. I think that made a big difference and helped both Sonnet and Qwen3.6 work much more effectively. For any newbie coders, I do think there is good merit in getting Claude Opus to setup and structure your program initially.&lt;/p&gt; &lt;p&gt;For context, my hardware is probably above average, with a 5090 and a 4000 Pro (56 GB of VRAM) , running a 250k context on Qwen3.6 within Cline.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sooki10"&gt; /u/sooki10 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti1f2k/newbie_vibe_coding_experience_shifting_from/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T21:44:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1thv6du</id>
@@ -216,19 +216,6 @@
     <published>2026-05-19T12:35:37+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ti2ga0</id>
-    <title>48GB VRAM users, what are your daily drivers? Do you wish you had more VRAM? What would you run if you did?</title>
-    <updated>2026-05-19T22:23:16+00:00</updated>
-    <author>
-      <name>/u/Borkato</name>
-      <uri>https://old.reddit.com/user/Borkato</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m upgrading from 32 to 48 soon and am excited but I’m curious what y’all run!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Borkato"&gt; /u/Borkato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T22:23:16+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1thsw7b</id>
     <title>Carbon: Decoding the Language of Life</title>
     <updated>2026-05-19T16:54:24+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thu6os/here_are_my_kv_cache_quantization_benchmarks/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-19T17:37:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ti2ga0</id>
+    <title>48GB VRAM users, what are your daily drivers? Do you wish you had more VRAM? What would you run if you did?</title>
+    <updated>2026-05-19T22:23:16+00:00</updated>
+    <author>
+      <name>/u/Borkato</name>
+      <uri>https://old.reddit.com/user/Borkato</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m upgrading from 32 to 48 soon and am excited but I’m curious what y’all run!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Borkato"&gt; /u/Borkato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ti2ga0/48gb_vram_users_what_are_your_daily_drivers_do/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T22:23:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1ti0g0k</id>
@@ -294,19 +294,6 @@
     <published>2026-05-19T14:33:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1thucyj</id>
-    <title>A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic.</title>
-    <updated>2026-05-19T17:43:27+00:00</updated>
-    <author>
-      <name>/u/mhb-11</name>
-      <uri>https://old.reddit.com/user/mhb-11</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"&gt; &lt;img alt="A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic." src="https://external-preview.redd.it/ZXNuMnBpM2hqNDJoMQv9KINdfUtU8FSh_q-ZFdhgI7b9a46voEfpqTfrcW8j.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=aeef1330aa97af5f46ee71d25471652a3b9e1af1" title="A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The video shows how my pipeline produces a 3D washing machine, composed of separated, functional parts (instead of monolithic 3D blobs). There's also hinge/socket articulation, so the internal assembly actually churns or rotates.&lt;/p&gt; &lt;p&gt;The problem I'm solving: pretty much every text-to-3D pipeline right now is just diffusion (or diffusion-like) weights producing mesh blobs. Want to swap the scope on a generated gun? Change one word in your prompt, the whole or most of the thing regenerates from scratch, because the model has zero concept that a gun has &lt;em&gt;parts&lt;/em&gt;. It's all undifferentiated point clouds to these systems.&lt;/p&gt; &lt;p&gt;I tried to change that. My pipeline uses an LLM as a structured code compiler, instead of an image generator. It writes native Blender Python code blocks that target specific nodes in the scene graph.&lt;/p&gt; &lt;p&gt;The trick is that everything compiles through Blender's actual scene graph structures instead of pixel or point-cloud diffusion. Final export is a clean multi-part GLB with transform nodes and working pivot axes preserved.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stack:&lt;/strong&gt;&lt;br /&gt; Frontend is Flutter with a Three.js viewport harness for in-browser rendering and node manipulation. By default it hits my hosted API, but I made it model-agnostic for self-hosting. &lt;/p&gt; &lt;p&gt;Frontend repo is open source: &lt;a href="https://github.com/RareSense/Nova3D"&gt;https://github.com/RareSense/Nova3D&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Also some bad news: local models are getting there&lt;em&gt;,&lt;/em&gt; but they still hallucinate Blender's internal matrix math functions pretty badly on complex transforms. I spent way too long debugging &amp;quot;correct-looking&amp;quot; code that was actually rotating things into the fourth dimension. The pipeline code itself is fully LLM-agnostic, byt for best results, try Gemini as BYOK. Would love to collaborate with smarter people than me to rig this up with a great opensource candidate, I myself have failed at that.&lt;/p&gt; &lt;p&gt;Also want technical feedback from people messing with prompt-to-code pipelines in 3D generation contexts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Btw, for fun:&lt;/strong&gt; Interesting generated examples:&lt;br /&gt; - Boston Dynamics-style robot dog: &lt;a href="https://imgur.com/a/CqMYgrF"&gt;https://imgur.com/a/CqMYgrF&lt;/a&gt;&lt;br /&gt; - A microwave: &lt;a href="https://imgur.com/a/hIqIJdr"&gt;https://imgur.com/a/hIqIJdr&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mhb-11"&gt; /u/mhb-11 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/twod793hj42h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-19T17:43:27+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1thxig9</id>
     <title>Intel's Crescent Island PCB Leaks, Showing a Massive Xe3P GPU, 16-Pin Connector, 160GB LPDDR5X as Intel Sidesteps the HBM Shortage</title>
     <updated>2026-05-19T19:26:48+00:00</updated>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thxig9/intels_crescent_island_pcb_leaks_showing_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-19T19:26:48+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1thucyj</id>
+    <title>A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic.</title>
+    <updated>2026-05-19T17:43:27+00:00</updated>
+    <author>
+      <name>/u/mhb-11</name>
+      <uri>https://old.reddit.com/user/mhb-11</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"&gt; &lt;img alt="A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic." src="https://external-preview.redd.it/ZXNuMnBpM2hqNDJoMQv9KINdfUtU8FSh_q-ZFdhgI7b9a46voEfpqTfrcW8j.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=aeef1330aa97af5f46ee71d25471652a3b9e1af1" title="A tool I built to generate 3D objects with functional, articulated parts. It's on github, and is mostly LLM-agnostic." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The video shows how my pipeline produces a 3D washing machine, composed of separated, functional parts (instead of monolithic 3D blobs). There's also hinge/socket articulation, so the internal assembly actually churns or rotates.&lt;/p&gt; &lt;p&gt;The problem I'm solving: pretty much every text-to-3D pipeline right now is just diffusion (or diffusion-like) weights producing mesh blobs. Want to swap the scope on a generated gun? Change one word in your prompt, the whole or most of the thing regenerates from scratch, because the model has zero concept that a gun has &lt;em&gt;parts&lt;/em&gt;. It's all undifferentiated point clouds to these systems.&lt;/p&gt; &lt;p&gt;I tried to change that. My pipeline uses an LLM as a structured code compiler, instead of an image generator. It writes native Blender Python code blocks that target specific nodes in the scene graph.&lt;/p&gt; &lt;p&gt;The trick is that everything compiles through Blender's actual scene graph structures instead of pixel or point-cloud diffusion. Final export is a clean multi-part GLB with transform nodes and working pivot axes preserved.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Stack:&lt;/strong&gt;&lt;br /&gt; Frontend is Flutter with a Three.js viewport harness for in-browser rendering and node manipulation. By default it hits my hosted API, but I made it model-agnostic for self-hosting. &lt;/p&gt; &lt;p&gt;Frontend repo is open source: &lt;a href="https://github.com/RareSense/Nova3D"&gt;https://github.com/RareSense/Nova3D&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Also some bad news: local models are getting there&lt;em&gt;,&lt;/em&gt; but they still hallucinate Blender's internal matrix math functions pretty badly on complex transforms. I spent way too long debugging &amp;quot;correct-looking&amp;quot; code that was actually rotating things into the fourth dimension. The pipeline code itself is fully LLM-agnostic, byt for best results, try Gemini as BYOK. Would love to collaborate with smarter people than me to rig this up with a great opensource candidate, I myself have failed at that.&lt;/p&gt; &lt;p&gt;Also want technical feedback from people messing with prompt-to-code pipelines in 3D generation contexts.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Btw, for fun:&lt;/strong&gt; Interesting generated examples:&lt;br /&gt; - Boston Dynamics-style robot dog: &lt;a href="https://imgur.com/a/CqMYgrF"&gt;https://imgur.com/a/CqMYgrF&lt;/a&gt;&lt;br /&gt; - A microwave: &lt;a href="https://imgur.com/a/hIqIJdr"&gt;https://imgur.com/a/hIqIJdr&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mhb-11"&gt; /u/mhb-11 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/twod793hj42h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1thucyj/a_tool_i_built_to_generate_3d_objects_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-19T17:43:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1thkwgk</id>
