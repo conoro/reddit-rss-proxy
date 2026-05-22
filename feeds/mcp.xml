@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-22T22:36:53+00:00</updated>
+  <updated>2026-05-22T23:09:07+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1tk6mlp</id>
-    <title>Released octen-mcp — extract URLs with content category and page structure labels, not just markdown</title>
-    <updated>2026-05-22T03:12:15+00:00</updated>
-    <author>
-      <name>/u/Shot-Neighborhood332</name>
-      <uri>https://old.reddit.com/user/Shot-Neighborhood332</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tk6mlp/released_octenmcp_extract_urls_with_content/"&gt; &lt;img alt="Released octen-mcp — extract URLs with content category and page structure labels, not just markdown" src="https://external-preview.redd.it/LtKtt6txZ-QrVhG54gL73uTj3IfQTG0w8wIIdqF-0s0.png?width=140&amp;amp;height=140&amp;amp;auto=webp&amp;amp;s=3a458fe71200432de18af167fce9b9646935da5a" title="Released octen-mcp — extract URLs with content category and page structure labels, not just markdown" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I released octen-mcp, an MCP server that returns clean markdown plus two structured page labels:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;category — topical labels (Finance, Health, News, Ecommerce, etc.).so your agent can filter by vertical&lt;/li&gt; &lt;li&gt;page_structure — what kind of page (Content Page, Homepage, Index Page, No Main Content, etc.) so your agent can skip listing pages, dead links, and login-wall shells before paying for LLM tokens&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The use case that pushed me to ship this: a common failure mode for extract pipelines is when the request returns `success`, response body is non-empty, but the page is actually a login wall, paywall, or JS shell. Your agent has no signal until it pays for an LLM call to discover there's nothing to summarize.&lt;/p&gt; &lt;p&gt;Concrete example — `&lt;a href="https://github.com/login%60"&gt;https://github.com/login`&lt;/a&gt;. Visually it looks like a normal page:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/yk0ix1qoul2h1.png?width=1280&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=137c530ec5187fb8d7656bccde8ac8ab1d459e67"&gt;https://preview.redd.it/yk0ix1qoul2h1.png?width=1280&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=137c530ec5187fb8d7656bccde8ac8ab1d459e67&lt;/a&gt;&lt;/p&gt; &lt;p&gt;But there's no main content to extract. Same URL on both APIs returns very different signals.&lt;/p&gt; &lt;p&gt;Firecrawl `/v1/scrape`:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; // Firecrawl /v1/scrape → https://github.com/login { &amp;quot;success&amp;quot;: true, &amp;quot;data&amp;quot;: { &amp;quot;markdown&amp;quot;: &amp;quot;[Skip to content]...(1,249 bytes of nav)&amp;quot;, &amp;quot;metadata&amp;quot;: { &amp;quot;title&amp;quot;: &amp;quot;Sign in to GitHub · GitHub&amp;quot;, &amp;quot;statusCode&amp;quot;: 200 // + 60 more metadata fields (og:, twitter:, github-*) // None of them tell the agent this is a login wall. } } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Octen `/extract`:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; // Octen /extract → https://github.com/login { &amp;quot;status&amp;quot;: &amp;quot;success&amp;quot;, &amp;quot;title&amp;quot;: &amp;quot;Build software better, together&amp;quot;, &amp;quot;full_content&amp;quot;: &amp;quot;[Skip to content]...(602 bytes)&amp;quot;, &amp;quot;category&amp;quot;: { &amp;quot;primary&amp;quot;: &amp;quot;Other&amp;quot;, &amp;quot;secondary&amp;quot;: &amp;quot;Other&amp;quot; }, &amp;quot;page_structure&amp;quot;: { &amp;quot;primary&amp;quot;: &amp;quot;No Main Content&amp;quot;, // ← agent: skip &amp;quot;secondary&amp;quot;: &amp;quot;Operation Page&amp;quot; } } // page_structure flags the page — agent skips, no LLM call. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;That single `page_structure: &amp;quot;No Main Content&amp;quot;` lets the agent skip the page without an LLM call. With other tools, the agent only finds out by spending tokens to summarize an empty page — at scale, a real chunk of the token bill.&lt;/p&gt; &lt;p&gt;Install (any MCP client):&lt;/p&gt; &lt;p&gt;&lt;code&gt;npx -y octen-mcp&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Quick start for Claude Desktop / Cursor / VS Code / Cline / Windsurf in the README. Free tier covers ~5k pages — grab a key at &lt;a href="https://octen.ai"&gt;https://octen.ai&lt;/a&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Repo: &lt;a href="https://github.com/Octen-Team/octen-mcp"&gt;https://github.com/Octen-Team/octen-mcp&lt;/a&gt;&lt;/li&gt; &lt;li&gt;NPM: &lt;a href="https://www.npmjs.com/package/octen-mcp"&gt;https://www.npmjs.com/package/octen-mcp&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Docs: &lt;a href="https://docs.octen.ai/api-reference/extract"&gt;https://docs.octen.ai/api-reference/extract&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Curious what other page-level labels people would want — author, publish date, content quality score, paywall flag explicitly, etc. are all things we've debated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Shot-Neighborhood332"&gt; /u/Shot-Neighborhood332 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tk6mlp/released_octenmcp_extract_urls_with_content/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tk6mlp/released_octenmcp_extract_urls_with_content/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tk6mlp/released_octenmcp_extract_urls_with_content/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-22T03:12:15+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tk8it7</id>
-    <title>Anyone eager to try a UI based MCP server framework with built-in auth, realtime logs?</title>
-    <updated>2026-05-22T04:42:48+00:00</updated>
-    <author>
-      <name>/u/hasmcp</name>
-      <uri>https://old.reddit.com/user/hasmcp</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Howdy mcp community! It has been so far the best month for my MCP server framework product. It gained first 3 months of users in just single month. MCP adoption played a huge role, many thanks to one of the best community!&lt;/p&gt; &lt;p&gt;To celebrate the adoption, I am giving away 3 months self-hosted pro version (including all updates) of HasMCP for the first 3 companies/individuals that writes to thread and dm me. Setup is just 1) pulling the public &lt;a href="https://github.com/hasmcp/hasmcp-pro-local-setup"&gt;hasmcp-pro-local-setup&lt;/a&gt; github repo, 2) copy .env.example as .env. and 3) place license key file in the _license folder. This unlocks a single-user all features of HasMCP including openapi spec to mcp conversion, realtime logs, built-in auth, dynamic tool discovery, MCP composition, Jmespath pruning, GoJa js req/res altering. &lt;/p&gt; &lt;p&gt;This is not about me to be generous but the community, the MCP vibe.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hasmcp"&gt; /u/hasmcp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tk8it7/anyone_eager_to_try_a_ui_based_mcp_server/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tk8it7/anyone_eager_to_try_a_ui_based_mcp_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tk8it7/anyone_eager_to_try_a_ui_based_mcp_server/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-22T04:42:48+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tk8v0u</id>
-    <title>LTS MCP Server – A Model Context Protocol server that provides Philippine License to Sell (LTS) verification data to LLMs. Built on Cloudflare Workers with Supabase. Public, read-only, no authentication required. Data sourced from the Department of Human Settlements and Urban Development (DHSUD) Li</title>
-    <updated>2026-05-22T05:00:05+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ph.godmode.lts/lts-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tk8v0u/lts_mcp_server_a_model_context_protocol_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tk8v0u/lts_mcp_server_a_model_context_protocol_server/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-22T05:00:05+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tk8v2v</id>
     <title>Binance MCP Server – A Model Context Protocol server that provides Claude Code with seamless access to Binance exchange API functionality for market data retrieval, account management, and trading operations.</title>
@@ -292,6 +253,45 @@
     <link href="https://old.reddit.com/r/mcp/comments/1tkwfsy/im_building_mcp_game_with_path_finding_need_advice/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-22T21:23:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tkyual</id>
+    <title>Exact tool allow list</title>
+    <updated>2026-05-22T22:58:59+00:00</updated>
+    <author>
+      <name>/u/SnooPeripherals5313</name>
+      <uri>https://old.reddit.com/user/SnooPeripherals5313</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SnooPeripherals5313"&gt; /u/SnooPeripherals5313 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/AI_Agents/comments/1tkxuem/exact_tool_allow_list/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tkyual/exact_tool_allow_list/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tkyual/exact_tool_allow_list/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-22T22:58:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tkyyq1</id>
+    <title>I’m building an open-source Chrome agent with WebMCP, and MCP server support</title>
+    <updated>2026-05-22T23:03:53+00:00</updated>
+    <author>
+      <name>/u/shijoi87</name>
+      <uri>https://old.reddit.com/user/shijoi87</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tkyyq1/im_building_an_opensource_chrome_agent_with/"&gt; &lt;img alt="I’m building an open-source Chrome agent with WebMCP, and MCP server support" src="https://external-preview.redd.it/c3g4YWRqNmdzcjJoMSviVnKadMxCp3LluJSldY3RGtUhf38kJB7XjpQrpgDB.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ea5dc93647964ebcf3bbe8389986d9e1da20e091" title="I’m building an open-source Chrome agent with WebMCP, and MCP server support" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m working on Brow, a WIP open-source Chrome side-panel agent that runs inside your real browser session.&lt;/p&gt; &lt;p&gt;It can work with Claude/OpenAI, but also local or open-source models through OpenAI-compatible endpoints and custom base URLs.&lt;/p&gt; &lt;p&gt;The extension also supports:&lt;/p&gt; &lt;p&gt;- Access to browser tab context&lt;/p&gt; &lt;p&gt;- WebMCP tools exposed directly by websites&lt;/p&gt; &lt;p&gt;- Remote MCP servers&lt;/p&gt; &lt;p&gt;- MCP Apps rendered inside the chat&lt;/p&gt; &lt;p&gt;- Browser tools like click, type, scroll, tabs, and screenshots&lt;/p&gt; &lt;p&gt;- Workflow recording that can be reused as context&lt;/p&gt; &lt;p&gt;The idea is to have one browser-side agent that can use the current page, local/open-source models, WebMCP tools, MCP servers, and browser automation from the same Chrome side panel.&lt;/p&gt; &lt;p&gt;It is still experimental and very much a work in progress, but I’m sharing it because it may be useful for people exploring MCP/WebMCP, browser agents, local models, or Chrome extension runtimes.&lt;/p&gt; &lt;p&gt;GitHub:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Shijou87/Brow"&gt;https://github.com/Shijou87/Brow&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shijoi87"&gt; /u/shijoi87 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/4m5sk7agsr2h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tkyyq1/im_building_an_opensource_chrome_agent_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tkyyq1/im_building_an_opensource_chrome_agent_with/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-22T23:03:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tkz18z</id>
+    <title>Vyra MCP - Hosted MCP that lets your agent understand and edit videos, all on a web app! Been building this over the last 8 months, excited to see what you guys think!</title>
+    <updated>2026-05-22T23:06:47+00:00</updated>
+    <author>
+      <name>/u/kale_eeb</name>
+      <uri>https://old.reddit.com/user/kale_eeb</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tkz18z/vyra_mcp_hosted_mcp_that_lets_your_agent/"&gt; &lt;img alt="Vyra MCP - Hosted MCP that lets your agent understand and edit videos, all on a web app! Been building this over the last 8 months, excited to see what you guys think!" src="https://external-preview.redd.it/Z2l0dTFzaGNycjJoMQb0YNQD6PWnQsEb_1etksq03ozcD_zaTnChvlJSPYEn.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=90c391d889f9588b28269565615388ea6f22411d" title="Vyra MCP - Hosted MCP that lets your agent understand and edit videos, all on a web app! Been building this over the last 8 months, excited to see what you guys think!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This demo video was posted on my cofounder's instagram account and reached 200k views :)&lt;/p&gt; &lt;p&gt;You can visit our landing page at &lt;a href="https://usevyra.com"&gt;https://usevyra.com&lt;/a&gt; or try our demo for free at &lt;a href="https://app.usevyra.com/demo"&gt;https://app.usevyra.com/demo&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kale_eeb"&gt; /u/kale_eeb &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/1b8xhdhcrr2h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tkz18z/vyra_mcp_hosted_mcp_that_lets_your_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tkz18z/vyra_mcp_hosted_mcp_that_lets_your_agent/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-22T23:06:47+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkxsic</id>
