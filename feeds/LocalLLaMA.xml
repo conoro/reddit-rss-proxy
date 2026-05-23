@@ -2,49 +2,36 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-23T15:09:12+00:00</updated>
+  <updated>2026-05-23T15:40:41+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
   <entry>
-    <id>t3_1tknbzh</id>
-    <title>Experts first llama.cpp</title>
-    <updated>2026-05-22T16:03:00+00:00</updated>
+    <id>t3_1tljn16</id>
+    <title>$16 refactor, 400 steps, 95% routed to open MoE</title>
+    <updated>2026-05-23T15:33:01+00:00</updated>
     <author>
-      <name>/u/comanderxv</name>
-      <uri>https://old.reddit.com/user/comanderxv</uri>
+      <name>/u/breadislifeee</name>
+      <uri>https://old.reddit.com/user/breadislifeee</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tknbzh/experts_first_llamacpp/"&gt; &lt;img alt="Experts first llama.cpp" src="https://preview.redd.it/1yy5050qgp2h1.png?width=140&amp;amp;height=68&amp;amp;auto=webp&amp;amp;s=524755c19c6a71197ba655a878ac3fb25198951a" title="Experts first llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This is for all with 12GB VRAM.&lt;/p&gt; &lt;p&gt;Hi, I created a fork of llama.cpp with an experimental implementation of experts instead of layers. The reason is I own an RTX 2060 with 12GB VRAM. That sounds big but is too little for dense models. That is why I use mainly MoE models because of that. The problem is, you need to split some layers to the CPU lane.&lt;/p&gt; &lt;p&gt;As you all surely know, Qwen3.6-35B-A3B uses only 8 experts per token; the rest are unused, so why not fill the experts into VRAM instead of complete layers full of unused experts?&lt;/p&gt; &lt;p&gt;I started to create a UI to monitor which experts are used. This already showed me that the first layers are more important to have on VRAM than the last ones; the reason is that they would change the experts more frequently than the others. Unfortunately, n-cpu-moe with llama.cpp will let the first layers on the CPU, so I tried -ot, but that's another story. With the optimized setup, I was able to reach about 22 tk/s. (Remember the 2060 has only about half the CUDA cores of a 3060.) With the default --n-cpu-moe, I get 19 tk/s&lt;/p&gt; &lt;p&gt;I only run Q6 models, since the degradation at coding is visible. My context is not quantized (same reason), and because of Java development, I need a big context window of 100k.&lt;/p&gt; &lt;p&gt;However, with my expert variant and a hit rate of about 62%, it increased to 26 tks. The break-even point was at a 42% hit rate. This means the prompt has used 42% of the chosen experts on the GPU in my cache. As I tested smaller sizes of RAM (built-in argument to specify the VRAM usage), another use case came into my mind. With a good profile, you can reduce the usage a lot without sacrificing speed.&lt;/p&gt; &lt;p&gt;Now, to my question. Is there a person who would like to give it a test? I really would like to know how it behaves on a 3060/4060 or similar. (CUDA is a requirement, and Qwen 35B A3B or Gemma 26B A4B). &lt;strong&gt;Currently, it is tested only on Linux.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Really, I don't want to earn any stars or so. I don't care; I just want to know how much it increases the token generation on which NVIDIA graphics card.&lt;/p&gt; &lt;p&gt;It would need the following: checkout and build &lt;a href="https://github.com/adrianhoehne/llama.cpp"&gt;https://github.com/adrianhoehne/llama.cpp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Start it with the additional arguments:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;./build/bin/llama-server --moe-layer-perf-out experts.json \ --cpu-moe \ --ctx-size 100000 \ --parallel 1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then start a prompt and wait. This will take longer than usual because every expert is still on the CPU.&lt;/p&gt; &lt;p&gt;After that, exchange the arguments to&lt;/p&gt; &lt;pre&gt;&lt;code&gt;./build/bin/llama-server --moe-hot-cache experts.json \ --moe-hot-cache-max-mib -1 \ --moe-hot-cache-auto-reserve-mib 1024 \ --moe-hot-cache-update-rate 0.10 \ --cpu-moe \ --ctx-size 100000 \ --parallel 1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;And start measurement.&lt;/p&gt; &lt;p&gt;I also included the view of which experts are used to the Llama UI:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/1yy5050qgp2h1.png?width=238&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=d088ae8ce597204f19f68f828be5be1da1fc2d9d"&gt;Button for ui&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Edit:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;If you tried, I would like to see the results, please share:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Graphics card and VRAM size.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Then in analysis view after the prompt was done:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;1. Total Moe,&lt;/li&gt; &lt;li&gt;2. hot lane, cold lane,&lt;/li&gt; &lt;li&gt;3. Overlap and join wait,&lt;/li&gt; &lt;li&gt;4. Merge time&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;and finally 2 lines after loading the model in the log.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;:auto_hot_cache_budget_bytes: auto hot-cache budget on CUDA0: free before hot-cache = 7015 MiB, deferred KV reserve = 0 MiB, safety reserve = 700 MiB, budget = 6315 MiB :llama_moe_hot_cache_init: selected 1198/3417 observed experts for hot-cache (n-cpu-moe equivalent = 9.4 layers @ 128 experts/layer, 6313/6315 MiB) &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/comanderxv"&gt; /u/comanderxv &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tknbzh/experts_first_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tknbzh/experts_first_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tknbzh/experts_first_llamacpp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Got tired of $160 Opus bills so I spent a weekend wiring up a routing layer on vLLM 0.8 (2xA100, enable_auto_tool_choice). Getting the tool call parser to cooperate took longer than the actual routing logic. Once it worked though, easy agent steps go to the 21B active MoE and hard steps get Opus.&lt;/p&gt; &lt;p&gt;Hunyuan Hy3 preview handled 380 of 400 steps on a 12k line Python repo at ~$0.02 each ($7.60). Opus covered the remaining 20 at $0.40 ($8), so $15.60 all in. I set reasoning to no_think on routine steps which cut token spend by roughly 30%. Final success rate was 93.4%. DeepSeek V4 hit similar accuracy but ran about 2x slower on search loop steps.&lt;/p&gt; &lt;p&gt;The 14 file circular import refactor is where it fell apart. Kept hallucinating module paths that didn't exist. Tencent reports 99.99% step success over 495 step workflows in production, and honestly that tracks for straightforward calls, but tangled dependency graphs still need Opus.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/breadislifeee"&gt; /u/breadislifeee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljn16/16_refactor_400_steps_95_routed_to_open_moe/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljn16/16_refactor_400_steps_95_routed_to_open_moe/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tljn16/16_refactor_400_steps_95_routed_to_open_moe/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T16:03:00+00:00</published>
+    <published>2026-05-23T15:33:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tkjpsh</id>
-    <title>OpenBMB presents the model BitCPM-CANN 1.58 bit</title>
-    <updated>2026-05-22T13:55:02+00:00</updated>
+    <id>t3_1tljs5o</id>
+    <title>Benchmarked Needle 26M vs Qwen3-0.6B on CPU function calling, 50 queries across 5 difficulty tiers. The 23x smaller model wins on accuracy and is 4.4x faster.</title>
+    <updated>2026-05-23T15:38:34+00:00</updated>
     <author>
-      <name>/u/Illustrious-Swim9663</name>
-      <uri>https://old.reddit.com/user/Illustrious-Swim9663</uri>
+      <name>/u/gvij</name>
+      <uri>https://old.reddit.com/user/gvij</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkjpsh/openbmb_presents_the_model_bitcpmcann_158_bit/"&gt; &lt;img alt="OpenBMB presents the model BitCPM-CANN 1.58 bit" src="https://preview.redd.it/lq2nm4aj2p2h1.jpg?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=2a90dd20bd71d78a214b3b4217c74876df0d84e1" title="OpenBMB presents the model BitCPM-CANN 1.58 bit" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Se están probando los modelos nuevos en el Huawei Ascend 910B&lt;/p&gt; &lt;p&gt;Link : &lt;a href="https://x.com/i/status/2057816337880355220"&gt;https://x.com/i/status/2057816337880355220&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Illustrious-Swim9663"&gt; /u/Illustrious-Swim9663 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tkjpsh"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkjpsh/openbmb_presents_the_model_bitcpmcann_158_bit/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkjpsh/openbmb_presents_the_model_bitcpmcann_158_bit/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ran a head-to-head on two open-weight models for tool-calling on a 4-core CPU, no GPU, no cherry-picking. Wanted to see if the small specialist (Needle, 26M, distilled from Gemini 3.1 for function calls) actually holds up against a small generalist (Qwen3-0.6B) that also does tools.&lt;/p&gt; &lt;p&gt;Setup: 50 queries across 5 tiers (simple, paraphrased, implicit, ambiguous, edge cases including foreign language and a &amp;quot;don't call any tool&amp;quot; trap). 5 mock tools. Three metrics per run: parse_success, tool_match, args_match. Same queries, same eval rubric, same hardware.&lt;/p&gt; &lt;p&gt;Headline numbers:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; Needle (26M) Qwen3 (0.6B) tool_match overall 72.0% 56.0% parse_success 84.0% 54.0% args_match | match 97.2% 100.0% mean latency 10.9s 47.9s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The interesting part is not the overall win, it's the failure shapes. They diverge completely:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Needle&lt;/strong&gt; fails by picking the wrong tool. When it does pick a tool, args are right 97% of the time. Its sin is selection, mostly routing system commands to search_web instead of run_command.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen3&lt;/strong&gt; fails by not calling a tool at all. Every single one of its 22 misses is a parse failure where it answered in prose instead of emitting &lt;code&gt;&amp;lt;tool_call&amp;gt;&lt;/code&gt; tags. When it does emit a call, args are perfect 100% of the time.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Tier breakdown is where it gets sharp. T1 and T2 (literal and paraphrased) are tied at ~95% each. T3 (implicit, like &amp;quot;should I bring an umbrella in Amsterdam?&amp;quot; where the tool name never appears) is where Qwen3 falls off a cliff: 80% to 10%. Needle just maps the intent. Qwen3 tries to be helpful in prose and apologizes for not having real-time data.&lt;/p&gt; &lt;p&gt;T5 (edge) is the only tier Qwen3 wins, by 10 pts. Hindi queries broke Needle's tokenizer (Devanagari fragments badly, one query timed out at 73s with garbled output). Qwen3 handled both Hindi and French cleanly.&lt;/p&gt; &lt;p&gt;One thing that almost killed the Needle run: first pass it scored 8% because I was feeding it OpenAI JSON Schema. Needle was trained on a flat schema (&lt;code&gt;{location: {type, description, required}}&lt;/code&gt;) and was literally echoing the word &amp;quot;properties&amp;quot; back as an argument value. Wrote a converter, accuracy jumped from 8% to 72% with no other changes. Worth knowing if anyone else picks up the Needle weights.&lt;/p&gt; &lt;p&gt;Qwen3 had its own issue, it never emitted EOS on the hand-rolled prompt template and burned the full 256-token budget on every query (~230s each). Switching to &lt;code&gt;tokenizer.apply_chat_template(tools=...)&lt;/code&gt; with &lt;code&gt;enable_thinking=False&lt;/code&gt; dropped it to ~37s and the &lt;code&gt;&amp;lt;tool_call&amp;gt;&lt;/code&gt; tags started appearing naturally.&lt;/p&gt; &lt;p&gt;My read: these are not the same product category even though they sound like they are. Needle is a dispatcher. Qwen3 is a tiny chatbot that can also call tools. If you want on-device single-shot tool routing with a fixed palette, Needle is genuinely good for 13MB. If you want any conversational ability, Needle has zero of it and Qwen3 wins by default.&lt;/p&gt; &lt;p&gt;Limitations: n=50 is small. Single CPU hardware. Mock tools, not real ones. Would love anyone who reproduces it on different hardware or with a paraphrase-stress-test to share results.&lt;/p&gt; &lt;p&gt;Repo with full code, raw_log.jsonl, summary.json, and the 5 charts are in comments below 👇&lt;/p&gt; &lt;p&gt;This evaluation was done using NEO, an AI engineering agent. It built the eval harness, handled the checkpointed runs, debugged the schema mismatch and the EOS issue, and consolidated results. I reviewed everything manually and made the calls on what to ship.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gvij"&gt; /u/gvij &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T13:55:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tkmgwj</id>
-    <title>Qwen-27B-IQ4_KS for ik_llama.cpp, especially for NVIDIA with 16GB VRAM</title>
-    <updated>2026-05-22T15:32:55+00:00</updated>
-    <author>
-      <name>/u/Pablo_the_brave</name>
-      <uri>https://old.reddit.com/user/Pablo_the_brave</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I'm presenting a new quantization of the Qwen-27B model, created specifically with 16GB VRAM NVIDIA GPUs in mind. I used quants that, unfortunately, are not yet available in the main upstream &lt;code&gt;llama.cpp&lt;/code&gt;. I'm talking about the KS and KSS quants developed by ikawrakow. After many trials, I managed to create a 14.1GB model which, in my testing, delivers results highly comparable to my previous 14.7GB IQ4_XS quantization.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Model Link:&lt;/strong&gt; &lt;a href="https://huggingface.co/cHunter789/Qwen3.6-27B-i1-IQ4_KS-GGUF"&gt;cHunter789/Qwen3.6-27B-i1-IQ4_KS-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;ik_llama.cpp Project:&lt;/strong&gt; &lt;a href="https://github.com/ikawrakow/ik_llama.cpp"&gt;ikawrakow/ik_llama.cpp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Unfortunately, the &lt;code&gt;ik_llama.cpp&lt;/code&gt; project required to run this model is &lt;strong&gt;NVIDIA CUDA and CPU only&lt;/strong&gt;. There is currently no way to run this on AMD or Apple Silicon (Metal) :/&lt;/p&gt; &lt;p&gt;Using this model with &lt;code&gt;ik_llama.cpp&lt;/code&gt; and a &lt;code&gt;Q4_0&lt;/code&gt; Hadamard KV cache allows for a &lt;strong&gt;105k context window&lt;/strong&gt;.&lt;/p&gt; &lt;h3&gt;Benchmark Results &amp;amp; Real-World Impressions&lt;/h3&gt; &lt;p&gt;The model was heavily tested in daily production workflows for several days. It runs much faster (1.5x-1.75x) and more reliably than the previous iteration—completely eliminating the issue of &amp;quot;blank outputs&amp;quot;, while the search-replace functionality works flawlessly.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Qwen Benchmark:&lt;/strong&gt; Successfully passed the performance evaluations on &lt;a href="https://qwen3-6-27b-benchmark.vercel.app"&gt;qwen3-6-27b-benchmark.vercel.app&lt;/a&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Needle In A Haystack:&lt;/strong&gt; Successfully evaluated with satisfying results across the full 100k context window.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Comparison:&lt;/strong&gt; In direct testing, this model performs slightly better than my previous variant: &lt;code&gt;Qwen3.6-27B-i1-IQ4_XS-GGUF&lt;/code&gt;.&lt;/li&gt; &lt;/ul&gt; &lt;h3&gt;Perplexity (PPL) Testing&lt;/h3&gt; &lt;p&gt;Perplexity evaluations were conducted focusing exclusively on the KV Cache quantization setup (&lt;code&gt;q4_0&lt;/code&gt;), as this is the primary target use case:&lt;/p&gt; &lt;p&gt;```bash wget &lt;a href="https://www.gutenberg.org/files/2600/2600-0.txt"&gt;https://www.gutenberg.org/files/2600/2600-0.txt&lt;/a&gt; -O pg19.txt&lt;/p&gt; &lt;p&gt;./llama-perplexity -m Qwen3.6-27B.i1-IQ4_KS-attn_qkv-IQ4_KSS.gguf -f pg19.txt -c 65536 --chunks 32 -ngl 99 -khad -vhad -ctk q4_0 -ctv q4_0 -fa 1 -b 512 -ub 512 ```&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Test Log Output:&lt;/strong&gt; ```text perplexity: calculating perplexity over 12 chunks, n_ctx=65536, batch_size=512, n_seq=1 perplexity: 71.10 seconds per pass - ETA 14.22 minutes [1]6.6897,[2]7.0032,[3]7.1989,[4]7.3327,[5]7.4816,[6]7.3770,[7]7.4325,[8]7.4378,[9]7.4754,[10]7.5192,[11]7.5669,[12]7.4040,&lt;/p&gt; &lt;p&gt;Final estimate: PPL over 12 chunks for n_ctx=65536 = 7.4040 +/- 0.02773 ```&lt;/p&gt; &lt;p&gt;&lt;em&gt;Note: I currently do not have the capability to run KLD (Kullback–Leibler divergence) tests.&lt;/em&gt;&lt;/p&gt; &lt;h3&gt;Example Server Configuration&lt;/h3&gt; &lt;p&gt;For reference, here is the server configuration I used during my tests:&lt;/p&gt; &lt;p&gt;&lt;code&gt;bash llama-server \ -m &amp;quot;$MODEL_PATH&amp;quot; \ -a Qwen3.6-27B \ --ctx-size 105000 \ --chat-template-file chat_template.jinja \ --n-gpu-layers 99 \ --cache-type-k q4_0 \ --cache-type-v q4_0 \ --batch-size 512 \ --ubatch-size 256 \ --flash-attn on \ --no-mmap \ --host 0.0.0.0 \ --port 8081 \ --reasoning on \ --reasoning-format deepseek \ -t 8 \ --parallel 1 \ -khad \ -vhad \ --chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' \ --defrag-thold 0.3 \ --jinja \ --cont-batching \ --temp 0.15 \ --top-k 1 \ --min-p 0.1 \ --repeat-last-n 512 \ --repeat-penalty 1.05 &lt;/code&gt;&lt;/p&gt; &lt;p&gt;```&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Pablo_the_brave"&gt; /u/Pablo_the_brave &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkmgwj/qwen27biq4_ks_for_ik_llamacpp_especially_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkmgwj/qwen27biq4_ks_for_ik_llamacpp_especially_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkmgwj/qwen27biq4_ks_for_ik_llamacpp_especially_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T15:32:55+00:00</published>
+    <published>2026-05-23T15:38:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlat5r</id>
@@ -99,19 +86,6 @@
     <published>2026-05-22T20:17:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlh4vq</id>
-    <title>Apex-Testing: real-world, real repos, agentic coding benchmark (Update)</title>
-    <updated>2026-05-23T13:54:08+00:00</updated>
-    <author>
-      <name>/u/hauhau901</name>
-      <uri>https://old.reddit.com/user/hauhau901</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;BIG Apex-Testing update!&lt;/strong&gt; &lt;a href="https://www.apex-testing.org/"&gt;https://www.apex-testing.org/&lt;/a&gt; &lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Real-World Agentic Coding&lt;/strong&gt; benchmark has been (95%) updated with all recent models! This is based on 65-70 &lt;strong&gt;actual private github repos&lt;/strong&gt; made especially to test proper agentic coding capabilities of models. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;For those who don't know about the project and see it for the first time, here's the excerpt from the website:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;&lt;strong&gt;What is APEX Testing?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every week there's a new model that's &amp;quot;the best ever.&amp;quot; Every provider promises 10x performance at a fraction of the cost. Benchmarks get cherry-picked, their demos get curated, influencers get paid and people keep falling for it.&lt;/p&gt; &lt;p&gt;APEX exists because I got tired of the hype and the intentional benchmaxxing. Models get dropped into real codebases with real bugs and real feature requests, and they have to figure it out like a developer would. 70 tasks across 8 categories, all based on work you'd actually encounter on the job. You get to see what actually works and what's just marketing.&amp;quot;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's included currently in metrics:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Avg Cost&lt;/p&gt; &lt;p&gt;- Avg Time&lt;/p&gt; &lt;p&gt;- Scoring based off each category/difficulty&lt;/p&gt; &lt;p&gt;- ELO-based Leaderboard (see details on the website)&lt;/p&gt; &lt;p&gt;- Model comparison&lt;/p&gt; &lt;p&gt;- Various metrics (included in the website)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;There are still a few things that need to be brought up to speed such as:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Qwen3.7 Max is currently incomplete in its run (cca. 40/70 repo tasks done)&lt;/p&gt; &lt;p&gt;- Qwen3.6 local models must be added (will do so these upcoming days at BF16)&lt;/p&gt; &lt;p&gt;- Deepseek v4 pro+flash are currently incomplete in their runs&lt;/p&gt; &lt;p&gt;- Ideally I'd like to also add Qwen3.5 397B BF16 (Q4_K_XL is added and complete)&lt;/p&gt; &lt;p&gt;I will &lt;strong&gt;probably&lt;/strong&gt; open up some kind of donation strictly for it or if anyone has OpenRouter tokens available, I'll appreciate it. Otherwise, I'll probably only update models selectively moving forward (local ones that I fit in my VRAM for sure will be added, referring to API costs only). Please don't take this as any sort of pressure or w/e, it's only for those interested and able to.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hauhau901"&gt; /u/hauhau901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T13:54:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tlhqw6</id>
     <title>7900XTX idle power draw when running headless?</title>
     <updated>2026-05-23T14:18:48+00:00</updated>
@@ -164,17 +138,17 @@
     <published>2026-05-22T19:52:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tl43xu</id>
-    <title>397B competitor that fits in 256 RAM?</title>
-    <updated>2026-05-23T02:50:32+00:00</updated>
+    <id>t3_1tljrtk</id>
+    <title>GPT 5.5 "secret sauce" is just having the thinking be some stupid caveman mode?</title>
+    <updated>2026-05-23T15:38:11+00:00</updated>
     <author>
-      <name>/u/quietsubstrate</name>
-      <uri>https://old.reddit.com/user/quietsubstrate</uri>
+      <name>/u/JustFinishedBSG</name>
+      <uri>https://old.reddit.com/user/JustFinishedBSG</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Does one exist? I noticed 3.6 QWEN did not release locally in 397B-17B. Anything that can compete locally?&lt;/p&gt; &lt;p&gt;any comment is appreciated&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/quietsubstrate"&gt; /u/quietsubstrate &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think I had GPT-5.5 leak its trace during a normal conversation, and it really reads like the caveman mode fad from a few months back.&lt;/p&gt; &lt;p&gt;Maybe we can achieve better token efficiency by taking some high-quality thinking trace from an open model, &amp;quot;caveman-izing&amp;quot; it, and fine-tuning on it.&lt;/p&gt; &lt;p&gt;If it's even remotely what OpenAI uses and what brings improvements (and commands absurd salaries), then this field is a joke. Haha.&lt;/p&gt; &lt;p&gt;Here is the full log of GPT-5.5 going insane: &lt;a href="https://gist.github.com/aussetg/20747ae00df17992acb4ebdfcd8d8d88"&gt;https://gist.github.com/aussetg/20747ae00df17992acb4ebdfcd8d8d88&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/JustFinishedBSG"&gt; /u/JustFinishedBSG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljrtk/gpt_55_secret_sauce_is_just_having_the_thinking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljrtk/gpt_55_secret_sauce_is_just_having_the_thinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tljrtk/gpt_55_secret_sauce_is_just_having_the_thinking/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T02:50:32+00:00</published>
+    <published>2026-05-23T15:38:11+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkxnuc</id>
@@ -188,6 +162,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkxnuc/qwen3635ba3b_q4_262k_context_on_8gb_3070_ti_30tps/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-22T22:11:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tl43xu</id>
+    <title>397B competitor that fits in 256 RAM?</title>
+    <updated>2026-05-23T02:50:32+00:00</updated>
+    <author>
+      <name>/u/quietsubstrate</name>
+      <uri>https://old.reddit.com/user/quietsubstrate</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Does one exist? I noticed 3.6 QWEN did not release locally in 397B-17B. Anything that can compete locally?&lt;/p&gt; &lt;p&gt;any comment is appreciated&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/quietsubstrate"&gt; /u/quietsubstrate &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl43xu/397b_competitor_that_fits_in_256_ram/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T02:50:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkpz2y</id>
@@ -216,17 +203,17 @@
     <published>2026-05-22T11:14:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tli757</id>
-    <title>What is the current best Small Language Model that can be run without GPU?</title>
-    <updated>2026-05-23T14:36:27+00:00</updated>
+    <id>t3_1tlh4vq</id>
+    <title>Apex-Testing: real-world, real repos, agentic coding benchmark (Update)</title>
+    <updated>2026-05-23T13:54:08+00:00</updated>
     <author>
-      <name>/u/last_llm_standing</name>
-      <uri>https://old.reddit.com/user/last_llm_standing</uri>
+      <name>/u/hauhau901</name>
+      <uri>https://old.reddit.com/user/hauhau901</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Curious with all the new model release this year, whats the best one in terms of accuracy and speed that you've ran without GPU. What is your deployment stack?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/last_llm_standing"&gt; /u/last_llm_standing &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;BIG Apex-Testing update!&lt;/strong&gt; &lt;a href="https://www.apex-testing.org/"&gt;https://www.apex-testing.org/&lt;/a&gt; &lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Real-World Agentic Coding&lt;/strong&gt; benchmark has been (95%) updated with all recent models! This is based on 65-70 &lt;strong&gt;actual private github repos&lt;/strong&gt; made especially to test proper agentic coding capabilities of models. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;For those who don't know about the project and see it for the first time, here's the excerpt from the website:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;&lt;strong&gt;What is APEX Testing?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every week there's a new model that's &amp;quot;the best ever.&amp;quot; Every provider promises 10x performance at a fraction of the cost. Benchmarks get cherry-picked, their demos get curated, influencers get paid and people keep falling for it.&lt;/p&gt; &lt;p&gt;APEX exists because I got tired of the hype and the intentional benchmaxxing. Models get dropped into real codebases with real bugs and real feature requests, and they have to figure it out like a developer would. 70 tasks across 8 categories, all based on work you'd actually encounter on the job. You get to see what actually works and what's just marketing.&amp;quot;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's included currently in metrics:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Avg Cost&lt;/p&gt; &lt;p&gt;- Avg Time&lt;/p&gt; &lt;p&gt;- Scoring based off each category/difficulty&lt;/p&gt; &lt;p&gt;- ELO-based Leaderboard (see details on the website)&lt;/p&gt; &lt;p&gt;- Model comparison&lt;/p&gt; &lt;p&gt;- Various metrics (included in the website)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;There are still a few things that need to be brought up to speed such as:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Qwen3.7 Max is currently incomplete in its run (cca. 40/70 repo tasks done)&lt;/p&gt; &lt;p&gt;- Qwen3.6 local models must be added (will do so these upcoming days at BF16)&lt;/p&gt; &lt;p&gt;- Deepseek v4 pro+flash are currently incomplete in their runs&lt;/p&gt; &lt;p&gt;- Ideally I'd like to also add Qwen3.5 397B BF16 (Q4_K_XL is added and complete)&lt;/p&gt; &lt;p&gt;I will &lt;strong&gt;probably&lt;/strong&gt; open up some kind of donation strictly for it or if anyone has OpenRouter tokens available, I'll appreciate it. Otherwise, I'll probably only update models selectively moving forward (local ones that I fit in my VRAM for sure will be added, referring to API costs only). Please don't take this as any sort of pressure or w/e, it's only for those interested and able to.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hauhau901"&gt; /u/hauhau901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T14:36:27+00:00</published>
+    <published>2026-05-23T13:54:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkzk9e</id>
@@ -268,19 +255,6 @@
     <published>2026-05-23T03:27:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlhkts</id>
-    <title>Removing Vision from model</title>
-    <updated>2026-05-23T14:11:59+00:00</updated>
-    <author>
-      <name>/u/Interesting-Print366</name>
-      <uri>https://old.reddit.com/user/Interesting-Print366</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I removed mmproj file from models to remove vision and save my vram. But just curious, is this really don't affect its text ability? &lt;/p&gt; &lt;p&gt;I use Qwen 3.6 35b a3b by unsloth and mainly use for agentic coding&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Interesting-Print366"&gt; /u/Interesting-Print366 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T14:11:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tl1wpd</id>
     <title>G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!</title>
     <updated>2026-05-23T01:10:59+00:00</updated>
@@ -292,6 +266,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T01:10:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tli757</id>
+    <title>What is the current best Small Language Model that can be run without GPU?</title>
+    <updated>2026-05-23T14:36:27+00:00</updated>
+    <author>
+      <name>/u/last_llm_standing</name>
+      <uri>https://old.reddit.com/user/last_llm_standing</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Curious with all the new model release this year, whats the best one in terms of accuracy and speed that you've ran without GPU. What is your deployment stack?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/last_llm_standing"&gt; /u/last_llm_standing &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tli757/what_is_the_current_best_small_language_model/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T14:36:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1tl9woz</id>
@@ -307,17 +294,17 @@
     <published>2026-05-23T07:44:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlcars</id>
-    <title>Have we passed the peak of inflated expectations?</title>
-    <updated>2026-05-23T10:01:14+00:00</updated>
+    <id>t3_1tlhkts</id>
+    <title>Removing Vision from model</title>
+    <updated>2026-05-23T14:11:59+00:00</updated>
     <author>
-      <name>/u/fairydreaming</name>
-      <uri>https://old.reddit.com/user/fairydreaming</uri>
+      <name>/u/Interesting-Print366</name>
+      <uri>https://old.reddit.com/user/Interesting-Print366</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt; &lt;img alt="Have we passed the peak of inflated expectations?" src="https://preview.redd.it/wi888uoazu2h1.png?width=140&amp;amp;height=61&amp;amp;auto=webp&amp;amp;s=f7fd8f43b465a5f948baa1728155de70372e8332" title="Have we passed the peak of inflated expectations?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed the number of people in this sub going down a bit and checked out some google trends. Any idea what's causing this sharp decline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tlcars"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I removed mmproj file from models to remove vision and save my vram. But just curious, is this really don't affect its text ability? &lt;/p&gt; &lt;p&gt;I use Qwen 3.6 35b a3b by unsloth and mainly use for agentic coding&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Interesting-Print366"&gt; /u/Interesting-Print366 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T10:01:14+00:00</published>
+    <published>2026-05-23T14:11:59+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkw5ri</id>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkw5ri/nvidia_removes_gaming_revenue_category_from/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-22T21:13:35+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlcars</id>
+    <title>Have we passed the peak of inflated expectations?</title>
+    <updated>2026-05-23T10:01:14+00:00</updated>
+    <author>
+      <name>/u/fairydreaming</name>
+      <uri>https://old.reddit.com/user/fairydreaming</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt; &lt;img alt="Have we passed the peak of inflated expectations?" src="https://preview.redd.it/wi888uoazu2h1.png?width=140&amp;amp;height=61&amp;amp;auto=webp&amp;amp;s=f7fd8f43b465a5f948baa1728155de70372e8332" title="Have we passed the peak of inflated expectations?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed the number of people in this sub going down a bit and checked out some google trends. Any idea what's causing this sharp decline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tlcars"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T10:01:14+00:00</published>
   </entry>
 </feed>
