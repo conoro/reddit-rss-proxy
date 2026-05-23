@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-23T11:32:48+00:00</updated>
+  <updated>2026-05-23T12:05:35+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1tlbitl</id>
-    <title>DGX Spark agentic usage numbers</title>
-    <updated>2026-05-23T09:16:42+00:00</updated>
-    <author>
-      <name>/u/totosse17</name>
-      <uri>https://old.reddit.com/user/totosse17</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What I need it to do:&lt;br /&gt; Be able to support openclaw-type agent which is used by multiple people.&lt;br /&gt; What I tried:&lt;br /&gt; So I read in the internet about the atlas thing.&lt;br /&gt; I tried it, unfortunately it didn't fly for me.&lt;br /&gt; I tested everything on curl with long context prompt and with calls from openclaw as well.&lt;/p&gt; &lt;p&gt;Problems: Tools cals are broken, Qwen3-coder doesn't seem to work inside atlas, TPS on long context was around 50, but on 4 concurrent it instead split to 4x16 tps&lt;/p&gt; &lt;p&gt;Now Atlas is out of the picture, what actually is working:&lt;/p&gt; &lt;p&gt;QuantTrio/Qwen3.6-35B-A3B-AWQ is working, but didn't yield satisfying result.&lt;br /&gt; 35.6 tps single stream, ~60 concurrent. Settings are in the last code snippet.&lt;/p&gt; &lt;p&gt;RedHatAI/Qwen3.6-35B-A3B-NVFP4&lt;br /&gt; Single stream ~51 tps at 30k context length 5000 tokens output&lt;br /&gt; 4x concurrent is ~139&lt;br /&gt; MTP Avg Draft acceptance rate: 77.8%&lt;/p&gt; &lt;pre&gt;&lt;code&gt;=== Per-request === Req 1 TTFT=1.085516456s decode=95.889944190s prompt=29509 comp=5000 decode_tps=52.14 === Aggregate === Wall time: 96.979938735s Total completion: 5000 tokens Aggregate TPS: 51.55 === Per-request === Req 1 TTFT=4.044399837s decode=132.580981472s prompt=29509 comp=5000 decode_tps=37.71 Req 2 TTFT=3.792262076s decode=137.592500091s prompt=29509 comp=5000 decode_tps=36.33 Req 3 TTFT=4.044153566s decode=136.210632072s prompt=29509 comp=5000 decode_tps=36.70 Req 4 TTFT=4.044049247s decode=140.292256085s prompt=29509 comp=5000 decode_tps=35.63 === Aggregate === Wall time: 144.340827706s Total completion: 20000 tokens Aggregate TPS: 138.56 docker run -d --gpus all -p 8000:8000 \ --name vllm-qwen \ --restart unless-stopped \ --ipc=host \ --ulimit memlock=-1 \ --ulimit stack=67108864 \ -v ~/.cache/huggingface:/root/.cache/huggingface \ -e HF_HOME=/root/.cache/huggingface \ -e TOKENIZERS_PARALLELISM=false \ vllm/vllm-openai:cu130-nightly \ RedHatAI/Qwen3.6-35B-A3B-NVFP4 \ --served-model-name qwen3.6 \ --host 0.0.0.0 \ --port 8000 \ --quantization compressed-tensors \ --moe-backend flashinfer_cutlass \ --tensor-parallel-size 1 \ --gpu-memory-utilization 0.87 \ --max-model-len 180072 \ --max-num-seqs 16 \ --max-num-batched-tokens 16384 \ --kv-cache-dtype fp8_e4m3 \ --enable-chunked-prefill \ --enable-prefix-caching \ --speculative-config '{&amp;quot;method&amp;quot;:&amp;quot;mtp&amp;quot;,&amp;quot;num_speculative_tokens&amp;quot;:1}' \ --reasoning-parser qwen3 \ --enable-auto-tool-choice \ --tool-call-parser qwen3_coder \ --default-chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;:true,&amp;quot;thinking_budget&amp;quot;:16384}' \ --override-generation-config '{&amp;quot;temperature&amp;quot;:0.8,&amp;quot;top_p&amp;quot;:0.90,&amp;quot;top_k&amp;quot;:20,&amp;quot;presence_penalty&amp;quot;:1.0,&amp;quot;repetition_penalty&amp;quot;:1.0}' \ --limit-mm-per-prompt '{&amp;quot;image&amp;quot;:4}' \ --trust-remote-code &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Script I used to test:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;#!/bin/bash # 4-way concurrent benchmark for vLLM: TTFT + decode + aggregate # Setup 30K-token prompt if not cached [ -f /tmp/long30k.txt ] || curl -s &amp;quot;https://www.gutenberg.org/cache/epub/11/pg11.txt&amp;quot; \ | head -c 120000 &amp;gt; /tmp/long30k.txt # Build streaming request with usage block in final chunk jq -n --rawfile p /tmp/long30k.txt '{ model: &amp;quot;qwen3.6&amp;quot;, messages: [{role:&amp;quot;user&amp;quot;, content: ($p + &amp;quot;\n\nSummarize in 2000 words.&amp;quot;)}], max_tokens: 5000, stream: true, stream_options: {include_usage: true} }' &amp;gt; /tmp/req_stream.json rm -f /tmp/timing_*.txt /tmp/stream_*.jsonl # Fire 4 parallel requests START=$(date +%s.%N) for i in 1 2 3 4; do ( FIRST=&amp;quot;&amp;quot; LAST=&amp;quot;&amp;quot; while IFS= read -r line; do NOW=$(date +%s.%N) if [[ &amp;quot;$line&amp;quot; == data:* &amp;amp;&amp;amp; &amp;quot;$line&amp;quot; != &amp;quot;data: [DONE]&amp;quot; ]]; then [ -z &amp;quot;$FIRST&amp;quot; ] &amp;amp;&amp;amp; FIRST=$NOW LAST=$NOW echo &amp;quot;${line#data: }&amp;quot; &amp;gt;&amp;gt; /tmp/stream_$i.jsonl fi done &amp;lt; &amp;lt;(curl -sN -X POST http://localhost:8000/v1/chat/completions \ -H &amp;quot;Content-Type: application/json&amp;quot; \ -d @/tmp/req_stream.json) echo &amp;quot;$FIRST $LAST&amp;quot; &amp;gt; /tmp/timing_$i.txt ) &amp;amp; done wait END=$(date +%s.%N) ELAPSED=$(echo &amp;quot;$END - $START&amp;quot; | bc) # Per-request results echo &amp;quot;=== Per-request ===&amp;quot; TOTAL_COMP=0 for i in 1 2 3 4; do read FIRST LAST &amp;lt; /tmp/timing_$i.txt TTFT=$(echo &amp;quot;scale=3; $FIRST - $START&amp;quot; | bc) DECODE=$(echo &amp;quot;scale=3; $LAST - $FIRST&amp;quot; | bc) USAGE=$(jq -s 'map(select(.usage != null)) | last.usage // {}' /tmp/stream_$i.jsonl 2&amp;gt;/dev/null) PROMPT=$(echo &amp;quot;$USAGE&amp;quot; | jq -r '.prompt_tokens // 0') COMP=$(echo &amp;quot;$USAGE&amp;quot; | jq -r '.completion_tokens // 0') TPS=$(echo &amp;quot;scale=2; if ($DECODE &amp;gt; 0) $COMP / $DECODE else 0&amp;quot; | bc -l 2&amp;gt;/dev/null || echo &amp;quot;0&amp;quot;) TOTAL_COMP=$((TOTAL_COMP + COMP)) printf &amp;quot;Req %d TTFT=%ss decode=%ss prompt=%s comp=%s decode_tps=%s\n&amp;quot; \ &amp;quot;$i&amp;quot; &amp;quot;$TTFT&amp;quot; &amp;quot;$DECODE&amp;quot; &amp;quot;$PROMPT&amp;quot; &amp;quot;$COMP&amp;quot; &amp;quot;$TPS&amp;quot; done # Aggregate echo &amp;quot;&amp;quot; echo &amp;quot;=== Aggregate ===&amp;quot; printf &amp;quot;Wall time: %ss\n&amp;quot; &amp;quot;$ELAPSED&amp;quot; printf &amp;quot;Total completion: %s tokens\n&amp;quot; &amp;quot;$TOTAL_COMP&amp;quot; printf &amp;quot;Aggregate TPS: %s\n&amp;quot; &amp;quot;$(echo &amp;quot;scale=2; $TOTAL_COMP / $ELAPSED&amp;quot; | bc)&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;AWQ settings:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;docker run -it --gpus all -p 8000:8000 \ -e VLLM_FLASHINFER_MOE_BACKEND=latency \ -e VLLM_USE_FLASHINFER_MOE_FP16=1 \ -e VLLM_USE_FLASHINFER_SAMPLER=0 \ -e VLLM_USE_DEEP_GEMM=0 \ -e VLLM_SLEEP_WHEN_IDLE=1 \ -e OMP_NUM_THREADS=4 \ vllm/vllm-openai:cu130-nightly \ QuantTrio/Qwen3.6-35B-A3B-AWQ \ --host 0.0.0.0 \ --port 8000 \ --tensor-parallel-size 1 \ --quantization awq_marlin \ --max-model-len 262144 \ --kv-cache-dtype fp8 \ --enable-prefix-caching \ --max-num-seqs 16 \ --max-num-batched-tokens 16384 \ --gpu-memory-utilization 0.9 \ --trust-remote-code \ --reasoning-parser qwen3 \ --enable-auto-tool-choice \ --tool-call-parser qwen3_coder \ --speculative-config '{&amp;quot;method&amp;quot;: &amp;quot;mtp&amp;quot;, &amp;quot;num_speculative_tokens&amp;quot;: 1}' \ --default-chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' \ --limit-mm-per-prompt '{&amp;quot;image&amp;quot;: 16}' &lt;/code&gt;&lt;/pre&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/totosse17"&gt; /u/totosse17 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlbitl/dgx_spark_agentic_usage_numbers/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlbitl/dgx_spark_agentic_usage_numbers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlbitl/dgx_spark_agentic_usage_numbers/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T09:16:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tk4gyy</id>
-    <title>When your LLM treats data center GPUs like an optional DLC</title>
-    <updated>2026-05-22T01:35:46+00:00</updated>
-    <author>
-      <name>/u/noprompt</name>
-      <uri>https://old.reddit.com/user/noprompt</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tk4gyy/when_your_llm_treats_data_center_gpus_like_an/"&gt; &lt;img alt="When your LLM treats data center GPUs like an optional DLC" src="https://preview.redd.it/gx6g3i6fel2h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0081a5903dcafd0c8be7d5051482b8b897ebc512" title="When your LLM treats data center GPUs like an optional DLC" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/noprompt"&gt; /u/noprompt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/gx6g3i6fel2h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tk4gyy/when_your_llm_treats_data_center_gpus_like_an/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tk4gyy/when_your_llm_treats_data_center_gpus_like_an/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T01:35:46+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tkulbk</id>
     <title>Scrambling to max StrixHalo (+NVLink dual eGPU 3090 mod)</title>
@@ -45,6 +19,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkulbk/scrambling_to_max_strixhalo_nvlink_dual_egpu_3090/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-22T20:15:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tle4ut</id>
+    <title>Optimizing speed &amp; quality on Qwen3.6 27b</title>
+    <updated>2026-05-23T11:40:05+00:00</updated>
+    <author>
+      <name>/u/Ambitious_Fold_2874</name>
+      <uri>https://old.reddit.com/user/Ambitious_Fold_2874</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Does the inference speed below seem optimal for the hardware, or could there be further room for improvement ?&lt;/p&gt; &lt;p&gt;I’ve been trying to use Qwen3.6 27b for agentic harnesses like Pi/Hermes. Because of the long horizon required of agentic tasks, I been trying to maximize speed while retaining as close to full precision as possible.&lt;/p&gt; &lt;p&gt;The inference speed can vary widely between ~300-500 tok/s for prompt processing, ~22-30 tok/sec of token generation at a context window of 100k. This is with 40GB of VRAM (1x2060super8gb, 2x5060ti16gb). I have a good amount of DDR4 3200 RAM running at 4-channel, but I didn’t want to compromise on speed at all. I tried to get to 128k context window as much as I can without spilling into RAM, but I had to compromise and land at 100k because there just didn’t seem any way. &lt;/p&gt; &lt;p&gt;Here’s my llama.cpp command, running on Ubuntu:&lt;/p&gt; &lt;p&gt;CUDA_DEVICE_ORDER=PCI_BUS_ID \&lt;/p&gt; &lt;p&gt;path/llama-server \&lt;/p&gt; &lt;p&gt;-m path/unsloth/Qwen3.6-27B-MTP-Q8_0.gguf \&lt;/p&gt; &lt;p&gt;-mm path/mmproj-BF16.gguf --image-min-tokens 1024 --no-mmproj-offload \&lt;/p&gt; &lt;p&gt;--port 8080 --host 0.0.0.0 --alias model\&lt;/p&gt; &lt;p&gt;--temperature 0.6 --top-p 0.95 --top-k 20 --min-p 0.0 --presence-penalty 0.0 --repeat-penalty 1.0 --chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' \&lt;/p&gt; &lt;p&gt;--spec-type draft-mtp --spec-draft-n-max 3 --spec-draft-p-min 0.75 --spec-draft-type-k q4_0 --spec-draft-type-v q4_0 \&lt;/p&gt; &lt;p&gt;-t 12 -fa on -np 1 --kv-unified --cache-idle-slots --jinja \&lt;/p&gt; &lt;p&gt;-lv 4 -fitt 0,0,2250 -c 100000 \&lt;/p&gt; &lt;p&gt;My question to the community is whether this seems optimal or not, or if there are any other flags or variables that I’m not using that mould help further squeeze out more performance on my hardware? &lt;/p&gt; &lt;p&gt;(Lastly I hope that my llama.cpp setup, hardware info, and performance can serve as a useful reference for others. I started my obsessive local model journey in 11/2025 and it’s been a good opportunity to learn about how to run these models and what goes into it, before inevitably getting crushed by the big companies in the future. Looking forward to learning about how to train micro models and fine tuning next.)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ambitious_Fold_2874"&gt; /u/Ambitious_Fold_2874 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tle4ut/optimizing_speed_quality_on_qwen36_27b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tle4ut/optimizing_speed_quality_on_qwen36_27b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tle4ut/optimizing_speed_quality_on_qwen36_27b/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T11:40:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlemsb</id>
+    <title>found this little known channel with some really good content</title>
+    <updated>2026-05-23T12:03:57+00:00</updated>
+    <author>
+      <name>/u/ECrispy</name>
+      <uri>https://old.reddit.com/user/ECrispy</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;video I saw - &lt;a href="https://www.youtube.com/watch?v=8F_5pdcD3HY"&gt;https://www.youtube.com/watch?v=8F_5pdcD3HY&lt;/a&gt;&lt;/p&gt; &lt;p&gt;One of the more genuinely useful channels, and I've watched a lot of the AI youtubers. &lt;/p&gt; &lt;p&gt;No stupid face thumnbails. Actual effort put into graphics that explain whats going on, instead of just talking to a camera like 99.99% of videos. And teaching something useful, with a very high s/n ratio. &lt;/p&gt; &lt;p&gt;and using much cheaper hardware too thats all a lot of people can afford.&lt;/p&gt; &lt;p&gt;just because some people will assume it, no, I don't have any affiliation or whatever. I just think this guy deserves to have more subs/views.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ECrispy"&gt; /u/ECrispy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlemsb/found_this_little_known_channel_with_some_really/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlemsb/found_this_little_known_channel_with_some_really/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlemsb/found_this_little_known_channel_with_some_really/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T12:03:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkw1su</id>
@@ -190,19 +190,6 @@
     <published>2026-05-23T02:50:32+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tl79da</id>
-    <title>Experimental "Preserve Thinking" Jinja Template for Gemma4 31B in llama.cpp</title>
-    <updated>2026-05-23T05:21:42+00:00</updated>
-    <author>
-      <name>/u/ggonavyy</name>
-      <uri>https://old.reddit.com/user/ggonavyy</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/stevelikesrhino/gemma-4-31B-it-nvfp4-GGUF/blob/main/gemma4-improved.jinja"&gt;https://huggingface.co/stevelikesrhino/gemma-4-31B-it-nvfp4-GGUF/blob/main/gemma4-improved.jinja&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Yall are more than welcome to try it out and provide feedback. In my own testing in Pi-coding-agent I no longer have the &amp;quot;forgot to close thinking tag&amp;quot; &amp;quot;forgot to open thinking&amp;quot; &amp;quot;closed thinking to early&amp;quot; problem. It's more stable for multi-turn tool calls within multiple turns of prompts.&lt;/p&gt; &lt;p&gt;Disclaimer this is NOT recommended by Google. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ggonavyy"&gt; /u/ggonavyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T05:21:42+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tktxr0</id>
     <title>Can't believe I got it working! Dual GPU - 48gb VRAM llama-cpp server - R7900 + 7800XT</title>
     <updated>2026-05-22T19:52:22+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tktxr0/cant_believe_i_got_it_working_dual_gpu_48gb_vram/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-22T19:52:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tl79da</id>
+    <title>Experimental "Preserve Thinking" Jinja Template for Gemma4 31B in llama.cpp</title>
+    <updated>2026-05-23T05:21:42+00:00</updated>
+    <author>
+      <name>/u/ggonavyy</name>
+      <uri>https://old.reddit.com/user/ggonavyy</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/stevelikesrhino/gemma-4-31B-it-nvfp4-GGUF/blob/main/gemma4-improved.jinja"&gt;https://huggingface.co/stevelikesrhino/gemma-4-31B-it-nvfp4-GGUF/blob/main/gemma4-improved.jinja&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Yall are more than welcome to try it out and provide feedback. In my own testing in Pi-coding-agent I no longer have the &amp;quot;forgot to close thinking tag&amp;quot; &amp;quot;forgot to open thinking&amp;quot; &amp;quot;closed thinking to early&amp;quot; problem. It's more stable for multi-turn tool calls within multiple turns of prompts.&lt;/p&gt; &lt;p&gt;Disclaimer this is NOT recommended by Google. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ggonavyy"&gt; /u/ggonavyy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl79da/experimental_preserve_thinking_jinja_template_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T05:21:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkxnuc</id>
@@ -281,19 +281,6 @@
     <published>2026-05-23T03:27:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlcars</id>
-    <title>Have we passed the peak of inflated expectations?</title>
-    <updated>2026-05-23T10:01:14+00:00</updated>
-    <author>
-      <name>/u/fairydreaming</name>
-      <uri>https://old.reddit.com/user/fairydreaming</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt; &lt;img alt="Have we passed the peak of inflated expectations?" src="https://preview.redd.it/wi888uoazu2h1.png?width=140&amp;amp;height=61&amp;amp;auto=webp&amp;amp;s=f7fd8f43b465a5f948baa1728155de70372e8332" title="Have we passed the peak of inflated expectations?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed the number of people in this sub going down a bit and checked out some google trends. Any idea what's causing this sharp decline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tlcars"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T10:01:14+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tl9woz</id>
     <title>Gemma4 26b a4b Apex quant is quite good</title>
     <updated>2026-05-23T07:44:54+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl9woz/gemma4_26b_a4b_apex_quant_is_quite_good/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T07:44:54+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlcars</id>
+    <title>Have we passed the peak of inflated expectations?</title>
+    <updated>2026-05-23T10:01:14+00:00</updated>
+    <author>
+      <name>/u/fairydreaming</name>
+      <uri>https://old.reddit.com/user/fairydreaming</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt; &lt;img alt="Have we passed the peak of inflated expectations?" src="https://preview.redd.it/wi888uoazu2h1.png?width=140&amp;amp;height=61&amp;amp;auto=webp&amp;amp;s=f7fd8f43b465a5f948baa1728155de70372e8332" title="Have we passed the peak of inflated expectations?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I noticed the number of people in this sub going down a bit and checked out some google trends. Any idea what's causing this sharp decline?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fairydreaming"&gt; /u/fairydreaming &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tlcars"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T10:01:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1tl1wpd</id>
