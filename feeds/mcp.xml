@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-23T10:16:57+00:00</updated>
+  <updated>2026-05-23T10:58:40+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1tklukp</id>
-    <title>ken-mcp — drop-in MCP code search for agents (pure-Go port of MinishLab/semble)</title>
-    <updated>2026-05-22T15:11:22+00:00</updated>
-    <author>
-      <name>/u/Fantastic-Poem9462</name>
-      <uri>https://old.reddit.com/user/Fantastic-Poem9462</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just tagged v0.4.0 of &lt;a href="https://github.com/townsendmerino/ken"&gt;ken&lt;/a&gt;, which ships &lt;code&gt;ken-mcp&lt;/code&gt; — an MCP server for hybrid code search (BM25 lexical + Model2Vec semantic + RRF fusion + rerank). It's a pure-Go port of &lt;a href="https://github.com/MinishLab/semble"&gt;MinishLab/semble&lt;/a&gt;, and the tool surface (&lt;code&gt;search&lt;/code&gt;, &lt;code&gt;find_related&lt;/code&gt;) matches &lt;code&gt;semble.mcp&lt;/code&gt; 1:1 by design — argument schemas, return markdown format, everything. Agents already trained against semble swap over with a binary path change, no prompt edits.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why ship a second MCP for the same job:&lt;/strong&gt; semble is excellent, but &lt;code&gt;pip install&lt;/code&gt; + Python runtime is friction when your agent runs in a sandbox or ships as a compiled tool. &lt;code&gt;ken-mcp&lt;/code&gt; is a single static binary, no cgo, no Python, no model-download tooling required. &lt;code&gt;ken download-model&lt;/code&gt; fetches &lt;code&gt;minishlab/potion-code-16M&lt;/code&gt; from Hugging Face directly via &lt;code&gt;net/http&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Install (mirrors semble's snippets, swap the command):&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;# Claude Code claude mcp add ken -s user -- /absolute/path/to/ken-mcp &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;code&gt;~/.cursor/mcp.json&lt;/code&gt; / &lt;code&gt;.cursor/mcp.json&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;json&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;mcpServers&amp;quot;: { &amp;quot;ken&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;/absolute/path/to/ken-mcp&amp;quot; } } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;code&gt;~/.codex/config.toml&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;toml&lt;/p&gt; &lt;pre&gt;&lt;code&gt;[mcp_servers.ken] command = &amp;quot;/absolute/path/to/ken-mcp&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;code&gt;~/.opencode/config.json&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;json&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;mcp&amp;quot;: { &amp;quot;ken&amp;quot;: { &amp;quot;type&amp;quot;: &amp;quot;local&amp;quot;, &amp;quot;command&amp;quot;: [&amp;quot;/absolute/path/to/ken-mcp&amp;quot;] } } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;code&gt;.vscode/mcp.json&lt;/code&gt;:&lt;/p&gt; &lt;p&gt;json&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;servers&amp;quot;: { &amp;quot;ken&amp;quot;: { &amp;quot;command&amp;quot;: &amp;quot;/absolute/path/to/ken-mcp&amp;quot; } } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;A few MCP-specific things that came up building this:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Stdout is sacred.&lt;/strong&gt; stdin/stdout &lt;em&gt;are&lt;/em&gt; the JSON-RPC channel. Any rogue write to stdout — a library that helpfully prints a warning, a debug &lt;code&gt;fmt.Println&lt;/code&gt; you forgot — corrupts the stream and the agent disconnects with a cryptic JSON-decode error. &lt;code&gt;cmd/ken-mcp/main.go&lt;/code&gt; has the full contract at the top, and there's a &lt;code&gt;TestBinary_StdoutIsCleanJSONRPC&lt;/code&gt;that builds the real binary and drives an MCP session through it to enforce this. Worth stealing the pattern if you're writing your own server.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Auto-downgrade beats hard-fail.&lt;/strong&gt; If the model directory isn't reachable, &lt;code&gt;ken-mcp&lt;/code&gt; downgrades to BM25-only mode with a stderr warning rather than refusing to start. First-launch UX matters more than algorithmic purity — an agent that gets BM25 results is more useful than one that errors out because &lt;code&gt;~/.ken/model&lt;/code&gt; doesn't exist yet.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Env-var validation that doesn't lie.&lt;/strong&gt; Every env var is validated at startup. Typos (&lt;code&gt;KEN_MCP_MODE=hybryd&lt;/code&gt;, &lt;code&gt;KEN_MCP_CACHE_SIZE=of&lt;/code&gt;) log a stderr warning and fall back to the documented default instead of silently doing the wrong thing. The silent-failure mode where &lt;code&gt;Atoi(&amp;quot;of&amp;quot;)&lt;/code&gt; returned 0 and disabled the cache is gone.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Per-process repo cache with singleflight.&lt;/strong&gt; Multiple concurrent &lt;code&gt;search&lt;/code&gt; calls against the same repo collapse into one index build (&lt;code&gt;golang.org/x/sync/singleflight&lt;/code&gt;), bounded by an LRU. Configurable via &lt;code&gt;KEN_MCP_CACHE_SIZE&lt;/code&gt;; &lt;code&gt;0&lt;/code&gt; disables caching for the &amp;quot;always re-index&amp;quot; testing case.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;The honest tradeoff:&lt;/strong&gt; ken caps around 82–91% recall at K=10. It's the &amp;quot;how does this thing work&amp;quot; tool, not the grep replacement. The MCP tool schemas tell agents this explicitly — they'll fall back to grep when they need exhaustive enumeration. That instruction is in the tool description, so it shapes agent behavior automatically.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Try it:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;bash&lt;/p&gt; &lt;pre&gt;&lt;code&gt;go install github.com/townsendmerino/ken/cmd/ken@v0.4.0 go install github.com/townsendmerino/ken/cmd/ken-mcp@v0.4.0 ken download-model &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Algorithm spec and parity-validation details: &lt;a href="https://github.com/townsendmerino/ken/blob/main/docs/DESIGN.md"&gt;docs/DESIGN.md&lt;/a&gt;. 30-day v1.0 soak starts now; if nothing API-affecting surfaces by ~June 21, v1.0 follows.&lt;/p&gt; &lt;p&gt;Feedback welcome — especially &amp;quot;I tried it with [client] and it did the weird thing.&amp;quot; Edge cases in MCP client integrations are exactly the soak-period bugs I'm trying to surface.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fantastic-Poem9462"&gt; /u/Fantastic-Poem9462 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tklukp/kenmcp_dropin_mcp_code_search_for_agents_purego/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tklukp/kenmcp_dropin_mcp_code_search_for_agents_purego/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tklukp/kenmcp_dropin_mcp_code_search_for_agents_purego/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-22T15:11:22+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tklilo</id>
     <title>Autario Data Analytics Platform – Search, query, and visualize 2,300+ public datasets from World Bank, IMF, Eurostat, OECD, WHO, and more. Publish charts with real verified data. 12 tools for data discovery, analysis, and visualization.</title>
@@ -151,6 +138,19 @@
     <published>2026-05-23T00:00:02+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tl1ix8</id>
+    <title>single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack.</title>
+    <updated>2026-05-23T00:54:00+00:00</updated>
+    <author>
+      <name>/u/johnnaliu</name>
+      <uri>https://old.reddit.com/user/johnnaliu</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"&gt; &lt;img alt="single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack." src="https://preview.redd.it/u9nhuoqyas2h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cabcdeb5e6ddedbde41b02a67b598c49ef74c836" title="single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was wiring up the Notion MCP for team note-sync. Then a test note had an HTML-comment injection in it, and the private customer list ended up in a public Notion workspace someone else owned. No single tool call was &amp;quot;wrong&amp;quot;. The composition was the attack. Simon Willison calls this the &amp;quot;lethal trifecta&amp;quot;.&lt;/p&gt; &lt;p&gt;Per-call scanners can't catch this. So I built Sponsio: a YAML contract layer at tool boundary. No LLM in the check. Composition comes from assume-guarantee contract design, so rules combine without rewriting.&lt;/p&gt; &lt;p&gt;Code: &lt;a href="http://github.com/SponsioLabs/Sponsio"&gt;github.com/SponsioLabs/Sponsio&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Looking for feedback. Anyone hit similar composition bugs, or have a different angle on defending the tool boundary?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnaliu"&gt; /u/johnnaliu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/u9nhuoqyas2h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-23T00:54:00+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tl6tfb</id>
     <title>Tosheroon – Real-time Amazon prices, product search, 90-day history, AI forecasts, and price drop alerts.</title>
     <updated>2026-05-23T05:00:06+00:00</updated>
@@ -175,19 +175,6 @@
     <link href="https://old.reddit.com/r/mcp/comments/1tl6tgv/avibase_mcp_server_a_model_context_protocol/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-23T05:00:09+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tl1ix8</id>
-    <title>single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack.</title>
-    <updated>2026-05-23T00:54:00+00:00</updated>
-    <author>
-      <name>/u/johnnaliu</name>
-      <uri>https://old.reddit.com/user/johnnaliu</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"&gt; &lt;img alt="single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack." src="https://preview.redd.it/u9nhuoqyas2h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cabcdeb5e6ddedbde41b02a67b598c49ef74c836" title="single HTML comment in a local note exfiltrate my customer list to a public Notion workspace via MCP. The composition is the attack." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was wiring up the Notion MCP for team note-sync. Then a test note had an HTML-comment injection in it, and the private customer list ended up in a public Notion workspace someone else owned. No single tool call was &amp;quot;wrong&amp;quot;. The composition was the attack. Simon Willison calls this the &amp;quot;lethal trifecta&amp;quot;.&lt;/p&gt; &lt;p&gt;Per-call scanners can't catch this. So I built Sponsio: a YAML contract layer at tool boundary. No LLM in the check. Composition comes from assume-guarantee contract design, so rules combine without rewriting.&lt;/p&gt; &lt;p&gt;Code: &lt;a href="http://github.com/SponsioLabs/Sponsio"&gt;github.com/SponsioLabs/Sponsio&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Looking for feedback. Anyone hit similar composition bugs, or have a different angle on defending the tool boundary?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/johnnaliu"&gt; /u/johnnaliu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/u9nhuoqyas2h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tl1ix8/single_html_comment_in_a_local_note_exfiltrate_my/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-23T00:54:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkyyq1</id>
@@ -242,6 +229,19 @@
     <published>2026-05-23T10:00:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tl8zvv</id>
+    <title>Try this to reduce your tool context load</title>
+    <updated>2026-05-23T06:54:27+00:00</updated>
+    <author>
+      <name>/u/mlueStrike</name>
+      <uri>https://old.reddit.com/user/mlueStrike</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;By now everyone is aware of delayed context loading for mcp tool loading. However, I think we’re becoming too depending on protocol maintainers to solve tomorrow’s problem. &lt;/p&gt; &lt;p&gt;At the end of the day mcp servers are just code. We can do whatever we want within that code are as long as we adhere to the shape of the mcp protocol, right?&lt;/p&gt; &lt;p&gt;I find that the best value for mcp comes from treating it like an OOP class. Imagine this, you are building an mcp for a bank. That bank handles 20 specialty tools. Convention would say roll 20 servers. Some are using action or domain routed tooling today, so they’ll get an entire api encapsulated in ~10 tools. BUT! What if you abstract a step further?!?!? 1 mcp too per product. I’ve tested it and have fit about 10 products (nothing stops me from doing more) into one mcp server. I use a product flag to distinguish which I’ll use in the config. And each product is exposed to the LLM as 1 tool. That tool is fully capable of routing all calls from the LLM. &lt;/p&gt; &lt;p&gt;Of course there are ways to enhance things further, but I feel like folks don’t understand the level of flexibility we have when it comes to how we implement mcp. Just my observation. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mlueStrike"&gt; /u/mlueStrike &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-23T06:54:27+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tkxsic</id>
     <title>The architecture we landed on for putting a large typed API behind an MCP server</title>
     <updated>2026-05-22T22:16:31+00:00</updated>
@@ -255,17 +255,17 @@
     <published>2026-05-22T22:16:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tl8zvv</id>
-    <title>Try this to reduce your tool context load</title>
-    <updated>2026-05-23T06:54:27+00:00</updated>
+    <id>t3_1tld4mp</id>
+    <title>First Publication</title>
+    <updated>2026-05-23T10:47:29+00:00</updated>
     <author>
-      <name>/u/mlueStrike</name>
-      <uri>https://old.reddit.com/user/mlueStrike</uri>
+      <name>/u/Technocratix902</name>
+      <uri>https://old.reddit.com/user/Technocratix902</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;By now everyone is aware of delayed context loading for mcp tool loading. However, I think we’re becoming too depending on protocol maintainers to solve tomorrow’s problem. &lt;/p&gt; &lt;p&gt;At the end of the day mcp servers are just code. We can do whatever we want within that code are as long as we adhere to the shape of the mcp protocol, right?&lt;/p&gt; &lt;p&gt;I find that the best value for mcp comes from treating it like an OOP class. Imagine this, you are building an mcp for a bank. That bank handles 20 specialty tools. Convention would say roll 20 servers. Some are using action or domain routed tooling today, so they’ll get an entire api encapsulated in ~10 tools. BUT! What if you abstract a step further?!?!? 1 mcp too per product. I’ve tested it and have fit about 10 products (nothing stops me from doing more) into one mcp server. I use a product flag to distinguish which I’ll use in the config. And each product is exposed to the LLM as 1 tool. That tool is fully capable of routing all calls from the LLM. &lt;/p&gt; &lt;p&gt;Of course there are ways to enhance things further, but I feel like folks don’t understand the level of flexibility we have when it comes to how we implement mcp. Just my observation. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mlueStrike"&gt; /u/mlueStrike &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tl8zvv/try_this_to_reduce_your_tool_context_load/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I made my own publication for the first time. It's on security issues in MCPs and I tested them as well. Available on our website , have a look and see 🙂&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Technocratix902"&gt; /u/Technocratix902 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://alethia-research.github.io/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tld4mp/first_publication/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tld4mp/first_publication/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-05-23T06:54:27+00:00</published>
+    <published>2026-05-23T10:47:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1tl326y</id>
