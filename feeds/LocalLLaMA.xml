@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-23T22:34:34+00:00</updated>
+  <updated>2026-05-23T23:06:17+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1tkxnuc</id>
-    <title>Qwen3.6-35B-A3B Q4 262k context on 8GB 3070 Ti = +30tps</title>
-    <updated>2026-05-22T22:11:24+00:00</updated>
-    <author>
-      <name>/u/Alternative-Cat-1347</name>
-      <uri>https://old.reddit.com/user/Alternative-Cat-1347</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkxnuc/qwen3635ba3b_q4_262k_context_on_8gb_3070_ti_30tps/"&gt; &lt;img alt="Qwen3.6-35B-A3B Q4 262k context on 8GB 3070 Ti = +30tps" src="https://preview.redd.it/cpc4r9q7cr2h1.png?width=140&amp;amp;height=49&amp;amp;auto=webp&amp;amp;s=65fdd6dd8a05a0ce116c3753b77386a022c4f07a" title="Qwen3.6-35B-A3B Q4 262k context on 8GB 3070 Ti = +30tps" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;..and on 8GB VRAM I can even push the context to 320K, 400K, 512K, and yes.. 1M. But it does start to slow down noticeably beyond 150k so I'd only do this if I ever really want the larger context.&lt;/p&gt; &lt;p&gt;This is using APEX-I-Quality or Q4_K_XL quants both are better than Q4_K_M (IQ4_NL_XL for beyond 512k context).&lt;/p&gt; &lt;p&gt;I have a total of 32GB of DDR4-2666 which is slightly above minimum DDR4.&lt;/p&gt; &lt;p&gt;I see a lot of users with better GPUs and more VRAM seem to be getting less efficiency and have to drop context all the way to 64k or below to run at good tps, I don't understand why. But here are two things I learned from my tweaking so far.&lt;/p&gt; &lt;p&gt;First, since 35B-A3B is an MoE model. It only needs ~3.5B to be in the VRAM during runtime.&lt;/p&gt; &lt;p&gt;8GB is enough to hold the active model layers (~3GB) + GPU buffers (~2GB) + 262144 KV Cache at q8_0 (2.56GB). It's a tight fit, but works.&lt;/p&gt; &lt;p&gt;Messing with the engine's parameters like forcing all layers to be on VRAM or other runtime parameters like sm, fa, etc, seem to actually slow down the model for me and/or exhausts my VRAM and system RAM.&lt;/p&gt; &lt;p&gt;Look at this screenshot for example, there's a misunderstanding of MoE that believes it must fit in its entirety in VRAM to run optimally.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/cpc4r9q7cr2h1.png?width=1197&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=89bd03a4537825b862472009225a7a99b7fbd8b4"&gt;https://preview.redd.it/cpc4r9q7cr2h1.png?width=1197&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=89bd03a4537825b862472009225a7a99b7fbd8b4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Second, just like Windows 11 sucks for gaming, all that &amp;quot;enhanced experience&amp;quot; also has an impact on LLM inference. Running a compact Linux from terminal (I chose Ubuntu Server) would only use up about 800MB of system RAM and practically no VRAM, compared to Windows 11, and it gives me a +25% boost to tps!&lt;/p&gt; &lt;p&gt;Here are some numbers for the same llama.cpp parameters:&lt;/p&gt; &lt;p&gt;On Windows&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Inference is &amp;lt;27 tps and drops quickly beyond 100k, in fact it starts dropping from the first few thousands of output tokens.&lt;/li&gt; &lt;li&gt;System memory is 28GB+ full, and if I mess with other parameters in llama.cpp it just fills up immediately (~31GB) dragging tps down with it&lt;/li&gt; &lt;li&gt;The highest context I was able to run stable is 512k at turbo quant 4 for KV&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;On Ubuntu Server (fresh double-boot install 2 days ago, installed on a 160GB partition from my fastest nvme)&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Inference is ~34 tps and doesn't drop, it often goes up to ~37 during generating tokens!&lt;/li&gt; &lt;li&gt;System memory is 22GB full, giving me a full 8GB of system RAM to run i3wm/x11 with whatever software I need (no eye candy composers/apps that use the GPU because that'll use up precious VRAM)&lt;/li&gt; &lt;li&gt;I was able to get to 1M context on IQ4_NL_XL and turbo4 quant for KV&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So far its been good enough. But I have an older small GPU I can connect and use for the operating system while keeping the 3070 Ti entirely dedicated to the LLM.&lt;/p&gt; &lt;p&gt;--------------------&lt;/p&gt; &lt;p&gt;Both profiles are coding focused and should work under Windows 11 too but with a lot less memory left.&lt;/p&gt; &lt;p&gt;Main profile with 256K context:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-server \ -m Qwen3.6-35B-A3B-Q4_K_XL.gguf \ --jinja \ --parallel 1 \ --temp 0.7 \ --top-k 20 \ --top-p 0.95 \ --min-p 0 \ --reasoning-budget 4096 \ -n 32768 \ --no-context-shift \ --no-mmap \ -c 262144 \ --cache-type-k q8_0 \ --cache-type-v q8_0 \ --host 0.0.0.0 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and with 512K context:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;llama-server \ -m Qwen3.6-35B-A3B-Q4_K_XL.gguf \ --jinja \ --parallel 1 \ --temp 0.7 \ --top-k 20 \ --top-p 0.95 \ --min-p 0 \ --reasoning-budget 4096 \ -n 32768 \ --no-context-shift \ --no-mmap \ -c 524288 \ --rope-scale 2 \ --rope-scaling yarn \ --yarn-orig-ctx 262144 \ --cache-type-k turbo4 \ --cache-type-v turbo4 \ --host 0.0.0.0 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I hope someone finds this helpful. I love this community and I'm in the Qwen3.7-35B-A3B waiting room with the rest eating my nails in anticipation lol&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Alternative-Cat-1347"&gt; /u/Alternative-Cat-1347 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkxnuc/qwen3635ba3b_q4_262k_context_on_8gb_3070_ti_30tps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkxnuc/qwen3635ba3b_q4_262k_context_on_8gb_3070_ti_30tps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkxnuc/qwen3635ba3b_q4_262k_context_on_8gb_3070_ti_30tps/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T22:11:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tlh4vq</id>
-    <title>Apex-Testing: real-world, real repos, agentic coding benchmark (Update)</title>
-    <updated>2026-05-23T13:54:08+00:00</updated>
-    <author>
-      <name>/u/hauhau901</name>
-      <uri>https://old.reddit.com/user/hauhau901</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;BIG Apex-Testing update!&lt;/strong&gt; &lt;a href="https://www.apex-testing.org/"&gt;https://www.apex-testing.org/&lt;/a&gt; &lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Real-World Agentic Coding&lt;/strong&gt; benchmark has been (95%) updated with all recent models! This is based on 65-70 &lt;strong&gt;actual private github repos&lt;/strong&gt; made especially to test proper agentic coding capabilities of models. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;For those who don't know about the project and see it for the first time, here's the excerpt from the website:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&amp;quot;&lt;strong&gt;What is APEX Testing?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every week there's a new model that's &amp;quot;the best ever.&amp;quot; Every provider promises 10x performance at a fraction of the cost. Benchmarks get cherry-picked, their demos get curated, influencers get paid and people keep falling for it.&lt;/p&gt; &lt;p&gt;APEX exists because I got tired of the hype and the intentional benchmaxxing. Models get dropped into real codebases with real bugs and real feature requests, and they have to figure it out like a developer would. 70 tasks across 8 categories, all based on work you'd actually encounter on the job. You get to see what actually works and what's just marketing.&amp;quot;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's included currently in metrics:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Avg Cost&lt;/p&gt; &lt;p&gt;- Avg Time&lt;/p&gt; &lt;p&gt;- Scoring based off each category/difficulty&lt;/p&gt; &lt;p&gt;- ELO-based Leaderboard (see details on the website)&lt;/p&gt; &lt;p&gt;- Model comparison&lt;/p&gt; &lt;p&gt;- Various metrics (included in the website)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;There are still a few things that need to be brought up to speed such as:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- Qwen3.7 Max is currently incomplete in its run (cca. 40/70 repo tasks done)&lt;/p&gt; &lt;p&gt;- Qwen3.6 local models must be added (will do so these upcoming days at BF16)&lt;/p&gt; &lt;p&gt;- Deepseek v4 pro+flash are currently incomplete in their runs&lt;/p&gt; &lt;p&gt;- Ideally I'd like to also add Qwen3.5 397B BF16 (Q4_K_XL is added and complete)&lt;/p&gt; &lt;p&gt;I will &lt;strong&gt;probably&lt;/strong&gt; open up some kind of donation strictly for it or if anyone has OpenRouter tokens available, I'll appreciate it. Otherwise, I'll probably only update models selectively moving forward (local ones that I fit in my VRAM for sure will be added, referring to API costs only). Please don't take this as any sort of pressure or w/e, it's only for those interested and able to.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hauhau901"&gt; /u/hauhau901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlh4vq/apextesting_realworld_real_repos_agentic_coding/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T13:54:08+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tkfvvj</id>
-    <title>DeepSeek is pushing forward with $10.29 billion financing round, with Liang Wenfeng committing to continue developing open-source AI models rather than pursuing short-term commercialization goals</title>
-    <updated>2026-05-22T11:14:57+00:00</updated>
-    <author>
-      <name>/u/External_Mood4719</name>
-      <uri>https://old.reddit.com/user/External_Mood4719</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.bloomberg.com/news/articles/2026-05-22/deepseek-founder-declares-agi-goal-as-10-billion-round-advances"&gt;https://www.bloomberg.com/news/articles/2026-05-22/deepseek-founder-declares-agi-goal-as-10-billion-round-advances&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkfvvj/deepseek_is_pushing_forward_with_1029_billion/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkfvvj/deepseek_is_pushing_forward_with_1029_billion/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkfvvj/deepseek_is_pushing_forward_with_1029_billion/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T11:14:57+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tle4ut</id>
     <title>Optimizing speed &amp; quality on Qwen3.6 27b</title>
@@ -58,6 +19,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tle4ut/optimizing_speed_quality_on_qwen36_27b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T11:40:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tluvwg</id>
+    <title>Local model doing accounting tasks</title>
+    <updated>2026-05-23T23:00:28+00:00</updated>
+    <author>
+      <name>/u/Available_Hornet3538</name>
+      <uri>https://old.reddit.com/user/Available_Hornet3538</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I've been using qwen 3.6 27b for monthly closes, bank recs, payable and receivables. Built a simple sql lite database it manages. Anyhow, wanted to post I integrated Claude skills and the &lt;a href="https://github.com/anthropics/financial-services"&gt;https://github.com/anthropics/financial-services&lt;/a&gt; repo. It works well. Just wanted to mention that I think local models are coming into their own. It's still slower than snot because I don't have the budget to buy a 5K machine. Just a shit igpu that runs the MTP version overnight but it gets it done. It's cool to see local models finally being useful.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Available_Hornet3538"&gt; /u/Available_Hornet3538 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluvwg/local_model_doing_accounting_tasks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluvwg/local_model_doing_accounting_tasks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tluvwg/local_model_doing_accounting_tasks/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T23:00:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkzk9e</id>
@@ -73,6 +47,19 @@
     <published>2026-05-22T23:29:14+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tltoil</id>
+    <title>For users have have both 6000 PRO MaxQ and Workstation Edition (or Server Edition), how much slower is the MaxQ vs the WS/SV on compute? (Prompt processing, Diffusion, etc)</title>
+    <updated>2026-05-23T22:07:39+00:00</updated>
+    <author>
+      <name>/u/panchovix</name>
+      <uri>https://old.reddit.com/user/panchovix</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello guys, hoping you are doing fine!&lt;/p&gt; &lt;p&gt;I'm torn on the choice of either a RTX 6000 PRO MaxQ (on stock on Chile right now) or waiting 3~ months and get a RTX 6000 PRO Workstation Edition.&lt;/p&gt; &lt;p&gt;I have sold 3x5090 I purchased time ago near MSRP and got for one of these. I have a open case setup.&lt;/p&gt; &lt;p&gt;I have read on multiple places that tasks that depends only of bandwidth, like token generation, the difference is about -5 to -15% on the MaxQ vs the Workstation Edition (or Server Edition). I guess it makes sense since it has max 300W vs 600W.&lt;/p&gt; &lt;p&gt;But I haven't seen someone posting a difference on compute heavy tasks, like prompt processing or diffusion (txt2image, txt2video, etc). Only a comment from some months ago that mentions that is 50% slower: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1t6ji0q/comment/oks3398/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1t6ji0q/comment/oks3398/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;EDIT: Found a comparison between SE 600W vs MaxQ and it seems to be indeed 50% faster: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1pt9czu/comment/nvfkahn/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1pt9czu/comment/nvfkahn/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Does someone have a test or an actual difference between these 2 cards to make a final decision?&lt;/p&gt; &lt;p&gt;Thanks in advance!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/panchovix"&gt; /u/panchovix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T22:07:39+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tljs5o</id>
     <title>Benchmarked Needle 26M vs Qwen3-0.6B on CPU function calling, 50 queries across 5 difficulty tiers. The 23x smaller model wins on accuracy and is 4.4x faster.</title>
     <updated>2026-05-23T15:38:34+00:00</updated>
@@ -84,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T15:38:34+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tltoil</id>
-    <title>For users have have both 6000 PRO MaxQ and Workstation Edition (or Server Edition), how much slower is the MaxQ vs the WS/SV on compute? (Prompt processing, Diffusion, etc)</title>
-    <updated>2026-05-23T22:07:39+00:00</updated>
-    <author>
-      <name>/u/panchovix</name>
-      <uri>https://old.reddit.com/user/panchovix</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello guys, hoping you are doing fine!&lt;/p&gt; &lt;p&gt;I'm torn on the choice of either a RTX 6000 PRO MaxQ (on stock on Chile right now) or waiting 3~ months and get a RTX 6000 PRO Workstation Edition.&lt;/p&gt; &lt;p&gt;I have sold 3x5090 I purchased time ago near MSRP and got for one of these. I have a open case setup.&lt;/p&gt; &lt;p&gt;I have read on multiple places that tasks that depends only of bandwidth, like token generation, the difference is about -5 to -15% on the MaxQ vs the Workstation Edition (or Server Edition). I guess it makes sense since it has max 300W vs 600W.&lt;/p&gt; &lt;p&gt;But I haven't seen someone posting a difference on compute heavy tasks, like prompt processing or diffusion (txt2image, txt2video, etc). Only a comment from some months ago that mentions that is 50% slower, but I guess that is too much right? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1t6ji0q/comment/oks3398/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1t6ji0q/comment/oks3398/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Does someone have a test or an actual difference between these 2 cards to make a final decision?&lt;/p&gt; &lt;p&gt;Thanks in advance!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/panchovix"&gt; /u/panchovix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tltoil/for_users_have_have_both_6000_pro_maxq_and/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T22:07:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1tl4wpi</id>
@@ -112,17 +86,17 @@
     <published>2026-05-23T03:27:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlkgq6</id>
-    <title>Any reason to run dense over MOE for RAGs?</title>
-    <updated>2026-05-23T16:04:50+00:00</updated>
+    <id>t3_1tluxd3</id>
+    <title>MLID claims nova lake-ax not cancelled just renamed razor lake-ax</title>
+    <updated>2026-05-23T23:02:06+00:00</updated>
     <author>
-      <name>/u/vick2djax</name>
-      <uri>https://old.reddit.com/user/vick2djax</uri>
+      <name>/u/Terminator857</name>
+      <uri>https://old.reddit.com/user/Terminator857</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I tend to use Claude for a lot of research and I also increasingly worry about things like misinformation or things in the model I can't audit. So, I'm building my own all in one RAG with big datasets like all of Wiki, research papers, all the typical big data sets people like to grab. Then lots of books as well. Then, I do a lot of stuff like claim and argument extraction and such, but I won't get deep into that yet, it's still getting built.&lt;/p&gt; &lt;p&gt;I was using qwen3.6 27b MTP for my inline chat for a while without even considering MOE cause this sub kinda led me to thinking MOE = bad. 27b = king. But, I started doing tests with it and I'm getting much better answers with qwen3.6 35b APEX. It seems to be grabbing way more information, bringing up way more points than what dense was finding. Dense didn't seem to compete hardly really. 150 tok/s is also nicer than 60 tok/s (I'm running a single 3090).&lt;/p&gt; &lt;p&gt;I know people are much more interested in models for coding (believe me, I like it as well), but is there an advantage MOE has over dense for RAG specifically? If anybody even does RAG anymore, information that's not bot driven seems hard to find sometimes.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vick2djax"&gt; /u/vick2djax &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since these are code names, I find it humorous that a product is not cancelled just that the code name has been changed. I suppose it does imply a later release date than had earlier been rumored. Nova Lake ax was due early 2027. The video insinuates mid 2027 now?&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.notebookcheck.net/Detailed-Intel-desktop-and-laptop-CPU-roadmap-reveals-resurrection-of-dead-feature-with-2nd-gen-Unified-Cores.1303066.0.html"&gt;https://www.notebookcheck.net/Detailed-Intel-desktop-and-laptop-CPU-roadmap-reveals-resurrection-of-dead-feature-with-2nd-gen-Unified-Cores.1303066.0.html&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://youtu.be/hicLIeott6E?si=1ev5PxFPFiSGLePD&amp;amp;t=157"&gt;https://youtu.be/hicLIeott6E?si=1ev5PxFPFiSGLePD&amp;amp;t=157&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Relevant monologue starts at 2:40 into the video.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluxd3/mlid_claims_nova_lakeax_not_cancelled_just/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluxd3/mlid_claims_nova_lakeax_not_cancelled_just/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tluxd3/mlid_claims_nova_lakeax_not_cancelled_just/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T16:04:50+00:00</published>
+    <published>2026-05-23T23:02:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlgxms</id>
@@ -151,19 +125,6 @@
     <published>2026-05-23T19:01:43+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tl1wpd</id>
-    <title>G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!</title>
-    <updated>2026-05-23T01:10:59+00:00</updated>
-    <author>
-      <name>/u/LLMFan46</name>
-      <uri>https://old.reddit.com/user/LLMFan46</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"&gt; &lt;img alt="G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!" src="https://external-preview.redd.it/gSlsnzJc3zRUXIwholKZwcUeSos9bcCICafrGQ2pZQU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1014b4a2f0648b7ee2c4a172b22f04e1b9696527" title="G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When I previously posted the uncensored version of the 31B version of the MeroMero finetune, quite a few people asked for the 26B-A4B version, I wasn't so keen on it because I considered the 31B to be the better version, but I understand that people might want the 26B-A4B version for speed and/or smaller VRAM/RAM requirements, so here it is, the G4-MeroMero-26B-A4B-it-uncensored-heretic.&lt;/p&gt; &lt;p&gt;Provided in both Safetensors and GGUFs.&lt;/p&gt; &lt;p&gt;Safetensors: llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic: &lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic"&gt;https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GGUFs: llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF: &lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF"&gt;https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Comes with benchmark too.&lt;/p&gt; &lt;p&gt;Find all my models here: &lt;a href="https://huggingface.co/llmfan46/models"&gt;HuggingFace-LLMFan46&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The original author of this finetune is: &lt;a href="https://www.reddit.com/user/zerofata/"&gt;zerofata&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LLMFan46"&gt; /u/LLMFan46 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T01:10:59+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tl9woz</id>
     <title>Gemma4 26b a4b Apex quant is quite good</title>
     <updated>2026-05-23T07:44:54+00:00</updated>
@@ -177,6 +138,32 @@
     <published>2026-05-23T07:44:54+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tl1wpd</id>
+    <title>G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!</title>
+    <updated>2026-05-23T01:10:59+00:00</updated>
+    <author>
+      <name>/u/LLMFan46</name>
+      <uri>https://old.reddit.com/user/LLMFan46</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"&gt; &lt;img alt="G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!" src="https://external-preview.redd.it/gSlsnzJc3zRUXIwholKZwcUeSos9bcCICafrGQ2pZQU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1014b4a2f0648b7ee2c4a172b22f04e1b9696527" title="G4-MeroMero-26B-A4B-it-uncensored-heretic Is Out Now, a Finetune of gemma-4-26B-A4B-it, With KLD of 0.0152 and 12/100 Refusals!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When I previously posted the uncensored version of the 31B version of the MeroMero finetune, quite a few people asked for the 26B-A4B version, I wasn't so keen on it because I considered the 31B to be the better version, but I understand that people might want the 26B-A4B version for speed and/or smaller VRAM/RAM requirements, so here it is, the G4-MeroMero-26B-A4B-it-uncensored-heretic.&lt;/p&gt; &lt;p&gt;Provided in both Safetensors and GGUFs.&lt;/p&gt; &lt;p&gt;Safetensors: llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic: &lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic"&gt;https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GGUFs: llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF: &lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF"&gt;https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Comes with benchmark too.&lt;/p&gt; &lt;p&gt;Find all my models here: &lt;a href="https://huggingface.co/llmfan46/models"&gt;HuggingFace-LLMFan46&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The original author of this finetune is: &lt;a href="https://www.reddit.com/user/zerofata/"&gt;zerofata&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/LLMFan46"&gt; /u/LLMFan46 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/llmfan46/G4-MeroMero-26B-A4B-it-uncensored-heretic-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tl1wpd/g4meromero26ba4bituncensoredheretic_is_out_now_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T01:10:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlkgq6</id>
+    <title>Any reason to run dense over MOE for RAGs?</title>
+    <updated>2026-05-23T16:04:50+00:00</updated>
+    <author>
+      <name>/u/vick2djax</name>
+      <uri>https://old.reddit.com/user/vick2djax</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I tend to use Claude for a lot of research and I also increasingly worry about things like misinformation or things in the model I can't audit. So, I'm building my own all in one RAG with big datasets like all of Wiki, research papers, all the typical big data sets people like to grab. Then lots of books as well. Then, I do a lot of stuff like claim and argument extraction and such, but I won't get deep into that yet, it's still getting built.&lt;/p&gt; &lt;p&gt;I was using qwen3.6 27b MTP for my inline chat for a while without even considering MOE cause this sub kinda led me to thinking MOE = bad. 27b = king. But, I started doing tests with it and I'm getting much better answers with qwen3.6 35b APEX. It seems to be grabbing way more information, bringing up way more points than what dense was finding. Dense didn't seem to compete hardly really. 150 tok/s is also nicer than 60 tok/s (I'm running a single 3090).&lt;/p&gt; &lt;p&gt;I know people are much more interested in models for coding (believe me, I like it as well), but is there an advantage MOE has over dense for RAG specifically? If anybody even does RAG anymore, information that's not bot driven seems hard to find sometimes.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vick2djax"&gt; /u/vick2djax &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlkgq6/any_reason_to_run_dense_over_moe_for_rags/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T16:04:50+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tlliw4</id>
     <title>Did a 30 runs of llama-bench to find optimal settings for my use case (Frigate and HomeAssistant) on my MI60 32gb VRAM GPU - two models tested Gemma4 and Qwen3.6 - Figured I'd share in case it helps anyone else</title>
     <updated>2026-05-23T16:45:24+00:00</updated>
@@ -188,19 +175,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlliw4/did_a_30_runs_of_llamabench_to_find_optimal/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T16:45:24+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tlohld</id>
-    <title>NVFP4 + MTP - voilà on llama.cpp</title>
-    <updated>2026-05-23T18:39:22+00:00</updated>
-    <author>
-      <name>/u/mossy_troll_84</name>
-      <uri>https://old.reddit.com/user/mossy_troll_84</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As in title - NVFP4 + MTP at once on llama.cpp&lt;br /&gt; &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9297"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b9297&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T18:39:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlnqzj</id>
@@ -227,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlhkts/removing_vision_from_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T14:11:59+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlohld</id>
+    <title>NVFP4 + MTP - voilà on llama.cpp</title>
+    <updated>2026-05-23T18:39:22+00:00</updated>
+    <author>
+      <name>/u/mossy_troll_84</name>
+      <uri>https://old.reddit.com/user/mossy_troll_84</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As in title - NVFP4 + MTP at once on llama.cpp&lt;br /&gt; &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9297"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b9297&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T18:39:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1tkw5ri</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlqcbi/embeddings_for_nvidias_nemotron_personas/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T19:51:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tluma3</id>
+    <title>llama.cpp server have built-in native tools (exec_shell, edit_file, etc.)</title>
+    <updated>2026-05-23T22:48:30+00:00</updated>
+    <author>
+      <name>/u/srigi</name>
+      <uri>https://old.reddit.com/user/srigi</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluma3/llamacpp_server_have_builtin_native_tools_exec/"&gt; &lt;img alt="llama.cpp server have built-in native tools (exec_shell, edit_file, etc.)" src="https://preview.redd.it/24uvk7o4sy2h1.png?width=140&amp;amp;height=86&amp;amp;auto=webp&amp;amp;s=c83aed2c6e8258b72ffc33e5f08445ce3ff7eb4a" title="llama.cpp server have built-in native tools (exec_shell, edit_file, etc.)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/24uvk7o4sy2h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=542570e3057b6f44c1e7e8d92130f575fb69cfa2"&gt;https://preview.redd.it/24uvk7o4sy2h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=542570e3057b6f44c1e7e8d92130f575fb69cfa2&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/l4bbm7o4sy2h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3dc0edd978da23fecf81e86a269a06de643247d1"&gt;https://preview.redd.it/l4bbm7o4sy2h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3dc0edd978da23fecf81e86a269a06de643247d1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I was messing around with running local models recently, and while digging through the llama.cpp server docs, I noticed this experimental flag just sitting right there:&lt;/p&gt; &lt;p&gt;&lt;code&gt;--tools TOOL1,TOOL2,...&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It natively supports &lt;code&gt;read_file&lt;/code&gt;, &lt;code&gt;file_glob_search&lt;/code&gt;, &lt;code&gt;grep_search&lt;/code&gt;, &lt;code&gt;exec_shell_command&lt;/code&gt;, &lt;code&gt;write_file&lt;/code&gt;, &lt;code&gt;edit_file&lt;/code&gt;, &lt;code&gt;apply_diff&lt;/code&gt;, and &lt;code&gt;get_datetime&lt;/code&gt;. That is a battery of tools that basically turns &lt;code&gt;llama-server&lt;/code&gt; into a mini agent harness. You really don't need anything more than your trusty &lt;code&gt;.gguf&lt;/code&gt; file and the llama.cpp binary for basic AI assistance in your projects.&lt;/p&gt; &lt;p&gt;Note that file operations are relative to folder from which you started the server. There also isn't any security sandboxing yet, like a whitelist of allowed commands or strict denial of file operations outside the original folder. So, be very cautious with what you expose!&lt;/p&gt; &lt;p&gt;But still, I'm pretty amazed that llama.cpp is gaining these abilities natively. It completely eliminates the need to rig up MCPs or heavy wrappers just for things like getting the current date/time or reading the contents of a file.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/srigi"&gt; /u/srigi &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluma3/llamacpp_server_have_builtin_native_tools_exec/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tluma3/llamacpp_server_have_builtin_native_tools_exec/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tluma3/llamacpp_server_have_builtin_native_tools_exec/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-23T22:48:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlqxeh</id>
