@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-24T05:25:45+00:00</updated>
+  <updated>2026-05-24T06:44:14+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1tljs5o</id>
-    <title>Benchmarked Needle 26M vs Qwen3-0.6B on CPU function calling, 50 queries across 5 difficulty tiers. The 23x smaller model wins on accuracy and is 4.4x faster.</title>
-    <updated>2026-05-23T15:38:34+00:00</updated>
-    <author>
-      <name>/u/gvij</name>
-      <uri>https://old.reddit.com/user/gvij</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ran a head-to-head on two open-weight models for tool-calling on a 4-core CPU, no GPU, no cherry-picking. Wanted to see if the small specialist (Needle, 26M, distilled from Gemini 3.1 for function calls) actually holds up against a small generalist (Qwen3-0.6B) that also does tools.&lt;/p&gt; &lt;p&gt;Setup: 50 queries across 5 tiers (simple, paraphrased, implicit, ambiguous, edge cases including foreign language and a &amp;quot;don't call any tool&amp;quot; trap). 5 mock tools. Three metrics per run: parse_success, tool_match, args_match. Same queries, same eval rubric, same hardware.&lt;/p&gt; &lt;p&gt;Headline numbers:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; Needle (26M) Qwen3 (0.6B) tool_match overall 72.0% 56.0% parse_success 84.0% 54.0% args_match | match 97.2% 100.0% mean latency 10.9s 47.9s &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The interesting part is not the overall win, it's the failure shapes. They diverge completely:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Needle&lt;/strong&gt; fails by picking the wrong tool. When it does pick a tool, args are right 97% of the time. Its sin is selection, mostly routing system commands to search_web instead of run_command.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen3&lt;/strong&gt; fails by not calling a tool at all. Every single one of its 22 misses is a parse failure where it answered in prose instead of emitting &lt;code&gt;&amp;lt;tool_call&amp;gt;&lt;/code&gt; tags. When it does emit a call, args are perfect 100% of the time.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Tier breakdown is where it gets sharp. T1 and T2 (literal and paraphrased) are tied at ~95% each. T3 (implicit, like &amp;quot;should I bring an umbrella in Amsterdam?&amp;quot; where the tool name never appears) is where Qwen3 falls off a cliff: 80% to 10%. Needle just maps the intent. Qwen3 tries to be helpful in prose and apologizes for not having real-time data.&lt;/p&gt; &lt;p&gt;T5 (edge) is the only tier Qwen3 wins, by 10 pts. Hindi queries broke Needle's tokenizer (Devanagari fragments badly, one query timed out at 73s with garbled output). Qwen3 handled both Hindi and French cleanly.&lt;/p&gt; &lt;p&gt;One thing that almost killed the Needle run: first pass it scored 8% because I was feeding it OpenAI JSON Schema. Needle was trained on a flat schema (&lt;code&gt;{location: {type, description, required}}&lt;/code&gt;) and was literally echoing the word &amp;quot;properties&amp;quot; back as an argument value. Wrote a converter, accuracy jumped from 8% to 72% with no other changes. Worth knowing if anyone else picks up the Needle weights.&lt;/p&gt; &lt;p&gt;Qwen3 had its own issue, it never emitted EOS on the hand-rolled prompt template and burned the full 256-token budget on every query (~230s each). Switching to &lt;code&gt;tokenizer.apply_chat_template(tools=...)&lt;/code&gt; with &lt;code&gt;enable_thinking=False&lt;/code&gt; dropped it to ~37s and the &lt;code&gt;&amp;lt;tool_call&amp;gt;&lt;/code&gt; tags started appearing naturally.&lt;/p&gt; &lt;p&gt;My read: these are not the same product category even though they sound like they are. Needle is a dispatcher. Qwen3 is a tiny chatbot that can also call tools. If you want on-device single-shot tool routing with a fixed palette, Needle is genuinely good for 13MB. If you want any conversational ability, Needle has zero of it and Qwen3 wins by default.&lt;/p&gt; &lt;p&gt;Limitations: n=50 is small. Single CPU hardware. Mock tools, not real ones. Would love anyone who reproduces it on different hardware or with a paraphrase-stress-test to share results.&lt;/p&gt; &lt;p&gt;Repo with full code, raw_log.jsonl, summary.json, and the 5 charts are in comments below 👇&lt;/p&gt; &lt;p&gt;This evaluation was done using NEO, an AI engineering agent. It built the eval harness, handled the checkpointed runs, debugged the schema mismatch and the EOS issue, and consolidated results. I reviewed everything manually and made the calls on what to ship.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gvij"&gt; /u/gvij &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tljs5o/benchmarked_needle_26m_vs_qwen306b_on_cpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T15:38:34+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tlp1xl</id>
     <title>Looking for efficient "eGPU" setup</title>
@@ -60,19 +47,6 @@
     <published>2026-05-24T02:46:46+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tm0eb4</id>
-    <title>Anyone down to test this? Just uploaded a model using rys</title>
-    <updated>2026-05-24T03:14:03+00:00</updated>
-    <author>
-      <name>/u/Human-Gas-1288</name>
-      <uri>https://old.reddit.com/user/Human-Gas-1288</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone down to test this? Just uploaded a uploaded a model with rys, looks pretty fun. &lt;a href="https://huggingface.co/EidosL/Qwopus3.6-27B-v2-MTP-Q5_K_M-rys68.gguf"&gt;https://huggingface.co/EidosL/Qwopus3.6-27B-v2-MTP-Q5_K_M-rys68.gguf&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hey guys, just dropped this thing called &lt;code&gt;rys&lt;/code&gt; and it seems like a blast.&lt;/p&gt; &lt;p&gt;I'm currently running some tests on my end to see if it actually works/has any real effect, but my setup is tracking pretty slow right now.&lt;/p&gt; &lt;p&gt;If anyone has the time or the bandwidth to test it out and share their results, that'd be awesome. Let me know if you guys notice any difference!&lt;/p&gt; &lt;p&gt;using method from this blog.&lt;/p&gt; &lt;p&gt;&lt;a href="https://dnhkng.github.io/posts/rys-ii/"&gt;https://dnhkng.github.io/posts/rys-ii/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Human-Gas-1288"&gt; /u/Human-Gas-1288 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-24T03:14:03+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tlkgq6</id>
     <title>Any reason to run dense over MOE for RAGs?</title>
     <updated>2026-05-23T16:04:50+00:00</updated>
@@ -99,6 +73,19 @@
     <published>2026-05-24T01:16:14+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tm2ct0</id>
+    <title>I built a local GUI for the TradingAgents framework — works with Ollama</title>
+    <updated>2026-05-24T04:51:09+00:00</updated>
+    <author>
+      <name>/u/AI_Trenches</name>
+      <uri>https://old.reddit.com/user/AI_Trenches</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt; &lt;img alt="I built a local GUI for the TradingAgents framework — works with Ollama" src="https://preview.redd.it/i90oxxk7n03h1.png?width=140&amp;amp;height=79&amp;amp;auto=webp&amp;amp;s=a65ba03129f4ad961a1519ba53b2707586596e0e" title="I built a local GUI for the TradingAgents framework — works with Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/i90oxxk7n03h1.png?width=1898&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d219c804fda7dfe122b84fcdb6d0d6883818c68"&gt;https://preview.redd.it/i90oxxk7n03h1.png?width=1898&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d219c804fda7dfe122b84fcdb6d0d6883818c68&lt;/a&gt;&lt;/p&gt; &lt;p&gt;A while back I came across &lt;a href="https://github.com/TauricResearch/TradingAgents"&gt;TradingAgents&lt;/a&gt; — a really cool multi-agent LLM stock analysis framework where like a dozen &amp;quot;agents&amp;quot; (market analyst, news analyst, bull researcher, bear researcher, risk team, etc.) debate a stock and produce a final trade recommendation. The output is genuinely interesting to read.&lt;/p&gt; &lt;p&gt;Problem: it ships as a CLI. You pick options in a terminal, watch logs scroll, then go hunt for markdown files on disk. The reports are good, the experience of getting to them isn't.&lt;/p&gt; &lt;p&gt;So I forked it and bolted on a web GUI. Runs locally, talks to whatever LLM provider you have a key for (OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama, xAI, Qwen, GLM, MiniMax). All Apache 2.0.&lt;/p&gt; &lt;p&gt;Some things I ended up adding because I wanted them:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Live pipeline visualization showing which agent is working&lt;/li&gt; &lt;li&gt;Reports tab with a 3-pane reader, table-of-contents, search&lt;/li&gt; &lt;li&gt;A &amp;quot;report length&amp;quot; knob (Concise / Standard / Comprehensive) — concise mode saves ~50% tokens&lt;/li&gt; &lt;li&gt;Multi-session chat where you can pin past reports as grounding context and ask follow-up questions&lt;/li&gt; &lt;li&gt;Three themes because I couldn't decide&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Sample reports:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://htmlpreview.github.io/?https://github.com/TheLocalLab/TradingAgents-GUI/blob/main/assets/examples/AAPL_report.html"&gt;AAPL&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://htmlpreview.github.io/?https://github.com/TheLocalLab/TradingAgents-GUI/blob/main/assets/examples/NVDA_report.html"&gt;NVDA&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/TheLocalLab/TradingAgents-GUI"&gt;https://github.com/TheLocalLab/TradingAgents-GUI&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AI_Trenches"&gt; /u/AI_Trenches &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-24T04:51:09+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tlhkts</id>
     <title>Removing Vision from model</title>
     <updated>2026-05-23T14:11:59+00:00</updated>
@@ -112,19 +99,6 @@
     <published>2026-05-23T14:11:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tkw5ri</id>
-    <title>NVIDIA Removes Gaming Revenue Category From Financial Reports</title>
-    <updated>2026-05-22T21:13:35+00:00</updated>
-    <author>
-      <name>/u/HumanDrone8721</name>
-      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.guru3d.com/story/nvidia-removes-gaming-revenue-category-from-financial-reports/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkw5ri/nvidia_removes_gaming_revenue_category_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkw5ri/nvidia_removes_gaming_revenue_category_from/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-22T21:13:35+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tlliw4</id>
     <title>Did a 30 runs of llama-bench to find optimal settings for my use case (Frigate and HomeAssistant) on my MI60 32gb VRAM GPU - two models tested Gemma4 and Qwen3.6 - Figured I'd share in case it helps anyone else</title>
     <updated>2026-05-23T16:45:24+00:00</updated>
@@ -136,6 +110,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlliw4/did_a_30_runs_of_llamabench_to_find_optimal/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T16:45:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tkw5ri</id>
+    <title>NVIDIA Removes Gaming Revenue Category From Financial Reports</title>
+    <updated>2026-05-22T21:13:35+00:00</updated>
+    <author>
+      <name>/u/HumanDrone8721</name>
+      <uri>https://old.reddit.com/user/HumanDrone8721</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HumanDrone8721"&gt; /u/HumanDrone8721 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.guru3d.com/story/nvidia-removes-gaming-revenue-category-from-financial-reports/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tkw5ri/nvidia_removes_gaming_revenue_category_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tkw5ri/nvidia_removes_gaming_revenue_category_from/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-22T21:13:35+00:00</published>
   </entry>
   <entry>
     <id>t3_1tli757</id>
@@ -177,30 +164,17 @@
     <published>2026-05-23T19:51:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlohld</id>
-    <title>NVFP4 + MTP - voilà on llama.cpp</title>
-    <updated>2026-05-23T18:39:22+00:00</updated>
+    <id>t3_1tm0eb4</id>
+    <title>Anyone down to test this? Just uploaded a model using rys</title>
+    <updated>2026-05-24T03:14:03+00:00</updated>
     <author>
-      <name>/u/mossy_troll_84</name>
-      <uri>https://old.reddit.com/user/mossy_troll_84</uri>
+      <name>/u/Human-Gas-1288</name>
+      <uri>https://old.reddit.com/user/Human-Gas-1288</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As in title - NVFP4 + MTP at once on llama.cpp&lt;br /&gt; &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9297"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b9297&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone down to test this? Just uploaded a uploaded a model with rys, looks pretty fun. &lt;a href="https://huggingface.co/EidosL/Qwopus3.6-27B-v2-MTP-Q5_K_M-rys68.gguf"&gt;https://huggingface.co/EidosL/Qwopus3.6-27B-v2-MTP-Q5_K_M-rys68.gguf&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hey guys, just dropped this thing called &lt;code&gt;rys&lt;/code&gt; and it seems like a blast.&lt;/p&gt; &lt;p&gt;I'm currently running some tests on my end to see if it actually works/has any real effect, but my setup is tracking pretty slow right now.&lt;/p&gt; &lt;p&gt;If anyone has the time or the bandwidth to test it out and share their results, that'd be awesome. Let me know if you guys notice any difference!&lt;/p&gt; &lt;p&gt;using method from this blog.&lt;/p&gt; &lt;p&gt;&lt;a href="https://dnhkng.github.io/posts/rys-ii/"&gt;https://dnhkng.github.io/posts/rys-ii/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Human-Gas-1288"&gt; /u/Human-Gas-1288 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0eb4/anyone_down_to_test_this_just_uploaded_a_model/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-23T18:39:22+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tm2ct0</id>
-    <title>I built a local GUI for the TradingAgents framework — works with Ollama</title>
-    <updated>2026-05-24T04:51:09+00:00</updated>
-    <author>
-      <name>/u/AI_Trenches</name>
-      <uri>https://old.reddit.com/user/AI_Trenches</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt; &lt;img alt="I built a local GUI for the TradingAgents framework — works with Ollama" src="https://preview.redd.it/i90oxxk7n03h1.png?width=140&amp;amp;height=79&amp;amp;auto=webp&amp;amp;s=a65ba03129f4ad961a1519ba53b2707586596e0e" title="I built a local GUI for the TradingAgents framework — works with Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/i90oxxk7n03h1.png?width=1898&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d219c804fda7dfe122b84fcdb6d0d6883818c68"&gt;https://preview.redd.it/i90oxxk7n03h1.png?width=1898&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7d219c804fda7dfe122b84fcdb6d0d6883818c68&lt;/a&gt;&lt;/p&gt; &lt;p&gt;A while back I came across &lt;a href="https://github.com/TauricResearch/TradingAgents"&gt;TradingAgents&lt;/a&gt; — a really cool multi-agent LLM stock analysis framework where like a dozen &amp;quot;agents&amp;quot; (market analyst, news analyst, bull researcher, bear researcher, risk team, etc.) debate a stock and produce a final trade recommendation. The output is genuinely interesting to read.&lt;/p&gt; &lt;p&gt;Problem: it ships as a CLI. You pick options in a terminal, watch logs scroll, then go hunt for markdown files on disk. The reports are good, the experience of getting to them isn't.&lt;/p&gt; &lt;p&gt;So I forked it and bolted on a web GUI. Runs locally, talks to whatever LLM provider you have a key for (OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama, xAI, Qwen, GLM, MiniMax). All Apache 2.0.&lt;/p&gt; &lt;p&gt;Some things I ended up adding because I wanted them:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Live pipeline visualization showing which agent is working&lt;/li&gt; &lt;li&gt;Reports tab with a 3-pane reader, table-of-contents, search&lt;/li&gt; &lt;li&gt;A &amp;quot;report length&amp;quot; knob (Concise / Standard / Comprehensive) — concise mode saves ~50% tokens&lt;/li&gt; &lt;li&gt;Multi-session chat where you can pin past reports as grounding context and ask follow-up questions&lt;/li&gt; &lt;li&gt;Three themes because I couldn't decide&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Sample reports:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://htmlpreview.github.io/?https://github.com/TheLocalLab/TradingAgents-GUI/blob/main/assets/examples/AAPL_report.html"&gt;AAPL&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://htmlpreview.github.io/?https://github.com/TheLocalLab/TradingAgents-GUI/blob/main/assets/examples/NVDA_report.html"&gt;NVDA&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/TheLocalLab/TradingAgents-GUI"&gt;https://github.com/TheLocalLab/TradingAgents-GUI&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AI_Trenches"&gt; /u/AI_Trenches &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm2ct0/i_built_a_local_gui_for_the_tradingagents/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-24T04:51:09+00:00</published>
+    <published>2026-05-24T03:14:03+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlqxeh</id>
@@ -216,17 +190,30 @@
     <published>2026-05-23T20:14:51+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlwoho</id>
-    <title>llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar</title>
-    <updated>2026-05-24T00:19:41+00:00</updated>
+    <id>t3_1tlohld</id>
+    <title>NVFP4 + MTP - voilà on llama.cpp</title>
+    <updated>2026-05-23T18:39:22+00:00</updated>
     <author>
       <name>/u/mossy_troll_84</name>
       <uri>https://old.reddit.com/user/mossy_troll_84</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt; &lt;img alt="llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar" src="https://external-preview.redd.it/0_31P46xc_0v5kD6xvt4K_qNeMRNZixTv6UY9k-ViU8.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=1a61d6554b8abf9116b4af34c8b604e08c9f4697" title="llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I’ve just published the first public release of &lt;strong&gt;llampart 1.0.0&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/mchowy-troll/llampart"&gt;https://github.com/mchowy-troll/llampart&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llampart is a standalone local web UI designed to work with `llama-server`. It started from the `llama-ui` work in the `llama.cpp` project, but over time I customized it into a separate interface focused on local use, everyday comfort, and a more complete desktop-style experience.&lt;/p&gt; &lt;p&gt;The goal was not to build another hosted chat service, but a clean local UI that feels pleasant to use for longer sessions while keeping the workflow simple.&lt;/p&gt; &lt;p&gt;Some highlights:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;standalone&lt;/strong&gt; local web UI for `llama-server`&lt;/li&gt; &lt;li&gt;&lt;strong&gt;extended settings interface with appearance&lt;/strong&gt;, model, MCP, tools, data, and advanced sections&lt;/li&gt; &lt;li&gt;localized interface: &lt;strong&gt;English, Polish, German, French, Italian, and Spanish&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;two-column conversation sidebar&lt;/strong&gt; with conversation date/time display, conversation pinning, selective conversation deletion, delete-all while preserving pinned conversations&lt;/li&gt; &lt;li&gt;local import/export workflow that avoids exporting sensitive settings by default&lt;/li&gt; &lt;li&gt;llama-server connection workflow&lt;/li&gt; &lt;li&gt;MCP-related UI flows for servers, tools, resources, and prompts&lt;/li&gt; &lt;li&gt;&lt;strong&gt;minimal Reasoning / Tools display mode&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;dark, light, and &lt;strong&gt;Frosted Glass interface&lt;/strong&gt; modes&lt;/li&gt; &lt;li&gt;bundled wallpapers and &lt;strong&gt;wallpaper customization&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;optional Caddy deployment guide for local/LAN setup&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/n4zkw01kaz2h1.png?width=4304&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=89089ea0f2c3bc874fa753c48187c591cb5682bf"&gt;llampart 1.0.0 - main page&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/1dhywqdnaz2h1.png?width=5062&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=20afa194b14f2757e841979be4c9085c8851cfa5"&gt;llampart 1.0.0 - chat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/45at56hqaz2h1.png?width=5062&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=519065ce4797a5deff9e3336af323151ea299206"&gt;llampart 1.0.0 - settings&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The project is &lt;strong&gt;MIT-licensed&lt;/strong&gt;. I also tried to be careful with attribution and licensing notes, since llampart is based in part on `llama-ui` from `llama.cpp` and uses Svelte/SvelteKit for the frontend.&lt;/p&gt; &lt;p&gt;This is an initial public source release, so I’m sure there will still be things to improve. Feedback, suggestions, and issue reports are very welcome.&lt;/p&gt; &lt;p&gt;Thanks to the `llama.cpp` community — this project would not exist without that ecosystem.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As in title - NVFP4 + MTP at once on llama.cpp&lt;br /&gt; &lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9297"&gt;https://github.com/ggml-org/llama.cpp/releases/tag/b9297&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlohld/nvfp4_mtp_voilà_on_llamacpp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-24T00:19:41+00:00</published>
+    <published>2026-05-23T18:39:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tm3toi</id>
+    <title>Qwen3.6-35B-A3B-Uncensored-Genesis-APEX-MTP</title>
+    <updated>2026-05-24T06:08:22+00:00</updated>
+    <author>
+      <name>/u/EvilEnginer</name>
+      <uri>https://old.reddit.com/user/EvilEnginer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Here model: &lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-APEX-MTP-GGUF"&gt;https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-APEX-MTP-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Safetensors: &lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-FP8-Safetensors"&gt;https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-FP8-Safetensors&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;Testing results in Open Code on hardware (Beelink gtr9 pro + Strix Halo) done by my friend on Q8_K_P - MTP quant:&lt;/em&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;5 sessions with 200k context, not a single glitch, no loops, no repeated tool calls.&lt;/li&gt; &lt;li&gt;After 120k tokens he suddenly gave another task that doesn't intersect with what it was doing at all, and it calmly picked up and solved it correctly.&lt;/li&gt; &lt;li&gt;Uncensored with MTP support with APEX quantization.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Recommended quant:&lt;/strong&gt; APEX, APEX-MTP&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Recommended settings for LM Studio:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-APEX-MTP-GGUF/raw/main/System_Prompt.txt"&gt;System Prompt&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-APEX-MTP-GGUF/raw/main/chat_template.jinja"&gt;Chat Template&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-V2-APEX-MTP-GGUF/raw/main/chat_template_thinking.jinja"&gt;Chat Template Thinking&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Or use this minimal string as the &lt;strong&gt;first line&lt;/strong&gt;:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;&lt;code&gt;You are Qwen, created by Alibaba Cloud. You are a helpful assistant.&lt;/code&gt;&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Then add anything you want after. &lt;strong&gt;Model may underperform without this first line.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Settings:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Parameter&lt;/th&gt; &lt;th align="left"&gt;Value&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Temperature&lt;/td&gt; &lt;td align="left"&gt;0.7&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Top K Sampling&lt;/td&gt; &lt;td align="left"&gt;20&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Presence Penalty&lt;/td&gt; &lt;td align="left"&gt;1.5&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Repeat Penalty&lt;/td&gt; &lt;td align="left"&gt;1.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Top P Sampling&lt;/td&gt; &lt;td align="left"&gt;0.8&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Min P Sampling&lt;/td&gt; &lt;td align="left"&gt;0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Seed&lt;/td&gt; &lt;td align="left"&gt;42&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Enjoy 😄&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/EvilEnginer"&gt; /u/EvilEnginer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm3toi/qwen3635ba3buncensoredgenesisapexmtp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm3toi/qwen3635ba3buncensoredgenesisapexmtp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm3toi/qwen3635ba3buncensoredgenesisapexmtp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-24T06:08:22+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlcars</id>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlcars/have_we_passed_the_peak_of_inflated_expectations/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T10:01:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlwoho</id>
+    <title>llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar</title>
+    <updated>2026-05-24T00:19:41+00:00</updated>
+    <author>
+      <name>/u/mossy_troll_84</name>
+      <uri>https://old.reddit.com/user/mossy_troll_84</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt; &lt;img alt="llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar" src="https://external-preview.redd.it/0_31P46xc_0v5kD6xvt4K_qNeMRNZixTv6UY9k-ViU8.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=1a61d6554b8abf9116b4af34c8b604e08c9f4697" title="llampart 1.0.0 - I released a standalone local web UI for llama-server with translations, extended settings and a polished conversation sidebar" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I’ve just published the first public release of &lt;strong&gt;llampart 1.0.0&lt;/strong&gt;:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/mchowy-troll/llampart"&gt;https://github.com/mchowy-troll/llampart&lt;/a&gt;&lt;/p&gt; &lt;p&gt;llampart is a standalone local web UI designed to work with `llama-server`. It started from the `llama-ui` work in the `llama.cpp` project, but over time I customized it into a separate interface focused on local use, everyday comfort, and a more complete desktop-style experience.&lt;/p&gt; &lt;p&gt;The goal was not to build another hosted chat service, but a clean local UI that feels pleasant to use for longer sessions while keeping the workflow simple.&lt;/p&gt; &lt;p&gt;Some highlights:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;standalone&lt;/strong&gt; local web UI for `llama-server`&lt;/li&gt; &lt;li&gt;&lt;strong&gt;extended settings interface with appearance&lt;/strong&gt;, model, MCP, tools, data, and advanced sections&lt;/li&gt; &lt;li&gt;localized interface: &lt;strong&gt;English, Polish, German, French, Italian, and Spanish&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;two-column conversation sidebar&lt;/strong&gt; with conversation date/time display, conversation pinning, selective conversation deletion, delete-all while preserving pinned conversations&lt;/li&gt; &lt;li&gt;local import/export workflow that avoids exporting sensitive settings by default&lt;/li&gt; &lt;li&gt;llama-server connection workflow&lt;/li&gt; &lt;li&gt;MCP-related UI flows for servers, tools, resources, and prompts&lt;/li&gt; &lt;li&gt;&lt;strong&gt;minimal Reasoning / Tools display mode&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;dark, light, and &lt;strong&gt;Frosted Glass interface&lt;/strong&gt; modes&lt;/li&gt; &lt;li&gt;bundled wallpapers and &lt;strong&gt;wallpaper customization&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;optional Caddy deployment guide for local/LAN setup&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/n4zkw01kaz2h1.png?width=4304&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=89089ea0f2c3bc874fa753c48187c591cb5682bf"&gt;llampart 1.0.0 - main page&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/1dhywqdnaz2h1.png?width=5062&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=20afa194b14f2757e841979be4c9085c8851cfa5"&gt;llampart 1.0.0 - chat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/45at56hqaz2h1.png?width=5062&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=519065ce4797a5deff9e3336af323151ea299206"&gt;llampart 1.0.0 - settings&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The project is &lt;strong&gt;MIT-licensed&lt;/strong&gt;. I also tried to be careful with attribution and licensing notes, since llampart is based in part on `llama-ui` from `llama.cpp` and uses Svelte/SvelteKit for the frontend.&lt;/p&gt; &lt;p&gt;This is an initial public source release, so I’m sure there will still be things to improve. Feedback, suggestions, and issue reports are very welcome.&lt;/p&gt; &lt;p&gt;Thanks to the `llama.cpp` community — this project would not exist without that ecosystem.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mossy_troll_84"&gt; /u/mossy_troll_84 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlwoho/llampart_100_i_released_a_standalone_local_web_ui/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-24T00:19:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlnqzj</id>
@@ -281,19 +281,6 @@
     <published>2026-05-23T15:38:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tm0800</id>
-    <title>Vision-capable LLMs vs. OCR for long-document (including charts, images, tables, etc.) QA</title>
-    <updated>2026-05-24T03:05:31+00:00</updated>
-    <author>
-      <name>/u/Uiqueblhats</name>
-      <uri>https://old.reddit.com/user/Uiqueblhats</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I benchmarked vision-capable LLMs (the &amp;quot;just attach the PDF and let the model read it&amp;quot; pattern) against OCR-based pipelines on 30 long, image-heavy PDFs from MMLongBench-Doc (&lt;a href="https://github.com/mayubo2333/MMLongBench-Doc"&gt;https://github.com/mayubo2333/MMLongBench-Doc&lt;/a&gt;). There were 171 questions in total, using Claude Sonnet 4.5 as the LLM.&lt;/p&gt; &lt;p&gt;Post-retry results:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Approach&lt;/th&gt; &lt;th align="left"&gt;Accuracy&lt;/th&gt; &lt;th align="left"&gt;$/query&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;LlamaCloud premium + full-context&lt;/td&gt; &lt;td align="left"&gt;59.6%&lt;/td&gt; &lt;td align="left"&gt;$0.1885&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Azure premium + full-context&lt;/td&gt; &lt;td align="left"&gt;58.5%&lt;/td&gt; &lt;td align="left"&gt;$0.2051&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Azure basic + full-context&lt;/td&gt; &lt;td align="left"&gt;54.4%&lt;/td&gt; &lt;td align="left"&gt;$0.1062&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Agentic RAG&lt;/td&gt; &lt;td align="left"&gt;53.2%&lt;/td&gt; &lt;td align="left"&gt;$0.0827&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Native PDF (vision LLM)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;52.0%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;$0.2552&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;LlamaCloud basic + full-context&lt;/td&gt; &lt;td align="left"&gt;50.9%&lt;/td&gt; &lt;td align="left"&gt;$0.1049&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Native PDF came 5th of 6 on accuracy and was the most expensive arm at $0.2552 per query.&lt;/p&gt; &lt;p&gt;Two findings:&lt;/p&gt; &lt;p&gt;Vision underperformed on chart-heavy and table-heavy pages, the territory that the &amp;quot;vision LLMs make OCR obsolete&amp;quot; claim most often points to. Premium OCR with layout extraction held up better there.&lt;/p&gt; &lt;p&gt;The native-PDF arm had a 7% intrinsic failure rate (related to PDF file size) that survived retries. There were 27 first-pass failures, with 5 attempts of exponential backoff per failed query. Fifteen recovered, and 12 stayed permanently broken. These were concentrated in two specific PDFs that fail for predictable transport-layer reasons (the blog identifies them). OCR-based arms had a 0% intrinsic failure rate after retries.&lt;/p&gt; &lt;p&gt;Caveats: 30 docs is a small sample. I ran McNemar's pairwise test to determine which gaps are real and which are within noise. Only 3 of 15 head-to-head gaps are statistically distinguishable at α = 0.05, so the order in the table is partly noise. The vision-versus-OCR finding survives the test.&lt;/p&gt; &lt;p&gt;Full writeup: &lt;a href="https://www.surfsense.com/blog/agentic-rag-vs-long-context-llms-benchmark"&gt;https://www.surfsense.com/blog/agentic-rag-vs-long-context-llms-benchmark&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Uiqueblhats"&gt; /u/Uiqueblhats &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-24T03:05:31+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tluma3</id>
     <title>llama.cpp server have built-in native tools (exec_shell, edit_file, etc.)</title>
     <updated>2026-05-23T22:48:30+00:00</updated>
@@ -307,17 +294,17 @@
     <published>2026-05-23T22:48:30+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tlzvfs</id>
-    <title>Is there any reason for an uncensored model if you have no interest in roleplaying?</title>
-    <updated>2026-05-24T02:49:19+00:00</updated>
+    <id>t3_1tm0800</id>
+    <title>Vision-capable LLMs vs. OCR for long-document (including charts, images, tables, etc.) QA</title>
+    <updated>2026-05-24T03:05:31+00:00</updated>
     <author>
-      <name>/u/vick2djax</name>
-      <uri>https://old.reddit.com/user/vick2djax</uri>
+      <name>/u/Uiqueblhats</name>
+      <uri>https://old.reddit.com/user/Uiqueblhats</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My rag I've been building is much in response to having a LLM that I feel more confident in knowing where the knowledge base is coming from especially after the Open AI deal with the Pentagon. So, when I saw &amp;quot;uncensored&amp;quot; heretic models, I thought that was the main usage of those models and thought I would need them.&lt;/p&gt; &lt;p&gt;But in doing various tests, it seems there's random problems that come up with them that don't come up in regular versions. And then even when I do run into something like qwen3.6 acting like it's giving me a more state approved answer for a no-no topic, I've found that if I just put a prompt ahead of it to not give me any propaganda, it basically &amp;quot;jailbreaks&amp;quot; the answer. But, if the model isn't trained on the info anyways, then there's not really a benefit to it.&lt;/p&gt; &lt;p&gt;Are uncensored models just for people wanting...the &lt;em&gt;special&lt;/em&gt; roleplaying? Before I write them off. Genuinely curious, not judging how people use them.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vick2djax"&gt; /u/vick2djax &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I benchmarked vision-capable LLMs (the &amp;quot;just attach the PDF and let the model read it&amp;quot; pattern) against OCR-based pipelines on 30 long, image-heavy PDFs from MMLongBench-Doc (&lt;a href="https://github.com/mayubo2333/MMLongBench-Doc"&gt;https://github.com/mayubo2333/MMLongBench-Doc&lt;/a&gt;). There were 171 questions in total, using Claude Sonnet 4.5 as the LLM.&lt;/p&gt; &lt;p&gt;Post-retry results:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Approach&lt;/th&gt; &lt;th align="left"&gt;Accuracy&lt;/th&gt; &lt;th align="left"&gt;$/query&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;LlamaCloud premium + full-context&lt;/td&gt; &lt;td align="left"&gt;59.6%&lt;/td&gt; &lt;td align="left"&gt;$0.1885&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Azure premium + full-context&lt;/td&gt; &lt;td align="left"&gt;58.5%&lt;/td&gt; &lt;td align="left"&gt;$0.2051&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Azure basic + full-context&lt;/td&gt; &lt;td align="left"&gt;54.4%&lt;/td&gt; &lt;td align="left"&gt;$0.1062&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Agentic RAG&lt;/td&gt; &lt;td align="left"&gt;53.2%&lt;/td&gt; &lt;td align="left"&gt;$0.0827&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Native PDF (vision LLM)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;52.0%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;$0.2552&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;LlamaCloud basic + full-context&lt;/td&gt; &lt;td align="left"&gt;50.9%&lt;/td&gt; &lt;td align="left"&gt;$0.1049&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Native PDF came 5th of 6 on accuracy and was the most expensive arm at $0.2552 per query.&lt;/p&gt; &lt;p&gt;Two findings:&lt;/p&gt; &lt;p&gt;Vision underperformed on chart-heavy and table-heavy pages, the territory that the &amp;quot;vision LLMs make OCR obsolete&amp;quot; claim most often points to. Premium OCR with layout extraction held up better there.&lt;/p&gt; &lt;p&gt;The native-PDF arm had a 7% intrinsic failure rate (related to PDF file size) that survived retries. There were 27 first-pass failures, with 5 attempts of exponential backoff per failed query. Fifteen recovered, and 12 stayed permanently broken. These were concentrated in two specific PDFs that fail for predictable transport-layer reasons (the blog identifies them). OCR-based arms had a 0% intrinsic failure rate after retries.&lt;/p&gt; &lt;p&gt;Caveats: 30 docs is a small sample. I ran McNemar's pairwise test to determine which gaps are real and which are within noise. Only 3 of 15 head-to-head gaps are statistically distinguishable at α = 0.05, so the order in the table is partly noise. The vision-versus-OCR finding survives the test.&lt;/p&gt; &lt;p&gt;Full writeup: &lt;a href="https://www.surfsense.com/blog/agentic-rag-vs-long-context-llms-benchmark"&gt;https://www.surfsense.com/blog/agentic-rag-vs-long-context-llms-benchmark&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Uiqueblhats"&gt; /u/Uiqueblhats &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tm0800/visioncapable_llms_vs_ocr_for_longdocument/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-24T02:49:19+00:00</published>
+    <published>2026-05-24T03:05:31+00:00</published>
   </entry>
   <entry>
     <id>t3_1tlonbw</id>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlonbw/does_gpu_spacing_matter_if_were_undervolting/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-23T18:45:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tlzvfs</id>
+    <title>Is there any reason for an uncensored model if you have no interest in roleplaying?</title>
+    <updated>2026-05-24T02:49:19+00:00</updated>
+    <author>
+      <name>/u/vick2djax</name>
+      <uri>https://old.reddit.com/user/vick2djax</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My rag I've been building is much in response to having a LLM that I feel more confident in knowing where the knowledge base is coming from especially after the Open AI deal with the Pentagon. So, when I saw &amp;quot;uncensored&amp;quot; heretic models, I thought that was the main usage of those models and thought I would need them.&lt;/p&gt; &lt;p&gt;But in doing various tests, it seems there's random problems that come up with them that don't come up in regular versions. And then even when I do run into something like qwen3.6 acting like it's giving me a more state approved answer for a no-no topic, I've found that if I just put a prompt ahead of it to not give me any propaganda, it basically &amp;quot;jailbreaks&amp;quot; the answer. But, if the model isn't trained on the info anyways, then there's not really a benefit to it.&lt;/p&gt; &lt;p&gt;Are uncensored models just for people wanting...the &lt;em&gt;special&lt;/em&gt; roleplaying? Before I write them off. Genuinely curious, not judging how people use them.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vick2djax"&gt; /u/vick2djax &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tlzvfs/is_there_any_reason_for_an_uncensored_model_if/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-24T02:49:19+00:00</published>
   </entry>
 </feed>
