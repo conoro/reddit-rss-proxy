@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-25T11:38:34+00:00</updated>
+  <updated>2026-05-25T12:51:45+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1tle6gl</id>
-    <title>Reducing Context Window Efficiently in MCP — Here’s the Approach</title>
-    <updated>2026-05-23T11:42:22+00:00</updated>
-    <author>
-      <name>/u/Defiant-Future-818</name>
-      <uri>https://old.reddit.com/user/Defiant-Future-818</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tle6gl/reducing_context_window_efficiently_in_mcp_heres/"&gt; &lt;img alt="Reducing Context Window Efficiently in MCP — Here’s the Approach" src="https://preview.redd.it/cb9kd26ljv2h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=82e48b562e40cdede8df489ed4096eaa8c71c3b0" title="Reducing Context Window Efficiently in MCP — Here’s the Approach" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Context bloat in MCP comes from loading too many tools. Use discovery + higher-level abstractions instead.&lt;/p&gt; &lt;h1&gt;Why MCP runs into context issues&lt;/h1&gt; &lt;p&gt;If you’re not familiar with patterns like &lt;a href="https://www.anthropic.com/engineering/advanced-tool-use"&gt;tool use&lt;/a&gt; or &lt;a href="https://blog.cloudflare.com/code-mode/"&gt;programmatic tool calling&lt;/a&gt;, this might give some useful context.&lt;/p&gt; &lt;p&gt;One problem we keep running into with MCP is context bloat.&lt;/p&gt; &lt;p&gt;MCP works nicely when you connect one or two servers. But once you start adding GitHub, Notion, Slack, Gmail, Linear, etc., the model suddenly has to deal with a huge list of tools, schemas, descriptions, parameters, and edge cases.&lt;/p&gt; &lt;h1&gt;The impact&lt;/h1&gt; &lt;p&gt;At that point, the context window starts getting used for tool definitions instead of the actual task.&lt;/p&gt; &lt;p&gt;The result is usually:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;too many tools loaded upfront&lt;/li&gt; &lt;li&gt;slower tool selection&lt;/li&gt; &lt;li&gt;more expensive LLM calls&lt;/li&gt; &lt;li&gt;more chances for the model to pick the wrong tool&lt;/li&gt; &lt;li&gt;simple workflows turning into long tool-calling loops&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Current workarounds&lt;/h1&gt; &lt;p&gt;A lot of people already work around this with CLIs.&lt;/p&gt; &lt;p&gt;For example, instead of giving the model 50 GitHub tools, you let it use &lt;code&gt;gh&lt;/code&gt;. Instead of exposing every cloud operation as a separate tool, you let it use &lt;code&gt;vercel&lt;/code&gt;, &lt;code&gt;supabase&lt;/code&gt;, &lt;code&gt;kubectl&lt;/code&gt;, &lt;code&gt;aws&lt;/code&gt;, etc.&lt;/p&gt; &lt;p&gt;That works because the model does not need every possible action in context. It just needs a smaller programmable interface.&lt;/p&gt; &lt;h1&gt;The pattern that seems to be emerging&lt;/h1&gt; &lt;p&gt;I think people are moving toward a similar pattern.&lt;/p&gt; &lt;p&gt;Instead of loading hundreds of tools directly into the model, you expose a few higher-level tools like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;search available servers&lt;/li&gt; &lt;li&gt;list tools for one server&lt;/li&gt; &lt;li&gt;inspect a tool schema&lt;/li&gt; &lt;li&gt;call a selected tool&lt;/li&gt; &lt;li&gt;run a script/progrram which might chain multiple tools and return the final result&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;How this shows up in practice&lt;/h1&gt; &lt;p&gt;FastMCP has also started supporting patterns in this direction with proxying, tool transformation, and metadata around tools. The idea is similar: don’t treat the MCP tool list as a flat thing that must always be dumped into the model. Add a layer that can filter, reshape, or route tools.&lt;/p&gt; &lt;p&gt;Antigravity has another interesting approach. From what I’ve seen, connected MCP servers can look more like a filesystem. If you connect something like Exa, there can be an &lt;code&gt;exa&lt;/code&gt; directory with tool names represented like files. Then the model does not call every Exa tool directly from a huge global list. It uses a special routing tool to call the actual MCP server tool behind the scenes.&lt;/p&gt; &lt;p&gt;That is a bit different from normal MCP clients, but the pattern is the same:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;make tools discoverable, not always-loaded.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So instead of -&amp;gt; model sees 500 tools → picks one → calls → repeats&lt;/p&gt; &lt;p&gt;You get -&amp;gt; model discovers capability → inspects what it needs → executes → gets result&lt;/p&gt; &lt;h1&gt;Where this actually makes a difference&lt;/h1&gt; &lt;p&gt;This feels especially useful for tasks like:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Multi-step tasks with three or more dependent tool calls e.g find a GitHub issue, check related PRs, and post a Slack update.&lt;/li&gt; &lt;li&gt;Filtering, sorting, or transforming tool results.&lt;/li&gt; &lt;li&gt;Working on tasks where agent doesn't have to see and reason about intermediate tool results&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;What I built around this&lt;/h1&gt; &lt;p&gt;I’ve been building around this idea too. I made an MCP Assistant server that provides access to 100+ MCP servers like GitHub, Notion, Zapier, Supabase, Exa, etc.&lt;/p&gt; &lt;p&gt;You connect your MCP server at &lt;a href="https://mcp-assistant.in/mcp"&gt;https://mcp-assistant.in/mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The &lt;strong&gt;mcp server&lt;/strong&gt; &lt;a href="https://api.mcp-assistant.in/mcp"&gt;https://api.mcp-assistant.in/mcp&lt;/a&gt; uses a ToolRouter which exposes meta-tools for dynamic MCP discovery, plus a CodeMode tool that can execute programs inside a sandbox for workflow execution and result processing. The goal is to avoid expensive LLM tool-calling loops where possible.&lt;/p&gt; &lt;p&gt;You can integrate this into your IDE to work with MCP directly or use this &lt;a href="https://github.com/zonlabs/mcp-ts/tree/main/skills"&gt;SKILL&lt;/a&gt; alongside it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Repo:&lt;/strong&gt; &lt;a href="https://github.com/zonlabs/mcp-ts"&gt;https://github.com/zonlabs/mcp-ts&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Defiant-Future-818"&gt; /u/Defiant-Future-818 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/cb9kd26ljv2h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tle6gl/reducing_context_window_efficiently_in_mcp_heres/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tle6gl/reducing_context_window_efficiently_in_mcp_heres/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-23T11:42:22+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tmeobi</id>
-    <title>Spec-driven Development MCP Server – An MCP server that enables AI-powered IDEs to implement a structured development workflow from requirements gathering to code implementation, guiding users through goal collection, requirements specification, design documentation, task planning, and execution.</title>
-    <updated>2026-05-24T15:05:44+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/kevinlin/spec-driven-dev-mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tmeobi/specdriven_development_mcp_server_an_mcp_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tmeobi/specdriven_development_mcp_server_an_mcp_server/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-24T15:05:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tmeoby</id>
     <title>Tesla – Control your Tesla - wake it, warm it up, unlock and more. Get your developer token at https://Infoseek.ai/mcp. Also requires your own Tesla developer token which is tied to your car/fleet.</title>
@@ -164,19 +138,6 @@
     <published>2026-05-25T00:00:05+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tn0aj8</id>
-    <title>What should an MCP runtime receipt contain?</title>
-    <updated>2026-05-25T06:08:38+00:00</updated>
-    <author>
-      <name>/u/Conscious_Chapter_93</name>
-      <uri>https://old.reddit.com/user/Conscious_Chapter_93</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few MCP/security/runtime threads here made me think the missing artifact is not just better logs, but a compact runtime receipt.&lt;/p&gt; &lt;p&gt;For MCP, an individual tool call can look harmless while the sequence matters:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;read from server A&lt;/li&gt; &lt;li&gt;transform through server B&lt;/li&gt; &lt;li&gt;write/send/publish through server C&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The receipt I would want is small and structured:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;run id / decision id&lt;/li&gt; &lt;li&gt;agent or session id&lt;/li&gt; &lt;li&gt;MCP server and tool&lt;/li&gt; &lt;li&gt;action class: read, write, execute, send, delete, permission-changing, spend-affecting&lt;/li&gt; &lt;li&gt;source and sink&lt;/li&gt; &lt;li&gt;data class&lt;/li&gt; &lt;li&gt;policy version / rule id&lt;/li&gt; &lt;li&gt;allow, block, pause, or approval result&lt;/li&gt; &lt;li&gt;short reason&lt;/li&gt; &lt;li&gt;redacted arg summary&lt;/li&gt; &lt;li&gt;later review labels: expected block, false positive, manual override, avoided loss&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The key point: most of this should come from the runtime or proxy layer, not from the model summarizing itself afterward.&lt;/p&gt; &lt;p&gt;I wrote up a concrete first-pass shape here while building this into Armorer/Guard: &lt;a href="https://github.com/ArmorerLabs/Armorer/discussions/43#discussioncomment-17046441"&gt;https://github.com/ArmorerLabs/Armorer/discussions/43#discussioncomment-17046441&lt;/a&gt;&lt;/p&gt; &lt;p&gt;For people running MCP servers today: would you track cross-server invariants in the receipt, or keep each call independent and reconstruct sequences later?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Conscious_Chapter_93"&gt; /u/Conscious_Chapter_93 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-25T06:08:38+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tmoyl7</id>
     <title>I gave my terminal AI agent a Kanban board. Not for me for its own memory.</title>
     <updated>2026-05-24T21:33:49+00:00</updated>
@@ -216,6 +177,19 @@
     <published>2026-05-25T09:29:12+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tn005a</id>
+    <title>Architectural advice: Exposing a complete LangGraph.js workflow as a single MCP Tool?</title>
+    <updated>2026-05-25T05:53:50+00:00</updated>
+    <author>
+      <name>/u/booleanhunter</name>
+      <uri>https://old.reddit.com/user/booleanhunter</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/booleanhunter"&gt; /u/booleanhunter &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/AgentsOfAI/comments/1tlakuj/architectural_advice_exposing_a_complete/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn005a/architectural_advice_exposing_a_complete/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tn005a/architectural_advice_exposing_a_complete/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-25T05:53:50+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tm7duq</id>
     <title>I built the largest free directory of MCP servers, 28,577 indexed and individually verified</title>
     <updated>2026-05-24T09:26:49+00:00</updated>
@@ -229,17 +203,17 @@
     <published>2026-05-24T09:26:49+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tn005a</id>
-    <title>Architectural advice: Exposing a complete LangGraph.js workflow as a single MCP Tool?</title>
-    <updated>2026-05-25T05:53:50+00:00</updated>
+    <id>t3_1tn0aj8</id>
+    <title>What should an MCP runtime receipt contain?</title>
+    <updated>2026-05-25T06:08:38+00:00</updated>
     <author>
-      <name>/u/booleanhunter</name>
-      <uri>https://old.reddit.com/user/booleanhunter</uri>
+      <name>/u/Conscious_Chapter_93</name>
+      <uri>https://old.reddit.com/user/Conscious_Chapter_93</uri>
     </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/booleanhunter"&gt; /u/booleanhunter &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/AgentsOfAI/comments/1tlakuj/architectural_advice_exposing_a_complete/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn005a/architectural_advice_exposing_a_complete/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tn005a/architectural_advice_exposing_a_complete/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few MCP/security/runtime threads here made me think the missing artifact is not just better logs, but a compact runtime receipt.&lt;/p&gt; &lt;p&gt;For MCP, an individual tool call can look harmless while the sequence matters:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;read from server A&lt;/li&gt; &lt;li&gt;transform through server B&lt;/li&gt; &lt;li&gt;write/send/publish through server C&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The receipt I would want is small and structured:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;run id / decision id&lt;/li&gt; &lt;li&gt;agent or session id&lt;/li&gt; &lt;li&gt;MCP server and tool&lt;/li&gt; &lt;li&gt;action class: read, write, execute, send, delete, permission-changing, spend-affecting&lt;/li&gt; &lt;li&gt;source and sink&lt;/li&gt; &lt;li&gt;data class&lt;/li&gt; &lt;li&gt;policy version / rule id&lt;/li&gt; &lt;li&gt;allow, block, pause, or approval result&lt;/li&gt; &lt;li&gt;short reason&lt;/li&gt; &lt;li&gt;redacted arg summary&lt;/li&gt; &lt;li&gt;later review labels: expected block, false positive, manual override, avoided loss&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The key point: most of this should come from the runtime or proxy layer, not from the model summarizing itself afterward.&lt;/p&gt; &lt;p&gt;I wrote up a concrete first-pass shape here while building this into Armorer/Guard: &lt;a href="https://github.com/ArmorerLabs/Armorer/discussions/43#discussioncomment-17046441"&gt;https://github.com/ArmorerLabs/Armorer/discussions/43#discussioncomment-17046441&lt;/a&gt;&lt;/p&gt; &lt;p&gt;For people running MCP servers today: would you track cross-server invariants in the receipt, or keep each call independent and reconstruct sequences later?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Conscious_Chapter_93"&gt; /u/Conscious_Chapter_93 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tn0aj8/what_should_an_mcp_runtime_receipt_contain/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-05-25T05:53:50+00:00</published>
+    <published>2026-05-25T06:08:38+00:00</published>
   </entry>
   <entry>
     <id>t3_1tn4kd1</id>
@@ -292,6 +266,32 @@
     <link href="https://old.reddit.com/r/mcp/comments/1tmwzoj/how_can_i_improve_the_use_of_tools/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-25T03:25:34+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tn7jqx</id>
+    <title>I built a live index of AI agents and models - it pulls from MCP registries among other sources (open source)</title>
+    <updated>2026-05-25T12:21:45+00:00</updated>
+    <author>
+      <name>/u/Celestialien</name>
+      <uri>https://old.reddit.com/user/Celestialien</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tn7jqx/i_built_a_live_index_of_ai_agents_and_models_it/"&gt; &lt;img alt="I built a live index of AI agents and models - it pulls from MCP registries among other sources (open source)" src="https://external-preview.redd.it/ZzB3Nm5xemswYTNoMdGNJGwtVmX4h1toGQvFAzItpf3aCgH0eW5c-3FMxUVj.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=7b7e581bca2021f4b414b2e83879d719a524301f" title="I built a live index of AI agents and models - it pulls from MCP registries among other sources (open source)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built AgentTape to track AI agents and models on real adoption, and one of the sources it pulls from hourly is MCP registries (alongside GitHub, Hugging Face, OpenRouter, npm, PyPI, arXiv and Hacker News). There's an MCP-25 index tracking the top servers specifically.&lt;/p&gt; &lt;p&gt;It scores each agent/model on adoption, quality, momentum and community, every input is published, and it's open source. Still early and tuning the scoring.&lt;/p&gt; &lt;p&gt;Would love thoughts from this sub - are the MCP signals I'm using (registry presence, etc.) the right ones, or is there a better way to measure which servers are actually getting used?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Celestialien"&gt; /u/Celestialien &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/xkbfs6yk0a3h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn7jqx/i_built_a_live_index_of_ai_agents_and_models_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tn7jqx/i_built_a_live_index_of_ai_agents_and_models_it/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-25T12:21:45+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tn7nsd</id>
+    <title>Game changer for rapid prototyping. Anyone else doing something similar?</title>
+    <updated>2026-05-25T12:26:10+00:00</updated>
+    <author>
+      <name>/u/CommentAwkward3993</name>
+      <uri>https://old.reddit.com/user/CommentAwkward3993</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been using LLMs to bootstrap UI components for a while now, but the workflow was always clunky. ChatGPT spits out HTML, I copy-paste into a sandbox, tweak it, copy back. The iteration loop was killing me.&lt;/p&gt; &lt;p&gt;What finally clicked was piping LLM output directly into a local HTML renderer. No copy-paste, no browser tab switching. I describe what I want (&amp;quot;responsive card grid with hover effects&amp;quot;), the LLM generates the HTML, and it renders instantly on localhost.&lt;/p&gt; &lt;p&gt;The setup is dead simple: an MCP server that takes the LLM's HTML output and serves it as a real page. I'm using this open-source one that runs on `npx` with zero config. No API keys, no cloud uploads, everything stays on my machine.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/CommentAwkward3993"&gt; /u/CommentAwkward3993 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn7nsd/game_changer_for_rapid_prototyping_anyone_else/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tn7nsd/game_changer_for_rapid_prototyping_anyone_else/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1tn7nsd/game_changer_for_rapid_prototyping_anyone_else/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-25T12:26:10+00:00</published>
   </entry>
   <entry>
     <id>t3_1tn1hu4</id>
