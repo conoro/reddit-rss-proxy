@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-05-26T23:40:18+00:00</updated>
+  <updated>2026-05-27T00:09:53+00:00</updated>
   <link href="https://old.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>The Model Context Protocol is an open standard that enables developers to build secure, two-way connections between their data sources and AI-powered tools</subtitle>
-  <entry>
-    <id>t3_1tnxnlv</id>
-    <title>MCP code mode with a stateful Clojure-like REPL</title>
-    <updated>2026-05-26T05:41:54+00:00</updated>
-    <author>
-      <name>/u/Revolutionary_Bed957</name>
-      <uri>https://old.reddit.com/user/Revolutionary_Bed957</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/mcp/comments/1tnxnlv/mcp_code_mode_with_a_stateful_clojurelike_repl/"&gt; &lt;img alt="MCP code mode with a stateful Clojure-like REPL" src="https://preview.redd.it/0o8s3eb44f3h1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=f4d56e762927cfe5ac4526d3f4184fcd96298c5e" title="MCP code mode with a stateful Clojure-like REPL" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been working on &lt;code&gt;ptc_runner_mcp&lt;/code&gt;, an MCP server that gives an AI agent a stateful, sandboxed REPL using a small Clojure-like language.&lt;/p&gt; &lt;p&gt;The problem I kept running into with MCP was not only tool discovery. It was what happens after the tool call.&lt;/p&gt; &lt;p&gt;A lot of useful agent tasks are really data tasks. If all of that data comes back into the model context, the LLM starts doing the computation “in its head”. That is where you get wrong summaries, counts and a rapidly shrinking context window.&lt;/p&gt; &lt;p&gt;&lt;code&gt;ptc_runner_mcp&lt;/code&gt; exposes one main tool: &lt;code&gt;lisp_eval&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;Inside &lt;code&gt;lisp_eval&lt;/code&gt;, the agent gets a REPL-like session. It can inspect available MCP servers/tools, call them, store results in session memory, define helper functions, and keep working from the same state.&lt;/p&gt; &lt;p&gt;Discovery is also REPL-shaped. Instead of pushing every tool schema into context up front, the agent can use things it already understands:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;(mcp/servers) (dir 'github) (doc 'github/search_issues) (apropos &amp;quot;calendar&amp;quot;) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Then it can make a small probe call, learn the result shape, fetch the real data, and compute over it locally.&lt;/p&gt; &lt;p&gt;For example, instead of pulling 1,000 records into the conversation, it can do something like:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;(def traces (fetch-all-traces &amp;quot;org-acme&amp;quot; &amp;quot;production&amp;quot;)) (defn cost [t] (Double/parseDouble (get t &amp;quot;total_cost&amp;quot;))) (-&amp;gt;&amp;gt; traces (group-by day) (map (fn [[day xs]] {:day day :total (reduce + (map cost xs))})) (sort-by :total)) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The model sees the result of the computation, not every row that led there. On the next turn it can keep using traces and the helper functions it already defined.&lt;/p&gt; &lt;p&gt;The other reason I went this way is performance and operational simplicity. Sessions run on the BEAM, so they are lightweight. You can keep many concurrent stateful REPL sessions around on one machine with low latency, instead of managing a pool of heavier Python/JS sandboxes.&lt;/p&gt; &lt;h1&gt;Stateful sandboxed REPL sessions&lt;/h1&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0o8s3eb44f3h1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a09fed19375668d9ea3263fed5482fea799003f8"&gt;https://preview.redd.it/0o8s3eb44f3h1.png?width=1672&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a09fed19375668d9ea3263fed5482fea799003f8&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The language is intentionally small. It is Clojure-like because LLMs already know that shape well enough, but it has no filesystem, no network, no imports, no subprocesses, and no eval - nothing to sandbox away. It is for short-lived LLM-written programs over data and MCP tools.&lt;/p&gt; &lt;p&gt;&lt;a href="https://andreasronge.github.io/ptc_runner/the-right-tool-for-code-mode.html"&gt;Blog: The Right Tool for Code Mode&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/andreasronge/ptc_runner"&gt;Github&lt;/a&gt; and &lt;a href="https://hexdocs.pm/ptc_runner/ptc-lisp-specification.html"&gt;Language Spec&lt;/a&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Revolutionary_Bed957"&gt; /u/Revolutionary_Bed957 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tnxnlv/mcp_code_mode_with_a_stateful_clojurelike_repl/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1tnxnlv/mcp_code_mode_with_a_stateful_clojurelike_repl/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1tnxnlv/mcp_code_mode_with_a_stateful_clojurelike_repl/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-26T05:41:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1to6s71</id>
-    <title>we built an AI agent platform that crushed every demo, then completely fell apart the second we scaled it. heres what actually broke</title>
-    <updated>2026-05-26T13:21:12+00:00</updated>
-    <author>
-      <name>/u/AbjectBug5885</name>
-      <uri>https://old.reddit.com/user/AbjectBug5885</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;quick backstory. we built an internal platform for companies that cant navigate the AI stack themselves. you upload your existing SaaS APIs, you get a working agent on top of them. plug and play agentic layer for the products you already use.&lt;/p&gt; &lt;p&gt;small POCs were honestly kind of magic. customers loved the demos, we loved the demos.&lt;/p&gt; &lt;p&gt;then we tried to scale. more tools per agent, more SaaS connections, more MCPs wired in. and the whole thing just fell apart. agents started going off the rails, calling the wrong tools, hallucinating, ignoring the instructions we gave them.&lt;/p&gt; &lt;p&gt;first instinct was to blame the model, so we tried bigger models. nothing fixed it.&lt;/p&gt; &lt;p&gt;then we actually opened the context window and looked. and it was just... tools. hundreds of tool definitions sitting there, eating tokens, drowning the actual task. the model wasnt broken. we were overloading it.&lt;/p&gt; &lt;p&gt;so we paused the platform (felt insane at the time) and built the missing piece. a gateway that only feeds the agent the tools relevant to what its doing right now. we called it Ratel. plugged it back into the platform and got back to building agents that actually work.&lt;/p&gt; &lt;p&gt;ended up open sourcing it, because the moment you push past small POCs this is the wall pretty much every agent hits. repo if its useful: &lt;a href="http://github.com/ratel-ai/ratel"&gt;github.com/ratel-ai/ratel&lt;/a&gt;&lt;/p&gt; &lt;p&gt;happy to get into how the gateway actually decides what the agent sees.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AbjectBug5885"&gt; /u/AbjectBug5885 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1to6s71/we_built_an_ai_agent_platform_that_crushed_every/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1to6s71/we_built_an_ai_agent_platform_that_crushed_every/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/mcp/comments/1to6s71/we_built_an_ai_agent_platform_that_crushed_every/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-05-26T13:21:12+00:00</published>
-  </entry>
   <entry>
     <id>t3_1to02k4</id>
     <title>How do MCP notifications work and how to make them wake an agent in Claude Code / Codex / OpenClaw?</title>
@@ -266,6 +240,32 @@
     <link href="https://old.reddit.com/r/mcp/comments/1to9ka8/what_are_the_best_ways_to_distribute_your_mcp/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-05-26T15:00:53+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1toorwu</id>
+    <title>Next.js Docs MCP – Provides AI agents with access to a comprehensive database of 200+ Next.js documentation URLs for intelligent document selection and retrieval. Enables Claude and other AI assistants to analyze user queries and recommend the most relevant Next.js documentation pages.</title>
+    <updated>2026-05-27T00:00:14+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/nanameru/Next.js-Docs-MCP"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1toorwu/nextjs_docs_mcp_provides_ai_agents_with_access_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1toorwu/nextjs_docs_mcp_provides_ai_agents_with_access_to/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-27T00:00:14+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1toorwy</id>
+    <title>MoltArch – Marketing intelligence API for AI agents. Real campaign data, not LLM guesses.</title>
+    <updated>2026-05-27T00:00:14+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://old.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.moltarch/moltarch"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/mcp/comments/1toorwy/moltarch_marketing_intelligence_api_for_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/mcp/comments/1toorwy/moltarch_marketing_intelligence_api_for_ai_agents/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-05-27T00:00:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1tocpk4</id>
