@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-05-27T13:56:30+00:00</updated>
+  <updated>2026-05-27T15:16:37+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1to84es</id>
-    <title>Skeg A RAM-frugal context layer for local AI models</title>
-    <updated>2026-05-26T14:10:02+00:00</updated>
-    <author>
-      <name>/u/lupodevelop</name>
-      <uri>https://old.reddit.com/user/lupodevelop</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I’ve been working on &lt;strong&gt;skeg&lt;/strong&gt; for the past few months and just opened the repo.&lt;/p&gt; &lt;p&gt;The core problem it tries to solve: if you are running local LLMs on a 16GB M1/M2/M3 Mac, unified memory is your main bottleneck. Every single GB your vector database takes for RAG is a GB your model cannot use. Most mainstream DBs (Qdrant, Chroma, etc.) were designed for server deployments where RAM isn't the binding constraint.&lt;/p&gt; &lt;p&gt;Well.. skeg is built around the opposite assumption. It optimizes heavily for RAM footprint on personal hardware by using a disk-resident index (DiskVamana) instead of keeping the full graph in memory, and leverages Apple Silicon SIMD (NEON + dotprod) for the heavy lifting.&lt;/p&gt; &lt;p&gt;Here is how it compares on my &lt;strong&gt;M1 MBP (16GB)&lt;/strong&gt; using &lt;strong&gt;1M vectors&lt;/strong&gt; (&lt;em&gt;mxbai-embed-large-v1&lt;/em&gt;, dim=1024):&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;&lt;strong&gt;Engine&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;RSS (MiB)&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;Recall@10&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;p99 (ms)&lt;/strong&gt;&lt;/th&gt; &lt;th align="left"&gt;&lt;strong&gt;QPS&lt;/strong&gt;&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;skeg-pq128&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;419&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;0.998&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;3.6&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;489&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;skeg-int8&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;1252&lt;/td&gt; &lt;td align="left"&gt;0.999&lt;/td&gt; &lt;td align="left"&gt;10.2&lt;/td&gt; &lt;td align="left"&gt;299&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;qdrant-sq&lt;/td&gt; &lt;td align="left"&gt;3023&lt;/td&gt; &lt;td align="left"&gt;0.951&lt;/td&gt; &lt;td align="left"&gt;5.3&lt;/td&gt; &lt;td align="left"&gt;390&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;qdrant-hnsw&lt;/td&gt; &lt;td align="left"&gt;4162&lt;/td&gt; &lt;td align="left"&gt;0.994&lt;/td&gt; &lt;td align="left"&gt;38.9&lt;/td&gt; &lt;td align="left"&gt;168&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;chroma-hnsw&lt;/td&gt; &lt;td align="left"&gt;4417&lt;/td&gt; &lt;td align="left"&gt;0.983&lt;/td&gt; &lt;td align="left"&gt;9.7&lt;/td&gt; &lt;td align="left"&gt;196&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;For smaller local setups, there is an internal TurboQuant tier that drops the footprint down to just 45–57 MiB for 100K vectors while keeping recall &amp;gt; 0.996. It also supports a multi-tenant layout out of the box, meaning you can run 4 isolated 100K tenants at around 223 MiB total using turboquant-2. But this feature hasn't been released yet. I still need to polish it up.&lt;/p&gt; &lt;p&gt;The core engine is written in Rust, but Python bindings and a LlamaIndex adapter are already published and &amp;quot;working&amp;quot;, so you don't need to hack your way through Rust to test it in your pipelines.&lt;/p&gt; &lt;p&gt;The full benchmark methodology, detailed info, and notes on why LanceDB wasn't included in this specific run are documented here:&lt;/p&gt; &lt;p&gt;&lt;a href="http://amanitaproject.com/posts/2026-05-24-skeg-what-was-measured"&gt;amanitaproject.com/posts/2026-05-24-skeg-what-was-measured&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It's still early days, but the core engine is stable. Check it out if you are fighting for megabytes on your local Mac setup. Feedback and issues (or stars) are very welcome.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Code:&lt;/strong&gt; &lt;a href="http://github.com/skegdb/skeg"&gt;github.com/skegdb/skeg&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/lupodevelop"&gt; /u/lupodevelop &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1to84es/skeg_a_ramfrugal_context_layer_for_local_ai_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1to84es/skeg_a_ramfrugal_context_layer_for_local_ai_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1to84es/skeg_a_ramfrugal_context_layer_for_local_ai_models/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-05-26T14:10:02+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1to9tnp</id>
-    <title>I was able to run the Qwen3.6 A3B via my agent prototype against the huge monorepo (shadcn)</title>
-    <updated>2026-05-26T15:10:03+00:00</updated>
-    <author>
-      <name>/u/Basil_M</name>
-      <uri>https://old.reddit.com/user/Basil_M</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1to9tnp/i_was_able_to_run_the_qwen36_a3b_via_my_agent/"&gt; &lt;img alt="I was able to run the Qwen3.6 A3B via my agent prototype against the huge monorepo (shadcn)" src="https://preview.redd.it/0wcw6vrifg3h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8fff494830440441b97a2e4905932ac6e5a3d9f1" title="I was able to run the Qwen3.6 A3B via my agent prototype against the huge monorepo (shadcn)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Basil_M"&gt; /u/Basil_M &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/0wcw6vrifg3h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1to9tnp/i_was_able_to_run_the_qwen36_a3b_via_my_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1to9tnp/i_was_able_to_run_the_qwen36_a3b_via_my_agent/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-05-26T15:10:03+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tobluz</id>
     <title>Mistral-7B v0.3 at 128K in llama.cpp: 22,657 → 13,235 MiB live VRAM with ≤0.004 PPL drift</title>
@@ -294,19 +268,6 @@
     <published>2026-05-27T10:58:10+00:00</published>
   </entry>
   <entry>
-    <id>t3_1toz66g</id>
-    <title>Qwen Reranker Model from ollama</title>
-    <updated>2026-05-27T08:17:44+00:00</updated>
-    <author>
-      <name>/u/639Cipheron</name>
-      <uri>https://old.reddit.com/user/639Cipheron</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Does anyone know how to use qwen-reranker-0.6b model from ollama. personally i feel \api\embed can be utilized but i didnt get the result.&lt;/p&gt; &lt;p&gt;i am using the qwen-embeddings-0.6b from ollama for embedding generation and want the reranker model to rerank the embedding before the final answer generation.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/639Cipheron"&gt; /u/639Cipheron &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-05-27T08:17:44+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tp412b</id>
     <title>minisforum UM790 pro (32GB DDR5 + 1TB) + ollama + hermes : what llm model should I use?</title>
     <updated>2026-05-27T12:25:28+00:00</updated>
@@ -331,5 +292,44 @@
     <link href="https://old.reddit.com/r/ollama/comments/1toe64e/ollama_has_quantized_llms_now/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-05-26T17:38:21+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tp6r75</id>
+    <title>Can any of you guys test this out?</title>
+    <updated>2026-05-27T14:11:09+00:00</updated>
+    <author>
+      <name>/u/Weird_Wasabi4607</name>
+      <uri>https://old.reddit.com/user/Weird_Wasabi4607</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Weird_Wasabi4607"&gt; /u/Weird_Wasabi4607 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LLMDevs/comments/1tp6qtr/can_any_of_you_guys_test_this_out/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tp6r75/can_any_of_you_guys_test_this_out/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1tp6r75/can_any_of_you_guys_test_this_out/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-05-27T14:11:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1toz66g</id>
+    <title>Qwen Reranker Model from ollama</title>
+    <updated>2026-05-27T08:17:44+00:00</updated>
+    <author>
+      <name>/u/639Cipheron</name>
+      <uri>https://old.reddit.com/user/639Cipheron</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Does anyone know how to use qwen-reranker-0.6b model from ollama. personally i feel \api\embed can be utilized but i didnt get the result.&lt;/p&gt; &lt;p&gt;i am using the qwen-embeddings-0.6b from ollama for embedding generation and want the reranker model to rerank the embedding before the final answer generation.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/639Cipheron"&gt; /u/639Cipheron &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1toz66g/qwen_reranker_model_from_ollama/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-05-27T08:17:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tp6zln</id>
+    <title>How to properly use Claude Code ?</title>
+    <updated>2026-05-27T14:19:25+00:00</updated>
+    <author>
+      <name>/u/Holalpha</name>
+      <uri>https://old.reddit.com/user/Holalpha</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, I've been setting up recently my computer for AI tools working with ollama, I installed Gemma4:26b to work with Claude Code but everytime I ask it to create a file it says either it did or how to do it many never does.&lt;/p&gt; &lt;p&gt;I read that it may result in compatibility issues between ollama llms and Anthropic's Claude Code made to work with Anthropic's API but why would Claude code be available if it's impossible to use properly ?&lt;/p&gt; &lt;p&gt;Or is there a better tool than Claude code to use?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Holalpha"&gt; /u/Holalpha &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tp6zln/how_to_properly_use_claude_code/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tp6zln/how_to_properly_use_claude_code/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1tp6zln/how_to_properly_use_claude_code/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-05-27T14:19:25+00:00</published>
   </entry>
 </feed>
