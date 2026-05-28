@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-28T22:59:27+00:00</updated>
+  <updated>2026-05-28T23:36:41+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1tpyqng</id>
-    <title>Krasis update: Qwen3.6-35B-A3B (Q4) at reading speed, 1x 8GB 3070 Mobile laptop (32GB RAM)</title>
-    <updated>2026-05-28T09:42:46+00:00</updated>
-    <author>
-      <name>/u/mrstoatey</name>
-      <uri>https://old.reddit.com/user/mrstoatey</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;Context&lt;/h1&gt; &lt;p&gt;Krasis is an LLM runtime for running models that don't fit into VRAM. Krasis streams the model through VRAM from system RAM efficiently and handles prefill and decode as separate architectures and optimised usecases.&lt;/p&gt; &lt;h1&gt;Latest results (v1.0 release)&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;1x Laptop RTX 3070 Mobile 8GB, (35B param, Q4) Qwen3.6-35B-A3B (HQQ4, k4v4) : 222 pp, 12.48 tg&lt;/li&gt; &lt;li&gt;1x RTX 5080 16GB, (35B param, Q4) Qwen3.6-35B-A3B (HQQ4, k4v4) : 3,743 pp, 60 tg&lt;/li&gt; &lt;li&gt;1x RTX A4500 20GB, (35B param, Q4) Qwen3.6-35B-A3B (HQQ6, k6v6) : 2,235 pp, 51 tg&lt;/li&gt; &lt;li&gt;1x RTX A4500 20GB, (80B param, Q4) Qwen3-Coder-Next, (HQQ6, k4v4) : 1,569 pp, 34.7 tg&lt;/li&gt; &lt;li&gt;1x RTX 5090 32GB, (35B param, Q4) Qwen3.6-35B-A3B (HQQ4, k4v4) : 10,030 pp, 124.9 tg&lt;/li&gt; &lt;li&gt;1x RTX 5090 32GB, (80B param, Q4) Qwen3-Coder-Next, (HQQ8, k4v4) : 6,111 pp, 88.6 tg&lt;/li&gt; &lt;li&gt;1x RTX 5090 32GB, (122B param, Q4) Qwen3.5-122B-A10B : (HQQ6, k4v4) : 4,880 pp, 25.2 tg&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;(Benchmark note: Krasis runs a number of prompt lengths when gathering benchmark numbers for both prefill and decode. These figures represent the best throughput obtained during the benchmark, not the average across all prompt lengths. Prefill throughput broadly scales up with larger inputs, and decode tends to reduce with larger outputs, as is generally the case in runtimes.)&lt;/p&gt; &lt;h1&gt;Latest Updates&lt;/h1&gt; &lt;p&gt;It's been a couple of months now since the initial release of Krasis.&lt;/p&gt; &lt;p&gt;What I thought would be relatively quick changes have taken far longer than I expected but Krasis is now at a point where I feel it is a solid base upon which to build support for more models.&lt;/p&gt; &lt;p&gt;Here are the biggest changes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;All Rust Execution:&lt;/strong&gt; Krasis no longer runs Python at all in the hot path. I found that the Python GIL was frequently causing difficulties and slowdowns where they didn't really need to exist. Python is still there for the initial pre-processing but when the model runs now, it's 100% rust and it runs faster.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Speed:&lt;/strong&gt; Krasis runs models faster now. The biggest gains are with prefill but decode is also quicker.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Ampere support:&lt;/strong&gt; RTX 3000 series cards are now fully supported. I've been running an A4500 20GB and getting good speeds on substantial models that don't fit on the GPU like Qwen3.6-35B-A3B and even Qwen3-Coder-Next (80B parameters).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Memory improvements:&lt;/strong&gt; Krasis doesn't require 2x the quantized model in system RAM any more, 1x plus some overhead is required.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;New 4-bit and 6-bit KV cache:&lt;/strong&gt; Krasis now has a 4-bit and 6-bit KV cache implementation, both of which are thoroughly tested for accuracy vs BF16 and get good results. Polar4 which was based on TurboQuant has been dropped because it just wasn't accurate enough (interestingly the TurboQuant accuracy claims related to preserving scores on tasks whereas in Krasis I'm measuring accuracy based on exact match length of output on a variety of prompts quantised vs BF16/reference, top-k containment, perplexity and distribution drift). The new KV cache doesn't require FP8 instructions so is fully compatible with Ampere cards.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Sensitivity Aware HQQ Attention at 4, 6 or 8 bits:&lt;/strong&gt; Krasis no longer uses AWQ attention. AWQ required running the model in BF16 to generate a template which people could download. Often users may not have the VRAM required to do this themselves so I wanted a better alternative. Krasis now runs HQQ attention in 4, 6 or 8 bits and can mix precision to achieve higher accuracy. HQQ assets are built by mathematically assessing the model and don't require a previously built template. During the assessment Krasis can also estimate which areas of the model are most sensitive to quantisation and offer 90% HQQ4 + 10% HQQ6 or 90% HQQ6 +10% HQQ8 keeping the memory usage low while moving more sensitive areas to a higher precision resulting in better accuracy vs BF16 execution. HQQ is also fully compatible with Ampere cards.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Stability improvements:&lt;/strong&gt; Krasis now handles changes in VRAM elsewhere in the system by dynamically evicting from the cache. Krasis maximises usage of VRAM to optimise performance of the model run but previously if you ran Krasis on Windows via WSL and then opened Opencode you might see it fail due to Windows allocating 500MB+ VRAM to Opencode (transiently or otherwise). Krasis now handles this and backs off, maintaining the safety buffer.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Qwen3.6-35B-A3B support:&lt;/strong&gt; Krasis now supports the latest Qwen 3.6 model.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Trying it out&lt;/h1&gt; &lt;p&gt;Krasis is a copy/paste setup, you can run it on Linux or in Windows using WSL and once its installed you can update to the latest release or prerelease now using &amp;quot;krasis update&amp;quot; or &amp;quot;krasis prerelease&amp;quot;.&lt;/p&gt; &lt;p&gt;GitHub Repo - &lt;a href="https://github.com/brontoguana/krasis"&gt;https://github.com/brontoguana/krasis&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;Coming soon&lt;/h1&gt; &lt;p&gt;Now Krasis has a solid and accurate base with the KV cache and attention in a good place, I plan to focus on more models like Google's Gemma and MiniMax, and look at implementing vision support for the models.&lt;/p&gt; &lt;p&gt;Very interested to hear if anyone has any opinions on the future direction it should take or how they might use it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mrstoatey"&gt; /u/mrstoatey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tpyqng/krasis_update_qwen3635ba3b_q4_at_reading_speed_1x/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tpyqng/krasis_update_qwen3635ba3b_q4_at_reading_speed_1x/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tpyqng/krasis_update_qwen3635ba3b_q4_at_reading_speed_1x/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-28T09:42:46+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tpvldv</id>
     <title>Nvidia LocateAnything - Fast and High-Quality Vision-Language Grounding with Parallel Box Decoding. (10x faster than Qwen3-VL)</title>
@@ -58,6 +45,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqje1t/ubuntu_2604_on_dgx_spark/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-28T22:56:44+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tqk5o6</id>
+    <title>Linux Kernel 7.0 Brings Out-of-the-Box Support of Intel ARC B50 to Linux Mint</title>
+    <updated>2026-05-28T23:28:14+00:00</updated>
+    <author>
+      <name>/u/mtomas7</name>
+      <uri>https://old.reddit.com/user/mtomas7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;As someone may have tried, it was pretty difficult to deal with Intel B50 on Linux Mint. I read that Ubuntu and other distros had better support, but today I updated Linux Mint 22.3 to Kernel 7.0 and BOOM! - everything works :)&lt;/p&gt; &lt;p&gt;FYI, on Linux, Intel drivers are usually not installed separately (as with NVIDIA), but are included in the Kernel.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mtomas7"&gt; /u/mtomas7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqk5o6/linux_kernel_70_brings_outofthebox_support_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqk5o6/linux_kernel_70_brings_outofthebox_support_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqk5o6/linux_kernel_70_brings_outofthebox_support_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-28T23:28:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1tq62j6</id>
@@ -112,19 +112,6 @@
     <published>2026-05-28T14:58:03+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tqiewb</id>
-    <title>Claude cli &gt;= 2.1.154 breaks local use with vLLM by introducing "ctx", "msg" and "system" roles for API messages. This 1-line patch to vLLM fixes it.</title>
-    <updated>2026-05-28T22:16:55+00:00</updated>
-    <author>
-      <name>/u/Vicar_of_Wibbly</name>
-      <uri>https://old.reddit.com/user/Vicar_of_Wibbly</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;diff --git a/vllm/entrypoints/anthropic/protocol.py b/vllm/entrypoints/anthropic/protocol.py index 3ebc17117..2d5726d73 100644 --- a/vllm/entrypoints/anthropic/protocol.py +++ b/vllm/entrypoints/anthropic/protocol.py @@ -65,7 +65,7 @@ class AnthropicContentBlock(BaseModel): class AnthropicMessage(BaseModel): &amp;quot;&amp;quot;&amp;quot;Message structure&amp;quot;&amp;quot;&amp;quot; - role: Literal[&amp;quot;user&amp;quot;, &amp;quot;assistant&amp;quot;] + role: Literal[&amp;quot;user&amp;quot;, &amp;quot;assistant&amp;quot;, &amp;quot;ctx&amp;quot;, &amp;quot;msg&amp;quot;, &amp;quot;system&amp;quot;] content: str | list[AnthropicContentBlock] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The changes are (I suspect) related to the new &amp;quot;workflows&amp;quot; feature introduced in 2.1.154. With this patch to vLLM you can use Claude cli workflows with MiniMax-M2.7 (and probably others, this is all I've tested) on vLLM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vicar_of_Wibbly"&gt; /u/Vicar_of_Wibbly &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-28T22:16:55+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tpww8m</id>
     <title>Qwen/Qwen-Image-Bench · Hugging Face</title>
     <updated>2026-05-28T07:57:06+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tpww8m/qwenqwenimagebench_hugging_face/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-28T07:57:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tqiewb</id>
+    <title>Claude cli &gt;= 2.1.154 breaks local use with vLLM by introducing "ctx", "msg" and "system" roles for API messages. This 1-line patch to vLLM fixes it.</title>
+    <updated>2026-05-28T22:16:55+00:00</updated>
+    <author>
+      <name>/u/Vicar_of_Wibbly</name>
+      <uri>https://old.reddit.com/user/Vicar_of_Wibbly</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;diff --git a/vllm/entrypoints/anthropic/protocol.py b/vllm/entrypoints/anthropic/protocol.py index 3ebc17117..2d5726d73 100644 --- a/vllm/entrypoints/anthropic/protocol.py +++ b/vllm/entrypoints/anthropic/protocol.py @@ -65,7 +65,7 @@ class AnthropicContentBlock(BaseModel): class AnthropicMessage(BaseModel): &amp;quot;&amp;quot;&amp;quot;Message structure&amp;quot;&amp;quot;&amp;quot; - role: Literal[&amp;quot;user&amp;quot;, &amp;quot;assistant&amp;quot;] + role: Literal[&amp;quot;user&amp;quot;, &amp;quot;assistant&amp;quot;, &amp;quot;ctx&amp;quot;, &amp;quot;msg&amp;quot;, &amp;quot;system&amp;quot;] content: str | list[AnthropicContentBlock] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The changes are (I suspect) related to the new &amp;quot;workflows&amp;quot; feature introduced in 2.1.154. With this patch to vLLM you can use Claude cli workflows with MiniMax-M2.7 (and probably others, this is all I've tested) on vLLM.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Vicar_of_Wibbly"&gt; /u/Vicar_of_Wibbly &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqiewb/claude_cli_21154_breaks_local_use_with_vllm_by/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-28T22:16:55+00:00</published>
   </entry>
   <entry>
     <id>t3_1tqas55</id>
@@ -164,19 +164,6 @@
     <published>2026-05-28T13:43:07+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tqh44n</id>
-    <title>How much total VRAM (or shared RAM for Mac/Halo/etc) do you have on your local server/PC?</title>
-    <updated>2026-05-28T21:28:34+00:00</updated>
-    <author>
-      <name>/u/panchovix</name>
-      <uri>https://old.reddit.com/user/panchovix</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.reddit.com/poll/1tqh44n"&gt;View Poll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/panchovix"&gt; /u/panchovix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-28T21:28:34+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tq1jpt</id>
     <title>PaddlePaddle/PaddleOCR-VL-1.6</title>
     <updated>2026-05-28T12:02:34+00:00</updated>
@@ -201,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqfmh7/might_they/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-28T20:34:43+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tqh44n</id>
+    <title>How much total VRAM (or shared RAM for Mac/Halo/etc) do you have on your local server/PC?</title>
+    <updated>2026-05-28T21:28:34+00:00</updated>
+    <author>
+      <name>/u/panchovix</name>
+      <uri>https://old.reddit.com/user/panchovix</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.reddit.com/poll/1tqh44n"&gt;View Poll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/panchovix"&gt; /u/panchovix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tqh44n/how_much_total_vram_or_shared_ram_for_machaloetc/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-28T21:28:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1tpp2th</id>
