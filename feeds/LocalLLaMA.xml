@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-05-30T20:14:25+00:00</updated>
+  <updated>2026-05-30T20:38:06+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1trf0r0</id>
-    <title>I tested MTP on vLLM and llama.cpp for Gemma 4 &amp; Qwen 3.6 — 3.34x faster inference, here are my findings RTX 6000 PRO.</title>
-    <updated>2026-05-29T20:42:18+00:00</updated>
-    <author>
-      <name>/u/FantasticNature7590</name>
-      <uri>https://old.reddit.com/user/FantasticNature7590</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1trf0r0/i_tested_mtp_on_vllm_and_llamacpp_for_gemma_4/"&gt; &lt;img alt="I tested MTP on vLLM and llama.cpp for Gemma 4 &amp;amp; Qwen 3.6 — 3.34x faster inference, here are my findings RTX 6000 PRO." src="https://preview.redd.it/3seyqbmi754h1.png?width=140&amp;amp;height=83&amp;amp;auto=webp&amp;amp;s=df9c201ba147dff4fbf417daac9168467d9d407f" title="I tested MTP on vLLM and llama.cpp for Gemma 4 &amp;amp; Qwen 3.6 — 3.34x faster inference, here are my findings RTX 6000 PRO." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys,&lt;/p&gt; &lt;p&gt;I spent the last few weeks benchmarking Multi-Token Prediction (MTP) on &lt;strong&gt;Gemma 4 31B&lt;/strong&gt; and &lt;strong&gt;Qwen 3.6 27B&lt;/strong&gt; locally &lt;strong&gt;GGUF, FP8&lt;/strong&gt; using both &lt;strong&gt;vLLM&lt;/strong&gt; and &lt;strong&gt;llama.cpp&lt;/strong&gt;. MTP is the inference trick every major lab is quietly adding to their stack right now and the results genuinely surprised me.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Benchmark config:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- 10 runs per session&lt;/p&gt; &lt;p&gt;- 1500 tokens per run&lt;/p&gt; &lt;p&gt;- Sequential mode on vllm as I couldn't feed two models fully&lt;/p&gt; &lt;p&gt;- Same prompt across all runs&lt;/p&gt; &lt;p&gt;- Prefix caching OFF&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Models used:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;- unsloth/Qwen3.6-27B-MTP-GGUF (Q8_0) via llama.cpp&lt;/p&gt; &lt;p&gt;- RedHatAI/gemma-4-31B-it-FP8-block via vLLM&lt;/p&gt; &lt;p&gt;- Qwen/Qwen3.6-27B-FP8 via vLLM&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Hardware:&lt;/strong&gt; AMD Ryzen 9 9950X | NVIDIA RTX PRO 6000 Blackwell |&lt;/p&gt; &lt;p&gt;96GB VRAM | 92GB RAM | CUDA 13.1 | Ubuntu 24.04&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Here is the full leaderboard from my runs:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/3seyqbmi754h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=23aaf1bc4cd190d4f49a06f03b62018bb90dbdc0"&gt;https://preview.redd.it/3seyqbmi754h1.png?width=1440&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=23aaf1bc4cd190d4f49a06f03b62018bb90dbdc0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Best result: 132.52 vs 39.69 tok/s = 3.34x faster. On quality degradation — I did not do a deep evaluation due to time constraints. However based on studying the architecture, the design makes it hard to degrade quality: the target model still verifies every token before accepting it, so the output path is the same as standard decoding. On VRAM difference — I tried to capture it but ran out of time for a proper measurement. From a quick spot check it looked negligible, which also aligns with the architecture since the draft model is tiny (76M parameters on Gemma 4). But I would not claim either of these as confirmed — take them as directional observations, not benchmarked facts.&lt;/p&gt; &lt;p&gt;Here are my 5 biggest findings:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. vLLM beats llama.cpp for MTP on Gemma 4 — but llama.cpp is solid on Qwen&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;vLLM hit &lt;strong&gt;132.52 tok/s&lt;/strong&gt; on Gemma 4 with n=5. llama.cpp peaked at &lt;strong&gt;117.70 tok/s&lt;/strong&gt; on Qwen 3.6 Q8 with n_max=3. Important caveat: llama.cpp does NOT support Gemma 4 MTP yet so this is not a direct apples-to-apples comparison between engines. vLLM implementation is also more mature right now since MTP support was added to llama.cpp more recently.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Optimal speculative token count is NOT always the highest&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;For vLLM + Gemma 4: n=5 was best (132.52 tok/s)&lt;/p&gt; &lt;p&gt;For llama.cpp + Qwen 3.6: n=3 was the sweet spot (117.70 tok/s), then performance oscillated at n=4 and n=5. More speculative tokens does not equal more speed. There is a sweet spot per model and engine combination, so you need to benchmark it yourself. Also it could guess different depending on your prompt so tests a few prompt sand get avg etc.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Dense models are where MTP gains suppose to be biggest&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;I tested MTP on both Gemma 4 31B and Qwen 3.6 27B, because dense models are often the cleanest place to measure speculative decoding gains. In my tests, Gemma 4 reached a &lt;strong&gt;3.34x speedup&lt;/strong&gt;, while Qwen 3.6 on vLLM reached a &lt;strong&gt;2.59x speedup&lt;/strong&gt;. I would not frame this as a universal rule, but I run these test on a dense models as it suppose to deliver the clearest gains. The reason is architectural: dense models have a more uniform forward pass, which can make the draft-and-verify path easier to optimize and more predictable but as always it depends on the whole model architecture.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. The decode phase is memory bandwidth bound — not compute bound&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This is one of the reasons MTP can work so well.&lt;/p&gt; &lt;p&gt;During autoregressive decoding, the model usually generates one token at a time. For each new token, the runtime has to run another target-model step and move large amounts of data through GPU memory. In many low-batch inference workloads, the bottleneck is not that the GPU lacks raw compute. The bottleneck is that the system spends a lot of time moving model weights and KV-cache data through memory for every decoding step.&lt;/p&gt; &lt;p&gt;MTP helps by drafting several likely next tokens and letting the target model verify them together. When the draft tokens are accepted, the system can make progress by more than one token from a single verification pass. In other words, MTP does not remove the memory bandwidth cost, but it can amortize that cost across multiple accepted tokens.&lt;/p&gt; &lt;p&gt;That is why the speedup depends heavily on acceptance rate. If the draft path predicts well, the target model can accept more tokens per pass and decoding becomes faster. If the draft path predicts poorly, fewer tokens are accepted and the speedup becomes smaller.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Inference speed = money, not just UX&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;If you are serving LLMs in production, 3x faster inference means 3x more users on the same hardware or 3x lower compute cost for the same load. Training burns money. Inference prints it — or bleeds it if you are not optimized. This is why vLLM and llama.cpp both rushed to add MTP support.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/fbm158cl054h1.png?width=1927&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=a4a34c8b9ce64dbdbbf3ed4050162cb97817dad6"&gt;One of tests.&lt;/a&gt;&lt;/p&gt; &lt;p&gt;📦 Resources:&lt;/p&gt; &lt;p&gt;GitHub — full setup with Docker configs, benchmark scripts, and&lt;/p&gt; &lt;p&gt;CSV results, there is also video where I explain the architecture and idea&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/lukaLLM/llamacpp-vllm-mtp-setup-and-speed-benchmark-qwen3.6-gemma4"&gt;https://github.com/lukaLLM/llamacpp-vllm-mtp-setup-and-speed-benchmark-qwen3.6-gemma4&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Full video with MTP explanation, architecture deep dive and live benchmark runs:&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.youtube.com/watch?v=vN3At9GuSnc"&gt;https://www.youtube.com/watch?v=vN3At9GuSnc&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Let me know what hardware you are running MTP or other inference speed ups you found useful or what where yours findings!&lt;/p&gt; &lt;p&gt;AI was abused for the editing and table xd&lt;/p&gt; &lt;p&gt;Cheers&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FantasticNature7590"&gt; /u/FantasticNature7590 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1trf0r0/i_tested_mtp_on_vllm_and_llamacpp_for_gemma_4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1trf0r0/i_tested_mtp_on_vllm_and_llamacpp_for_gemma_4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1trf0r0/i_tested_mtp_on_vllm_and_llamacpp_for_gemma_4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-29T20:42:18+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ts4on0</id>
-    <title>Fine tuning on DGX spark vs 4x 3090?</title>
-    <updated>2026-05-30T16:37:18+00:00</updated>
-    <author>
-      <name>/u/kidfromtheast</name>
-      <uri>https://old.reddit.com/user/kidfromtheast</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;hey, my research direction don’t focus on inference or eval benchmarks. specifically, it’s mech interp research direction, analyzing how models do computation etc&lt;/p&gt; &lt;p&gt;i dont have GPU, mostly using cloud GPUs loaned by third parties. i saved up some scholarship money by spending less each month and now I am considering to own a GPU. 4x 3090 would require electricity beyond normal while DGX spark draw reasonable electricity. the other concern is a 3090 is too old, I can’t afford having dying GPU as student&lt;/p&gt; &lt;p&gt;i am prepared for slower fine-tuning etc but I would like to know exactly how slow compared to 4x 3090 on large models&lt;/p&gt; &lt;p&gt;anyone with experiences are welcomed to share&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kidfromtheast"&gt; /u/kidfromtheast &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts4on0/fine_tuning_on_dgx_spark_vs_4x_3090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts4on0/fine_tuning_on_dgx_spark_vs_4x_3090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ts4on0/fine_tuning_on_dgx_spark_vs_4x_3090/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-30T16:37:18+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tr78bg</id>
     <title>llama : website + unified `llama` binary · ggml-org/llama.cpp · Discussion #23875</title>
@@ -71,6 +45,45 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1trst5s/keeping_multigpu_rigs_cool/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-30T07:12:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tsas63</id>
+    <title>Whisper.cpp is underwhelming</title>
+    <updated>2026-05-30T20:36:23+00:00</updated>
+    <author>
+      <name>/u/Larkonath</name>
+      <uri>https://old.reddit.com/user/Larkonath</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, I'm running whisper.cpp with the best model I could find (ggml-large-v3) but after about 20 min of transcription it hallucinates a sentence that it will repeat endlessly until the end.&lt;/p&gt; &lt;p&gt;Is there something I'm missing or should I cut my files to about 20 minutes length?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Larkonath"&gt; /u/Larkonath &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tsas63/whispercpp_is_underwhelming/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tsas63/whispercpp_is_underwhelming/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tsas63/whispercpp_is_underwhelming/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-30T20:36:23+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tsasg2</id>
+    <title>Running Qwen 3.6 35b MoE With Zoo Code On M1 Max is Amazing! Fully local, battery-powered coding powerhouse!</title>
+    <updated>2026-05-30T20:36:41+00:00</updated>
+    <author>
+      <name>/u/L064N</name>
+      <uri>https://old.reddit.com/user/L064N</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tsasg2/running_qwen_36_35b_moe_with_zoo_code_on_m1_max/"&gt; &lt;img alt="Running Qwen 3.6 35b MoE With Zoo Code On M1 Max is Amazing! Fully local, battery-powered coding powerhouse!" src="https://external-preview.redd.it/YXdqMHR6amg1YzRoMVhTQOiSM6onypaxwX_1I8RbozWzhK0rj1jpr7Z_weeJ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=763c9ce131a7e126c34417b7c9f61a89d0b5b7d8" title="Running Qwen 3.6 35b MoE With Zoo Code On M1 Max is Amazing! Fully local, battery-powered coding powerhouse!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/L064N"&gt; /u/L064N &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/zbm9o9ud5c4h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tsasg2/running_qwen_36_35b_moe_with_zoo_code_on_m1_max/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tsasg2/running_qwen_36_35b_moe_with_zoo_code_on_m1_max/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-30T20:36:41+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tryukc</id>
+    <title>Qwen 3.6 coding choice–27B vs 35B quants</title>
+    <updated>2026-05-30T12:38:29+00:00</updated>
+    <author>
+      <name>/u/siegevjorn</name>
+      <uri>https://old.reddit.com/user/siegevjorn</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been using Qwen 3.6 35BA3B for a while in Q8_0 quant, KV Q8_0 as well. I'm trying to explore Qwen 2.6 27B. Any tips on which quant to use?&lt;/p&gt; &lt;p&gt;Context size is 262144&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Q4KM with full KV quant (fp16)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Q6K with Q8_0 KV quant&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Stick with 35BA3B Q8_0, it's better.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Edit: Some asked about GPU settings. Dual GPU, Rtx 4090 and 5060 ti 16gb, 40gb vram in total. Tested all three, they fit vram with full context. &lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/poll/1tryukc"&gt;View Poll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/siegevjorn"&gt; /u/siegevjorn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-30T12:38:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1ts79rg</id>
@@ -112,19 +125,6 @@
     <published>2026-05-30T13:36:39+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tryukc</id>
-    <title>Qwen 3.6 coding choice–27B vs 35B quants</title>
-    <updated>2026-05-30T12:38:29+00:00</updated>
-    <author>
-      <name>/u/siegevjorn</name>
-      <uri>https://old.reddit.com/user/siegevjorn</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been using Qwen 3.6 35BA3B for a while in Q8_0 quant, KV Q8_0 as well. I'm trying to explore Qwen 2.6 27B. Any tips on which quant to use?&lt;/p&gt; &lt;p&gt;Context size is 262144&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Q4KM with full KV quant (fp16)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Q6K with Q8_0 KV quant&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Stick with 35BA3B Q8_0, it's better.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Edit: Some asked about GPU settings. Dual GPU, Rtx 4090 and 5060 ti 16gb, 40gb vram in total. Tested all three, they fit vram with full context. &lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/poll/1tryukc"&gt;View Poll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/siegevjorn"&gt; /u/siegevjorn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tryukc/qwen_36_coding_choice27b_vs_35b_quants/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-30T12:38:29+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1trrjjo</id>
     <title>Got Really lucky and need your advice</title>
     <updated>2026-05-30T06:02:55+00:00</updated>
@@ -164,6 +164,19 @@
     <published>2026-05-30T04:56:07+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ts94t8</id>
+    <title>Has anyone experimented with stabilizing low quant models with lower temp and top p?</title>
+    <updated>2026-05-30T19:31:19+00:00</updated>
+    <author>
+      <name>/u/fragment_me</name>
+      <uri>https://old.reddit.com/user/fragment_me</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was thinking about trying some bigger models out on my 80GB VRAM setup, but everything MoE is too slow with CPU offload. Otherwise there aren't many models that are purpose built for 80GB VRAM. Most of the bigger models require using a heavily quantized version. As I was looking at some benchmarks of same top p I realized there's something that can be done here but I haven't read anyone recently post about it. Playing with some LLM sampling visualization tools shows that it might be possible to reduce some wild outputs by reducing temp and top p. I'll be trying it this evening.&lt;/p&gt; &lt;p&gt;Tool example, not mine : &lt;a href="https://artefact2.github.io/llm-sampling/index.xhtml"&gt;https://artefact2.github.io/llm-sampling/index.xhtml&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fragment_me"&gt; /u/fragment_me &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-05-30T19:31:19+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ts0jjb</id>
     <title>STT -&gt; LLM -&gt; TTS pipeline</title>
     <updated>2026-05-30T13:51:10+00:00</updated>
@@ -201,19 +214,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1trdnap/fed_up_with_vibe_coders_dev_sneaks_datanuking/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-05-29T19:53:16+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ts94t8</id>
-    <title>Has anyone experimented with stabilizing low quant models with lower temp and top p?</title>
-    <updated>2026-05-30T19:31:19+00:00</updated>
-    <author>
-      <name>/u/fragment_me</name>
-      <uri>https://old.reddit.com/user/fragment_me</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was thinking about trying some bigger models out on my 80GB VRAM setup, but everything MoE is too slow with CPU offload. Otherwise there aren't many models that are purpose built for 80GB VRAM. Most of the bigger models require using a heavily quantized version. As I was looking at some benchmarks of same top p I realized there's something that can be done here but I haven't read anyone recently post about it. Playing with some LLM sampling visualization tools shows that it might be possible to reduce some wild outputs by reducing temp and top p. I'll be trying it this evening.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/fragment_me"&gt; /u/fragment_me &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ts94t8/has_anyone_experimented_with_stabilizing_low/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-05-30T19:31:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1trms2k</id>
