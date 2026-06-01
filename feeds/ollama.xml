@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-06-01T15:24:51+00:00</updated>
+  <updated>2026-06-01T17:19:41+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1tsa2ow</id>
-    <title>Frona v2026.5.5 – self-hosted personal AI assistant</title>
-    <updated>2026-05-30T20:08:13+00:00</updated>
-    <author>
-      <name>/u/syncerx</name>
-      <uri>https://old.reddit.com/user/syncerx</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey,&lt;/p&gt; &lt;p&gt;Since LLM tool calling became a thing, the dominant pattern has been: ship an AI assistant that can execute code, browse the web, and hit your APIs, and figure out the security story later. Frona started as a pushback against that pattern.&lt;/p&gt; &lt;p&gt;Frona is a personal AI assistant you self-host. You create agents that browse the web, run code, build apps, make phone calls, connect to messaging channels, delegate work to each other, and remember things across conversations, all inside per-principal sandboxes with controlled access to your files, network, and credentials. You give them a task, they figure out how to get it done.&lt;/p&gt; &lt;p&gt;The engine is a single Rust process. The sandbox is on by default and the engine refuses to start if it can't initialize. Security wasn't bolted on; it's the substrate the rest is built on.&lt;/p&gt; &lt;p&gt;It's a finished product, not a kit you spend a weekend assembling. Every tool call, channel message, and sandbox decision goes through one policy engine. Credentials are vault-backed, sandboxes are per-principal, SSO is built in, MCP servers are first-class. You don't write auth glue, harden containers, hand-roll vault integrations, or duct-tape channels onto agents at 2am. It's all there on day one.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Not just for engineers&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Most projects in this space assume you're a developer. Frona doesn't. You don't need to know what a sandbox is, or care how policies work, or ever open a config file. You talk to an agent the way you'd talk to a person:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&amp;quot;Call my dentist next week and book the earliest checkup they've got.&amp;quot;&lt;/li&gt; &lt;li&gt;&amp;quot;Every morning, send me the latest news on $NVDA and ping me on Signal if something big drops.&amp;quot;&lt;/li&gt; &lt;li&gt;&amp;quot;Watch my flight for delays and let me know if anything changes.&amp;quot;&lt;/li&gt; &lt;li&gt;&amp;quot;Build me a little dashboard for the coffee beans I buy, and watch my email so new orders show up automatically.&amp;quot;&lt;/li&gt; &lt;li&gt;&amp;quot;Build me a dashboard for my Amazon spending, pulled in from order emails and broken down by week, month, and year.&amp;quot;&lt;/li&gt; &lt;li&gt;&amp;quot;Make me a dashboard for my Home Assistant setup so I can see all my sensors at a glance.&amp;quot;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The security and sandbox machinery underneath is what makes any of that safe to actually do. You don't have to know it's there to benefit from it.&lt;/p&gt; &lt;p&gt;Think of it as a more user-friendly OpenClaw or Hermes Agent, but built on top of security from day one instead of duct-taping it on later or punting the problem to you. There's a &lt;a href="https://docs.frona.ai/platform/comparison"&gt;full comparison&lt;/a&gt; if you want the long version. The short version of what makes it different:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;One Rust process, not a container per agent&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The dominant approach to sandboxing AI agents reaches for Docker. Each new agent (and sometimes each new MCP server) becomes a piece of container infra you have to manage. Frona runs as a single process that spawns sandboxed child processes for the actual work: one per CLI tool call, one per MCP server, one per deployed app, with syscall-level filtering applied per principal. With 10 agents and 5 MCP servers, you have one engine and a handful of sandboxed children, not 15 containers.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;One policy engine for everything&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Tool access, filesystem rules, network destinations, port binds, channel authorization, signal handling. All written in the same policy language. &amp;quot;This MCP server can only reach &lt;code&gt;api.github.com:443&lt;/code&gt;&amp;quot;, &amp;quot;this channel only accepts inbound from these paired numbers&amp;quot;, &amp;quot;this agent can use the shell tool only when delegated by the system agent&amp;quot;. Those are one-line rules, not custom code.&lt;/p&gt; &lt;p&gt;Entity IDs in policies are human-readable: &lt;code&gt;Policy::Agent::&amp;quot;alice/developer&amp;quot;&lt;/code&gt;, not opaque UUIDs. You can hand-edit and grep them. Per-agent network is full / restricted to specific hosts / fully offline, same shape for filesystem paths, same for resource limits.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Dual-LLM for untrusted inbound&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Inbound messages from external senders on a channel are untrusted input. That's where prompt injection lands. Frona's dispatcher implements &lt;a href="https://simonwillison.net/2023/Apr/25/dual-llm-pattern/"&gt;Simon Willison's Dual LLM pattern&lt;/a&gt;: a quarantined LLM with a stripped-down tool registry handles untrusted content (it can only tag and end its task, no replies, no general tools), and a privileged LLM only sees content that policy has cleared. A hostile SMS can't trick the responding agent into leaking data or running tools.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Vault-backed credentials, never in chat&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;No pasting API keys into prompts and hoping the model forgets them (it won't). Agents request credentials, you get a notification with what they want and why, you approve with a time limit (one-time, hours, days, permanent). Local credentials are AES-256-GCM at rest. Or plug into your existing vault: 1Password, Bitwarden (incl. self-hosted), HashiCorp Vault, KeePass, Keeper. Sandboxed processes get ephemeral tokens scoped to that one process and lifetime. Leak the token, blast radius is bounded.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;MCP, but token-efficient&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;MCP servers are first-class and each runs in its own sandbox with its own policies. The default &lt;em&gt;bridge mode&lt;/em&gt; exposes all your MCP servers behind a single CLI tool to the LLM instead of advertising every MCP tool's schema individually. On an agent with 5 MCP servers and 60+ tools, that's thousands of tokens saved per turn. Context goes to your task, not to JSON schemas the model doesn't need yet.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Persistent browser sessions&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Agents get named browser profiles that keep cookies, local storage, and sessions across conversations. Log in once, stay logged in. Hit a CAPTCHA or 2FA and it pauses, hands you a debugger link, and resumes when you're done.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Other stuff worth mentioning&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;BYO LLM: Ollama, Anthropic, OpenAI, Groq, DeepSeek, Gemini, and about a dozen more&lt;/li&gt; &lt;li&gt;Channels: Telegram, Slack, Discord, WhatsApp (Cloud API + personal QR), Signal, SMS&lt;/li&gt; &lt;li&gt;Deployment: 3 containers via Docker Compose (Frona, Browserless for browser automation, SearXNG for private web search)&lt;/li&gt; &lt;li&gt;Multi-user with SSO: Google, Okta, Keycloak, Authentik, any OIDC&lt;/li&gt; &lt;li&gt;Apps: ask the agent to build a dashboard/tool/integration, approve, Frona serves it instantly behind the same sandbox + policy machinery&lt;/li&gt; &lt;li&gt;Memory + Skills: facts that survive across conversations, plus reusable instruction packages you can scope per-agent&lt;/li&gt; &lt;li&gt;Signals: agents can pause a conversation and wait for a matching inbound (verification code, reply, class of message), then resume automatically when it arrives&lt;/li&gt; &lt;li&gt;Phone calls: outbound voice via Twilio&lt;/li&gt; &lt;li&gt;API access: Personal Access Tokens for your own automations&lt;/li&gt; &lt;li&gt;Written in Rust: low footprint, fast streaming. Obligatory Rust mention :)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Things are still being polished. Next up: a plugin framework so you can extend the platform without touching core, and more channel adapters. Would love feedback from folks who actually self-host their tools. If you've run an AI assistant on your own infra before, where did the seams show? What did you wish was harder to misconfigure into a bad state?&lt;/p&gt; &lt;p&gt;If you don't have access to all the frontier models, Haiku 4.5 is a solid pick for most tasks. Cheap and surprisingly capable when you give it proper tool feedback.&lt;/p&gt; &lt;p&gt;Quickstart, docs, and the full feature reference: &lt;a href="https://docs.frona.ai"&gt;https://docs.frona.ai&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/syncerx"&gt; /u/syncerx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tsa2ow/frona_v202655_selfhosted_personal_ai_assistant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tsa2ow/frona_v202655_selfhosted_personal_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1tsa2ow/frona_v202655_selfhosted_personal_ai_assistant/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-05-30T20:08:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tsar6x</id>
-    <title>Experiment: autonomous AI agents running a live AI TV/news stream with Ollama + Qwen</title>
-    <updated>2026-05-30T20:35:17+00:00</updated>
-    <author>
-      <name>/u/Funny-Shake-2668</name>
-      <uri>https://old.reddit.com/user/Funny-Shake-2668</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1tsar6x/experiment_autonomous_ai_agents_running_a_live_ai/"&gt; &lt;img alt="Experiment: autonomous AI agents running a live AI TV/news stream with Ollama + Qwen" src="https://preview.redd.it/jmkvyhv05c4h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=15cc1bfbc78f0ef2b269eaf6778ef0b044300548" title="Experiment: autonomous AI agents running a live AI TV/news stream with Ollama + Qwen" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been experimenting with a live AI TV/news stream run by autonomous AI agents.&lt;/p&gt; &lt;p&gt;The system uses Ollama locally, with Qwen models generating and coordinating the content. It continuously creates and schedules segments in real time: AI news updates, short explainers about AI concepts, debates between different viewpoints, weather-style breaks, and other recurring formats, then assembles them into a live broadcast.&lt;/p&gt; &lt;p&gt;The idea I’m exploring is whether local LLMs can move beyond static generated videos and behave more like a continuous media system: something that keeps producing, updating, and programming itself while the stream is live.&lt;/p&gt; &lt;p&gt;It’s still experimental, but I’m curious how other Ollama users and local-AI builders think about this direction.&lt;/p&gt; &lt;p&gt;A few questions:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Does this feel useful, entertaining, or mostly pointless?&lt;/li&gt; &lt;li&gt;What would make an AI-generated live channel actually worth watching?&lt;/li&gt; &lt;li&gt;Should it be more educational, more news-focused, more debate-driven, or something else?&lt;/li&gt; &lt;li&gt;What would make you trust or distrust a system like this?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Would love feedback, especially from people running local models, building agents, or experimenting with AI video/media systems.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Funny-Shake-2668"&gt; /u/Funny-Shake-2668 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jmkvyhv05c4h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tsar6x/experiment_autonomous_ai_agents_running_a_live_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1tsar6x/experiment_autonomous_ai_agents_running_a_live_ai/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-05-30T20:35:17+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tsbzit</id>
     <title>Big update: my local Ollama chat now has persistent JSON memory</title>
@@ -164,19 +138,6 @@
     <published>2026-05-31T13:30:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ttpq83</id>
-    <title>The "famous" agents have got skills all wrong!</title>
-    <updated>2026-06-01T11:47:09+00:00</updated>
-    <author>
-      <name>/u/Acceptable-Object390</name>
-      <uri>https://old.reddit.com/user/Acceptable-Object390</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The famous agents out there (that shall not be named 😅) have got it WRONG!&lt;/p&gt; &lt;p&gt;Their “skills” system quietly creates prompt bloat. You install a few useful workflows, then suddenly every chat starts carrying instructions for things you are not doing: research, writing, browser ops, task automation, whatever. The agent gets slower, noisier, and less focused.&lt;/p&gt; &lt;p&gt;We are rebuilding this in Thoth.&lt;/p&gt; &lt;p&gt;The new system separates two things that usually get tangled together:&lt;/p&gt; &lt;p&gt;Tool guides stay attached to tools.&lt;/p&gt; &lt;p&gt;If the browser tool is enabled, the browser guide comes with it. Deterministic, tool-bound, and always where the agent needs it.&lt;/p&gt; &lt;p&gt;Smart Skills are chat-level workflows.&lt;/p&gt; &lt;p&gt;Meeting notes, deep research, humanizer, brain dump, data analysis, task automation, etc. They are only injected when they are actually active in that thread.&lt;/p&gt; &lt;p&gt;So the normal prompt stays lean.&lt;/p&gt; &lt;p&gt;Then when you activate a skill, Thoth gives the model the extra structure it needs for that specific job: expected workflow, constraints, output shape, and domain habits.&lt;/p&gt; &lt;p&gt;You will be able to:&lt;/p&gt; &lt;p&gt;use suggested skills as you type&lt;/p&gt; &lt;p&gt;add/remove active skills from the composer&lt;/p&gt; &lt;p&gt;use /skill commands in chat and channels&lt;/p&gt; &lt;p&gt;type / and pick commands or skills directly, Codex-style&lt;/p&gt; &lt;p&gt;keep skills scoped to the current conversation instead of globally polluting everything&lt;/p&gt; &lt;p&gt;We are also designing this for marketplace skills.&lt;/p&gt; &lt;p&gt;The plan is that marketplace skills can be imported into Thoth as available workflows, made discoverable in the Skill Library, suggested locally using lightweight activation metadata, and activated at runtime without dumping every installed skill into every prompt.&lt;/p&gt; &lt;p&gt;Power users get speed. Normal users get sane defaults. The agent gets a cleaner context window.&lt;/p&gt; &lt;p&gt;That is the whole point: make skills feel like runtime capabilities, not permanent prompt baggage.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable-Object390"&gt; /u/Acceptable-Object390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-01T11:47:09+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ttifaz</id>
     <title>Very helpful project :)</title>
     <updated>2026-06-01T05:17:18+00:00</updated>
@@ -229,6 +190,19 @@
     <published>2026-05-31T22:10:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ttpq83</id>
+    <title>The "famous" agents have got skills all wrong!</title>
+    <updated>2026-06-01T11:47:09+00:00</updated>
+    <author>
+      <name>/u/Acceptable-Object390</name>
+      <uri>https://old.reddit.com/user/Acceptable-Object390</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The famous agents out there (that shall not be named 😅) have got it WRONG!&lt;/p&gt; &lt;p&gt;Their “skills” system quietly creates prompt bloat. You install a few useful workflows, then suddenly every chat starts carrying instructions for things you are not doing: research, writing, browser ops, task automation, whatever. The agent gets slower, noisier, and less focused.&lt;/p&gt; &lt;p&gt;We are rebuilding this in Thoth.&lt;/p&gt; &lt;p&gt;The new system separates two things that usually get tangled together:&lt;/p&gt; &lt;p&gt;Tool guides stay attached to tools.&lt;/p&gt; &lt;p&gt;If the browser tool is enabled, the browser guide comes with it. Deterministic, tool-bound, and always where the agent needs it.&lt;/p&gt; &lt;p&gt;Smart Skills are chat-level workflows.&lt;/p&gt; &lt;p&gt;Meeting notes, deep research, humanizer, brain dump, data analysis, task automation, etc. They are only injected when they are actually active in that thread.&lt;/p&gt; &lt;p&gt;So the normal prompt stays lean.&lt;/p&gt; &lt;p&gt;Then when you activate a skill, Thoth gives the model the extra structure it needs for that specific job: expected workflow, constraints, output shape, and domain habits.&lt;/p&gt; &lt;p&gt;You will be able to:&lt;/p&gt; &lt;p&gt;use suggested skills as you type&lt;/p&gt; &lt;p&gt;add/remove active skills from the composer&lt;/p&gt; &lt;p&gt;use /skill commands in chat and channels&lt;/p&gt; &lt;p&gt;type / and pick commands or skills directly, Codex-style&lt;/p&gt; &lt;p&gt;keep skills scoped to the current conversation instead of globally polluting everything&lt;/p&gt; &lt;p&gt;We are also designing this for marketplace skills.&lt;/p&gt; &lt;p&gt;The plan is that marketplace skills can be imported into Thoth as available workflows, made discoverable in the Skill Library, suggested locally using lightweight activation metadata, and activated at runtime without dumping every installed skill into every prompt.&lt;/p&gt; &lt;p&gt;Power users get speed. Normal users get sane defaults. The agent gets a cleaner context window.&lt;/p&gt; &lt;p&gt;That is the whole point: make skills feel like runtime capabilities, not permanent prompt baggage.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Acceptable-Object390"&gt; /u/Acceptable-Object390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1ttpq83/the_famous_agents_have_got_skills_all_wrong/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-01T11:47:09+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ttpu91</id>
     <title>How I work with AI without losing context between sessions — my actual stack (Ollama + CLOUD+ SDD + Engram)</title>
     <updated>2026-06-01T11:52:18+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1ttpu91/how_i_work_with_ai_without_losing_context_between/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-01T11:52:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tty8me</id>
+    <title>I built Micracode, an open-source, local-first alternative to Lovable / Bolt / v0.</title>
+    <updated>2026-06-01T16:53:25+00:00</updated>
+    <author>
+      <name>/u/james-paul0905</name>
+      <uri>https://old.reddit.com/user/james-paul0905</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1tty8me/i_built_micracode_an_opensource_localfirst/"&gt; &lt;img alt="I built Micracode, an open-source, local-first alternative to Lovable / Bolt / v0." src="https://external-preview.redd.it/OXoyeG8xemJicDRoMRuEfcfFrS9Zp7V8_Yn2AAJPJ1x408_irL9ByqSycc3k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=73b276bcaea4ded300b4980c6493af5d8c7b934f" title="I built Micracode, an open-source, local-first alternative to Lovable / Bolt / v0." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/ollama"&gt;r/ollama&lt;/a&gt; ! I'm James. I am a huge open-source software supporter, and I love using open-source software. I want to give something back to this wonderful community, so I am building an open-source alternative to Lovable which helps us to build apps and UI components and we can run the local models though ollama as well.&lt;/p&gt; &lt;p&gt;What I have on the roadmap:&lt;/p&gt; &lt;p&gt;A self-learning ai coding agent that creates skills from experience.&lt;/p&gt; &lt;p&gt;Talk to it from multiple channels (like Telegram, WhatsApp, Discord, etc.).&lt;/p&gt; &lt;p&gt;Native connections to databases, payments, and hosting.&lt;/p&gt; &lt;p&gt;An autonomous agent which troubleshoots production bugs with a human in the loop.&lt;/p&gt; &lt;p&gt;What's interesting for the OSS community:&lt;/p&gt; &lt;p&gt;Looking for:&lt;/p&gt; &lt;p&gt;Feedback on usefulness &amp;amp; must-have features.&lt;/p&gt; &lt;p&gt;Devs currently using coding agents, what's your biggest pain point? What kind of features should I focus on?&lt;/p&gt; &lt;p&gt;Contributors interested in coding agents.&lt;/p&gt; &lt;p&gt;If this sounds interesting and you want to stay updated (or contribute!): &lt;a href="https://github.com/Jamessdevops/micracode"&gt;https://github.com/Jamessdevops/micracode&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/james-paul0905"&gt; /u/james-paul0905 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/0b8duixbbp4h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tty8me/i_built_micracode_an_opensource_localfirst/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1tty8me/i_built_micracode_an_opensource_localfirst/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-01T16:53:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1tttgzx</id>
@@ -255,17 +242,17 @@
     <published>2026-06-01T14:12:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ttoyxe</id>
-    <title>How is Ollama Cloud currently?</title>
-    <updated>2026-06-01T11:12:06+00:00</updated>
+    <id>t3_1ttvqiu</id>
+    <title>Use your home Ollama server from your phone, then fall back to fully on-device models when you leave the network.</title>
+    <updated>2026-06-01T15:29:53+00:00</updated>
     <author>
-      <name>/u/According_Water_5774</name>
-      <uri>https://old.reddit.com/user/According_Water_5774</uri>
+      <name>/u/Ok_Needleworker_6431</name>
+      <uri>https://old.reddit.com/user/Ok_Needleworker_6431</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I used to have a max subscription but cancelled as it was (in my experience) barely usable - often just endless server overloaded error messages - and even when working would be very slow. Has anything improved recently? Is it now stable enough to justify a subscription?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/According_Water_5774"&gt; /u/According_Water_5774 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Full disclosure, I helped build this. It's free, MIT, open source, posting because the Ollama integration is the part this sub would actually use.&lt;/p&gt; &lt;p&gt;The setup: Off Grid is a mobile app that connects to any OpenAI-compatible server on your local network. Point it at your Ollama instance, it auto-discovers your models, and streams responses over SSE. So the 70B you're running on your desktop is now usable from the couch on your phone.&lt;/p&gt; &lt;p&gt;The bit that makes it different from other Ollama clients: when you walk out the door and lose the LAN, it doesn't go dead. It also runs GGUF models fully on-device, so you switch to a local Qwen or Llama and keep going with no connection at all. Big model at home, small model on the move, same app.&lt;/p&gt; &lt;p&gt;Beyond text it also does on-device image gen, Whisper voice input, and vision, but the remote-plus-local handoff is the feature I think you'd care about most.&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/alichherawalla/off-grid-mobile-ai"&gt;https://github.com/alichherawalla/off-grid-mobile-ai&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Curious what this crowd runs as the home server. We support Ollama, LM Studio, and LocalAI endpoints, and I'd like to know if there are setups we're not handling cleanly yet.&lt;/p&gt; &lt;p&gt;Thank you.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok_Needleworker_6431"&gt; /u/Ok_Needleworker_6431 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttvqiu/use_your_home_ollama_server_from_your_phone_then/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttvqiu/use_your_home_ollama_server_from_your_phone_then/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1ttvqiu/use_your_home_ollama_server_from_your_phone_then/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-06-01T11:12:06+00:00</published>
+    <published>2026-06-01T15:29:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1ttpeno</id>
@@ -281,19 +268,6 @@
     <published>2026-06-01T11:32:45+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ttuuky</id>
-    <title>Bricked Ollama</title>
-    <updated>2026-06-01T14:59:57+00:00</updated>
-    <author>
-      <name>/u/Still_Following5118</name>
-      <uri>https://old.reddit.com/user/Still_Following5118</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"&gt; &lt;img alt="Bricked Ollama" src="https://preview.redd.it/m5gu47e8ro4h1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1db7e4ae746295a284a6c3cfc95ea95a8f5744eb" title="Bricked Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been trying to troubleshoot for an hour with Gemini uninstalled like 10 times reinstalled different versions 10 times. Same issue pictured.&lt;/p&gt; &lt;p&gt;Stuck infinite loading. Can’t use CMD to download models, sometimes model folder exists on download sometimes it doesn’t, either way, same issue.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Still_Following5118"&gt; /u/Still_Following5118 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/m5gu47e8ro4h1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-01T14:59:57+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tszsp5</id>
     <title>I built an open-source Desktop App that gives your AI persistent memory across all platforms (100% Local SQLite, Zero-Docker)</title>
     <updated>2026-05-31T16:20:31+00:00</updated>
@@ -305,6 +279,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1tszsp5/i_built_an_opensource_desktop_app_that_gives_your/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-05-31T16:20:31+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ttoyxe</id>
+    <title>How is Ollama Cloud currently?</title>
+    <updated>2026-06-01T11:12:06+00:00</updated>
+    <author>
+      <name>/u/According_Water_5774</name>
+      <uri>https://old.reddit.com/user/According_Water_5774</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I used to have a max subscription but cancelled as it was (in my experience) barely usable - often just endless server overloaded error messages - and even when working would be very slow. Has anything improved recently? Is it now stable enough to justify a subscription?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/According_Water_5774"&gt; /u/According_Water_5774 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1ttoyxe/how_is_ollama_cloud_currently/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-01T11:12:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1ttv1wi</id>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/ollama/comments/1ttr5rr/its_normal_that_this_model_takes_so_long_to/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-01T12:47:18+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ttuuky</id>
+    <title>Bricked Ollama</title>
+    <updated>2026-06-01T14:59:57+00:00</updated>
+    <author>
+      <name>/u/Still_Following5118</name>
+      <uri>https://old.reddit.com/user/Still_Following5118</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"&gt; &lt;img alt="Bricked Ollama" src="https://preview.redd.it/m5gu47e8ro4h1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1db7e4ae746295a284a6c3cfc95ea95a8f5744eb" title="Bricked Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Been trying to troubleshoot for an hour with Gemini uninstalled like 10 times reinstalled different versions 10 times. Same issue pictured.&lt;/p&gt; &lt;p&gt;Stuck infinite loading. Can’t use CMD to download models, sometimes model folder exists on download sometimes it doesn’t, either way, same issue.&lt;/p&gt; &lt;p&gt;Edit: had AI go through the error and it’s saying something about it crashing on startup because it’s checking MLX image? Apparently installing old versions doesn’t work because it auto updates, it should be working with my 6900xt it’s saying something is wrong with my graphics. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Still_Following5118"&gt; /u/Still_Following5118 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/m5gu47e8ro4h1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1ttuuky/bricked_ollama/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-01T14:59:57+00:00</published>
   </entry>
 </feed>
