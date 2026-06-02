@@ -2,63 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-02T05:41:28+00:00</updated>
+  <updated>2026-06-02T07:14:32+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1ttv40f</id>
-    <title>So qwen3.7-4b when?</title>
-    <updated>2026-06-01T15:08:46+00:00</updated>
-    <author>
-      <name>/u/ab2377</name>
-      <uri>https://old.reddit.com/user/ab2377</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;when!!??&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ab2377"&gt; /u/ab2377 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ttv40f/so_qwen374b_when/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ttv40f/so_qwen374b_when/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ttv40f/so_qwen374b_when/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-01T15:08:46+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tu8io5</id>
-    <title>I spent months inside verl (an RL post-training framework), forked it, then stopped. Wrote up the internals, the tooling a fork costs, and a nasty NCCL bug.</title>
-    <updated>2026-06-01T22:46:07+00:00</updated>
-    <author>
-      <name>/u/ReinforcedKnowledge</name>
-      <uri>https://old.reddit.com/user/ReinforcedKnowledge</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wasn't sure whether to post this here or not but a friend of mine said that a lot of researchers lurk into this subreddit and it might help them, and I think it might also help anyone trying to tinker with stuff at home, I don't know how much people do post-training here but I do see distills getting posted here and fine-tunings and datasets and benchmarks etc., so I think it might be interesting to you.&lt;/p&gt; &lt;p&gt;For context, I work on post-training for agentic and tool-use capabilities, and I spent a few months a while ago almost literally living inside verl, ByteDance's RL post-training framework. I read most of the source and absorbed almost all of its knowledge and as I was working with it, I started wanting a &amp;quot;better&amp;quot; version, something with better dev experience for me, so I forked it (non-public, I abandoned it) to make it better (in my view) and while I shipped a lot fixes, and built tooling around it, at one point I had to stop, and it left a hole in my chest and I was finally wrote the whole thing up. As an au-revoir to it but also to get heir from it, all the knowledge and skill that I've learned from it.&lt;/p&gt; &lt;p&gt;It's a close read of the parts that actually run an RLHF loop, plus some of the engineering a fork drags in, nothing major though, and one debugging story I'm still a little proud of.&lt;/p&gt; &lt;p&gt;A quick tour of what the blog post is about:&lt;/p&gt; &lt;p&gt;- The orchestration layer's internals: everything from the data structure (DataProto) every stage (rollout, reward, advantage, update) passes, and the API gotchas its names don't warn you about. There's also a half-finished migration to a plain TensorDict underneath it.&lt;/p&gt; &lt;p&gt;- The single-controller pattern: one driver process holds the schedule and fans work out to GPU workers through a &amp;quot;magic attribute&amp;quot; dispatch system. That one is nasty, it took me so much time to wrap my head around it, but now that I do, it just feels so natural and helps me work on my own little package for orchestration layer in outmost confidence and ease.&lt;/p&gt; &lt;p&gt;- Resource pools and colocation and how the actor, critic, rollout, and reference roles get fused into a single Ray actor per GPU.&lt;/p&gt; &lt;p&gt;Then I talk a little bit about the tooling a fork costs, because it's still an issue with verl, and I don't think they can fix it or at least, it'll be such a hassle for them to fix it since they have to support so many different architectures and whatnot. But mainly the issues are packaging that leaks: torch isn't in the core deps, one version constraint is copy-pasted three times, requirements.txt and &lt;a href="http://setup.py"&gt;setup.py&lt;/a&gt; disagree about what's required, and an unmaintained package is still imported on a live code path with its tests skipped. And, tests that are not standardized, I put so much wasted effort into making the test suite squeaky clean and even built a GPU-aware test scheduler to bin-pack tests onto whatever cards are free, instead of letting some GPUs idle.&lt;/p&gt; &lt;p&gt;And I added a small bonus cause I saw that bug happen to a colleague, it was an NCCL issu. A multi-GPU test hung with no error, no timeout, no crash. The CPU barrier passed but the first NCCL collective hung. It came down to NCCL choosing a bonded network interface for its bootstrap socket whose IP didn't route back to itself, so rank 0 was listening on an address no peer could reach. The fix is one env var (`NCCL_SOCKET_IFNAME=lo` on a single node). Getting there meant pulling apart the TCPStore, Gloo, and NCCL layers and reading NCCL's own debug output.&lt;/p&gt; &lt;p&gt;But yeah as you can expect I stopped because every refactor (of the orchestration layer, if you read the blog you'll understand there is so many indirection and magic that it's so hard to wrap your head around and it's not a good base to develop on imho) I cared about had to keep pace with a framework shipping changes almost daily, and the cost of staying in sync outgrew the work itself. I'm building my own little hobby orchestration layer now.&lt;/p&gt; &lt;p&gt;Obviously this kind of knowledge can get deprecated but I think the orchestration part is interesting to know and understand just as fundamentals in general and no matter the implementation I think the abstractions will be more or less the same, unless you change the paradigm (single controller to SPMD for example), I think. And I think if you're interested in contributing to verl you'll get nice ideas from the blog post, though I'm not sure they'll accept contributions to those areas.&lt;/p&gt; &lt;p&gt;Anyways, sorry about the yapping haha here is the full writeup: &lt;a href="https://reinforcedknowledge.com/posts/verl-retrospective/"&gt;https://reinforcedknowledge.com/posts/verl-retrospective/&lt;/a&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ReinforcedKnowledge"&gt; /u/ReinforcedKnowledge &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu8io5/i_spent_months_inside_verl_an_rl_posttraining/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu8io5/i_spent_months_inside_verl_an_rl_posttraining/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tu8io5/i_spent_months_inside_verl_an_rl_posttraining/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-01T22:46:07+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ttkz1c</id>
-    <title>next MiniMax will be released in ~10 Days</title>
-    <updated>2026-06-01T07:35:52+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ttkz1c/next_minimax_will_be_released_in_10_days/"&gt; &lt;img alt="next MiniMax will be released in ~10 Days" src="https://preview.redd.it/ri12y6oxjm4h1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=73eff9a638a79baa07b55a75b03a87cda4c93b6d" title="next MiniMax will be released in ~10 Days" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://x.com/MiniMax_AI/status/2061266317815296322"&gt;https://x.com/MiniMax_AI/status/2061266317815296322&lt;/a&gt;&lt;/p&gt; &lt;p&gt;but will be probably too big for my setup&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/ri12y6oxjm4h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ttkz1c/next_minimax_will_be_released_in_10_days/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ttkz1c/next_minimax_will_be_released_in_10_days/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-01T07:35:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tuf3zh</id>
-    <title>Llama.ccp</title>
-    <updated>2026-06-02T03:33:44+00:00</updated>
-    <author>
-      <name>/u/Pancake502</name>
-      <uri>https://old.reddit.com/user/Pancake502</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Someone should create llama.ccp (not .cpp) that support LLMs on Chinese-native hardware (like Huawei’s Ascend 950PR), they are advancing fast in the recent months.&lt;/p&gt; &lt;p&gt;Just thought the name would be funny.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Pancake502"&gt; /u/Pancake502 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-02T03:33:44+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ttls1y</id>
     <title>Just found a 1-click RCE in pewdiepie's Odysseus Chat</title>
@@ -84,6 +32,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tu4w64/qwen_36_27b_kick_balls/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-01T20:33:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tuf3zh</id>
+    <title>Llama.ccp</title>
+    <updated>2026-06-02T03:33:44+00:00</updated>
+    <author>
+      <name>/u/Pancake502</name>
+      <uri>https://old.reddit.com/user/Pancake502</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Someone should create llama.ccp (not .cpp) that support LLMs on Chinese-native hardware (like Huawei’s Ascend 950PR), they are advancing fast in the recent months.&lt;/p&gt; &lt;p&gt;Just thought the name would be funny.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Pancake502"&gt; /u/Pancake502 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuf3zh/llamaccp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T03:33:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1tuf5dh</id>
@@ -112,6 +73,19 @@
     <published>2026-06-01T20:08:15+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tuilwv</id>
+    <title>What's the status of non-CUDA inference?</title>
+    <updated>2026-06-02T06:30:56+00:00</updated>
+    <author>
+      <name>/u/IngwiePhoenix</name>
+      <uri>https://old.reddit.com/user/IngwiePhoenix</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I got a reminder e-Mail from eBay about a MI50 I had put on my watch list after quite a while. Aside from needing to jerryrig a blower into the back and bootstrapping ROCm - how is it?&lt;/p&gt; &lt;p&gt;In fact, what's inference for LLMs like for non-CUDA? I know that image-gen is veeeeery hit or miss (although ComfyUI tries their very best) and TTS is, for all I know, CUDA bound right now. STT - like whisper.cpp - runs well enough on CPUs so that's a non-issue imo.&lt;/p&gt; &lt;p&gt;Just curious; trying to spec a build out of curiosity for my homelab. All my previous ones would've blown way past 4k€ - so I keep looking and waiting, trying to hit 2-3k at most. I mostly just want 2-3 parallel inferences on a decent (~30B) model - doubtful I'll ever get good enough hardware for parallel 100B inference. xD&lt;/p&gt; &lt;p&gt;So yeah, what's the current situation in non-CUDA-land? Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IngwiePhoenix"&gt; /u/IngwiePhoenix &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuilwv/whats_the_status_of_noncuda_inference/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuilwv/whats_the_status_of_noncuda_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuilwv/whats_the_status_of_noncuda_inference/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T06:30:56+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ttt47t</id>
     <title>Mellum2 Goes Open Source: A Fast Model for AI Workflows | The JetBrains AI Blog</title>
     <updated>2026-06-01T14:00:13+00:00</updated>
@@ -138,19 +112,6 @@
     <published>2026-06-01T04:34:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tu625w</id>
-    <title>Stepfun 3.7 Flash: Sonic-like platformer</title>
-    <updated>2026-06-01T21:15:25+00:00</updated>
-    <author>
-      <name>/u/-dysangel-</name>
-      <uri>https://old.reddit.com/user/-dysangel-</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"&gt; &lt;img alt="Stepfun 3.7 Flash: Sonic-like platformer" src="https://preview.redd.it/e9p1d7aqkq4h1.gif?width=640&amp;amp;crop=smart&amp;amp;s=aaeac2703b284fdc7dff3f57c1c49cb2d53e1ba2" title="Stepfun 3.7 Flash: Sonic-like platformer" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;System Prompt: &lt;code&gt;You are an expert software developer.&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Prompt: &lt;code&gt;Task: make a Sonic The Hedgehog-like platform game&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Scaffold: none - just a single message in openwebui&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/stepfun-ai/Step-3.7-Flash-GGUF"&gt;Stepfun 3.7 Flash official Q4_K_S&lt;/a&gt;&lt;/p&gt; &lt;p&gt;This was the first try don't think I've tried this prompt on other models before. Pretty impressed with the control feel and sense of speed.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/-dysangel-"&gt; /u/-dysangel- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/e9p1d7aqkq4h1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-01T21:15:25+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ttdiq0</id>
     <title>MiniMax M3 - Coding &amp; Agentic Frontier, 1M Context, Multimodal</title>
     <updated>2026-06-01T01:23:45+00:00</updated>
@@ -164,6 +125,19 @@
     <published>2026-06-01T01:23:45+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tu625w</id>
+    <title>Stepfun 3.7 Flash: Sonic-like platformer</title>
+    <updated>2026-06-01T21:15:25+00:00</updated>
+    <author>
+      <name>/u/-dysangel-</name>
+      <uri>https://old.reddit.com/user/-dysangel-</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"&gt; &lt;img alt="Stepfun 3.7 Flash: Sonic-like platformer" src="https://preview.redd.it/e9p1d7aqkq4h1.gif?width=640&amp;amp;crop=smart&amp;amp;s=aaeac2703b284fdc7dff3f57c1c49cb2d53e1ba2" title="Stepfun 3.7 Flash: Sonic-like platformer" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;System Prompt: &lt;code&gt;You are an expert software developer.&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Prompt: &lt;code&gt;Task: make a Sonic The Hedgehog-like platform game&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Scaffold: none - just a single message in openwebui&lt;/p&gt; &lt;p&gt;Model: &lt;a href="https://huggingface.co/stepfun-ai/Step-3.7-Flash-GGUF"&gt;Stepfun 3.7 Flash official Q4_K_S&lt;/a&gt;&lt;/p&gt; &lt;p&gt;This was the first try don't think I've tried this prompt on other models before. Pretty impressed with the control feel and sense of speed.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/-dysangel-"&gt; /u/-dysangel- &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/e9p1d7aqkq4h1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tu625w/stepfun_37_flash_soniclike_platformer/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-01T21:15:25+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ttvpmt</id>
     <title>llama: limit max outputs of `llama_context` by am17an · Pull Request #23861 · ggml-org/llama.cpp</title>
     <updated>2026-06-01T15:29:02+00:00</updated>
@@ -175,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ttvpmt/llama_limit_max_outputs_of_llama_context_by/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-01T15:29:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tui1sl</id>
+    <title>nvidia-LocateAnything-3B detects sushi as sweet in the video demo</title>
+    <updated>2026-06-02T06:00:54+00:00</updated>
+    <author>
+      <name>/u/chocofoxy</name>
+      <uri>https://old.reddit.com/user/chocofoxy</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tui1sl/nvidialocateanything3b_detects_sushi_as_sweet_in/"&gt; &lt;img alt="nvidia-LocateAnything-3B detects sushi as sweet in the video demo" src="https://external-preview.redd.it/Bz-5XYJtXDMnIq98izhgByuwGznfHW_TL5uf28MnNYI.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=b4cef6daba63554051e14370083bb6d4b38d9b09" title="nvidia-LocateAnything-3B detects sushi as sweet in the video demo" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/xc0l68bj7t4h1.png?width=616&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=48a8b14bc4ae95700cd4efa76772f4e71fb2d41a"&gt;https://preview.redd.it/xc0l68bj7t4h1.png?width=616&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=48a8b14bc4ae95700cd4efa76772f4e71fb2d41a&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/nvidia/LocateAnything-3B"&gt;https://huggingface.co/nvidia/LocateAnything-3B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;funny how they left this in the demo atleast it's honest &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/chocofoxy"&gt; /u/chocofoxy &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tui1sl/nvidialocateanything3b_detects_sushi_as_sweet_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tui1sl/nvidialocateanything3b_detects_sushi_as_sweet_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tui1sl/nvidialocateanything3b_detects_sushi_as_sweet_in/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T06:00:54+00:00</published>
   </entry>
   <entry>
     <id>t3_1tu2kbq</id>
@@ -201,32 +188,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ttxuc0/genuinely_what_do_we_do_about_the_bot_comments_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-01T16:39:59+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tuh5ko</id>
-    <title>Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026</title>
-    <updated>2026-06-02T05:13:42+00:00</updated>
-    <author>
-      <name>/u/9r4n4y</name>
-      <uri>https://old.reddit.com/user/9r4n4y</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"&gt; &lt;img alt="Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026" src="https://external-preview.redd.it/MHY3Y2w1aTF6czRoMcVMPutfbLyWwsixWAcfipvimLxV1hNcAEODokKslfhq.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=127e70a0cb5f85f80bd2f7c48e47b6d6119bb3ca" title="Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Moss tts 1.5 8b is better than fish audio s2 pro and qwen 3 tts voice clone tts.&lt;/p&gt; &lt;p&gt;You can easily get more better quality if you set up the duration of the voice in output you want and some temperature and other changes. This was just used on default setting. It can be improved more. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/9r4n4y"&gt; /u/9r4n4y &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ocul75i1zs4h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-02T05:13:42+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tuhea4</id>
-    <title>NVIDIA releases Cosmos 3 Omnimodal world modelson HF</title>
-    <updated>2026-06-02T05:26:14+00:00</updated>
-    <author>
-      <name>/u/RobotRobotWhatDoUSee</name>
-      <uri>https://old.reddit.com/user/RobotRobotWhatDoUSee</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Cosmos3-Super-Text2Image"&gt;https://huggingface.co/nvidia/Cosmos3-Super-Text2Image&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Nano: 16B&lt;/p&gt; &lt;p&gt;Super: 64B&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Cosmos3 is a collection of Omnimodal world models capable of generating dynamic, high-quality video, image, audio, and action commands from combinations of text, image, video, and action trajectory inputs. It serves as a foundational building block for a broad range of Physical AI applications and research spanning world understanding, world generation, simulation, and embodied policy learning.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Haven't seen much here yet. &lt;/p&gt; &lt;p&gt;Some twitter discussion: &lt;a href="https://x.com/victormustar/status/2061354267546427595"&gt;https://x.com/victormustar/status/2061354267546427595&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RobotRobotWhatDoUSee"&gt; /u/RobotRobotWhatDoUSee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-02T05:26:14+00:00</published>
   </entry>
   <entry>
     <id>t3_1tu9vgv</id>
@@ -268,6 +229,19 @@
     <published>2026-06-01T19:26:10+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tuhea4</id>
+    <title>NVIDIA releases Cosmos 3 Omnimodal world modelson HF</title>
+    <updated>2026-06-02T05:26:14+00:00</updated>
+    <author>
+      <name>/u/RobotRobotWhatDoUSee</name>
+      <uri>https://old.reddit.com/user/RobotRobotWhatDoUSee</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/nvidia/Cosmos3-Super-Text2Image"&gt;https://huggingface.co/nvidia/Cosmos3-Super-Text2Image&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Nano: 16B&lt;/p&gt; &lt;p&gt;Super: 64B&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Cosmos3 is a collection of Omnimodal world models capable of generating dynamic, high-quality video, image, audio, and action commands from combinations of text, image, video, and action trajectory inputs. It serves as a foundational building block for a broad range of Physical AI applications and research spanning world understanding, world generation, simulation, and embodied policy learning.&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Haven't seen much here yet. &lt;/p&gt; &lt;p&gt;Some twitter discussion: &lt;a href="https://x.com/victormustar/status/2061354267546427595"&gt;https://x.com/victormustar/status/2061354267546427595&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/RobotRobotWhatDoUSee"&gt; /u/RobotRobotWhatDoUSee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuhea4/nvidia_releases_cosmos_3_omnimodal_world_modelson/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T05:26:14+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ttu64m</id>
     <title>i dedicate this meme to you r/LocalLLaMA</title>
     <updated>2026-06-01T14:36:12+00:00</updated>
@@ -279,6 +253,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ttu64m/i_dedicate_this_meme_to_you_rlocalllama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-01T14:36:12+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tuik6o</id>
+    <title>Intel Arc Pro B70 llama.cpp benchmarks posted</title>
+    <updated>2026-06-02T06:28:22+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuik6o/intel_arc_pro_b70_llamacpp_benchmarks_posted/"&gt; &lt;img alt="Intel Arc Pro B70 llama.cpp benchmarks posted" src="https://preview.redd.it/gs5nlgtoct4h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=232e8b87de93a957a1da449246e192e71467b3f3" title="Intel Arc Pro B70 llama.cpp benchmarks posted" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.reddit.com/r/LocalLLM/comments/1tuf6l1/intel_arc_pro_b70_llamacpp_sycl_63_ts_on_qwen/"&gt;https://www.reddit.com/r/LocalLLM/comments/1tuf6l1/intel_arc_pro_b70_llamacpp_sycl_63_ts_on_qwen/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/gs5nlgtoct4h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuik6o/intel_arc_pro_b70_llamacpp_benchmarks_posted/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuik6o/intel_arc_pro_b70_llamacpp_benchmarks_posted/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T06:28:22+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tuh5ko</id>
+    <title>Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026</title>
+    <updated>2026-06-02T05:13:42+00:00</updated>
+    <author>
+      <name>/u/9r4n4y</name>
+      <uri>https://old.reddit.com/user/9r4n4y</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"&gt; &lt;img alt="Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026" src="https://external-preview.redd.it/MHY3Y2w1aTF6czRoMcVMPutfbLyWwsixWAcfipvimLxV1hNcAEODokKslfhq.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=127e70a0cb5f85f80bd2f7c48e47b6d6119bb3ca" title="Moss tts 1.5 8b Examples. It is the currently best voice cloning model for English as of June 2026" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Moss tts 1.5 8b is better than fish audio s2 pro and qwen 3 tts voice clone tts.&lt;/p&gt; &lt;p&gt;You can easily get more better quality if you set up the duration of the voice in output you want and some temperature and other changes. This was just used on default setting. It can be improved more. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/9r4n4y"&gt; /u/9r4n4y &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/ocul75i1zs4h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tuh5ko/moss_tts_15_8b_examples_it_is_the_currently_best/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-02T05:13:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1ttn15z</id>
