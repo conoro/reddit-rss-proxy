@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-06-04T14:21:57+00:00</updated>
+  <updated>2026-06-04T15:41:24+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1tvfdeq</id>
-    <title>Qwen3.6-35B-A3B on 2× GTX 1080 Ti with Ollama: ~20 tok/s + 3 gotchas (driver 570+, cuda_v12 for Pascal, quant fit on 22GB)</title>
-    <updated>2026-06-03T05:03:13+00:00</updated>
-    <author>
-      <name>/u/Front-University4363</name>
-      <uri>https://old.reddit.com/user/Front-University4363</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ran &lt;strong&gt;Qwen3.6-35B-A3B&lt;/strong&gt; (35B total / ~3B active MoE) on &lt;strong&gt;2× GTX 1080 Ti&lt;/strong&gt; (22 GB combined) via Ollama 0.30.2. Sharing the real numbers and the 3 Ollama-specific things that tripped me up — measured with &lt;code&gt;/api/generate&lt;/code&gt; (&lt;code&gt;eval_count / eval_duration&lt;/code&gt;), not estimated.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Speed (IQ4_XS, num_predict=256):&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Config&lt;/th&gt; &lt;th&gt;Generation&lt;/th&gt; &lt;th&gt;Prefill&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;1× 1080 Ti&lt;/td&gt; &lt;td&gt;~16.8 tok/s&lt;/td&gt; &lt;td&gt;~50 tok/s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;2× 1080 Ti&lt;/td&gt; &lt;td&gt;~20.3 tok/s&lt;/td&gt; &lt;td&gt;~50 tok/s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;VRAM at dual: ~4 GB on GPU0 + ~9.3 GB on GPU1 (~13 GB resident) + &lt;strong&gt;~18 GB of expert weights mmap'd from CPU RAM&lt;/strong&gt;. That CPU-mmap is why a 35B &amp;quot;fits&amp;quot; 22 GB — and why the &lt;strong&gt;second GPU only adds ~20%, not 2×&lt;/strong&gt; (the experts stay CPU-side in both configs; the 2nd card just keeps more of the model in VRAM).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The 3 Ollama gotchas:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Driver ≥ 570 or it silently runs on CPU.&lt;/strong&gt; Current Ollama bundles CUDA 13. On my old 560 driver it logged &lt;code&gt;total_vram=0&lt;/code&gt; and ran CPU-only with no error. Updating the NVIDIA driver to 581 fixed it. (Check &lt;code&gt;ollama serve&lt;/code&gt; logs — they tell you.)&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Pascal is served by cuda_v12, not cuda_v13.&lt;/strong&gt; Ollama's cuda_v13 build skips compute 6.1 (&amp;quot;not in compiled architectures&amp;quot;) and &lt;strong&gt;auto-falls back to cuda_v12&lt;/strong&gt; for the 1080 Ti. So it works — just via the older bundled runtime.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The default tag doesn't fit 22 GB.&lt;/strong&gt; &lt;code&gt;ollama pull qwen3.6:35b-a3b&lt;/code&gt; is &lt;strong&gt;23.9 GB → spills to CPU&lt;/strong&gt;. Pull a smaller quant: &lt;strong&gt;IQ4_XS (~17.7 GB)&lt;/strong&gt; keeps it (mostly) on the GPUs; Q4_K_S (~21 GB) is already too tight with KV cache.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Reproduce:&lt;/strong&gt; ``` ollama pull hf.co/bartowski/Qwen_Qwen3.6-35B-A3B-GGUF:IQ4_XS ollama run hf.co/bartowski/Qwen_Qwen3.6-35B-A3B-GGUF:IQ4_XS --verbose&lt;/p&gt; &lt;h1&gt;(--verbose prints eval rate; or hit /api/generate and compute eval_count / eval_duration)&lt;/h1&gt; &lt;p&gt;``&lt;code&gt; Single-GPU for comparison: start with&lt;/code&gt;CUDA_VISIBLE_DEVICES=0 ollama serve`.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Caveats:&lt;/strong&gt; one quant / one model / one box; IQ4_XS is ~4-bit; prefill measured on a short prompt; MoE-specific (a dense 35B wouldn't be usable on these cards).&lt;/p&gt; &lt;p&gt;Anyone gotten better dual-GPU MoE scaling in Ollama by controlling expert/tensor placement? That's my next test.&lt;/p&gt; &lt;p&gt;Full writeup + VRAM breakdown: &lt;a href="https://bric.pe.kr/blog/qwen3-6-35b-a3b-2x-1080-ti-benchmark-2026"&gt;https://bric.pe.kr/blog/qwen3-6-35b-a3b-2x-1080-ti-benchmark-2026&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Front-University4363"&gt; /u/Front-University4363 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvfdeq/qwen3635ba3b_on_2_gtx_1080_ti_with_ollama_20_toks/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvfdeq/qwen3635ba3b_on_2_gtx_1080_ti_with_ollama_20_toks/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1tvfdeq/qwen3635ba3b_on_2_gtx_1080_ti_with_ollama_20_toks/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-03T05:03:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tvm9zk</id>
-    <title>I built a local-first routing proxy for Ollama models — looking for feedback</title>
-    <updated>2026-06-03T11:17:55+00:00</updated>
-    <author>
-      <name>/u/AccidentShoddy8471</name>
-      <uri>https://old.reddit.com/user/AccidentShoddy8471</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built a small project called &lt;a href="https://github.com/nishiithtrivedi-a11y/TriageLLM"&gt;TriageLLM.&lt;/a&gt; &lt;/p&gt; &lt;p&gt;It is a local-first OpenAI-compatible proxy for Ollama models. The idea is simple: if you have multiple local models installed, you can send requests to one local endpoint and let TriageLLM route them across configured tiers. &lt;/p&gt; &lt;p&gt;Current features:&lt;br /&gt; - local-auto endpoint&lt;br /&gt; - tier routing across local Ollama models&lt;br /&gt; - local decision ledger&lt;br /&gt; - health/stats checks&lt;br /&gt; - cloud fallback disabled by default&lt;br /&gt; - optional capability advisory signals&lt;br /&gt; - demo showing internet off while local Ollama + TriageLLM still work &lt;/p&gt; &lt;p&gt;Limitations:&lt;br /&gt; - experimental&lt;br /&gt; - setup is still developer-oriented&lt;br /&gt; - capability advisory does not override routing yet&lt;br /&gt; - client compatibility is still being validated &lt;/p&gt; &lt;p&gt;I’m looking for honest feedback from Ollama/local-LLM users: Does it solve a real problem? Thanks,&lt;/p&gt; &lt;p&gt;Repo:&lt;br /&gt; &lt;a href="https://github.com/nishiithtrivedi-a11y/TriageLLM"&gt;https://github.com/nishiithtrivedi-a11y/TriageLLM&lt;/a&gt; &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AccidentShoddy8471"&gt; /u/AccidentShoddy8471 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvm9zk/i_built_a_localfirst_routing_proxy_for_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvm9zk/i_built_a_localfirst_routing_proxy_for_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1tvm9zk/i_built_a_localfirst_routing_proxy_for_ollama/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-03T11:17:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tvst00</id>
-    <title>Please update qwen 3.5 with 3.6 (or 3.7 if they will open source it) in the cloud</title>
-    <updated>2026-06-03T15:28:47+00:00</updated>
-    <author>
-      <name>/u/National-Low-5637</name>
-      <uri>https://old.reddit.com/user/National-Low-5637</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;35B and 27B shall be quite economical to run and would provide a lot of value as cheap multimodal &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/National-Low-5637"&gt; /u/National-Low-5637 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvst00/please_update_qwen_35_with_36_or_37_if_they_will/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1tvst00/please_update_qwen_35_with_36_or_37_if_they_will/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1tvst00/please_update_qwen_35_with_36_or_37_if_they_will/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-03T15:28:47+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tvsv7q</id>
     <title>I ran a prompt-injection test suite against qwen2.5 (7B/14B) and mistral under a bare agent scaffold. All scored 0% resistance.</title>
@@ -320,6 +281,32 @@
     <published>2026-06-04T07:59:06+00:00</published>
   </entry>
   <entry>
+    <id>t3_1twpl4v</id>
+    <title>nemotron 3 ultra in one request in chat to make a web site used 100% sessionly and 50% weekly</title>
+    <updated>2026-06-04T14:38:28+00:00</updated>
+    <author>
+      <name>/u/Popular-Tourist-1474</name>
+      <uri>https://old.reddit.com/user/Popular-Tourist-1474</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1twpl4v/nemotron_3_ultra_in_one_request_in_chat_to_make_a/"&gt; &lt;img alt="nemotron 3 ultra in one request in chat to make a web site used 100% sessionly and 50% weekly" src="https://preview.redd.it/2fo8mvs42a5h1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=1118b59be66da26cf87628d6c864ab44f96073f2" title="nemotron 3 ultra in one request in chat to make a web site used 100% sessionly and 50% weekly" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;how is that possible the green is from nemotron 3 ultra &lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/2fo8mvs42a5h1.png?width=1066&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=94711ba421cfb499fe11f5232340839be9d7e7c3"&gt;https://preview.redd.it/2fo8mvs42a5h1.png?width=1066&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=94711ba421cfb499fe11f5232340839be9d7e7c3&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Popular-Tourist-1474"&gt; /u/Popular-Tourist-1474 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1twpl4v/nemotron_3_ultra_in_one_request_in_chat_to_make_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1twpl4v/nemotron_3_ultra_in_one_request_in_chat_to_make_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1twpl4v/nemotron_3_ultra_in_one_request_in_chat_to_make_a/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-04T14:38:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1twq9p3</id>
+    <title>What</title>
+    <updated>2026-06-04T15:02:44+00:00</updated>
+    <author>
+      <name>/u/Flaky-Maybe-7556</name>
+      <uri>https://old.reddit.com/user/Flaky-Maybe-7556</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1twq9p3/what/"&gt; &lt;img alt="What" src="https://preview.redd.it/4jr5b6k36a5h1.png?width=140&amp;amp;height=34&amp;amp;auto=webp&amp;amp;s=d6d665f1329fd7af159a95b408f579ec3b951c1f" title="What" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Flaky-Maybe-7556"&gt; /u/Flaky-Maybe-7556 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1twq9p3"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1twq9p3/what/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1twq9p3/what/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-04T15:02:44+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1twknra</id>
     <title>I dont like this cloud usage</title>
     <updated>2026-06-04T11:19:03+00:00</updated>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/ollama/comments/1twknra/i_dont_like_this_cloud_usage/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-04T11:19:03+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1twpep6</id>
+    <title>Claude Code Opus 4.8 vs. Local Qwen3.6 27B One-Shot Coding Benchmark</title>
+    <updated>2026-06-04T14:32:03+00:00</updated>
+    <author>
+      <name>/u/codehamr</name>
+      <uri>https://old.reddit.com/user/codehamr</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://reddit.com/link/1twpep6/video/jc37584zz95h1/player"&gt;https://reddit.com/link/1twpep6/video/jc37584zz95h1/player&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Full disclosure I built codehamr, the local agent on the right, as a passion project. I love local LLMs and wanted to see how close I could get to Claude Code using 27B models and strict prompt discipline.&lt;/p&gt; &lt;p&gt;I ran an identical prompt specifically requesting a retro pixel art space game. This is a great way to push a coding agent because it is complex enough to test one-shot capability while remaining visually obvious if it hit the mark. I used no retries or manual edits to show the raw first output.&lt;/p&gt; &lt;p&gt;Opus is clearly ahead on general polish, but the 27B result is a functional game built entirely on hardware under my desk. The gap is surprisingly small.&lt;/p&gt; &lt;p&gt;You can check out a polished version at &lt;a href="https://codehamr.com/example"&gt;codehamr.com/example&lt;/a&gt;, but the video shows the raw result. It is clear that for 27B models, rigorous prompt discipline is the deciding factor in making them perform at this level.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/codehamr"&gt; /u/codehamr &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1twpep6/claude_code_opus_48_vs_local_qwen36_27b_oneshot/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1twpep6/claude_code_opus_48_vs_local_qwen36_27b_oneshot/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1twpep6/claude_code_opus_48_vs_local_qwen36_27b_oneshot/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-04T14:32:03+00:00</published>
   </entry>
 </feed>
