@@ -2,37 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-06-05T03:48:04+00:00</updated>
+  <updated>2026-06-05T05:38:52+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1tvqxcd</id>
-    <title>Mattermost with OpenClaw</title>
-    <updated>2026-06-03T14:24:51+00:00</updated>
-    <author>
-      <name>/u/Dazzling-Physics-371</name>
-      <uri>https://old.reddit.com/user/Dazzling-Physics-371</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Did anyone here really try and get Mattermost working smoothly for OpenClaw conversations??&lt;/p&gt; &lt;p&gt;I am trying something and is kinda stuck, some help from the experienced fellas in a similar situation would be appreciated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dazzling-Physics-371"&gt; /u/Dazzling-Physics-371 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tvqxcd/mattermost_with_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tvqxcd/mattermost_with_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tvqxcd/mattermost_with_openclaw/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-03T14:24:51+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tvjxkv</id>
-    <title>if you are using ollama cloud models in openclaw.json with maxTokens above 16k, your config is lying to you</title>
-    <updated>2026-06-03T09:16:41+00:00</updated>
-    <author>
-      <name>/u/mayhem_isreal</name>
-      <uri>https://old.reddit.com/user/mayhem_isreal</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;PSA for anyone else seeing &lt;code&gt;unexpected EOF&lt;/code&gt; from agents on production turns.&lt;/p&gt; &lt;p&gt;quick context: if your openclaw.json has any cloud model entry like&lt;/p&gt; &lt;p&gt;&lt;code&gt;{ &amp;quot;id&amp;quot;: &amp;quot;deepseek-v4-pro:cloud&amp;quot;, &amp;quot;maxTokens&amp;quot;: 500000 }&lt;/code&gt;&lt;/p&gt; &lt;p&gt;that maxTokens isn't real. ollama cloud caps output at 16,384 tokens server-side regardless of what you put in your config. so when an agent tries to emit something past that, the upstream kills the socket mid-stream and you see a transport error from ollama.com:443. openclaw treats that as a timeout-shaped failover so it'll try your fallback if you've got one configured. but if your fallback is also a :cloud model, same wall.&lt;/p&gt; &lt;p&gt;what helped:&lt;/p&gt; &lt;p&gt;first thing - just fix the maxTokens on your cloud entries so openclaw isn't asking for output budgets the service won't honor:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;id&amp;quot;: &amp;quot;deepseek-v4-pro:cloud&amp;quot;, &amp;quot;maxTokens&amp;quot;: 14000 } { &amp;quot;id&amp;quot;: &amp;quot;kimi-k2.6:cloud&amp;quot;, &amp;quot;maxTokens&amp;quot;: 14000 } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;14k not 16k - leaves a little headroom because the models sometimes get weird right at the absolute cap.&lt;/p&gt; &lt;p&gt;second - if you have agents producing big structured outputs (long json with lots of entries, multi-section content, that kind of thing) restructure them to emit one section per turn instead of batching everything. you stay under the cap and your retries are cleaner if something does die.&lt;/p&gt; &lt;p&gt;third, if you actually need bigger outputs, just route those specific agents to a direct provider instead of going through :cloud. per-agent &lt;code&gt;model&lt;/code&gt; override in &lt;code&gt;agents.list[]&lt;/code&gt; is the cleanest way. leave the small-output agents on ollama cloud and only point the heavy ones at deepseek direct or whatever. one-time setup:&lt;/p&gt; &lt;p&gt;&lt;code&gt;openclaw onboard --auth-choice deepseek-api-key&lt;/code&gt;&lt;/p&gt; &lt;p&gt;then in agents.list just override the ones that need it:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;list&amp;quot;: [ { &amp;quot;id&amp;quot;: &amp;quot;your-agent&amp;quot;, &amp;quot;model&amp;quot;: &amp;quot;deepseek/deepseek-v4-pro&amp;quot; } ] &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;tradeoff is you're now paying per-token on those calls instead of getting them under the ollama cloud flat fee. but it's scoped to the agents that need the headroom so usually not too bad.&lt;/p&gt; &lt;p&gt;for anyone newer to this - if your agents are failing partway through long outputs and you've checked the obvious stuff already, look at your provider's actual output cap before going down the openclaw-bug rabbit hole. the error message is useless and the config field doesn't tell you it's being overridden server side.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mayhem_isreal"&gt; /u/mayhem_isreal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tvjxkv/if_you_are_using_ollama_cloud_models_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tvjxkv/if_you_are_using_ollama_cloud_models_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tvjxkv/if_you_are_using_ollama_cloud_models_in/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-03T09:16:41+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tvnp4w</id>
     <title>I built ClawDocu, a tool to comment on docs and review with your Openclaw</title>
@@ -305,6 +279,32 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1tx8z2t/61_dreaming_and_memory_wiki/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-06-05T03:08:09+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1txai0d</id>
+    <title>Do you actually use openclaw to buy stuff</title>
+    <updated>2026-06-05T04:23:51+00:00</updated>
+    <author>
+      <name>/u/Outrageous-Bug3302</name>
+      <uri>https://old.reddit.com/user/Outrageous-Bug3302</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick Q: Lots of chatter on Shopify UCP + Coinbase founder brian armstrong launching these agentic protocols for commerce.&lt;/p&gt; &lt;p&gt;However, 90% of the consumer economy wont be using it, itll be openclaw hackers who are at the frontier. &lt;/p&gt; &lt;p&gt;So my question is: are you using openclaw for any type of transaction / consumer purchases.&lt;/p&gt; &lt;p&gt;This can range from groceries, flights, hotels, clothing, amazon purchases. Even if its not for purchase, are they getting it to a state of almost purchase? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Outrageous-Bug3302"&gt; /u/Outrageous-Bug3302 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1txai0d/do_you_actually_use_openclaw_to_buy_stuff/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1txai0d/do_you_actually_use_openclaw_to_buy_stuff/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1txai0d/do_you_actually_use_openclaw_to_buy_stuff/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-05T04:23:51+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1txak0b</id>
+    <title>Is openclaw managed setup worth it for smaller projects?</title>
+    <updated>2026-06-05T04:26:39+00:00</updated>
+    <author>
+      <name>/u/FailOrSnail</name>
+      <uri>https://old.reddit.com/user/FailOrSnail</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been building with openclaw to automate some tasks for a small project. The platform is good enough but setting it up has been difficult than I expected. Between server management, environment configuration and API keys, I’ve probably spent more time on setup than on actual automation.&lt;/p&gt; &lt;p&gt;For anyone building with openclaw on smaller projects, is the managed service worth switching to? Or does self hosting make more sense for smaller workflows? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/FailOrSnail"&gt; /u/FailOrSnail &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1txak0b/is_openclaw_managed_setup_worth_it_for_smaller/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1txak0b/is_openclaw_managed_setup_worth_it_for_smaller/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1txak0b/is_openclaw_managed_setup_worth_it_for_smaller/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-05T04:26:39+00:00</published>
   </entry>
   <entry>
     <id>t3_1trqbv6</id>
