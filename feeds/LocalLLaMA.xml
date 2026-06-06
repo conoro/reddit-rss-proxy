@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-06T15:44:47+00:00</updated>
+  <updated>2026-06-06T16:15:06+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -125,19 +125,6 @@
     <published>2026-06-05T15:02:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tyjc8z</id>
-    <title>Experimentation with Qwen 3.6 and Gemma 4 - Guidance needed</title>
-    <updated>2026-06-06T14:52:43+00:00</updated>
-    <author>
-      <name>/u/j0hnp0s</name>
-      <uri>https://old.reddit.com/user/j0hnp0s</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m a web developer doing mostly coding, but also project management, requirements analysis, testing, etc. I recently started experimenting with local LLMs, mostly because agentic stuff finally made them feel useful. Note: This text was fed to chartgpt to fix my messy repeating grammar &lt;/p&gt; &lt;p&gt;My initial impression was honestly pretty discouraging. Endless model option confusion, benchmarks that are hard to translate, huge VRAM requirements and hardware prices that are completely unreasonable.&lt;/p&gt; &lt;p&gt;Still, it feels like things have started shifting. MoE models, smarter quantization, speculative decoding, QAT releases, MTP, etc. The ecosystem finally feels like it’s targeting more reasonable setups instead of just brute-forcing huge models into gigantic VRAM.&lt;/p&gt; &lt;p&gt;Before committing to expensive hardware, I thought I'd test with what I had in hand. A small rig with i5-12400, 64GB DDR4 and 2x GTX 1050 Ti 4GB&lt;/p&gt; &lt;p&gt;Honestly, I expected it to be unusable. Surprisingly, it has been viable.&lt;/p&gt; &lt;p&gt;With Gemma-4 and Qwen 3.6 MoE models I’m getting roughly:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;~40 t/s prompt processing&lt;/li&gt; &lt;li&gt;~12-18 t/s token generation depending on model/config&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Prompt processing is probably the weakest point, especially with opencode passing its tools etc in large prompts. But generation speed already feels real-time enough for productivity if I keep things focused.&lt;/p&gt; &lt;p&gt;Current observations:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Speed was rather similar between MOE versions of Qwen 3.6 and Gemma 4&lt;/li&gt; &lt;li&gt;I don't care for large automated workflows&lt;/li&gt; &lt;li&gt;Most of the time I ask for specific simple tasks like review this file, write me test cases for this file, translate this file, review this, and so on. Context hovers at 16-32K most of the time. I don't expect the model to automatically do my work on huge projects.&lt;/li&gt; &lt;li&gt;Qwen MTP pushed it to ~15 t/s generation&lt;/li&gt; &lt;li&gt;Gemma feels better linguistically&lt;/li&gt; &lt;li&gt;The new Gemma QAT with some more optimization of options pushed me to ~18 t/s even before MTP&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Right now I’m testing:&lt;/p&gt; &lt;p&gt;unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL&lt;/p&gt; &lt;p&gt;on llama.cpp with:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;32k context&lt;/li&gt; &lt;li&gt;15 CPU threads&lt;/li&gt; &lt;li&gt;split across both 1050 Ti cards&lt;/li&gt; &lt;li&gt;q8 KV cache&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The hardest part has been balancing MoE experts between CPU/GPU memory while leaving enough VRAM for context and compute buffers. Simple -fit left gpu memory unbalanced and with big chunks empty. A single gpu is probably easier to optimize.&lt;/p&gt; &lt;p&gt;Current arguments with CUDA enabled:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-hf unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL -t 15 -fa on -b 256 -ub 128 --n-cpu-moe 18 --split-mode layer --tensor-split 3,1 -rea off --repeat-penalty 1.0 --parallel 1 --jinja -fit on --top-p 0.95 --top-k 64 --temp 1.0 --no-mmproj --no-mmap --mlock --ctx-size 32768 -ctk q8_0 -ctv q8_0 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I also tested Vulkan, but performance dropped to around ~13 t/s generation and I ran into some mmap/mlock weirdness.&lt;/p&gt; &lt;p&gt;I’d really appreciate input on:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;settings that might improve prompt processing speed&lt;/li&gt; &lt;li&gt;Any Agents.md tricks&lt;/li&gt; &lt;li&gt;whether I’m doing something obviously inefficient&lt;/li&gt; &lt;li&gt;whether upgrading to a bigger or smaller modern GPU is actually worth it for such use case&lt;/li&gt; &lt;li&gt;AMD vs NVIDIA specifically for llama.cpp with opencode in 2026&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Locally, pricing is weird:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The second-hand market is laughable&lt;/li&gt; &lt;li&gt;RTX 5060 Ti 16GB starts around 700€ and not directly available&lt;/li&gt; &lt;li&gt;Radeon 9060 XT 16GB is available and around 450€&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I don’t mind slightly lower performance, but I do mind fighting instabilities or incompatibilities.&lt;/p&gt; &lt;p&gt;Curious what people here would do in this situation.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/j0hnp0s"&gt; /u/j0hnp0s &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T14:52:43+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1txwbge</id>
     <title>dots.tts 2B🎙️ SOTA TTS from RedNote</title>
     <updated>2026-06-05T20:21:33+00:00</updated>
@@ -164,19 +151,6 @@
     <published>2026-06-06T03:35:38+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ty84rj</id>
-    <title>A quick Gemma4 31B comparison (Q4_k_M, QAT, heretic)</title>
-    <updated>2026-06-06T05:11:35+00:00</updated>
-    <author>
-      <name>/u/Some-Cauliflower4902</name>
-      <uri>https://old.reddit.com/user/Some-Cauliflower4902</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;No numbers. Not sure if anybody cares…&lt;/p&gt; &lt;p&gt;I’ve run the UD version of Q4_k_m for a month. I talk to this model nicely, because it’s a functional nervous wreck. And initially I thought that might be an alignment thing, so I also have the heretic version when I need a breather from this hyper vigilant over achiever llm. &lt;/p&gt; &lt;p&gt;Don’t get me wrong. It’s great ! Works well .. most of the time. It’s when the context gets long(in my case 20k!), chain of tools gets long , or it knows that it previous has made a mistake, it just falls apart.&lt;/p&gt; &lt;p&gt;Whereas the heretic version. It doesn’t give a dime if it makes a mistake yet still makes plenty.&lt;/p&gt; &lt;p&gt;Then I tried the QAT for a few hours. This one is a zen master. Handling 32k context with full reasoning is piece of cake. Does everything right. Doesn’t try too hard. &lt;/p&gt; &lt;p&gt;The “nervous “ Gemma is probably a quant thing. Trying to achieve full precision being a Q4 is hard I guess. For longer context and maintaining precision QAT is looking pretty good. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Some-Cauliflower4902"&gt; /u/Some-Cauliflower4902 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T05:11:35+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tyj86p</id>
     <title>StepFun 3.7 Flash MTP Bench Strix Halo</title>
     <updated>2026-06-06T14:48:01+00:00</updated>
@@ -190,6 +164,32 @@
     <published>2026-06-06T14:48:01+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tyjc8z</id>
+    <title>Experimentation with Qwen 3.6 and Gemma 4 - Guidance needed</title>
+    <updated>2026-06-06T14:52:43+00:00</updated>
+    <author>
+      <name>/u/j0hnp0s</name>
+      <uri>https://old.reddit.com/user/j0hnp0s</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m a web developer doing mostly coding, but also project management, requirements analysis, testing, etc. I recently started experimenting with local LLMs, mostly because agentic stuff finally made them feel useful. Note: This text was fed to chartgpt to fix my messy repeating grammar&lt;/p&gt; &lt;p&gt;My initial impression was honestly pretty discouraging. Endless model option confusion, benchmarks that are hard to translate, huge VRAM requirements and hardware prices that are completely unreasonable.&lt;/p&gt; &lt;p&gt;Still, it feels like things have started shifting. MoE models, smarter quantization, speculative decoding, QAT releases, MTP, etc. The ecosystem finally feels like it’s targeting more reasonable setups instead of just brute-forcing huge models into gigantic VRAM.&lt;/p&gt; &lt;p&gt;Before committing to expensive hardware, I thought I'd test with what I had in hand. A small rig with i5-12400, 64GB DDR4 and 2x GTX 1050 Ti 4GB&lt;/p&gt; &lt;p&gt;Honestly, I expected it to be unusable. Surprisingly, it has been viable.&lt;/p&gt; &lt;p&gt;With Gemma-4 and Qwen 3.6 MoE models I’m getting roughly:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;~40 t/s prompt processing&lt;/li&gt; &lt;li&gt;~12-18 t/s token generation depending on model/config&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Prompt processing is probably the weakest point, especially with opencode passing its tools etc in large prompts. But generation speed already feels real-time enough for productivity if I keep things focused.&lt;/p&gt; &lt;p&gt;Current observations:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Speed was rather similar between MOE versions of Qwen 3.6 and Gemma 4&lt;/li&gt; &lt;li&gt;I don't care for large automated workflows&lt;/li&gt; &lt;li&gt;Most of the time I ask for specific simple tasks like review this file, write me test cases for this file, translate this file, review this, and so on. Context hovers at 16-32K most of the time. I don't expect the model to automatically do my work on huge projects.&lt;/li&gt; &lt;li&gt;Qwen MTP pushed it to ~15 t/s generation&lt;/li&gt; &lt;li&gt;Gemma feels better linguistically&lt;/li&gt; &lt;li&gt;The new Gemma QAT with some more optimization of options pushed me to ~18 t/s even before MTP&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Right now I’m testing:&lt;/p&gt; &lt;p&gt;unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL&lt;/p&gt; &lt;p&gt;on llama.cpp with:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;32k context&lt;/li&gt; &lt;li&gt;6 CPU threads&lt;/li&gt; &lt;li&gt;split across both 1050 Ti cards&lt;/li&gt; &lt;li&gt;q8 KV cache&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The hardest part has been balancing MoE experts between CPU/GPU memory while leaving enough VRAM for context and compute buffers. Simple -fit left gpu memory unbalanced and with big chunks empty. A single gpu is probably easier to optimize.&lt;/p&gt; &lt;p&gt;Current arguments with CUDA enabled:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;-hf unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL -t 6 -fa on -b 256 -ub 128 --n-cpu-moe 18 --split-mode layer --tensor-split 3,1 -rea off --repeat-penalty 1.0 --parallel 1 --jinja -fit on --top-p 0.95 --top-k 64 --temp 1.0 --no-mmproj --no-mmap --mlock --ctx-size 32768 -ctk q8_0 -ctv q8_0 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I also tested Vulkan, but performance dropped to around ~13 t/s generation and I ran into some mmap/mlock weirdness.&lt;/p&gt; &lt;p&gt;I’d really appreciate input on:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;settings that might improve prompt processing speed&lt;/li&gt; &lt;li&gt;Any Agents.md tricks&lt;/li&gt; &lt;li&gt;whether I’m doing something obviously inefficient&lt;/li&gt; &lt;li&gt;whether upgrading to a bigger or smaller modern GPU is actually worth it for such use case&lt;/li&gt; &lt;li&gt;AMD vs NVIDIA specifically for llama.cpp with opencode in 2026&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Locally, pricing is weird:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;The second-hand market is laughable&lt;/li&gt; &lt;li&gt;RTX 5060 Ti 16GB starts around 700€ and not directly available&lt;/li&gt; &lt;li&gt;Radeon 9060 XT 16GB is available and around 450€&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I don’t mind slightly lower performance, but I do mind fighting instabilities or incompatibilities.&lt;/p&gt; &lt;p&gt;Curious what people here would do in this situation.&lt;/p&gt; &lt;p&gt;Edit:&lt;/p&gt; &lt;p&gt;Fixed CPU threads to 6 (15 came from the script I used with my ryzen 7 1700)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/j0hnp0s"&gt; /u/j0hnp0s &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjc8z/experimentation_with_qwen_36_and_gemma_4_guidance/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-06T14:52:43+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ty84rj</id>
+    <title>A quick Gemma4 31B comparison (Q4_k_M, QAT, heretic)</title>
+    <updated>2026-06-06T05:11:35+00:00</updated>
+    <author>
+      <name>/u/Some-Cauliflower4902</name>
+      <uri>https://old.reddit.com/user/Some-Cauliflower4902</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;No numbers. Not sure if anybody cares…&lt;/p&gt; &lt;p&gt;I’ve run the UD version of Q4_k_m for a month. I talk to this model nicely, because it’s a functional nervous wreck. And initially I thought that might be an alignment thing, so I also have the heretic version when I need a breather from this hyper vigilant over achiever llm. &lt;/p&gt; &lt;p&gt;Don’t get me wrong. It’s great ! Works well .. most of the time. It’s when the context gets long(in my case 20k!), chain of tools gets long , or it knows that it previous has made a mistake, it just falls apart.&lt;/p&gt; &lt;p&gt;Whereas the heretic version. It doesn’t give a dime if it makes a mistake yet still makes plenty.&lt;/p&gt; &lt;p&gt;Then I tried the QAT for a few hours. This one is a zen master. Handling 32k context with full reasoning is piece of cake. Does everything right. Doesn’t try too hard. &lt;/p&gt; &lt;p&gt;The “nervous “ Gemma is probably a quant thing. Trying to achieve full precision being a Q4 is hard I guess. For longer context and maintaining precision QAT is looking pretty good. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Some-Cauliflower4902"&gt; /u/Some-Cauliflower4902 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ty84rj/a_quick_gemma4_31b_comparison_q4_k_m_qat_heretic/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-06T05:11:35+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tyfnqi</id>
     <title>Has there been any recent new development on which quant is considered optimal?</title>
     <updated>2026-06-06T12:13:00+00:00</updated>
@@ -201,19 +201,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfnqi/has_there_been_any_recent_new_development_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-06T12:13:00+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tyfqmp</id>
-    <title>Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding</title>
-    <updated>2026-06-06T12:16:45+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"&gt; &lt;img alt="Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding" src="https://preview.redd.it/klo1qzrrln5h1.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=db482512512c5915722e735ab64fe4ccffa2b6b7" title="Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Up to 5.8x throughput speedup on Qwen3&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Paper : &lt;a href="https://arxiv.org/abs/2605.29707"&gt;https://arxiv.org/abs/2605.29707&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Code : &lt;a href="https://github.com/jianuo-huang/Domino"&gt;https://github.com/jianuo-huang/Domino&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Models : &lt;a href="https://huggingface.co/Huang2020"&gt;https://huggingface.co/Huang2020&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tyfqmp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T12:16:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1tyb6u7</id>
@@ -242,17 +229,17 @@
     <published>2026-06-06T12:38:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tyjkfh</id>
-    <title>MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better</title>
-    <updated>2026-06-06T15:01:41+00:00</updated>
+    <id>t3_1tyfqmp</id>
+    <title>Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding</title>
+    <updated>2026-06-06T12:16:45+00:00</updated>
     <author>
-      <name>/u/beneath_steel_sky</name>
-      <uri>https://old.reddit.com/user/beneath_steel_sky</uri>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"&gt; &lt;img alt="MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better" src="https://external-preview.redd.it/oUzoIRGbQXW5Y_4YulEMeJhhvwUtRchgn_eLwZrMFts.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83e8d4b148cd86d87e6f7731da2fbbffb26dde13" title="MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/beneath_steel_sky"&gt; /u/beneath_steel_sky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://kaitchup.substack.com/p/moq-ggufs-and-gsq-low-bit-ggufs-are"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"&gt; &lt;img alt="Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding" src="https://preview.redd.it/klo1qzrrln5h1.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=db482512512c5915722e735ab64fe4ccffa2b6b7" title="Domino: Decoupling Causal Modeling from Autoregressive Drafting in Speculative Decoding" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Up to 5.8x throughput speedup on Qwen3&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Paper : &lt;a href="https://arxiv.org/abs/2605.29707"&gt;https://arxiv.org/abs/2605.29707&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Code : &lt;a href="https://github.com/jianuo-huang/Domino"&gt;https://github.com/jianuo-huang/Domino&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Models : &lt;a href="https://huggingface.co/Huang2020"&gt;https://huggingface.co/Huang2020&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tyfqmp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyfqmp/domino_decoupling_causal_modeling_from/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T15:01:41+00:00</published>
+    <published>2026-06-06T12:16:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1txxgpq</id>
@@ -294,17 +281,17 @@
     <published>2026-06-05T16:11:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tya05j</id>
-    <title>AA comparison of the latest local models</title>
-    <updated>2026-06-06T06:53:46+00:00</updated>
+    <id>t3_1tyjkfh</id>
+    <title>MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better</title>
+    <updated>2026-06-06T15:01:41+00:00</updated>
     <author>
-      <name>/u/jacek2023</name>
-      <uri>https://old.reddit.com/user/jacek2023</uri>
+      <name>/u/beneath_steel_sky</name>
+      <uri>https://old.reddit.com/user/beneath_steel_sky</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"&gt; &lt;img alt="AA comparison of the latest local models" src="https://preview.redd.it/1r2tp1sg0m5h1.png?width=140&amp;amp;height=68&amp;amp;auto=webp&amp;amp;s=ca28e7d5f72bfd998ca3b123547dfbcaa12e09d9" title="AA comparison of the latest local models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I picked models I consider local (usable on 3×3090), so there are no 300B models, and you should probably skip 200B models too (but MiniMax and Step are pretty fast in Q3)&lt;/p&gt; &lt;p&gt;Gemma-4 12B is still missing&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tya05j"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"&gt; &lt;img alt="MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better" src="https://external-preview.redd.it/oUzoIRGbQXW5Y_4YulEMeJhhvwUtRchgn_eLwZrMFts.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=83e8d4b148cd86d87e6f7731da2fbbffb26dde13" title="MoQ GGUFs and GSQ: Low-Bit GGUFs Are About to Get Much Better" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/beneath_steel_sky"&gt; /u/beneath_steel_sky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://kaitchup.substack.com/p/moq-ggufs-and-gsq-low-bit-ggufs-are"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyjkfh/moq_ggufs_and_gsq_lowbit_ggufs_are_about_to_get/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T06:53:46+00:00</published>
+    <published>2026-06-06T15:01:41+00:00</published>
   </entry>
   <entry>
     <id>t3_1txufl9</id>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1txufl9/dont_act_like_yall_aint_thinking_it_im_just/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-05T19:11:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tya05j</id>
+    <title>AA comparison of the latest local models</title>
+    <updated>2026-06-06T06:53:46+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://old.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"&gt; &lt;img alt="AA comparison of the latest local models" src="https://preview.redd.it/1r2tp1sg0m5h1.png?width=140&amp;amp;height=68&amp;amp;auto=webp&amp;amp;s=ca28e7d5f72bfd998ca3b123547dfbcaa12e09d9" title="AA comparison of the latest local models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I picked models I consider local (usable on 3×3090), so there are no 300B models, and you should probably skip 200B models too (but MiniMax and Step are pretty fast in Q3)&lt;/p&gt; &lt;p&gt;Gemma-4 12B is still missing&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1tya05j"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tya05j/aa_comparison_of_the_latest_local_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-06T06:53:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1tyb3np</id>
