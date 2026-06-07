@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-07T15:45:15+00:00</updated>
+  <updated>2026-06-07T16:18:05+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1tyxyzi</id>
-    <title>Gemma4 12B - Experiences?</title>
-    <updated>2026-06-07T00:55:40+00:00</updated>
-    <author>
-      <name>/u/Ill_Dragonfruit_3547</name>
-      <uri>https://old.reddit.com/user/Ill_Dragonfruit_3547</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone check out the new Gemma4 12B that dropped 3 days ago? Integrated vision and audio recognition, no mmpro needed plus tool use. Q4 quant is like 8gb RAM. Crazy fast and great quality for it's size. No, it's not as good as a 27B or 31B. But it's damn close. Curious what others think.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ill_Dragonfruit_3547"&gt; /u/Ill_Dragonfruit_3547 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxyzi/gemma4_12b_experiences/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxyzi/gemma4_12b_experiences/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxyzi/gemma4_12b_experiences/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-07T00:55:40+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tyxu55</id>
-    <title>Gemma 4 31B QAT Q4 vs standard Q4 — Top1 KLD benchmark results have me confused. Someone please explain or poke holes in this.</title>
-    <updated>2026-06-07T00:49:07+00:00</updated>
-    <author>
-      <name>/u/bitslizer</name>
-      <uri>https://old.reddit.com/user/bitslizer</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Edited -&lt;/p&gt; &lt;p&gt;After digging into this some more and reviewing unsloth post for better understanding, the divergence APPEARS to stem from I did not use the BF16 QAT model as the &amp;quot;reference&amp;quot; model....&lt;/p&gt; &lt;p&gt;The QAT vs standard Q4 comparison in our benchmark is &lt;strong&gt;not apples-to-apples&lt;/strong&gt;. The QAT models were evaluated against a reference they were never optimised toward. The standard Q4_0 and Q4_K_M comparison is valid. The &amp;quot;QAT is worse&amp;quot; conclusion needs a big asterisk: we can't actually tell how good the QAT models are because we didn't have the right reference.&lt;/p&gt; &lt;p&gt;re-running the QAT with the QAT Bf16 model&lt;/p&gt; &lt;p&gt;-- original below:&lt;/p&gt; &lt;p&gt;I'll be upfront: I vibe-benched and vibe-reported this with Claude Sonnet 4.6, but I reviewed and edited everything before posting (too lazy to take out all the AI EM dash —), so hopefully nobody considers this AI slop. And more importantly, I genuinely don't understand why I'm getting these counter-intuitive results, so I'm hoping the community can either explain it or tell me what I did wrong.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Background&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;One of the local LLMs I run is entirely on CPU the Gemma 4 31B model at Q8, as I can't afford the quality loss that comes with dropping to Q3 to fit on my 16GB GPU. My setup is dual Xeon Platinum 8358 (128 threads), 256 GB DDR4. Gemma 4 31B Q8_0 sits at around 4 t/s generation... slow, but it earns its keep on quality-sensitive workloads where I need the model to reason carefully over long, dense text for background/overnight type job where I don't need the speed but need the smart and accuracy.&lt;/p&gt; &lt;p&gt;The new QAT Q4 models are appealing: 17 GB vs 32 GB, roughly double the generation speed on bandwidth-limited hardware. Google released the checkpoints without publishing any quantitative accuracy comparisons. Unsloth published their own numbers (96.67% top-1 vs BF16) which looked promising. I wanted something expressed as KLD — the same metric LocalBench uses — so I ran my own benchmark.&lt;/p&gt; &lt;p&gt;What I did not expect: standard Q4_0 beats QAT Q4_0. By a lot. And Q4_K_M beats everything. I have no good explanation for this and I'm hoping someone does.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Why first 5,000 tokens and not the full wikitext-2 test set?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The full set is ~245,000 tokens. On CPU at ~4 t/s for Q8_0, a full stride-1 evaluation runs roughly 13 hours for all models. Instead: first 5,000 tokens, stride 5, ~820 sample positions per model. Reproducible — same file, same parameters, same result.&lt;/p&gt; &lt;p&gt;Are the results deterministic? Yes — each model ran 3 times. Std dev was ±0.00% across all runs. Temperature=0 + CPU inference is perfectly deterministic. So 3 runs confirmed this isn't noise.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Inference engine&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Mainline llama.cpp (&lt;code&gt;llama-xeon8358&lt;/code&gt; image). Run flags: &lt;code&gt;numactl --interleave=all&lt;/code&gt;, &lt;code&gt;--numa distribute&lt;/code&gt;, &lt;code&gt;--threads 64&lt;/code&gt;, &lt;code&gt;--no-mmap --mlock&lt;/code&gt;. KV cache forced to f16 for all models — isolates weight quantization quality only, no KV noise mixed in. (Production uses the IK_LLama fork for its Xeon-optimised kernels, but it has an FA assertion bug at large sliding-window contexts so mainline was used here — same GGUF files, same math.)&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Models tested&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Repo&lt;/th&gt; &lt;th align="left"&gt;File&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Reference&lt;/td&gt; &lt;td align="left"&gt;&lt;a href="https://huggingface.co/bartowski/google_gemma-4-31B-it-GGUF"&gt;bartowski/google_gemma-4-31B-it-GGUF&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;google_gemma-4-31B-it-Q8_0.gguf&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Google QAT Q4_0&lt;/td&gt; &lt;td align="left"&gt;&lt;a href="https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf"&gt;google/gemma-4-31B-it-qat-q4_0-gguf&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;gemma-4-31B_q4_0-it.gguf&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth QAT UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;&lt;a href="https://huggingface.co/unsloth/gemma-4-31B-it-qat-GGUF"&gt;unsloth/gemma-4-31B-it-qat-GGUF&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;gemma-4-31B-it-qat-UD-Q4_K_XL.gguf&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth Q4_0 (standard)&lt;/td&gt; &lt;td align="left"&gt;&lt;a href="https://huggingface.co/unsloth/gemma-4-31B-it-GGUF"&gt;unsloth/gemma-4-31B-it-GGUF&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;gemma-4-31B-it-Q4_0.gguf&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth Q4_K_M&lt;/td&gt; &lt;td align="left"&gt;&lt;a href="https://huggingface.co/unsloth/gemma-4-31B-it-GGUF"&gt;unsloth/gemma-4-31B-it-GGUF&lt;/a&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;code&gt;gemma-4-31B-it-Q4_K_M.gguf&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;em&gt;Q8_0 used as reference — well-established proxy for BF16 at this model size and quant level.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Methodology&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Top-1 accuracy — does the quantized model pick the same most-likely next token as Q8_0?&lt;/li&gt; &lt;li&gt;Mean KLD — KL divergence of top-40 token distribution vs Q8_0, token by token&lt;/li&gt; &lt;li&gt;Both metrics computed against the same fixed Q8_0 reference run for all models&lt;/li&gt; &lt;li&gt;3 runs per model confirmed zero variance (fully deterministic)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Results — wikitext-2 (reproducible)&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;em&gt;wikitext-2-raw-v1 test set, first 5,000 tokens, stride 5. Wikipedia-style prose only.&lt;/em&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model&lt;/th&gt; &lt;th align="left"&gt;Top-1 acc&lt;/th&gt; &lt;th align="left"&gt;Mean KLD&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Google QAT Q4_0&lt;/td&gt; &lt;td align="left"&gt;50.43%&lt;/td&gt; &lt;td align="left"&gt;3.447&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth QAT UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;51.40%&lt;/td&gt; &lt;td align="left"&gt;3.397&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth Q4_0 (standard)&lt;/td&gt; &lt;td align="left"&gt;61.54%&lt;/td&gt; &lt;td align="left"&gt;2.619&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Unsloth Q4_K_M&lt;/td&gt; &lt;td align="left"&gt;66.06%&lt;/td&gt; &lt;td align="left"&gt;2.304&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;Results — custom task categories&lt;/strong&gt; (informational, not reproducible)&lt;/p&gt; &lt;p&gt;&lt;em&gt;Hand-written test strings. Not a standard dataset — directional only.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;From the benchmark output:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Category&lt;/th&gt; &lt;th align="left"&gt;G-QAT acc&lt;/th&gt; &lt;th align="left"&gt;G-QAT KLD&lt;/th&gt; &lt;th align="left"&gt;U-QAT acc&lt;/th&gt; &lt;th align="left"&gt;U-QAT KLD&lt;/th&gt; &lt;th align="left"&gt;Q4_0 acc&lt;/th&gt; &lt;th align="left"&gt;Q4_0 KLD&lt;/th&gt; &lt;th align="left"&gt;Q4_K_M acc&lt;/th&gt; &lt;th align="left"&gt;Q4_K_M KLD&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;code&lt;/td&gt; &lt;td align="left"&gt;92.31%&lt;/td&gt; &lt;td align="left"&gt;0.460&lt;/td&gt; &lt;td align="left"&gt;92.31%&lt;/td&gt; &lt;td align="left"&gt;0.458&lt;/td&gt; &lt;td align="left"&gt;97.44%&lt;/td&gt; &lt;td align="left"&gt;0.049&lt;/td&gt; &lt;td align="left"&gt;94.87%&lt;/td&gt; &lt;td align="left"&gt;0.025&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;science&lt;/td&gt; &lt;td align="left"&gt;55.56%&lt;/td&gt; &lt;td align="left"&gt;1.218&lt;/td&gt; &lt;td align="left"&gt;55.56%&lt;/td&gt; &lt;td align="left"&gt;1.293&lt;/td&gt; &lt;td align="left"&gt;80.56%&lt;/td&gt; &lt;td align="left"&gt;0.300&lt;/td&gt; &lt;td align="left"&gt;77.78%&lt;/td&gt; &lt;td align="left"&gt;0.396&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;chat&lt;/td&gt; &lt;td align="left"&gt;63.64%&lt;/td&gt; &lt;td align="left"&gt;1.604&lt;/td&gt; &lt;td align="left"&gt;63.64%&lt;/td&gt; &lt;td align="left"&gt;1.532&lt;/td&gt; &lt;td align="left"&gt;95.45%&lt;/td&gt; &lt;td align="left"&gt;0.097&lt;/td&gt; &lt;td align="left"&gt;90.91%&lt;/td&gt; &lt;td align="left"&gt;0.120&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;tool_call&lt;/td&gt; &lt;td align="left"&gt;77.78%&lt;/td&gt; &lt;td align="left"&gt;1.036&lt;/td&gt; &lt;td align="left"&gt;70.37%&lt;/td&gt; &lt;td align="left"&gt;1.105&lt;/td&gt; &lt;td align="left"&gt;92.59%&lt;/td&gt; &lt;td align="left"&gt;0.299&lt;/td&gt; &lt;td align="left"&gt;96.30%&lt;/td&gt; &lt;td align="left"&gt;0.250&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;long_doc&lt;/td&gt; &lt;td align="left"&gt;28.57%&lt;/td&gt; &lt;td align="left"&gt;2.438&lt;/td&gt; &lt;td align="left"&gt;28.57%&lt;/td&gt; &lt;td align="left"&gt;2.682&lt;/td&gt; &lt;td align="left"&gt;65.71%&lt;/td&gt; &lt;td align="left"&gt;1.302&lt;/td&gt; &lt;td align="left"&gt;77.14%&lt;/td&gt; &lt;td align="left"&gt;1.081&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;overall&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;52.56%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;3.101&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;53.17%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;3.071&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;65.44%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;2.263&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;69.43%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;1.993&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&lt;strong&gt;The result that has me confused&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Standard Q4_0 beats QAT Q4_0 by ~13% top-1 accuracy. And Q4_K_M beats both.&lt;/p&gt; &lt;p&gt;QAT is supposed to close the gap between Q4_0 and the reference by training the model to tolerate quantization noise. Google put real effort into this — they ran actual fine-tuning specifically for the Q4_0 format. Unsloth's UD-Q4_K_XL applies their Dynamic 2.0 method on top of the QAT checkpoint. By every account these should be better than a naively quantized Q4_0.&lt;/p&gt; &lt;p&gt;But they're not — at least not against a Q8_0 reference on wikitext-2 and these task categories.&lt;/p&gt; &lt;p&gt;My best guess: QAT Q4_0 is still flat uniform 4-bit quantization. The QAT process may reduce quantization error &lt;em&gt;relative to naive Q4_0&lt;/em&gt; — but Q4_K_M is a fundamentally different format that allocates more bits to sensitive layers. The K-quant format advantage might simply outweigh the QAT training benefit. But I'd expect someone who actually understands quantization internals to tell me if that reasoning is sound or completely wrong.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I'd like to know:&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Is comparing QAT Q4_0 against standard Q4_0 using Q8_0 as reference the right methodology, or does this introduce a systematic bias that favors Q4_K_M?&lt;/li&gt; &lt;li&gt;Does the QAT training actually make Q4_0 better than naive Q4_0, just not better than K-quants — or is something else going on?&lt;/li&gt; &lt;li&gt;Is there a flaw in the sliding-window logprob approach that would explain this?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;What I do know: for my use case — dense factual prose, technical documents, long-form reasoning — the long_doc numbers tell the story. QAT Q4_0 drops to 28.57% top-1 vs Q8_0. Q4_K_M holds at 77%. Q8_0 stays.&lt;/p&gt; &lt;p&gt;&lt;em&gt;Benchmark was ran in ~2 hours runtime for 4 models × 3 runs on this hardware.&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bitslizer"&gt; /u/bitslizer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxu55/gemma_4_31b_qat_q4_vs_standard_q4_top1_kld/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxu55/gemma_4_31b_qat_q4_vs_standard_q4_top1_kld/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyxu55/gemma_4_31b_qat_q4_vs_standard_q4_top1_kld/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-07T00:49:07+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tyresc</id>
-    <title>Z.ai, we need Air! GLM GGUF wen?</title>
-    <updated>2026-06-06T20:06:46+00:00</updated>
-    <author>
-      <name>/u/temperature_5</name>
-      <uri>https://old.reddit.com/user/temperature_5</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First we never saw an upgraded Air model after 4.5. Then GLM 4.7 Turbo was great, but quickly surpassed for coding. Now GLM 5.1 is a coding beast, but too huge for most to run locally, and even slow on API. Will we ever get another Air model with frontier reasoning and knowledge? Or a turbo model that surpasses Qwen 3.6 35B in agentic coding with way fewer tokens? Will you QAT like Gemma to leave Qwen in the dust?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/temperature_5"&gt; /u/temperature_5 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyresc/zai_we_need_air_glm_gguf_wen/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tyresc/zai_we_need_air_glm_gguf_wen/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyresc/zai_we_need_air_glm_gguf_wen/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T20:06:46+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tyo4fv</id>
     <title>Fuck, sucessfully ran minecraft server on GLM AI's Agent lol.</title>
@@ -86,19 +47,6 @@
     <published>2026-06-07T02:09:25+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tzeir9</id>
-    <title>How are you all managing multiple MCP servers on startup?</title>
-    <updated>2026-06-07T15:03:48+00:00</updated>
-    <author>
-      <name>/u/vazma</name>
-      <uri>https://old.reddit.com/user/vazma</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello! I'm using openCode and loading a bunch of different MCP servers at startup. This starts becoming a mess, it eats up tokens and pollutes the context window before I even type a single prompt.&lt;/p&gt; &lt;p&gt;How are you all handling this locally? Are you using a proxy/hub to route everything through a single endpoint, or is there a clean way to lazy-load specific tools per session?&lt;/p&gt; &lt;p&gt;Curious what the current standard is to keep things clean. Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vazma"&gt; /u/vazma &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-07T15:03:48+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tyockn</id>
     <title>KV cache quant benchmarks: KVarN 6-bit matches q8_0, 4-bit matches q5_0. Massive!</title>
     <updated>2026-06-06T18:06:48+00:00</updated>
@@ -125,17 +73,30 @@
     <published>2026-06-07T07:37:36+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tz2p8h</id>
-    <title>Cool stuff to do with NVIDIA RTX 6000 PRO 96GB VRAM</title>
-    <updated>2026-06-07T04:51:54+00:00</updated>
+    <id>t3_1tzfodp</id>
+    <title>Budget llm for chatting and analysing pdf documents</title>
+    <updated>2026-06-07T15:48:47+00:00</updated>
     <author>
-      <name>/u/AggressiveMention359</name>
-      <uri>https://old.reddit.com/user/AggressiveMention359</uri>
+      <name>/u/Connect-Page-8174</name>
+      <uri>https://old.reddit.com/user/Connect-Page-8174</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been a C++ dev for 3 years as long as have done PyTorch in my free time (not that good in the latter). &lt;/p&gt; &lt;p&gt;Now, I was lucky enough to get a brand new GPU from a colleague. What are some cool side projects I can build to learn tons about ML and inference/infra? Please don't respond saying &amp;quot;anything you like&amp;quot; as there's nothing I prefer at the moment.&lt;/p&gt; &lt;p&gt;I am completely new - so sorry if it's an obvious question!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AggressiveMention359"&gt; /u/AggressiveMention359 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My dad and I want an llm that can scan pdfs and get the useful data out of it at a reasonable speed and be able to chat with it about those documents.&lt;/p&gt; &lt;p&gt;What kind of hardware would be best for this and what kind of power usage would a machine like this use?&lt;/p&gt; &lt;p&gt;The budget we are currently looking at is between 600-1000€ but it can become more if it needs to be as we don’t want to wait half an hour for a response.&lt;/p&gt; &lt;p&gt;We have currently tried a 16gb m2 Mac mini but that seems to be a bit too slow.&lt;br /&gt; We tested it dockling but that seems to only work for some pages of the pdf and we don’t know if there are any alternatives.&lt;/p&gt; &lt;p&gt;help is very appreciated.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Connect-Page-8174"&gt; /u/Connect-Page-8174 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfodp/budget_llm_for_chatting_and_analysing_pdf/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfodp/budget_llm_for_chatting_and_analysing_pdf/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfodp/budget_llm_for_chatting_and_analysing_pdf/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-07T04:51:54+00:00</published>
+    <published>2026-06-07T15:48:47+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzgafl</id>
+    <title>GMKtec Crams OCuLink, Wi-Fi 7 and Dual PCIe 4.0 Into the EVO-X3, With a 192GB Ryzen AI MAX+ 495 Monster Following Later This Year</title>
+    <updated>2026-06-07T16:12:12+00:00</updated>
+    <author>
+      <name>/u/mindwip</name>
+      <uri>https://old.reddit.com/user/mindwip</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzgafl/gmktec_crams_oculink_wifi_7_and_dual_pcie_40_into/"&gt; &lt;img alt="GMKtec Crams OCuLink, Wi-Fi 7 and Dual PCIe 4.0 Into the EVO-X3, With a 192GB Ryzen AI MAX+ 495 Monster Following Later This Year" src="https://external-preview.redd.it/L1zrntslKbeR79NMaIXjL-SzXUPsV_QtRuhSEzTc5wg.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8b9f8f3ccb60e3b0624d07d5ad2704959c8d4e55" title="GMKtec Crams OCuLink, Wi-Fi 7 and Dual PCIe 4.0 Into the EVO-X3, With a 192GB Ryzen AI MAX+ 495 Monster Following Later This Year" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First strix 495 hardware i have seen announced/leaker. &lt;/p&gt; &lt;p&gt;Looks like decent hardware upgraded to.&lt;/p&gt; &lt;p&gt;No prices yet that I see sadly.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mindwip"&gt; /u/mindwip &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://wccftech.com/gmktec-oculink-wi-fi-7-dual-pcie-4-0-into-evo-x3-192gb-ryzen-ai-max-495-monster-later-this-year/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzgafl/gmktec_crams_oculink_wifi_7_and_dual_pcie_40_into/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzgafl/gmktec_crams_oculink_wifi_7_and_dual_pcie_40_into/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-07T16:12:12+00:00</published>
   </entry>
   <entry>
     <id>t3_1tz0zwy</id>
@@ -151,6 +112,19 @@
     <published>2026-06-07T03:24:48+00:00</published>
   </entry>
   <entry>
+    <id>t3_1tz2p8h</id>
+    <title>Cool stuff to do with NVIDIA RTX 6000 PRO 96GB VRAM</title>
+    <updated>2026-06-07T04:51:54+00:00</updated>
+    <author>
+      <name>/u/AggressiveMention359</name>
+      <uri>https://old.reddit.com/user/AggressiveMention359</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have been a C++ dev for 3 years as long as have done PyTorch in my free time (not that good in the latter). &lt;/p&gt; &lt;p&gt;Now, I was lucky enough to get a brand new GPU from a colleague. What are some cool side projects I can build to learn tons about ML and inference/infra? Please don't respond saying &amp;quot;anything you like&amp;quot; as there's nothing I prefer at the moment.&lt;/p&gt; &lt;p&gt;I am completely new - so sorry if it's an obvious question!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/AggressiveMention359"&gt; /u/AggressiveMention359 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tz2p8h/cool_stuff_to_do_with_nvidia_rtx_6000_pro_96gb/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-07T04:51:54+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tyu79c</id>
     <title>dvlt.cu: inference engine written from scratch in CUDA/C++ for NVIDIA's DVLT 3D transformer model</title>
     <updated>2026-06-06T22:04:08+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tyu79c/dvltcu_inference_engine_written_from_scratch_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-06T22:04:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzeir9</id>
+    <title>How are you all managing multiple MCP servers on startup?</title>
+    <updated>2026-06-07T15:03:48+00:00</updated>
+    <author>
+      <name>/u/vazma</name>
+      <uri>https://old.reddit.com/user/vazma</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello! I'm using openCode and loading a bunch of different MCP servers at startup. This starts becoming a mess, it eats up tokens and pollutes the context window before I even type a single prompt.&lt;/p&gt; &lt;p&gt;How are you all handling this locally? Are you using a proxy/hub to route everything through a single endpoint, or is there a clean way to lazy-load specific tools per session?&lt;/p&gt; &lt;p&gt;Curious what the current standard is to keep things clean. Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/vazma"&gt; /u/vazma &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzeir9/how_are_you_all_managing_multiple_mcp_servers_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-07T15:03:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzernu</id>
@@ -240,6 +227,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1typjmc/120_toks_on_12gb_vram_with_gemma_4_12b_qat_mtp/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-06T18:53:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzfr6z</id>
+    <title>Guys, it just happened</title>
+    <updated>2026-06-07T15:51:52+00:00</updated>
+    <author>
+      <name>/u/robertpro01</name>
+      <uri>https://old.reddit.com/user/robertpro01</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfr6z/guys_it_just_happened/"&gt; &lt;img alt="Guys, it just happened" src="https://preview.redd.it/pk38butytv5h1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=a749e8f96858a623b7d3385e1cb8a11aa6169239" title="Guys, it just happened" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My x99 just died. &lt;/p&gt; &lt;p&gt;F&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/robertpro01"&gt; /u/robertpro01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pk38butytv5h1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfr6z/guys_it_just_happened/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzfr6z/guys_it_just_happened/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-07T15:51:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1tys1wj</id>
