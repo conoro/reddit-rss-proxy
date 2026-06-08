@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-06-08T15:27:33+00:00</updated>
+  <updated>2026-06-08T16:50:19+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1tykb8a</id>
-    <title>Brand new install problems with Ollama Cloud Models</title>
-    <updated>2026-06-06T15:30:49+00:00</updated>
-    <author>
-      <name>/u/christof21</name>
-      <uri>https://old.reddit.com/user/christof21</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Decided to install openclaw again on my mac mini. Clean install and no other previous versions installed or any leftover files.&lt;/p&gt; &lt;p&gt;My sole goal with this was use my Ollama Cloud API out the gate and have deepseek-v4-pro:cloud, nemotron-3-ultra:cloud and minimax-m3:cloud.&lt;/p&gt; &lt;p&gt;Install went as expected all quick and seamless. Ollama cloud API added and gateway started, so all ok.&lt;/p&gt; &lt;p&gt;Hatch via the TUI and see that the model being used is kimi-k2.5:cloud even though I selected the models I wanted via the install config. Agent responds but not the model I want.&lt;/p&gt; &lt;p&gt;That's where it all goes pair shaped and even after going through the model config again those models still not working.&lt;/p&gt; &lt;p&gt;Manually checked the .json and found the models were missing even though I added them during config. So I added them manually. DIdn't work.&lt;/p&gt; &lt;p&gt;Had to have Claude Code debug and fix it. This was the CC fix.&lt;/p&gt; &lt;p&gt;What was actually going on (it was a 3-layer onion 🧅):&lt;/p&gt; &lt;p&gt;1️⃣ The models needed registering under `models.providers.ollama-cloud.models[]` — confirmed: openclaw's bundled defaults only ship kimi-k2.5:cloud, minimax-m2.7:cloud, glm-5.1:cloud out of the box. That's THE reason only k2.5 worked.&lt;/p&gt; &lt;p&gt;2️⃣ Each entry needs a `name` field (gateway schema), not just `id` like the runtime hint said. Added both.&lt;/p&gt; &lt;p&gt;3️⃣ The sneaky one 😤 — `openclaw doctor --fix` and standalone `config validate` DON'T load the ollama extension, so they don't realize ollama-cloud is a bundled provider and falsely scream &amp;quot;must declare baseUrl&amp;quot;… then doctor *deletes* your block. That's why my first fix vanished on restart.&lt;/p&gt; &lt;p&gt;✅ Final fix: I added an explicit `baseUrl: &amp;quot;&lt;a href="https://ollama.com%22%5C%60"&gt;https://ollama.com&amp;quot;\`&lt;/a&gt; (identical to openclaw's built-in value, zero behavior change) so BOTH the validator and the gateway are happy. Validated clean.&lt;/p&gt; &lt;p&gt;⚠️ IMPORTANT going forward: do NOT run `openclaw doctor --fix` — it'll nuke this block again. If you add more cloud models later, add them to BOTH `agents.defaults.models` AND the providers list with `{id, name}`, and keep that baseUrl line.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/christof21"&gt; /u/christof21 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tykb8a/brand_new_install_problems_with_ollama_cloud/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tykb8a/brand_new_install_problems_with_ollama_cloud/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tykb8a/brand_new_install_problems_with_ollama_cloud/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-06T15:30:49+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tysqq7</id>
-    <title>WhatsApp stops responding for hours — messages visible in logs but no reply (Pi 5 / Bookworm / 2026.6.1)</title>
-    <updated>2026-06-06T21:02:13+00:00</updated>
-    <author>
-      <name>/u/komaroff09</name>
-      <uri>https://old.reddit.com/user/komaroff09</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all — long-time techie, fairly new to OpenClaw. Running 2026.6.1 (2e08f0f) on a Raspberry Pi 5, Bookworm, 16GB RAM. Resources are not the issue.&lt;/p&gt; &lt;p&gt;I’m using OpenClaw primarily for WhatsApp, which is the main communication channel for a business I run in Brazil. The integration itself is awesome — exactly what I needed.&lt;/p&gt; &lt;p&gt;The problem: OpenClaw frequently stops responding mid-conversation. I can see my messages arriving in the logs, but nothing happens — no reply, nothing. Sometimes it comes back on its own after a few hours. Other times it loses context entirely on what we were working on. Not 100% reproducible but happens constantly.&lt;/p&gt; &lt;p&gt;What I’ve already ruled out:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;• Memory/CPU — plenty of headroom on the Pi 5 • I do NOT want to start from scratch and lose my current setup, sessions, and skills &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Theories I’m chasing based on my own research:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;1. Inbound handler dying after a reconnect — the socket reconnects but something doesn’t re-register properly, so messages arrive but never reach the agent 2. Messages dropped during reconnect window — messages sent while the connection was down come back as history sync and get silently skipped 3. Session going idle and dying quietly — WhatsApp killing the session after extended silence with no clean recovery &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;My questions:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;• Has anyone nailed down a reliable fix for the inbound handler going dead after reconnect on a self-hosted Pi setup? • Any recommended socket/keepalive tuning in openclaw.json that helps on residential broadband? • Anyone using whatsapp-keeper alongside OpenClaw? Worth it, or does 2026.6.x handle this better natively? • Any way to recover session and context after a dead reconnect without a full gateway restart? &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Happy to share logs if it helps. Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/komaroff09"&gt; /u/komaroff09 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tysqq7/whatsapp_stops_responding_for_hours_messages/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tysqq7/whatsapp_stops_responding_for_hours_messages/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tysqq7/whatsapp_stops_responding_for_hours_messages/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-06T21:02:13+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tyt9e8</id>
-    <title>[Weekend Showcase] Book-librarian: Track your reading, get recommendations.</title>
-    <updated>2026-06-06T21:23:58+00:00</updated>
-    <author>
-      <name>/u/Perplexingperfection</name>
-      <uri>https://old.reddit.com/user/Perplexingperfection</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Book-Librarian Skill&lt;/p&gt; &lt;p&gt;Built a skill that actually tracks your reading life instead of just spitting out generic lists.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What it does:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;• Recommends from your owned unread books first, then wishlist, then new finds&lt;br /&gt; • Mood-based picks (&amp;quot;I want something gothic&amp;quot; → checks your library, then wishlist, then searches)&lt;br /&gt; • No spoilers, ever, just hooks and why it fits you&lt;br /&gt; • Tracks taste drift over time in memory/library.md&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Smart defaults:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;• Checks your library before recommending anything new&lt;br /&gt; • Deduplicates against wishlist&lt;br /&gt; • Learns from what you actually finish vs. abandon&lt;/p&gt; &lt;p&gt;&lt;strong&gt;First-run friendly:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;• Asks before setting up anything&lt;br /&gt; • Creates CSVs and taste profile only if you say yes&lt;br /&gt; • Guided setup for your taste profile and mood map&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Clawhub:&lt;/strong&gt; &lt;a href="https://clawhub.ai/perplexingperfectionist/book-librarian"&gt;https://clawhub.ai/perplexingperfectionist/book-librarian&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you read enough that &amp;quot;just search Goodreads&amp;quot; stopped working, this is for you. I read a lot and found myself with ever growing lists that I forgot to check when looking for my next read. This skill fixes that. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Perplexingperfection"&gt; /u/Perplexingperfection &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tyt9e8/weekend_showcase_booklibrarian_track_your_reading/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tyt9e8/weekend_showcase_booklibrarian_track_your_reading/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tyt9e8/weekend_showcase_booklibrarian_track_your_reading/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-06T21:23:58+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tyv4qk</id>
     <title>Local semantic memory search for OpenClaw agents using Harrier embeddings</title>
@@ -229,6 +190,19 @@
     <published>2026-06-08T01:41:28+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u04ky2</id>
+    <title>Do I really need self-improving and proactive skills? or will OC handle it itself?</title>
+    <updated>2026-06-08T10:59:48+00:00</updated>
+    <author>
+      <name>/u/hugoaap</name>
+      <uri>https://old.reddit.com/user/hugoaap</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, any insights will be valuable. &lt;/p&gt; &lt;p&gt;I'm giving OC a chance once again, new version looks great. &lt;/p&gt; &lt;p&gt;Do I really need to install skills to make my agents proactive or better handle memories and learning like these (&lt;a href="https://clawhub.ai/ivangdavila/self-improving"&gt;https://clawhub.ai/ivangdavila/self-improving&lt;/a&gt;) or will it natively do that? &lt;/p&gt; &lt;p&gt;Latest openclaw version.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hugoaap"&gt; /u/hugoaap &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-08T10:59:48+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tztc6z</id>
     <title>Qual a principal vantagem você ver de usar o open claw ao invés de usar o Claude Code sozinho?</title>
     <updated>2026-06-08T00:55:47+00:00</updated>
@@ -242,17 +216,17 @@
     <published>2026-06-08T00:55:47+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u04ky2</id>
-    <title>Do I really need self-improving and proactive skills? or will OC handle it itself?</title>
-    <updated>2026-06-08T10:59:48+00:00</updated>
+    <id>t3_1u0c2jx</id>
+    <title>Is it supposed to do this</title>
+    <updated>2026-06-08T15:59:45+00:00</updated>
     <author>
-      <name>/u/hugoaap</name>
-      <uri>https://old.reddit.com/user/hugoaap</uri>
+      <name>/u/avd706</name>
+      <uri>https://old.reddit.com/user/avd706</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, any insights will be valuable. &lt;/p&gt; &lt;p&gt;I'm giving OC a chance once again, new version looks great. &lt;/p&gt; &lt;p&gt;Do I really need to install skills to make my agents proactive or better handle memories and learning like these (&lt;a href="https://clawhub.ai/ivangdavila/self-improving"&gt;https://clawhub.ai/ivangdavila/self-improving&lt;/a&gt;) or will it natively do that? &lt;/p&gt; &lt;p&gt;Latest openclaw version.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/hugoaap"&gt; /u/hugoaap &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1u04ky2/do_i_really_need_selfimproving_and_proactive/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I don't think it should access this file. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/avd706"&gt; /u/avd706 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0c2jx/is_it_supposed_to_do_this/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0c2jx/is_it_supposed_to_do_this/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0c2jx/is_it_supposed_to_do_this/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-08T10:59:48+00:00</published>
+    <published>2026-06-08T15:59:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1u08clr</id>
@@ -292,6 +266,32 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1tzuti6/free_top_tier_models_for_openclaw/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-06-08T02:06:05+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u0cmbo</id>
+    <title>Mistakes people make setting up OpenClaw for the first time!</title>
+    <updated>2026-06-08T16:18:52+00:00</updated>
+    <author>
+      <name>/u/samsribot</name>
+      <uri>https://old.reddit.com/user/samsribot</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;Common OpenClaw setup mistakes I made so you don't have to:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Took me longer than I'd like to admit to get a stable, actually useful setup. &lt;/p&gt; &lt;p&gt;In no particular order:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Skipping persistent memory entirely&lt;/strong&gt; — out of the box sessions are stateless. Even a simple file-based memory layer changes everything. There are a few community plugins for this now, worth grabbing one early.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Not giving it any way to reach the outside world&lt;/strong&gt; — I had my agent fully set up but it could only respond when I opened a browser. Adding outbound capabilities (I use AgentLine cloud for SMS/calls, some people use ntfy or Pushover for push notifications and for email I use Agentmail) was the switch that made it actually live in my workflow.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Overloading the system prompt on day one&lt;/strong&gt; — wrote a 500 word prompt, agent got confused and inconsistent. Short and specific beats long and thorough every time. Iterate it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Not setting a default fallback behavior&lt;/strong&gt; — when the agent doesn't know what to do, you want it to ask, not guess. Define that explicitly or it will make interesting choices.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Using More than 1 model for different tasks --&lt;/strong&gt; I would rate it as one the most important things while setting up you must use more than 1 model and use different models for different tasks according to their abilities and cost. Maintaining a good cost to output ratio.&lt;/p&gt; &lt;p&gt;&lt;em&gt;You guys can leave your specific setup in the comments it would help everyone....&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/samsribot"&gt; /u/samsribot &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0cmbo/mistakes_people_make_setting_up_openclaw_for_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0cmbo/mistakes_people_make_setting_up_openclaw_for_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0cmbo/mistakes_people_make_setting_up_openclaw_for_the/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-08T16:18:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u0crer</id>
+    <title>Gift and Curse of OpenClaw</title>
+    <updated>2026-06-08T16:23:45+00:00</updated>
+    <author>
+      <name>/u/Fluffy-Ad-889</name>
+      <uri>https://old.reddit.com/user/Fluffy-Ad-889</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Don't shoot the messenger, hear me out first. &lt;/p&gt; &lt;p&gt;I think one of the gifts and curse of OpenClaw is that is it entirely open. &lt;/p&gt; &lt;p&gt;Product is a framework for doing whatever you want but most people need to be spoon fed what to do. &lt;/p&gt; &lt;p&gt;It feels like OpenClaw is jack of all trades, but master of none. &lt;/p&gt; &lt;p&gt;I think it could benefit from guiding the user in the setup of useful workflows, automations OR have some prepackaged functionality you can plug or play.&lt;/p&gt; &lt;p&gt;Anyone else feel the same?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fluffy-Ad-889"&gt; /u/Fluffy-Ad-889 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0crer/gift_and_curse_of_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0crer/gift_and_curse_of_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0crer/gift_and_curse_of_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-08T16:23:45+00:00</published>
   </entry>
   <entry>
     <id>t3_1u07kgf</id>
