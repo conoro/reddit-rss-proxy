@@ -2,49 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-08T07:17:27+00:00</updated>
+  <updated>2026-06-08T09:07:40+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
   <entry>
-    <id>t3_1typjmc</id>
-    <title>120 tok/s on 12GB VRAM with Gemma 4 12B QAT MTP</title>
-    <updated>2026-06-06T18:53:19+00:00</updated>
+    <id>t3_1tzo5lb</id>
+    <title>llama-server router: a model pinned to one GPU still grabs a CUDA context on every card, so it OOMs when my others are full. Am I missing a flag or is this just how it is?</title>
+    <updated>2026-06-07T21:09:42+00:00</updated>
     <author>
-      <name>/u/janvitos</name>
-      <uri>https://old.reddit.com/user/janvitos</uri>
+      <name>/u/HockeyDadNinja</name>
+      <uri>https://old.reddit.com/user/HockeyDadNinja</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google just released the QAT (Quantization-Aware Training) variant of their Gemma 4 models, including 12B, so it was only natural for me to benchmark it on my 12GB GPU since it fits entirely in VRAM. I was pleasantly surprised with the result!&lt;/p&gt; &lt;p&gt;By using llama.cpp patched with the Gemma 4 MTP PR, and loading Unsloth's &lt;a href="https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF"&gt;gemma-4-12B-it-qat-GGUF&lt;/a&gt; quant and Google's &lt;a href="https://huggingface.co/google/gemma-4-12B-it-qat-q4_0-unquantized-assistant"&gt;gemma-4-12B-it-qat-q4_0-unquantized-assistant&lt;/a&gt; QAT assistant / draft model, which I converted to GGUF and uploaded to HuggingFace as &lt;a href="https://huggingface.co/Janvitos/gemma-4-12B-it-qat-assistant-MTP-Q8_0-GGUF"&gt;gemma-4-12B-it-qat-assistant-MTP-Q8_0-GGUF&lt;/a&gt; using llama.cpp's convert_hf_to_gguf.py, I was able to achieve &lt;strong&gt;120 tok/s&lt;/strong&gt; with &lt;a href="https://gist.github.com/am17an/228edfb84ed082aa88e3865d6fa27090/"&gt;mtp-bench.py&lt;/a&gt;!&lt;/p&gt; &lt;h1&gt;Before we start, here's my PC specs:&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;OS: CachyOS GPU: RTX 4070 Super 12GB (iGPU as main GPU) CPU: AMD Ryzen 7 9700X RAM: 32GB DDR5-6000 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Here's my llama.cpp command:&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;llama-server \ -m gemma-4-12B-it-qat-UD-Q4_K_XL.gguf \ --model-draft gemma-4-12B-it-qat-assistant-MTP-Q8_0.gguf \ --spec-type draft-mtp \ --spec-draft-n-max 4 \ --parallel 1 \ --ctx-size 131072 \ --temp 1.0 \ --top-p 0.95 \ --top-k 64 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;For comparison, here's my &lt;a href="http://mtp-bench.py"&gt;mtp-bench.py&lt;/a&gt; benchmark results without MTP:&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;❯ ./mtp-bench.py code_python pred= 192 draft= 0 acc= 0 rate=n/a tok/s=59.9 code_cpp pred= 192 draft= 0 acc= 0 rate=n/a tok/s=60.0 explain_concept pred= 192 draft= 0 acc= 0 rate=n/a tok/s=59.9 summarize pred= 192 draft= 0 acc= 0 rate=n/a tok/s=59.9 qa_factual pred= 192 draft= 0 acc= 0 rate=n/a tok/s=59.9 translation pred= 192 draft= 0 acc= 0 rate=n/a tok/s=60.0 creative_short pred= 192 draft= 0 acc= 0 rate=n/a tok/s=60.0 stepwise_math pred= 192 draft= 0 acc= 0 rate=n/a tok/s=59.8 long_code_review pred= 192 draft= 0 acc= 0 rate=n/a tok/s=57.6 Aggregate: { &amp;quot;n_requests&amp;quot;: 9, &amp;quot;total_predicted&amp;quot;: 1728, &amp;quot;total_draft&amp;quot;: 0, &amp;quot;total_draft_accepted&amp;quot;: 0, &amp;quot;aggregate_accept_rate&amp;quot;: null, &amp;quot;wall_s_total&amp;quot;: 30.2 } &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Here's my &lt;a href="http://mtp-bench.py"&gt;mtp-bench.py&lt;/a&gt; benchmark results with MTP:&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;❯ ./mtp-bench.py code_python pred= 192 draft= 172 acc= 133 rate=0.773 tok/s=130.5 code_cpp pred= 192 draft= 187 acc= 128 rate=0.684 tok/s=120.4 explain_concept pred= 192 draft= 213 acc= 119 rate=0.559 tok/s=105.7 summarize pred= 192 draft= 168 acc= 134 rate=0.798 tok/s=133.5 qa_factual pred= 192 draft= 210 acc= 120 rate=0.571 tok/s=107.2 translation pred= 192 draft= 175 acc= 132 rate=0.754 tok/s=128.6 creative_short pred= 192 draft= 240 acc= 110 rate=0.458 tok/s=94.0 stepwise_math pred= 192 draft= 165 acc= 135 rate=0.818 tok/s=135.7 long_code_review pred= 192 draft= 197 acc= 125 rate=0.634 tok/s=111.7 Aggregate: { &amp;quot;n_requests&amp;quot;: 9, &amp;quot;total_predicted&amp;quot;: 1728, &amp;quot;total_draft&amp;quot;: 1727, &amp;quot;total_draft_accepted&amp;quot;: 1136, &amp;quot;aggregate_accept_rate&amp;quot;: 0.6578, &amp;quot;wall_s_total&amp;quot;: 15.66 } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;To achieve this, all you need is a 12GB NVIDIA GPU and enough free VRAM to fit Gemma 4 12GB + assistant entirely in GPU memory. With CachyOS and my dGPU set as a secondary GPU, this gives me pretty much 100% free VRAM. On Windows, or if using your dGPU as your main GPU, you will probably loose 500MB+ of VRAM to the OS and driver, so you might need to lower the context size, or it might simply not work. You'll probably need to do some testing 😄&lt;/p&gt; &lt;h1&gt;Here's step-by-step instructions to get this working:&lt;/h1&gt; &lt;pre&gt;&lt;code&gt;1. Clone llama.cpp git clone https://github.com/ggml-org/llama.cpp.git cd llama.cpp 2. Fetch and switch to the Gemma 4 MTP PR branch git fetch origin pull/23398/head:gemma4-mtp git checkout gemma4-mtp 3. Build with CUDA support for NVIDIA GPUs cmake -B build -DGGML_CUDA=ON -DBUILD_SHARED_LIBS=OFF cmake --build build --config Release -j$(nproc) 4. Download Unsloth's Gemma 4 12B QAT here: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF 5. Download Google's Gemma 4 assistant / draft here https://huggingface.co/Janvitos/gemma-4-12B-it-qat-assistant-MTP-Q8_0-GGUF 6. Load the models with llama-server llama-server \ -m gemma-4-12B-it-qat-UD-Q4_K_XL.gguf \ --model-draft gemma-4-12B-it-qat-assistant-MTP-Q8_0.gguf \ --spec-type draft-mtp \ --spec-draft-n-max 4 \ --parallel 1 \ --ctx-size 131072 \ --temp 1.0 \ --top-p 0.95 \ --top-k 64 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Cheers 😄&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/janvitos"&gt; /u/janvitos &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1typjmc/120_toks_on_12gb_vram_with_gemma_4_12b_qat_mtp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1typjmc/120_toks_on_12gb_vram_with_gemma_4_12b_qat_mtp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1typjmc/120_toks_on_12gb_vram_with_gemma_4_12b_qat_mtp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Running into something annoying with llama-server in router mode (`--models-preset`) and I can't tell if I'm missing a flag or if this is just how it works. &lt;/p&gt; &lt;p&gt;My rig is 2x 3090, 2x 4060 Ti (one's unplugged at the moment, riser got repurposed) and a 5060 Ti. I run a single llama-server router that spawns a child per model on demand, which is great. I usually have a few going at once: a 27B at Q8 across both 3090s for coding and my assistant, a little Gemma 4B on the 5060 Ti doing memory/fact-extraction for the assistant, and a nomic embedder on the same card. &lt;/p&gt; &lt;p&gt;Problem is, every child grabs a CUDA context on all the cards even when the model only lives on one. The Gemma is pinned to the 5060 (`device = CUDA3`, `-ngl 99`) and sure enough it still parks ~256 MiB on each 3090 and ~120 on the 4060 Ti, on top of its actual weights on the 5060. &lt;/p&gt; &lt;p&gt;Normally who cares. But the coding model takes the full 262K context split across both 3090s, which eats them down to ~200 MiB free. Soon as that's loaded, asking for the memory model just dies about 0.2s into the load. CUDA error: out of memory &lt;/p&gt; &lt;p&gt;The 5060 has 15 GB free. It's not the target card that's the problem, it's that the child can't even create its context stub on the maxed 3090s, so the whole load aborts. &lt;/p&gt; &lt;p&gt;I went poking in `server-models.cpp` and it looks like every child just inherits the router's env (`child_env = base_env`), so there's no per-model `CUDA_VISIBLE_DEVICES` I can set in the preset. And `--device` only seems to decide where the layers go, not which cards get a context. ggml inits all of them regardless. &lt;/p&gt; &lt;p&gt;I know I can run a second llama-server with `CUDA_VISIBLE_DEVICES` locked to the 5060 and call it a day, but that permanently walls off the card, and sometimes I want to dump everything and load one giant model across all the cards + RAM. A fixed split kills that. &lt;/p&gt; &lt;p&gt;So is there a flag to make a child skip the GPUs it isn't using, or is the per-card context just expected behaviour? And for anyone running a bunch of models across cards who also occasionally needs the whole rig for one big model, how are you handling it? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HockeyDadNinja"&gt; /u/HockeyDadNinja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T18:53:19+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tys1wj</id>
-    <title>Another 1-click admin account takeover in pewdiepie's AI tool (language in video nsfw)</title>
-    <updated>2026-06-06T20:32:52+00:00</updated>
-    <author>
-      <name>/u/theonejvo</name>
-      <uri>https://old.reddit.com/user/theonejvo</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/theonejvo"&gt; /u/theonejvo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/z4k5twjx2q5h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tys1wj/another_1click_admin_account_takeover_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tys1wj/another_1click_admin_account_takeover_in/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T20:32:52+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tylzy2</id>
-    <title>Cohere's unreleased coding model (early access for localllama)</title>
-    <updated>2026-06-06T16:36:41+00:00</updated>
-    <author>
-      <name>/u/nick_frosst</name>
-      <uri>https://old.reddit.com/user/nick_frosst</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tylzy2/coheres_unreleased_coding_model_early_access_for/"&gt; &lt;img alt="Cohere's unreleased coding model (early access for localllama)" src="https://external-preview.redd.it/v3Xn5US2tImdVoHz_sn1ZvWp4JwxaclSVEncXie33mg.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=78827e01b4c527e6cb4a158bebdfd786be5d432f" title="Cohere's unreleased coding model (early access for localllama)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey, Nick here from Cohere. Thanks for all the feedback on &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1tizmar/re_what_ever_happened_to_coheres_commanda_series/"&gt;Command A+ &lt;/a&gt;the other week everyone. I read these threads all the time about other releases so it was fun to read one about our own :) we would like to do more of it.&lt;/p&gt; &lt;p&gt;We actually have our first coding model we’re getting ready to release soon, and I wanted to give this community an opportunity to test it out and give feedback before we officially release it. Figured why not try something different and get you guys to help directly here? &lt;/p&gt; &lt;p&gt;It’s a 30B model with 3B active params so it runs nicely on some local set ups. It’s on our Hugging Face for now (more platforms to come as we get the model officially launched soon). This one is small but the team is excited about its speed, we’re seeing token output tests in line with similar models in its size class. &lt;/p&gt; &lt;p&gt;The weights are &lt;a href="https://huggingface.co/CohereLabs/BLS-Mini-Code-1.0"&gt;here&lt;/a&gt; but again this isn’t publicly launched yet (or even fully ready) so i’d encourage you to test the model with what you are trying to achieve. The goal is to build from our learnings with this release and improve the models, so there’s some room for how this gets used now to shape how we continue to develop it. &lt;/p&gt; &lt;p&gt;Check it out and let me know how it’s working for you. Excited to see what people think. Thank you :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nick_frosst"&gt; /u/nick_frosst &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/CohereLabs/BLS-Mini-Code-1.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tylzy2/coheres_unreleased_coding_model_early_access_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tylzy2/coheres_unreleased_coding_model_early_access_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-06T16:36:41+00:00</published>
+    <published>2026-06-07T21:09:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzkyuw</id>
@@ -58,19 +32,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzkyuw/mtp_and_qta_what_is_the_relation/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-07T19:06:33+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tzo5lb</id>
-    <title>llama-server router: a model pinned to one GPU still grabs a CUDA context on every card, so it OOMs when my others are full. Am I missing a flag or is this just how it is?</title>
-    <updated>2026-06-07T21:09:42+00:00</updated>
-    <author>
-      <name>/u/HockeyDadNinja</name>
-      <uri>https://old.reddit.com/user/HockeyDadNinja</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Running into something annoying with llama-server in router mode (`--models-preset`) and I can't tell if I'm missing a flag or if this is just how it works. &lt;/p&gt; &lt;p&gt;My rig is 2x 3090, 2x 4060 Ti (one's unplugged at the moment, riser got repurposed) and a 5060 Ti. I run a single llama-server router that spawns a child per model on demand, which is great. I usually have a few going at once: a 27B at Q8 across both 3090s for coding and my assistant, a little Gemma 4B on the 5060 Ti doing memory/fact-extraction for the assistant, and a nomic embedder on the same card. &lt;/p&gt; &lt;p&gt;Problem is, every child grabs a CUDA context on all the cards even when the model only lives on one. The Gemma is pinned to the 5060 (`device = CUDA3`, `-ngl 99`) and sure enough it still parks ~256 MiB on each 3090 and ~120 on the 4060 Ti, on top of its actual weights on the 5060. &lt;/p&gt; &lt;p&gt;Normally who cares. But the coding model takes the full 262K context split across both 3090s, which eats them down to ~200 MiB free. Soon as that's loaded, asking for the memory model just dies about 0.2s into the load. CUDA error: out of memory &lt;/p&gt; &lt;p&gt;The 5060 has 15 GB free. It's not the target card that's the problem, it's that the child can't even create its context stub on the maxed 3090s, so the whole load aborts. &lt;/p&gt; &lt;p&gt;I went poking in `server-models.cpp` and it looks like every child just inherits the router's env (`child_env = base_env`), so there's no per-model `CUDA_VISIBLE_DEVICES` I can set in the preset. And `--device` only seems to decide where the layers go, not which cards get a context. ggml inits all of them regardless. &lt;/p&gt; &lt;p&gt;I know I can run a second llama-server with `CUDA_VISIBLE_DEVICES` locked to the 5060 and call it a day, but that permanently walls off the card, and sometimes I want to dump everything and load one giant model across all the cards + RAM. A fixed split kills that. &lt;/p&gt; &lt;p&gt;So is there a flag to make a child skip the GPUs it isn't using, or is the per-card context just expected behaviour? And for anyone running a bunch of models across cards who also occasionally needs the whole rig for one big model, how are you handling it? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/HockeyDadNinja"&gt; /u/HockeyDadNinja &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzo5lb/llamaserver_router_a_model_pinned_to_one_gpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-07T21:09:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzqqri</id>
@@ -112,6 +73,32 @@
     <published>2026-06-07T18:05:27+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u01w9h</id>
+    <title>Weird to get near linear scaling by adding another GPU?</title>
+    <updated>2026-06-08T08:26:24+00:00</updated>
+    <author>
+      <name>/u/Civil_Fee_7862</name>
+      <uri>https://old.reddit.com/user/Civil_Fee_7862</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Single steam benchmarks (club-3090)&lt;/p&gt; &lt;p&gt;model:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;qwen3.6-27b-autoround-int4 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;BEFORE:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;1x3090&lt;/p&gt; &lt;p&gt;*Their default script recipe for single 3090'*s &lt;em&gt;(4-bit quant and 4-bit kv cache, mtp=2)&lt;/em&gt;&lt;/p&gt; &lt;p&gt;NARRATIVE decode_TPS: mean = &lt;strong&gt;53&lt;/strong&gt; std = &lt;strong&gt;0.6&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;CODE decode_TPS: mean = &lt;strong&gt;62&lt;/strong&gt; std= &lt;strong&gt;1.4&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;AFTER:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;2x3090&lt;/p&gt; &lt;p&gt;&lt;em&gt;Their default script recipe for dual 3090's (4-bit quant and 8-bit kv cache, mpt=3)&lt;/em&gt;&lt;/p&gt; &lt;p&gt;NARRATIVE decode_TPS: mean= &lt;strong&gt;94&lt;/strong&gt; std= &lt;strong&gt;1.3&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;CODE decode_TPS: mean= &lt;strong&gt;120&lt;/strong&gt; std= &lt;strong&gt;2.1&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This is running &lt;em&gt;without NVLink,&lt;/em&gt; on a 8x/8x motherboard, for some reason P2P was automatically enabled (no driver hack needed), Tensor parallelism = 2&lt;/p&gt; &lt;p&gt;I am truly shocked that I got almost linear scaling in performance. I still get odd parsing errors in my quality tests when editing large code files in Agent mode (VSCode), (but not the same ones as before), for some reason forcing the model to use CLI editing tools is much more reliable than whatever VSCode is doing with the Agent. I am going to likely move to their 8-bit weight model recipe as well.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Civil_Fee_7862"&gt; /u/Civil_Fee_7862 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u01w9h/weird_to_get_near_linear_scaling_by_adding/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u01w9h/weird_to_get_near_linear_scaling_by_adding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u01w9h/weird_to_get_near_linear_scaling_by_adding/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T08:26:24+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u020y3</id>
+    <title>mindlab-research/Macaron-V1-Preview-749B • Huggingface</title>
+    <updated>2026-06-08T08:34:36+00:00</updated>
+    <author>
+      <name>/u/External_Mood4719</name>
+      <uri>https://old.reddit.com/user/External_Mood4719</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u020y3/mindlabresearchmacaronv1preview749b_huggingface/"&gt; &lt;img alt="mindlab-research/Macaron-V1-Preview-749B • Huggingface" src="https://external-preview.redd.it/H9uRcWaerc5NxFisP6MkyhHwn6YUXqEjWkiaxKNjCaE.png?width=140&amp;amp;height=75&amp;amp;auto=webp&amp;amp;s=50de97d73f49982f7549023a441c30e169f95ab7" title="mindlab-research/Macaron-V1-Preview-749B • Huggingface" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/mindlab-research/Macaron-V1-Preview-749B"&gt;https://huggingface.co/mindlab-research/Macaron-V1-Preview-749B&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/g64u0fyts06h1.jpg?width=913&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=8211f5b58e610b28bed0720e5357269a4519e02f"&gt;https://preview.redd.it/g64u0fyts06h1.jpg?width=913&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=8211f5b58e610b28bed0720e5357269a4519e02f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/9vs0geyts06h1.png?width=1035&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ba96d1ed4129cdc53f9421f8e41ab38586b1b92b"&gt;https://preview.redd.it/9vs0geyts06h1.png?width=1035&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=ba96d1ed4129cdc53f9421f8e41ab38586b1b92b&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://macaron.im/mindlab/research/macaron-v1-preview"&gt;https://macaron.im/mindlab/research/macaron-v1-preview&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/External_Mood4719"&gt; /u/External_Mood4719 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u020y3/mindlabresearchmacaronv1preview749b_huggingface/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u020y3/mindlabresearchmacaronv1preview749b_huggingface/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u020y3/mindlabresearchmacaronv1preview749b_huggingface/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T08:34:36+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1tzlt37</id>
     <title>2-bit QAT model releases</title>
     <updated>2026-06-07T19:38:31+00:00</updated>
@@ -136,6 +123,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzernu/qwen36_35ba3b_on_a_laptop_my_zero_to_one_moment/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-07T15:13:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u00zm2</id>
+    <title>Gemma 4 12b QAT is a regression for my use case, despite all the hype.. Not my main Squeeze</title>
+    <updated>2026-06-08T07:33:05+00:00</updated>
+    <author>
+      <name>/u/Wrong_Mushroom_7350</name>
+      <uri>https://old.reddit.com/user/Wrong_Mushroom_7350</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the last few days trying to get consistent tool calling out of the new Gemma 4 12b QAT model and had to give up. When the model actually works, it works great, but for my specific use case and workflows it is just not for me. It is a major regression compared to the standard Q5_K_L version, which worked without issue.&lt;/p&gt; &lt;p&gt;I know the general consensus is that Qwen is for coding and Gemma is for creatives. But I can tell you for a fact that I code very well with the regular Q5_K_L version. When factoring in prompt structure, edits, and specific coding languages, I was able to generate 2,300 solid lines of code on a project (fully debugged, architecturally sound, and tested) . Additionally, I was able to generate 10,000 lines of story writing on a generic prompt about a samurai. Speed is not everything.&lt;/p&gt; &lt;p&gt;The main problem with this QAT model is that it constantly questions itself during generation. I tried using it for coding in my custom VS Code extension, writing stories, and real use cases, but the results are completely inconsistent despite hitting a solid 60 tokens a second.&lt;/p&gt; &lt;p&gt;The core failure point shows up right in the server startup logs:&lt;/p&gt; &lt;p&gt;&lt;code&gt;W load: control-looking token: 50 '&amp;lt;|tool_response|&amp;gt;' was not control-type; this is probably a bug in the model. its type will be overridden&lt;/code&gt;&lt;/p&gt; &lt;p&gt;Because the model misconfigures and overrides its own tool response tags before it even starts processing, structured function execution is broken. If you rely on agent workflows or developer extensions, save your time and stick to the regular quants.&lt;/p&gt; &lt;p&gt;I spent the last few days trying to get consistent tool calling out of the new Gemma 4 12b QAT model and had to give up. When the model actually works, it works great, but for my specific use case and workflows it is just not for me. It is a major regression compared to the standard Q5_K_L version, which worked without issue.&lt;/p&gt; &lt;p&gt;I know the general consensus is that Qwen is for coding and Gemma is for creatives. But I can tell you for a fact that I code very well with the regular Q5_K_L version. When factoring in prompt structure, edits, and specific coding languages, I was able to generate 2,300 solid lines of code on a project. Additionally, I was able to generate 10,000 lines of story writing on a generic prompt about a samurai. Speed is not everything.&lt;/p&gt; &lt;p&gt;The main problem with this QAT model is that it constantly questions itself during generation. I tried using it for coding in my custom VS Code extension, writing stories, and real use cases, but the results are completely inconsistent despite hitting a solid 60 tokens a second.&lt;/p&gt; &lt;p&gt;To rule out any backend or hardware misconfiguration, here is the continuous startup block from my server logs showing the exact GPU detection, thread assignment, context allocation, and the native template auto-match:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;0.00.074.191 I - CUDA0 : NVIDIA GeForce RTX 4080 SUPER (16375 MiB, 15061 MiB free) 0.00.074.205 I - CPU : 12th Gen Intel(R) Core(TM) i7-12700KF (98097 MiB, 86472 MiB free) 0.00.074.254 I system_info: n_threads = 12 (n_threads_batch = 12) / 20 | CUDA : ARCHS = 890 | USE_GRAPHS = 1 | PEER_MAX_BATCH_SIZE = 128 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 0.00.074.293 I srv init: using 19 threads for HTTP server 0.00.080.574 I srv load_model: loading model 'E:\models\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf' 0.01.205.117 W load: control-looking token: 50 '&amp;lt;|tool_response&amp;gt;' was not control-type; this is probably a bug in the model. its type will be overridden 0.01.205.496 W load: control-looking token: 212 '&amp;lt;/s&amp;gt;' was not control-type; this is probably a bug in the model. its type will be overridden 0.01.242.092 W load: special_eog_ids contains '&amp;lt;|tool_response|&amp;gt;', removing '&amp;lt;/s&amp;gt;' token from EOG list 0.03.279.202 W llama_context: n_ctx_seq (32768) &amp;lt; n_ctx_train (262144) -- the full capacity of the model will not be utilized 0.03.370.810 I slot load_model: id 0 | task -1 | new slot, n_ctx = 32768 0.03.370.887 I srv load_model: prompt cache is enabled, size limit: 8192 MiB 4.07.196.023 I srv params_from_: Chat format: peg-gemma4 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The hardware lines prove the 4080 Super is utilized cleanly and thread execution matches the i7-12700KF topology correctly. The server successfully initialized the 32768 context size and auto-detected the proper native peg-gemma4 chat layout from the model metadata on its own.&lt;/p&gt; &lt;p&gt;This completely isolates the broken tool calling to the token bug shown in the warnings. The model is misconfiguring and overriding its own tool response tags before it even starts processing, breaking structured function execution. If you rely on agent workflows or developer extensions, save your time and stick to the regular quants.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Wrong_Mushroom_7350"&gt; /u/Wrong_Mushroom_7350 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u00zm2/gemma_4_12b_qat_is_a_regression_for_my_use_case/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u00zm2/gemma_4_12b_qat_is_a_regression_for_my_use_case/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u00zm2/gemma_4_12b_qat_is_a_regression_for_my_use_case/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T07:33:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzbxsm</id>
@@ -203,19 +203,6 @@
     <published>2026-06-07T07:24:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tzzcja</id>
-    <title>Thoughts on Gemma4 12b vs 26a4b, which one is better?</title>
-    <updated>2026-06-08T05:59:06+00:00</updated>
-    <author>
-      <name>/u/Adventurous-Gold6413</name>
-      <uri>https://old.reddit.com/user/Adventurous-Gold6413</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Not talking about 31b. &lt;/p&gt; &lt;p&gt;In terms of creative tasks, writing, chatting, not necessarily coding but can still be included, &lt;/p&gt; &lt;p&gt;Does Gemma 12b outperform in any way?&lt;/p&gt; &lt;p&gt;Is the 12b closer to the 31b compared to the 26a4b?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Adventurous-Gold6413"&gt; /u/Adventurous-Gold6413 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-08T05:59:06+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tzgafl</id>
     <title>GMKtec Crams OCuLink, Wi-Fi 7 and Dual PCIe 4.0 Into the EVO-X3, With a 192GB Ryzen AI MAX+ 495 Monster Following Later This Year</title>
     <updated>2026-06-07T16:12:12+00:00</updated>
@@ -227,19 +214,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzgafl/gmktec_crams_oculink_wifi_7_and_dual_pcie_40_into/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-07T16:12:12+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1tzv1uz</id>
-    <title>Best Local TTS solution</title>
-    <updated>2026-06-08T02:17:19+00:00</updated>
-    <author>
-      <name>/u/styles01</name>
-      <uri>https://old.reddit.com/user/styles01</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I have been testing a bunch of different solutions for local TTS - nothing so far comes close to elevenlabs for dynamic ability, voices, cloning. I’d like to have a phone-compatible setup. &lt;/p&gt; &lt;p&gt;So far the best I can find for edge devices is moss-nano and kokoro. &lt;/p&gt; &lt;p&gt;Free/cloud so far : edgeTTS&lt;/p&gt; &lt;p&gt;Anyone else have luck so far? Getting their Hermes/openclaw/opencode agents to talk to them via telegram voice note or realtime convo? &lt;/p&gt; &lt;p&gt;There’s so many options trying to get them to work is non-trivial. Please share!!!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/styles01"&gt; /u/styles01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-08T02:17:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzfr6z</id>
@@ -255,19 +229,6 @@
     <published>2026-06-07T15:51:52+00:00</published>
   </entry>
   <entry>
-    <id>t3_1tzxmm8</id>
-    <title>QATs Q4_0 from Google have more precision than Q4_K_XL from Unsloth (at least some)</title>
-    <updated>2026-06-08T04:26:19+00:00</updated>
-    <author>
-      <name>/u/alex20_202020</name>
-      <uri>https://old.reddit.com/user/alex20_202020</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to try new QATs and opened two collections on HF (which HF found for me):&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/google/gemma-4-qat-q4-0"&gt;https://huggingface.co/collections/google/gemma-4-qat-q4-0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/unsloth/gemma-4-qat"&gt;https://huggingface.co/collections/unsloth/gemma-4-qat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;One strange thing caught my attention, for e.g. E4B: &lt;a href="https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf"&gt;https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf&lt;/a&gt; 5.15 GB&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf"&gt;https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf&lt;/a&gt; 4.22 GB&lt;/p&gt; &lt;p&gt;How can _0 be larger than _K_XL I thought. So I checked* (see how at the end) them.&lt;/p&gt; &lt;p&gt;One from Google:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q6_k | 0.75 | 2 | 3,489,660,928 | 2.44 GiB | | q4_0 | 0.5 | 342 | 3,945,267,200 | 1.84 GiB | | f16 | 2.0 | 1 | 27,525,120 | 52.50 MiB | | f32 | 4.0 | 321 | 560,426 | 2.14 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;From unsloth:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q4_0 | 0.5 | 345 | 7,462,453,248 | 3.47 GiB | | f32 | 4.0 | 321 | 560,426 | 2.14 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I have also checked other GGUFs from Google. E2B:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q6_k | 0.75 | 2 | 2,751,463,424 | 1.92 GiB | | q4_0 | 0.5 | 275 | 1,863,057,408 | 888.38 MiB | | f16 | 2.0 | 1 | 13,762,560 | 26.25 MiB | | f32 | 4.0 | 263 | 286,243 | 1.09 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Looks _K_XL type to me. Larger ones are just Q4_0 though, e.g. 12B:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q4_0 | 0.5 | 328 | 10,899,947,520 | 5.08 GiB | | q6_k | 0.75 | 1 | 1,006,632,960 | 720.00 MiB | | f32 | 4.0 | 338 | 770,096 | 2.94 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;What I do not know and will appreciate the answers is why E2B and E4B have additional (as opposed to larger ones) tensors in GGUF :&lt;/p&gt; &lt;pre&gt;&lt;code&gt;1 : f16 | per_layer_model_proj.weight | [1536, 8960] 2 : f32 | per_layer_proj_norm.weight | [256] 3 : q6_k | per_layer_token_embd.weight | [8960, 262144] &lt;/code&gt;&lt;/pre&gt; &lt;ul&gt; &lt;li&gt;koboldcpp --analyze model.GGUF | vibe_coded.py. If you know how to sum up tensors data from GGUFs using llama bundle, please let me know I will compare results with the vibed tool. I have thought about putting the tool on github, but I still do not know how to properly attribute AI usage.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/alex20_202020"&gt; /u/alex20_202020 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-08T04:26:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1tzmq5y</id>
     <title>Qwen 3.6 27B on DeepSWE</title>
     <updated>2026-06-07T20:13:48+00:00</updated>
@@ -279,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzmq5y/qwen_36_27b_on_deepswe/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-07T20:13:48+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzv1uz</id>
+    <title>Best Local TTS solution</title>
+    <updated>2026-06-08T02:17:19+00:00</updated>
+    <author>
+      <name>/u/styles01</name>
+      <uri>https://old.reddit.com/user/styles01</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I have been testing a bunch of different solutions for local TTS - nothing so far comes close to elevenlabs for dynamic ability, voices, cloning. I’d like to have a phone-compatible setup. &lt;/p&gt; &lt;p&gt;So far the best I can find for edge devices is moss-nano and kokoro. &lt;/p&gt; &lt;p&gt;Free/cloud so far : edgeTTS&lt;/p&gt; &lt;p&gt;Anyone else have luck so far? Getting their Hermes/openclaw/opencode agents to talk to them via telegram voice note or realtime convo? &lt;/p&gt; &lt;p&gt;There’s so many options trying to get them to work is non-trivial. Please share!!!!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/styles01"&gt; /u/styles01 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzv1uz/best_local_tts_solution/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T02:17:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzsdxm</id>
@@ -305,6 +279,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzgn87/control_a_3d_avatar_with_language_instead_of/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-07T16:25:28+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzxmm8</id>
+    <title>QATs Q4_0 from Google have more precision than Q4_K_XL from Unsloth (at least some)</title>
+    <updated>2026-06-08T04:26:19+00:00</updated>
+    <author>
+      <name>/u/alex20_202020</name>
+      <uri>https://old.reddit.com/user/alex20_202020</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to try new QATs and opened two collections on HF (which HF found for me):&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/google/gemma-4-qat-q4-0"&gt;https://huggingface.co/collections/google/gemma-4-qat-q4-0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/collections/unsloth/gemma-4-qat"&gt;https://huggingface.co/collections/unsloth/gemma-4-qat&lt;/a&gt;&lt;/p&gt; &lt;p&gt;One strange thing caught my attention, for e.g. E4B: &lt;a href="https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf"&gt;https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf&lt;/a&gt; 5.15 GB&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf"&gt;https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf&lt;/a&gt; 4.22 GB&lt;/p&gt; &lt;p&gt;How can _0 be larger than _K_XL I thought. So I checked* (see how at the end) them.&lt;/p&gt; &lt;p&gt;One from Google:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q6_k | 0.75 | 2 | 3,489,660,928 | 2.44 GiB | | q4_0 | 0.5 | 342 | 3,945,267,200 | 1.84 GiB | | f16 | 2.0 | 1 | 27,525,120 | 52.50 MiB | | f32 | 4.0 | 321 | 560,426 | 2.14 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;From unsloth:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q4_0 | 0.5 | 345 | 7,462,453,248 | 3.47 GiB | | f32 | 4.0 | 321 | 560,426 | 2.14 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I have also checked other GGUFs from Google. E2B:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q6_k | 0.75 | 2 | 2,751,463,424 | 1.92 GiB | | q4_0 | 0.5 | 275 | 1,863,057,408 | 888.38 MiB | | f16 | 2.0 | 1 | 13,762,560 | 26.25 MiB | | f32 | 4.0 | 263 | 286,243 | 1.09 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Looks _K_XL type to me. Larger ones are just Q4_0 though, e.g. 12B:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; | Dtype | Size Used | Tensors Qty | Elements Total | Bytes Total | -------------------------------------------------------------------------------- | q4_0 | 0.5 | 328 | 10,899,947,520 | 5.08 GiB | | q6_k | 0.75 | 1 | 1,006,632,960 | 720.00 MiB | | f32 | 4.0 | 338 | 770,096 | 2.94 MiB | &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;What I do not know and will appreciate the answers is why E2B and E4B have additional (as opposed to larger ones) tensors in GGUF :&lt;/p&gt; &lt;pre&gt;&lt;code&gt;1 : f16 | per_layer_model_proj.weight | [1536, 8960] 2 : f32 | per_layer_proj_norm.weight | [256] 3 : q6_k | per_layer_token_embd.weight | [8960, 262144] &lt;/code&gt;&lt;/pre&gt; &lt;ul&gt; &lt;li&gt;koboldcpp --analyze model.GGUF | vibe_coded.py. If you know how to sum up tensors data from GGUFs using llama bundle, please let me know I will compare results with the vibed tool. I have thought about putting the tool on github, but I still do not know how to properly attribute AI usage.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/alex20_202020"&gt; /u/alex20_202020 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzxmm8/qats_q4_0_from_google_have_more_precision_than_q4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T04:26:19+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1tzzcja</id>
+    <title>Thoughts on Gemma4 12b vs 26a4b, which one is better?</title>
+    <updated>2026-06-08T05:59:06+00:00</updated>
+    <author>
+      <name>/u/Adventurous-Gold6413</name>
+      <uri>https://old.reddit.com/user/Adventurous-Gold6413</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Not talking about 31b. &lt;/p&gt; &lt;p&gt;In terms of creative tasks, writing, chatting, not necessarily coding but can still be included, &lt;/p&gt; &lt;p&gt;Does Gemma 12b outperform in any way?&lt;/p&gt; &lt;p&gt;Is the 12b closer to the 31b compared to the 26a4b?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Adventurous-Gold6413"&gt; /u/Adventurous-Gold6413 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1tzzcja/thoughts_on_gemma4_12b_vs_26a4b_which_one_is/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-08T05:59:06+00:00</published>
   </entry>
   <entry>
     <id>t3_1tzbcyp</id>
