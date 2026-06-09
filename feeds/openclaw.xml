@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-06-09T03:47:28+00:00</updated>
+  <updated>2026-06-09T05:29:22+00:00</updated>
   <link href="https://old.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>OpenClaw: The AI that actually does things. The lobster way. 🦞 Clears your inbox, sends emails, manages your calendar, checks you in for flights. All from WhatsApp, Telegram, or any chat app you already use.</subtitle>
-  <entry>
-    <id>t3_1tzgfik</id>
-    <title>stuck in thinking, openclaw broken after months.</title>
-    <updated>2026-06-07T16:17:28+00:00</updated>
-    <author>
-      <name>/u/nonlinear_nyc</name>
-      <uri>https://old.reddit.com/user/nonlinear_nyc</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been using openclaw + github copilot for months until last week... it stopped working. like, I send a message, and it &amp;quot;thinks&amp;quot;. period.&lt;/p&gt; &lt;p&gt;I tried what i could, to the point that after asking for help with my friend, I decided to start from scratch, new computer (I have my backups). After some pains (openclaw decided to split my preferences into brew and npm, whatever came first, so they were not being counted) I managed to have something and... thinking. &lt;/p&gt; &lt;p&gt;I'm out of breath here. could it be version? some obscure setting I forgot? educated guesses onle (as in, you've been to something similar, experienced enough).&lt;/p&gt; &lt;p&gt;below is the analysis I asked:&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;h1&gt;Investigation timeline&lt;/h1&gt; &lt;h1&gt;Background&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;I’ve been using OpenClaw with GitHub Copilot for months without issues.&lt;/li&gt; &lt;li&gt;About a week ago, it suddenly stopped replying.&lt;/li&gt; &lt;li&gt;The UI accepts messages but stays in “thinking” forever.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Phase 1 – Suspected configuration corruption&lt;/h1&gt; &lt;p&gt;Initially I suspected my existing installation was corrupted.&lt;/p&gt; &lt;p&gt;I tried:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;reinstalling OpenClaw&lt;/li&gt; &lt;li&gt;recreating agents&lt;/li&gt; &lt;li&gt;recreating workspaces&lt;/li&gt; &lt;li&gt;checking routing bindings&lt;/li&gt; &lt;li&gt;checking gateway health&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;At one point I accidentally had multiple installations (brew/npm split), which caused confusion because different binaries/configurations were being used.&lt;/p&gt; &lt;p&gt;After cleaning that up I ended with a single installation.&lt;/p&gt; &lt;h1&gt;Phase 2 – Authentication problems&lt;/h1&gt; &lt;p&gt;Creating a second agent produced:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;No API key found for provider &amp;quot;github-copilot&amp;quot; &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This turned out to be because auth profiles were not copied.&lt;/p&gt; &lt;p&gt;I deleted the extra agent and went back to a single &lt;code&gt;main&lt;/code&gt; agent.&lt;/p&gt; &lt;p&gt;Current auth status reports correctly:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Providers: github-copilot token present Chat quota: 100% Premium quota: 0% left &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So authentication appears valid.&lt;/p&gt; &lt;h1&gt;Phase 3 – Routing sanity check&lt;/h1&gt; &lt;p&gt;Checked:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw agents list &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Only one agent exists:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;main &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Checked:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw agents bindings &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Result:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;No routing bindings. &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So there are no stale routing rules sending requests elsewhere.&lt;/p&gt; &lt;h1&gt;Phase 4 – Gateway sanity check&lt;/h1&gt; &lt;p&gt;Checked running processes:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;pgrep -fl openclaw &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Only one gateway process exists.&lt;/p&gt; &lt;p&gt;Checked:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;launchctl list | grep openclaw &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Only one LaunchAgent is registered.&lt;/p&gt; &lt;p&gt;So there doesn’t appear to be a duplicated gateway.&lt;/p&gt; &lt;h1&gt;Phase 5 – Model configuration&lt;/h1&gt; &lt;p&gt;Initially I discovered an inconsistency.&lt;/p&gt; &lt;p&gt;&lt;code&gt;openclaw models status&lt;/code&gt; showed:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Default: github-copilot/claude-sonnet-4.6 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;but&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw agents list &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;showed:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;github-copilot/claude-opus-4.7 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Looking inside &lt;code&gt;~/.openclaw/openclaw.json&lt;/code&gt;, I found:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;&amp;quot;agents&amp;quot;: { &amp;quot;defaults&amp;quot;: { &amp;quot;model&amp;quot;: &amp;quot;github-copilot/claude-sonnet-4.6&amp;quot; }, &amp;quot;list&amp;quot;: [ { &amp;quot;model&amp;quot;: &amp;quot;github-copilot/claude-opus-4.7&amp;quot; } ] } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;So defaults and the actual agent disagreed.&lt;/p&gt; &lt;p&gt;I manually edited the config so both use Sonnet.&lt;/p&gt; &lt;p&gt;After restarting:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw agents list &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and&lt;/p&gt; &lt;pre&gt;&lt;code&gt;openclaw models status &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;both consistently report:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;github-copilot/claude-sonnet-4.6 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Phase 6 – Gateway logs&lt;/h1&gt; &lt;p&gt;The gateway restarts cleanly.&lt;/p&gt; &lt;p&gt;Relevant log excerpt:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;loading configuration… resolving authentication… starting... starting HTTP server... agent model: github-copilot/claude-sonnet-4.6 gateway ready provider auth state pre-warmed agent runtime plugins pre-warmed &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;There are no obvious authentication failures or startup errors.&lt;/p&gt; &lt;h1&gt;Current state&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;Single installation.&lt;/li&gt; &lt;li&gt;Single gateway process.&lt;/li&gt; &lt;li&gt;Single agent.&lt;/li&gt; &lt;li&gt;No routing bindings.&lt;/li&gt; &lt;li&gt;Authentication recognized.&lt;/li&gt; &lt;li&gt;Model configuration consistent.&lt;/li&gt; &lt;li&gt;Gateway starts cleanly.&lt;/li&gt; &lt;li&gt;No obvious errors in logs.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;But when I send a prompt, the client simply stays in “thinking” indefinitely and never produces a response.&lt;/p&gt; &lt;p&gt;---&lt;/p&gt; &lt;p&gt;I’m interested in educated guesses from people who have actually seen this behavior before rather than generic troubleshooting suggestions. I can provide further logs if not enough info. Thanks.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nonlinear_nyc"&gt; /u/nonlinear_nyc &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tzgfik/stuck_in_thinking_openclaw_broken_after_months/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1tzgfik/stuck_in_thinking_openclaw_broken_after_months/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1tzgfik/stuck_in_thinking_openclaw_broken_after_months/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-07T16:17:28+00:00</published>
-  </entry>
   <entry>
     <id>t3_1tzd81p</id>
     <title>finally got openclaw to stop mixing my business and personal finances</title>
@@ -242,30 +229,17 @@
     <published>2026-06-09T02:09:38+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u0fqt2</id>
-    <title>update v2026.6.1</title>
-    <updated>2026-06-08T18:07:21+00:00</updated>
+    <id>t3_1u0u8al</id>
+    <title>OpenClaw oAuth OpenAI access</title>
+    <updated>2026-06-09T03:57:28+00:00</updated>
     <author>
-      <name>/u/Cool_Mycologist_6186</name>
-      <uri>https://old.reddit.com/user/Cool_Mycologist_6186</uri>
+      <name>/u/thatkidgobe</name>
+      <uri>https://old.reddit.com/user/thatkidgobe</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello guys, have you all faced any issues with v2026.6.1? I'm currently running v2026.5.18 and facing issues in it sometimes like context too large, exec failed etc.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Cool_Mycologist_6186"&gt; /u/Cool_Mycologist_6186 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey Guys - one thing I wanted some feedback on. If you give OC oAuth access to your OpenAI account, does OC now have access to your MCP’s that you have setup through Codex? For example, if I have used my personal Codex account for some coding and it’s logged into my Google Sheets via MCP, does OC now have access to all of that even though I never gave OC explicit access?&lt;/p&gt; &lt;p&gt;If so, does everyone have a separate OpenAI subscription used just for agents like OC? Rather than using your “personal” OpenAI account that might be hooked up to your personal Gmail, Sheets, etc..&lt;/p&gt; &lt;p&gt;Thanks for the feedback.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/thatkidgobe"&gt; /u/thatkidgobe &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0u8al/openclaw_oauth_openai_access/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0u8al/openclaw_oauth_openai_access/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0u8al/openclaw_oauth_openai_access/"/>
     <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-08T18:07:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u0ivtu</id>
-    <title>Best open source models for openclaw</title>
-    <updated>2026-06-08T19:55:51+00:00</updated>
-    <author>
-      <name>/u/ZestycloseWeather237</name>
-      <uri>https://old.reddit.com/user/ZestycloseWeather237</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys, i'm new to OpenClaw but had some experience with local models before in ollama and LMStudio and i remember it was a major headache to set up tool callings manually at times, even when they worked some models wouldn't operate them correctly (especially ones with reasoning due to parsing issues). I'm on a low budget laptop now with just enough gpu and ram to run gemma4:12b with around 64k ctx window. My questions is: is there a general consensus on which models work best out of the box within the OC ecosystem? I mean in terms of understanding their tools and compabilities and such. Also would it be possible for me to try to implement a custom agent's self learning instructions with a custom memory layering model? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZestycloseWeather237"&gt; /u/ZestycloseWeather237 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-06-08T19:55:51+00:00</published>
+    <published>2026-06-09T03:57:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1u07kgf</id>
@@ -281,6 +255,19 @@
     <published>2026-06-08T13:14:11+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u0fqt2</id>
+    <title>update v2026.6.1</title>
+    <updated>2026-06-08T18:07:21+00:00</updated>
+    <author>
+      <name>/u/Cool_Mycologist_6186</name>
+      <uri>https://old.reddit.com/user/Cool_Mycologist_6186</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello guys, have you all faced any issues with v2026.6.1? I'm currently running v2026.5.18 and facing issues in it sometimes like context too large, exec failed etc.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Cool_Mycologist_6186"&gt; /u/Cool_Mycologist_6186 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0fqt2/update_v202661/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-08T18:07:21+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u0cmbo</id>
     <title>Mistakes people make setting up OpenClaw for the first time!</title>
     <updated>2026-06-08T16:18:52+00:00</updated>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/openclaw/comments/1u0cmbo/mistakes_people_make_setting_up_openclaw_for_the/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-06-08T16:18:52+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u0ivtu</id>
+    <title>Best open source models for openclaw</title>
+    <updated>2026-06-08T19:55:51+00:00</updated>
+    <author>
+      <name>/u/ZestycloseWeather237</name>
+      <uri>https://old.reddit.com/user/ZestycloseWeather237</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys, i'm new to OpenClaw but had some experience with local models before in ollama and LMStudio and i remember it was a major headache to set up tool callings manually at times, even when they worked some models wouldn't operate them correctly (especially ones with reasoning due to parsing issues). I'm on a low budget laptop now with just enough gpu and ram to run gemma4:12b with around 64k ctx window. My questions is: is there a general consensus on which models work best out of the box within the OC ecosystem? I mean in terms of understanding their tools and compabilities and such. Also would it be possible for me to try to implement a custom agent's self learning instructions with a custom memory layering model? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ZestycloseWeather237"&gt; /u/ZestycloseWeather237 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/openclaw/comments/1u0ivtu/best_open_source_models_for_openclaw/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-06-08T19:55:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1u0mp95</id>
