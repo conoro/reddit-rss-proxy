@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-06-10T06:44:51+00:00</updated>
+  <updated>2026-06-10T08:14:01+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -190,19 +190,6 @@
     <published>2026-06-10T02:26:56+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u101d3</id>
-    <title>Doubled Qwen3.6-27B on a single 3090: ollama 35.7 → llama.cpp+MTP 80.2 tok/s, measured lever by lever</title>
-    <updated>2026-06-09T09:25:43+00:00</updated>
-    <author>
-      <name>/u/Front-University4363</name>
-      <uri>https://old.reddit.com/user/Front-University4363</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A reader on my last post said Ollama was leaving a clean ~2x on the table for a 27B on a 3090 — a leaner backend plus multi-token prediction (MTP). I went and measured it one lever at a time. They were right: it's a real &lt;strong&gt;2.25×&lt;/strong&gt;, and here's the path that got me there.&lt;/p&gt; &lt;p&gt;Single RTX 3090, Qwen3.6-27B, 200 tokens, flash-attention on:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;step&lt;/th&gt; &lt;th&gt;backend&lt;/th&gt; &lt;th&gt;quant&lt;/th&gt; &lt;th&gt;MTP&lt;/th&gt; &lt;th&gt;gen tok/s&lt;/th&gt; &lt;th&gt;vs ollama&lt;/th&gt; &lt;th&gt;VRAM&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;baseline&lt;/td&gt; &lt;td&gt;Ollama&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;35.7&lt;/td&gt; &lt;td&gt;1.00×&lt;/td&gt; &lt;td&gt;23.2 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;1&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;41.9&lt;/td&gt; &lt;td&gt;1.17×&lt;/td&gt; &lt;td&gt;17.3 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;2&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;47.5&lt;/td&gt; &lt;td&gt;1.33×&lt;/td&gt; &lt;td&gt;15.1 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;&lt;strong&gt;on&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;80.2&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;2.25×&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~15 GB&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Clean apples-to-apples for MTP alone (same llama-server, same IQ4_XS): &lt;strong&gt;45.1 (off) → 80.2 (on) = 1.78×&lt;/strong&gt;. (Speculative decoding has the main model verify each drafted token before it's emitted, so it's lossless — a throughput win, not a quality hit. The 2.25× is engine + quant + MTP stacked.)&lt;/p&gt; &lt;p&gt;A few things worth knowing for my setup:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MTP came from mainline llama.cpp, not ik_llama&lt;/strong&gt; — ik_llama got me to ~47 (engine + quant), but I couldn't get MTP going there (it rejected &lt;code&gt;-mtp&lt;/code&gt; and ignored the &lt;code&gt;nextn&lt;/code&gt; tensors). Mainline added MTP recently (PR #22673). If someone's gotten MTP under ik_llama I'd love to hear how — that's the part I couldn't crack.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Ollama's GGUF wasn't reusable&lt;/strong&gt; — Qwen3.6 changed &lt;code&gt;rope.dimension_sections&lt;/code&gt; from 3→4 elements and Ollama's blob still has the old layout, so llama.cpp refused it (&lt;code&gt;expected 4, got 3&lt;/code&gt;). Grab a converted GGUF (bartowski) instead.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;More accepted drafts ≠ faster.&lt;/strong&gt; &lt;code&gt;--spec-draft-n-max 3&lt;/code&gt; was the sweet spot (80.2); n-max 4 dropped to 70.7, and forcing acceptance up with &lt;code&gt;p-min 0.6&lt;/code&gt; got 80% accept but &lt;em&gt;fell&lt;/em&gt; to 54 tok/s. f16 KV beat q8 KV.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Honest caveats: 80.2 is this box's number; prefill is noisy (short prompt) so I'm not quoting it; bartowski Q4_K_M vs Ollama's Q4_K_M are the same quant family but different conversions; single-GPU, single-request.&lt;/p&gt; &lt;p&gt;Repro: ik_llama &lt;code&gt;bbe1a51&lt;/code&gt;, llama.cpp &lt;code&gt;e3471b3&lt;/code&gt;, both &lt;code&gt;-DCMAKE_CUDA_ARCHITECTURES=86&lt;/code&gt;; winner = &lt;code&gt;llama-server -m Qwen3.6-27B-MTP-IQ4_XS.gguf -ngl 99 -fa on --spec-type draft-mtp --spec-draft-n-max 3&lt;/code&gt;. Full writeup with the tuning table: &lt;a href="https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens"&gt;https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ollama stays my default for everyday use; this is the &amp;quot;every token/sec&amp;quot; build. What &lt;code&gt;n-max&lt;/code&gt; / draft model are you running MTP with?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Front-University4363"&gt; /u/Front-University4363 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-09T09:25:43+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u1q8qu</id>
     <title>We are open-sourcing LiteLLM Agent Platform: a self-hosted OSS agent builder for Hermes, OpenCode, Claude Code (bring your own models, Ollama work)</title>
     <updated>2026-06-10T03:05:41+00:00</updated>
@@ -214,6 +201,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1u1q8qu/we_are_opensourcing_litellm_agent_platform_a/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-10T03:05:41+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u101d3</id>
+    <title>Doubled Qwen3.6-27B on a single 3090: ollama 35.7 → llama.cpp+MTP 80.2 tok/s, measured lever by lever</title>
+    <updated>2026-06-09T09:25:43+00:00</updated>
+    <author>
+      <name>/u/Front-University4363</name>
+      <uri>https://old.reddit.com/user/Front-University4363</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A reader on my last post said Ollama was leaving a clean ~2x on the table for a 27B on a 3090 — a leaner backend plus multi-token prediction (MTP). I went and measured it one lever at a time. They were right: it's a real &lt;strong&gt;2.25×&lt;/strong&gt;, and here's the path that got me there.&lt;/p&gt; &lt;p&gt;Single RTX 3090, Qwen3.6-27B, 200 tokens, flash-attention on:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;step&lt;/th&gt; &lt;th&gt;backend&lt;/th&gt; &lt;th&gt;quant&lt;/th&gt; &lt;th&gt;MTP&lt;/th&gt; &lt;th&gt;gen tok/s&lt;/th&gt; &lt;th&gt;vs ollama&lt;/th&gt; &lt;th&gt;VRAM&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;baseline&lt;/td&gt; &lt;td&gt;Ollama&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;35.7&lt;/td&gt; &lt;td&gt;1.00×&lt;/td&gt; &lt;td&gt;23.2 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;1&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;41.9&lt;/td&gt; &lt;td&gt;1.17×&lt;/td&gt; &lt;td&gt;17.3 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;2&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;47.5&lt;/td&gt; &lt;td&gt;1.33×&lt;/td&gt; &lt;td&gt;15.1 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;&lt;strong&gt;on&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;80.2&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;2.25×&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~15 GB&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Clean apples-to-apples for MTP alone (same llama-server, same IQ4_XS): &lt;strong&gt;45.1 (off) → 80.2 (on) = 1.78×&lt;/strong&gt;. (Speculative decoding has the main model verify each drafted token before it's emitted, so it's lossless — a throughput win, not a quality hit. The 2.25× is engine + quant + MTP stacked.)&lt;/p&gt; &lt;p&gt;A few things worth knowing for my setup:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MTP came from mainline llama.cpp, not ik_llama&lt;/strong&gt; — ik_llama got me to ~47 (engine + quant), but I couldn't get MTP going there (it rejected &lt;code&gt;-mtp&lt;/code&gt; and ignored the &lt;code&gt;nextn&lt;/code&gt; tensors). Mainline added MTP recently (PR #22673). If someone's gotten MTP under ik_llama I'd love to hear how — that's the part I couldn't crack.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Ollama's GGUF wasn't reusable&lt;/strong&gt; — Qwen3.6 changed &lt;code&gt;rope.dimension_sections&lt;/code&gt; from 3→4 elements and Ollama's blob still has the old layout, so llama.cpp refused it (&lt;code&gt;expected 4, got 3&lt;/code&gt;). Grab a converted GGUF (bartowski) instead.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;More accepted drafts ≠ faster.&lt;/strong&gt; &lt;code&gt;--spec-draft-n-max 3&lt;/code&gt; was the sweet spot (80.2); n-max 4 dropped to 70.7, and forcing acceptance up with &lt;code&gt;p-min 0.6&lt;/code&gt; got 80% accept but &lt;em&gt;fell&lt;/em&gt; to 54 tok/s. f16 KV beat q8 KV.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Honest caveats: 80.2 is this box's number; prefill is noisy (short prompt) so I'm not quoting it; bartowski Q4_K_M vs Ollama's Q4_K_M are the same quant family but different conversions; single-GPU, single-request.&lt;/p&gt; &lt;p&gt;Repro: ik_llama &lt;code&gt;bbe1a51&lt;/code&gt;, llama.cpp &lt;code&gt;e3471b3&lt;/code&gt;, both &lt;code&gt;-DCMAKE_CUDA_ARCHITECTURES=86&lt;/code&gt;; winner = &lt;code&gt;llama-server -m Qwen3.6-27B-MTP-IQ4_XS.gguf -ngl 99 -fa on --spec-type draft-mtp --spec-draft-n-max 3&lt;/code&gt;. Full writeup with the tuning table: &lt;a href="https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens"&gt;https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ollama stays my default for everyday use; this is the &amp;quot;every token/sec&amp;quot; build. What &lt;code&gt;n-max&lt;/code&gt; / draft model are you running MTP with?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Front-University4363"&gt; /u/Front-University4363 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-09T09:25:43+00:00</published>
   </entry>
   <entry>
     <id>t3_1u1dw4u</id>
@@ -281,19 +281,6 @@
     <published>2026-06-09T20:32:54+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u1pzuq</id>
-    <title>New Local AI Hosting (Recommendation Please)</title>
-    <updated>2026-06-10T02:54:27+00:00</updated>
-    <author>
-      <name>/u/TristanJJJ</name>
-      <uri>https://old.reddit.com/user/TristanJJJ</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi!! I'm new to local hosting, and would like to jump on it. Can you recommend me some models? Here are my Laptop Specs:&lt;/p&gt; &lt;p&gt;CPU: I5 13420H&lt;/p&gt; &lt;p&gt;GPU: RTX 4050 6GB (MOBILE)&lt;/p&gt; &lt;p&gt;RAM: 16GB&lt;/p&gt; &lt;p&gt;Thank you!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TristanJJJ"&gt; /u/TristanJJJ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-10T02:54:27+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u1mvrk</id>
     <title>How can you just wipe past chat instances in Ollama?</title>
     <updated>2026-06-10T00:31:04+00:00</updated>
@@ -305,6 +292,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1u1mvrk/how_can_you_just_wipe_past_chat_instances_in/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-10T00:31:04+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u1pzuq</id>
+    <title>New Local AI Hosting (Recommendation Please)</title>
+    <updated>2026-06-10T02:54:27+00:00</updated>
+    <author>
+      <name>/u/TristanJJJ</name>
+      <uri>https://old.reddit.com/user/TristanJJJ</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi!! I'm new to local hosting, and would like to jump on it. Can you recommend me some models? Here are my Laptop Specs:&lt;/p&gt; &lt;p&gt;CPU: I5 13420H&lt;/p&gt; &lt;p&gt;GPU: RTX 4050 6GB (MOBILE)&lt;/p&gt; &lt;p&gt;RAM: 16GB&lt;/p&gt; &lt;p&gt;Thank you!!!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TristanJJJ"&gt; /u/TristanJJJ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u1pzuq/new_local_ai_hosting_recommendation_please/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-10T02:54:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1u1a7gz</id>
