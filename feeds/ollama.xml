@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-06-11T02:03:40+00:00</updated>
+  <updated>2026-06-11T03:26:25+00:00</updated>
   <link href="https://old.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>t3_1u101d3</id>
-    <title>Doubled Qwen3.6-27B on a single 3090: ollama 35.7 → llama.cpp+MTP 80.2 tok/s, measured lever by lever</title>
-    <updated>2026-06-09T09:25:43+00:00</updated>
-    <author>
-      <name>/u/Front-University4363</name>
-      <uri>https://old.reddit.com/user/Front-University4363</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A reader on my last post said Ollama was leaving a clean ~2x on the table for a 27B on a 3090 — a leaner backend plus multi-token prediction (MTP). I went and measured it one lever at a time. They were right: it's a real &lt;strong&gt;2.25×&lt;/strong&gt;, and here's the path that got me there.&lt;/p&gt; &lt;p&gt;Single RTX 3090, Qwen3.6-27B, 200 tokens, flash-attention on:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;step&lt;/th&gt; &lt;th&gt;backend&lt;/th&gt; &lt;th&gt;quant&lt;/th&gt; &lt;th&gt;MTP&lt;/th&gt; &lt;th&gt;gen tok/s&lt;/th&gt; &lt;th&gt;vs ollama&lt;/th&gt; &lt;th&gt;VRAM&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;baseline&lt;/td&gt; &lt;td&gt;Ollama&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;35.7&lt;/td&gt; &lt;td&gt;1.00×&lt;/td&gt; &lt;td&gt;23.2 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;1&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;Q4_K_M&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;41.9&lt;/td&gt; &lt;td&gt;1.17×&lt;/td&gt; &lt;td&gt;17.3 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;2&lt;/td&gt; &lt;td&gt;ik_llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;47.5&lt;/td&gt; &lt;td&gt;1.33×&lt;/td&gt; &lt;td&gt;15.1 GB&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;llama.cpp&lt;/td&gt; &lt;td&gt;IQ4_XS&lt;/td&gt; &lt;td&gt;&lt;strong&gt;on&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;80.2&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;&lt;strong&gt;2.25×&lt;/strong&gt;&lt;/td&gt; &lt;td&gt;~15 GB&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Clean apples-to-apples for MTP alone (same llama-server, same IQ4_XS): &lt;strong&gt;45.1 (off) → 80.2 (on) = 1.78×&lt;/strong&gt;. (Speculative decoding has the main model verify each drafted token before it's emitted, so it's lossless — a throughput win, not a quality hit. The 2.25× is engine + quant + MTP stacked.)&lt;/p&gt; &lt;p&gt;A few things worth knowing for my setup:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MTP came from mainline llama.cpp, not ik_llama&lt;/strong&gt; — ik_llama got me to ~47 (engine + quant), but I couldn't get MTP going there (it rejected &lt;code&gt;-mtp&lt;/code&gt; and ignored the &lt;code&gt;nextn&lt;/code&gt; tensors). Mainline added MTP recently (PR #22673). If someone's gotten MTP under ik_llama I'd love to hear how — that's the part I couldn't crack.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Ollama's GGUF wasn't reusable&lt;/strong&gt; — Qwen3.6 changed &lt;code&gt;rope.dimension_sections&lt;/code&gt; from 3→4 elements and Ollama's blob still has the old layout, so llama.cpp refused it (&lt;code&gt;expected 4, got 3&lt;/code&gt;). Grab a converted GGUF (bartowski) instead.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;More accepted drafts ≠ faster.&lt;/strong&gt; &lt;code&gt;--spec-draft-n-max 3&lt;/code&gt; was the sweet spot (80.2); n-max 4 dropped to 70.7, and forcing acceptance up with &lt;code&gt;p-min 0.6&lt;/code&gt; got 80% accept but &lt;em&gt;fell&lt;/em&gt; to 54 tok/s. f16 KV beat q8 KV.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Honest caveats: 80.2 is this box's number; prefill is noisy (short prompt) so I'm not quoting it; bartowski Q4_K_M vs Ollama's Q4_K_M are the same quant family but different conversions; single-GPU, single-request.&lt;/p&gt; &lt;p&gt;Repro: ik_llama &lt;code&gt;bbe1a51&lt;/code&gt;, llama.cpp &lt;code&gt;e3471b3&lt;/code&gt;, both &lt;code&gt;-DCMAKE_CUDA_ARCHITECTURES=86&lt;/code&gt;; winner = &lt;code&gt;llama-server -m Qwen3.6-27B-MTP-IQ4_XS.gguf -ngl 99 -fa on --spec-type draft-mtp --spec-draft-n-max 3&lt;/code&gt;. Full writeup with the tuning table: &lt;a href="https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens"&gt;https://bric.pe.kr/blog/qwen3-27b-rtx-3090-llama-cpp-mtp-doubling-tokens&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ollama stays my default for everyday use; this is the &amp;quot;every token/sec&amp;quot; build. What &lt;code&gt;n-max&lt;/code&gt; / draft model are you running MTP with?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Front-University4363"&gt; /u/Front-University4363 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u101d3/doubled_qwen3627b_on_a_single_3090_ollama_357/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-09T09:25:43+00:00</published>
-  </entry>
   <entry>
     <id>t3_1u1ojyh</id>
     <title>I got tired of juggling nvtop and server logs to see what my local models were doing, so I built htop for local AI</title>
@@ -151,19 +138,6 @@
     <published>2026-06-10T15:02:13+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u2ahj4</id>
-    <title>Long term alternative to cloud LLMs?</title>
-    <updated>2026-06-10T18:24:26+00:00</updated>
-    <author>
-      <name>/u/NovelName7016</name>
-      <uri>https://old.reddit.com/user/NovelName7016</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NovelName7016"&gt; /u/NovelName7016 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ClaudeCode/comments/1u2aerm/long_term_alternative_to_cloud_llms/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2ahj4/long_term_alternative_to_cloud_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u2ahj4/long_term_alternative_to_cloud_llms/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-10T18:24:26+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u26cix</id>
     <title>Ptah — The AI Coding Orchestra | 100 Days Free</title>
     <updated>2026-06-10T16:00:25+00:00</updated>
@@ -177,6 +151,32 @@
     <published>2026-06-10T16:00:25+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u2ahj4</id>
+    <title>Long term alternative to cloud LLMs?</title>
+    <updated>2026-06-10T18:24:26+00:00</updated>
+    <author>
+      <name>/u/NovelName7016</name>
+      <uri>https://old.reddit.com/user/NovelName7016</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/NovelName7016"&gt; /u/NovelName7016 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ClaudeCode/comments/1u2aerm/long_term_alternative_to_cloud_llms/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2ahj4/long_term_alternative_to_cloud_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u2ahj4/long_term_alternative_to_cloud_llms/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-10T18:24:26+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u2bcvz</id>
+    <title>Escalate the Model, Not the Conversation</title>
+    <updated>2026-06-10T18:55:39+00:00</updated>
+    <author>
+      <name>/u/Substantial_Load_690</name>
+      <uri>https://old.reddit.com/user/Substantial_Load_690</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"&gt; &lt;img alt="Escalate the Model, Not the Conversation" src="https://preview.redd.it/c8kds3il4i6h1.png?width=140&amp;amp;height=121&amp;amp;auto=webp&amp;amp;s=1ad38ceb770b2b19eb3d0be912b1515588870880" title="Escalate the Model, Not the Conversation" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Trooper started as a fallback proxy for agents . Claude hits a quota, falls back to Ollama, session continues.&lt;/p&gt; &lt;p&gt;The interesting problem that came up wasn't model routing. It was &lt;strong&gt;context preservation.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So 4.0 adds a chat UI built around that idea. A local model handles requests by default. When it gets stuck, one click escalates to Claude with the full conversation history injected automatically. Claude answers.&lt;br /&gt; Then control returns to the local model, which continues the conversation knowing exactly what Claude said.&lt;/p&gt; &lt;p&gt;No copy-pasting. No restarting the conversation. No lost context&lt;/p&gt; &lt;p&gt;The proxy layer works unchanged for agents, SDK clients, and OpenAI-compatible applications. The UI simply makes the context transfer visible&lt;/p&gt; &lt;p&gt;&lt;a href="http://github.com/shouvik12/trooper"&gt;github.com/shouvik12/trooper&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Substantial_Load_690"&gt; /u/Substantial_Load_690 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1u2bcvz"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-10T18:55:39+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u23gmk</id>
     <title>Usage with Codex Question</title>
     <updated>2026-06-10T14:16:08+00:00</updated>
@@ -188,6 +188,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1u23gmk/usage_with_codex_question/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-10T14:16:08+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u27kgi</id>
+    <title>Openskynet: Open source browser terminator now support Ollama</title>
+    <updated>2026-06-10T16:42:56+00:00</updated>
+    <author>
+      <name>/u/jasonhon2013</name>
+      <uri>https://old.reddit.com/user/jasonhon2013</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"&gt; &lt;img alt="Openskynet: Open source browser terminator now support Ollama" src="https://preview.redd.it/amdk9a2dhh6h1.gif?width=640&amp;amp;crop=smart&amp;amp;s=42729a3652e94a846f9779e4d36fb2bda901ed8b" title="Openskynet: Open source browser terminator now support Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, we have finished the basic development of OpenSkyNet. It is a browser agent that allows you to share your browser with your agent. It can record your skills while you use the shared browser. It now supports Ollama. The demo uses Ollama Minimax M3. Hope you enjoy The Terminator! :)&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sediman-agent/OpenSkynet"&gt;https://github.com/sediman-agent/OpenSkynet&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jasonhon2013"&gt; /u/jasonhon2013 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/amdk9a2dhh6h1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-10T16:42:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1u1t5rb</id>
@@ -229,32 +242,6 @@
     <published>2026-06-10T21:20:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u27kgi</id>
-    <title>Openskynet: Open source browser terminator now support Ollama</title>
-    <updated>2026-06-10T16:42:56+00:00</updated>
-    <author>
-      <name>/u/jasonhon2013</name>
-      <uri>https://old.reddit.com/user/jasonhon2013</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"&gt; &lt;img alt="Openskynet: Open source browser terminator now support Ollama" src="https://preview.redd.it/amdk9a2dhh6h1.gif?width=640&amp;amp;crop=smart&amp;amp;s=42729a3652e94a846f9779e4d36fb2bda901ed8b" title="Openskynet: Open source browser terminator now support Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone, we have finished the basic development of OpenSkyNet. It is a browser agent that allows you to share your browser with your agent. It can record your skills while you use the shared browser. It now supports Ollama. The demo uses Ollama Minimax M3. Hope you enjoy The Terminator! :)&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sediman-agent/OpenSkynet"&gt;https://github.com/sediman-agent/OpenSkynet&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/jasonhon2013"&gt; /u/jasonhon2013 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/amdk9a2dhh6h1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u27kgi/openskynet_open_source_browser_terminator_now/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-10T16:42:56+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u2bcvz</id>
-    <title>Escalate the Model, Not the Conversation</title>
-    <updated>2026-06-10T18:55:39+00:00</updated>
-    <author>
-      <name>/u/Substantial_Load_690</name>
-      <uri>https://old.reddit.com/user/Substantial_Load_690</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"&gt; &lt;img alt="Escalate the Model, Not the Conversation" src="https://preview.redd.it/c8kds3il4i6h1.png?width=140&amp;amp;height=121&amp;amp;auto=webp&amp;amp;s=1ad38ceb770b2b19eb3d0be912b1515588870880" title="Escalate the Model, Not the Conversation" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Trooper started as a fallback proxy for agents . Claude hits a quota, falls back to Ollama, session continues.&lt;/p&gt; &lt;p&gt;The interesting problem that came up wasn't model routing. It was &lt;strong&gt;context preservation.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So 4.0 adds a chat UI built around that idea. A local model handles requests by default. When it gets stuck, one click escalates to Claude with the full conversation history injected automatically. Claude answers.&lt;br /&gt; Then control returns to the local model, which continues the conversation knowing exactly what Claude said.&lt;/p&gt; &lt;p&gt;No copy-pasting. No restarting the conversation. No lost context&lt;/p&gt; &lt;p&gt;The proxy layer works unchanged for agents, SDK clients, and OpenAI-compatible applications. The UI simply makes the context transfer visible&lt;/p&gt; &lt;p&gt;&lt;a href="http://github.com/shouvik12/trooper"&gt;github.com/shouvik12/trooper&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Substantial_Load_690"&gt; /u/Substantial_Load_690 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1u2bcvz"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u2bcvz/escalate_the_model_not_the_conversation/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-06-10T18:55:39+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u2hddy</id>
     <title>🚀 Ollama‑Orbit – Your orbital command center for multiple Ollama Cloud accounts!</title>
     <updated>2026-06-10T22:42:06+00:00</updated>
@@ -268,17 +255,17 @@
     <published>2026-06-10T22:42:06+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u2i7dh</id>
-    <title>I built a CPU-only local voice stack for AI agents (Claude Code, OpenCode, Codex) - Silero VAD + Parakeet STT + Supertonic TTS, one-command install, macOS/Linux/Windows</title>
-    <updated>2026-06-10T23:17:13+00:00</updated>
+    <id>t3_1u2modw</id>
+    <title>Running Gemma 4 QAT 12B on an 8GB GPU at 16k context — measured the KV-cache tradeoffs</title>
+    <updated>2026-06-11T02:40:05+00:00</updated>
     <author>
-      <name>/u/blackstoreonline</name>
-      <uri>https://old.reddit.com/user/blackstoreonline</uri>
+      <name>/u/Front-University4363</name>
+      <uri>https://old.reddit.com/user/Front-University4363</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/ollama"&gt;r/ollama&lt;/a&gt;!Been working on something I thought this community would appreciate — a fully local, CPU-only voice pipeline that lets you talk to AI coding agents. Sharing it here because the whole thing runs without a GPU, which I know matters to a lot of people in this sub.**What it does**One command installs a complete voice loop:• Silero VAD — ONNX neural speech detection, ~5ms per frame on any CPU. Detects exactly when you start and stop speaking so there's no manual push-to-talk.• Parakeet TDT 0.6B — ONNX INT8 transcription. 25 languages, ~200–500ms on a normal CPU laptop. Runs as an OpenAI-compatible server on :5093.• Supertonic TTS 2 — ONNX synthesis, ~100–500ms on CPU. Multilingual (EN/ES/KO/PT/FR). Lives on :8766. Sounds genuinely good.The loop is: mic → VAD endpointing → Parakeet STT → agent processes text → Supertonic TTS → audio plays → mic opens again. E2E latency is about 1.5–3s locally. No cloud, no GPU, no subscription.**Works with**Claude Code, OpenCode CLI, OpenClaw, Hermes Agent, and Codex. The installer drops the skill into each agent's skills directory automatically.**Cross-platform now**Just pushed Windows support (setup.ps1 with Task Scheduler auto-start) and Linux systemd user services alongside the existing macOS launchd setup. Interactive installer walks you through component and agent selection.**GitHub:** &lt;a href="https://github.com/groxaxo/opencode-voice-serviceThe"&gt;https://github.com/groxaxo/opencode-voice-serviceThe&lt;/a&gt; VAD tuning was the trickiest part — happy to talk through threshold settings and the ring-buffer pre-speech padding if anyone's working on something similar.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/blackstoreonline"&gt; /u/blackstoreonline &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;QAT (quantization-aware training) is the headline of the Gemma 4 release, so I ran it on actual old hardware and measured three things: quality, speed, and whether the 12B fits an 8GB card at 16k.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Quality&lt;/strong&gt; (Unsloth's top-1 agreement vs the full model, UD-Q4_K_XL vs naive Q4_0): - 12B: &lt;strong&gt;88.76% vs 74.08%&lt;/strong&gt; · E2B 98.16 vs 89.29 · 31B 96.67 vs 87.91&lt;/p&gt; &lt;p&gt;So naive 4-bit drops a lot; QAT+dynamic keeps most of it, at ~72% less memory than BF16. Honest note: that gap is vs &lt;em&gt;naive&lt;/em&gt; Q4_0 — vs a good Q4_K_M it's much smaller (on my own coarse probes I couldn't separate QAT from a solid Q4_K_M). Also: stick to UD-Q4_K_XL — Unsloth notes higher precision &lt;em&gt;degrades&lt;/em&gt; these QAT models.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Speed/size&lt;/strong&gt; on a single GTX 1080 Ti (num_ctx 8192, 100% GPU): - regular Q4: 28.3 tok/s / 7.6GB · Google QAT: 31.0 / 7.5GB · Unsloth QAT: 30.8 / 7.2GB → QAT ~9% faster, slightly smaller. Modest, but a 12B at ~30 tok/s on an 8-year-old card is the real story.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Fitting the 12B on 8GB at 16k&lt;/strong&gt; (the question I actually get asked). Weights ~7GB → ~1GB for KV. Measured footprint at 16k, single GPU, flash-attn on:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;KV cache&lt;/th&gt; &lt;th&gt;VRAM @ 16k&lt;/th&gt; &lt;th&gt;fits 8GB?&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;f16 (default)&lt;/td&gt; &lt;td&gt;7.7 GB&lt;/td&gt; &lt;td&gt;❌ no&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q8_0&lt;/td&gt; &lt;td&gt;7.4 GB&lt;/td&gt; &lt;td&gt;✅ yes (tight)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;q4_0&lt;/td&gt; &lt;td&gt;7.2 GB&lt;/td&gt; &lt;td&gt;✅ yes (margin)&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Default f16 KV won't fit once you count driver/display reserve — quantize KV to q8_0 → 7.4GB, 100% GPU, negligible quality cost. Neat detail: q8 and q4 KV differ by only ~0.2GB at 16k, because Gemma's sliding-window attention keeps the KV small — the footprint is dominated by the weights, and KV quant just buys the last bit you need to slip under 8GB.&lt;/p&gt; &lt;p&gt;Recipe: &lt;code&gt;OLLAMA_FLASH_ATTENTION=1 OLLAMA_KV_CACHE_TYPE=q8_0&lt;/code&gt; + num_ctx 16384 + all layers on GPU (verify &lt;code&gt;ollama ps&lt;/code&gt; shows 100% GPU).&lt;/p&gt; &lt;p&gt;Full writeup with the caveats: &lt;a href="https://bric.pe.kr/blog/gemma-4-qat-1080ti-8gb-12b-16k-measured"&gt;https://bric.pe.kr/blog/gemma-4-qat-1080ti-8gb-12b-16k-measured&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Anyone running the 12B QAT on 8GB cards — what KV type / context are you landing on?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Front-University4363"&gt; /u/Front-University4363 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2modw/running_gemma_4_qat_12b_on_an_8gb_gpu_at_16k/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2modw/running_gemma_4_qat_12b_on_an_8gb_gpu_at_16k/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u2modw/running_gemma_4_qat_12b_on_an_8gb_gpu_at_16k/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-06-10T23:17:13+00:00</published>
+    <published>2026-06-11T02:40:05+00:00</published>
   </entry>
   <entry>
     <id>t3_1u2cjfe</id>
@@ -318,6 +305,19 @@
     <link href="https://old.reddit.com/r/ollama/comments/1u2eskc/i_took_andrej_karpathys_llm_council_concept_to/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-06-10T21:01:15+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u2i7dh</id>
+    <title>I built a CPU-only local voice stack for AI agents (Claude Code, OpenCode, Codex) - Silero VAD + Parakeet STT + Supertonic TTS, one-command install, macOS/Linux/Windows</title>
+    <updated>2026-06-10T23:17:13+00:00</updated>
+    <author>
+      <name>/u/blackstoreonline</name>
+      <uri>https://old.reddit.com/user/blackstoreonline</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey &lt;a href="/r/ollama"&gt;r/ollama&lt;/a&gt;!Been working on something I thought this community would appreciate — a fully local, CPU-only voice pipeline that lets you talk to AI coding agents. Sharing it here because the whole thing runs without a GPU, which I know matters to a lot of people in this sub.**What it does**One command installs a complete voice loop:• Silero VAD — ONNX neural speech detection, ~5ms per frame on any CPU. Detects exactly when you start and stop speaking so there's no manual push-to-talk.• Parakeet TDT 0.6B — ONNX INT8 transcription. 25 languages, ~200–500ms on a normal CPU laptop. Runs as an OpenAI-compatible server on :5093.• Supertonic TTS 2 — ONNX synthesis, ~100–500ms on CPU. Multilingual (EN/ES/KO/PT/FR). Lives on :8766. Sounds genuinely good.The loop is: mic → VAD endpointing → Parakeet STT → agent processes text → Supertonic TTS → audio plays → mic opens again. E2E latency is about 1.5–3s locally. No cloud, no GPU, no subscription.**Works with**Claude Code, OpenCode CLI, OpenClaw, Hermes Agent, and Codex. The installer drops the skill into each agent's skills directory automatically.**Cross-platform now**Just pushed Windows support (setup.ps1 with Task Scheduler auto-start) and Linux systemd user services alongside the existing macOS launchd setup. Interactive installer walks you through component and agent selection.**GitHub:** &lt;a href="https://github.com/groxaxo/opencode-voice-serviceThe"&gt;https://github.com/groxaxo/opencode-voice-serviceThe&lt;/a&gt; VAD tuning was the trickiest part — happy to talk through threshold settings and the ring-buffer pre-speech padding if anyone's working on something similar.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/blackstoreonline"&gt; /u/blackstoreonline &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/ollama/comments/1u2i7dh/i_built_a_cpuonly_local_voice_stack_for_ai_agents/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-06-10T23:17:13+00:00</published>
   </entry>
   <entry>
     <id>t3_1u29300</id>
