@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-14T20:45:07+00:00</updated>
+  <updated>2026-06-14T21:16:48+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,17 +34,17 @@
     <published>2026-06-14T16:17:01+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5va0u</id>
-    <title>Building a CPU LLM engine in C99 - stuck at 1.90 tok/s on DeepSeek MoE while llama.cpp does 13.79. Potential root cause identified. Implementation is not.</title>
-    <updated>2026-06-14T20:07:08+00:00</updated>
+    <id>t3_1u5v8st</id>
+    <title>How are you handling memory provenance in persistent agents — verified vs. inferred facts?</title>
+    <updated>2026-06-14T20:05:48+00:00</updated>
     <author>
-      <name>/u/shifu_legend</name>
-      <uri>https://old.reddit.com/user/shifu_legend</uri>
+      <name>/u/Serious-Salary5930</name>
+      <uri>https://old.reddit.com/user/Serious-Salary5930</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;been writing an LLM inference engine in C99 from scratch - no external dependencies, single binary, CPU only. GGUF models including DeepSeek-V2-Lite-Chat Q4_K_S. got stuck hard on MoE inference performance.&lt;/p&gt; &lt;p&gt;on i5-11300H, T=4: my engine 1.90 tok/s. llama.cpp same hardware same thread count: 13.79 tok/s. 7.3x gap.&lt;/p&gt; &lt;p&gt;i know why. with perf stat, the picture is not ambiguous:&lt;/p&gt; &lt;p&gt;my IPC at T=4: 0.80. llama.cpp IPC at T=4: 2.36. both memory-bound but llama.cpp gets 7x more throughput out of the same bandwidth because it reads 8x fewer bytes per matmul.&lt;/p&gt; &lt;p&gt;my engine dequantizes Q4K weights to F32 at load time for MLA projections (4 bytes per weight at inference time), and per-call for MoE expert weights. llama.cpp's ggml_vec_dot_q4_K_q8_K reads raw Q4K bytes - 0.5 bytes per weight element - and uses _mm256_maddubs_epi16 to decode nibbles and dot-product against a Q8-quantized activation vector in one pass. no F32 intermediate. the 7.3x throughput gap almost exactly mirrors this 8x bandwidth ratio.&lt;/p&gt; &lt;p&gt;i've documented everything i tried that didn't help:&lt;/p&gt; &lt;p&gt;switching SIMD backends (avx2 vs avx512f vs vnni) - within 2% of each other because the bottleneck isn't arithmetic, it's how many bytes you're reading&lt;/p&gt; &lt;p&gt;thread count - T=4 is the sweet spot on 4 physical cores, hyperthreads add scheduling overhead without adding DRAM bandwidth&lt;/p&gt; &lt;p&gt;INT8 classifier on lm_head - real +85% gain on that one layer, net ~1.7x system improvement. doesn't close a 7x gap when lm_head is 1 of ~90 matmuls per token.&lt;/p&gt; &lt;p&gt;Q4K zero-copy for MLA projections - tried keeping MLA weights in raw Q4K format and dispatching to my existing Q4K kernel. went from 1.75 to 0.69 tok/s. existing kernel separates dequant from multiply internally, so it reads the same bytes just with extra overhead on top.&lt;/p&gt; &lt;p&gt;the one thing that would actually close the gap is a fused Q4K matvec kernel: quantize the F32 activation vector to Q8_K once per matmul, then for each superblock load 32 bytes, split lo/hi nibbles, maddubs against Q8, accumulate, apply scale. llama.cpp does this but their codebase has it interleaved with repacking, GGML graph dispatch, and a lot of context that makes it hard to extract cleanly.&lt;/p&gt; &lt;p&gt;the part i keep getting wrong is the Q4K superblock scale layout - specifically how the 6+6 bit scale pairs in the 12-byte header map to the 8 sub-groups of 32 elements. the GGUF spec describes the bit layout but the actual decode sequence in quants.c does it in a way that i'm not following correctly.&lt;/p&gt; &lt;p&gt;has anyone done this outside llama.cpp's codebase? or knows a cleaner reference for Q4K superblock scale decoding than the ggml source?&lt;/p&gt; &lt;p&gt;engine is at &lt;a href="https://github.com/shifulegend/project-zero"&gt;https://github.com/shifulegend/project-zero&lt;/a&gt; if it's useful - BENCHMARK_REPORT.md has the full graveyard of what was tried.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shifu_legend"&gt; /u/shifu_legend &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hitting a wall that isn’t recall accuracy — it’s that my agent’s memory can’t distinguish what it actually verified from what it inferred once and now treats as fact several sessions later. Old inferences get promoted to facts; superseded info comes back as current; and I can’t cleanly audit why it believed something when it acts on it.&lt;br /&gt; I’ve been rolling my own discipline: tagging memory by provenance (verified / inferred / speculative), forcing a re-check before load-bearing use, keeping claims traceable to source. Feels like I’m rebuilding something that should exist.&lt;br /&gt; Is this solved with Zep / Mem0 / Cognee / native memory and I’m missing it — or is everyone quietly building their own epistemic layer on top? Curious how others handle the “trust what it remembers” problem.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Serious-Salary5930"&gt; /u/Serious-Salary5930 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T20:07:08+00:00</published>
+    <published>2026-06-14T20:05:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1u4l98a</id>
@@ -58,19 +58,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u4l98a/when_fable_gets_banned_but_its_ok_because_youve/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-13T08:15:10+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u5p2ki</id>
-    <title>How to Run AI Locally: The Complete Beginner's Guide (2026)</title>
-    <updated>2026-06-14T16:05:34+00:00</updated>
-    <author>
-      <name>/u/totosse17</name>
-      <uri>https://old.reddit.com/user/totosse17</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"&gt; &lt;img alt="How to Run AI Locally: The Complete Beginner's Guide (2026)" src="https://external-preview.redd.it/gJfoEqkHqZ9MmvSKCORTech2TwNOJ8jNctdbMdOlafs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5e8e1613a53ad1b966ddc8c123ce7bdf582973d5" title="How to Run AI Locally: The Complete Beginner's Guide (2026)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since local AI is booming and more people come and ask the same questions, I created a guide.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/totosse17"&gt; /u/totosse17 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://llmrequirements.com/beginners-guide-to-local-ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T16:05:34+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5ptsr</id>
@@ -125,6 +112,19 @@
     <published>2026-06-14T02:53:58+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u5p2ki</id>
+    <title>How to Run AI Locally: The Complete Beginner's Guide (2026)</title>
+    <updated>2026-06-14T16:05:34+00:00</updated>
+    <author>
+      <name>/u/totosse17</name>
+      <uri>https://old.reddit.com/user/totosse17</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"&gt; &lt;img alt="How to Run AI Locally: The Complete Beginner's Guide (2026)" src="https://external-preview.redd.it/gJfoEqkHqZ9MmvSKCORTech2TwNOJ8jNctdbMdOlafs.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5e8e1613a53ad1b966ddc8c123ce7bdf582973d5" title="How to Run AI Locally: The Complete Beginner's Guide (2026)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Since local AI is booming and more people come and ask the same questions, I created a guide.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/totosse17"&gt; /u/totosse17 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://llmrequirements.com/beginners-guide-to-local-ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5p2ki/how_to_run_ai_locally_the_complete_beginners/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T16:05:34+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u5r2ae</id>
     <title>Strange numbers of pp and tg rx7900xtx on ROCm and Vulcan with Qwen3.6-27b nonMTP and MTP</title>
     <updated>2026-06-14T17:23:51+00:00</updated>
@@ -138,6 +138,19 @@
     <published>2026-06-14T17:23:51+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u5ul4k</id>
+    <title>Gemma 4 models benchmarked on with Triple GPU</title>
+    <updated>2026-06-14T19:39:41+00:00</updated>
+    <author>
+      <name>/u/tabletuser_blogspot</name>
+      <uri>https://old.reddit.com/user/tabletuser_blogspot</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hearing good things about Gemma 4. Ran a few models across my llama box. &lt;/p&gt; &lt;p&gt;Kubuntu 26.04 OS.&lt;br /&gt; AMD Ryzen 5 3600 6-core CPU.&lt;br /&gt; 48 GiB of DDR4 3600 Mhz RAM.&lt;br /&gt; &lt;a href="https://www.techpowerup.com/gpu-specs/geforce-gtx-1070.c2840"&gt;Nvidia GTX-1070&lt;/a&gt; at 8GiB VRAM ( X 3 ) with 24GiB total VRAM.&lt;/p&gt; &lt;p&gt;GPUs have power limit set to 120, 121, 122 watts using:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo nvidia-smi -i 0 -pl 120, sudo nvidia-smi -i 1 -pl 121, sudo nvidia-smi -i 2 -pl 122&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It's about a 5% performance hit for inference, but my power supply appreciates it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases"&gt;https://github.com/ggml-org/llama.cpp/releases&lt;/a&gt;.&lt;br /&gt; build: 726704a16 (9204).&lt;br /&gt; llama-b9204 Vulkan t&lt;/p&gt; &lt;h1&gt;GGUF Models Used, Size, and time to benchmark&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;GGUF Model&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Real Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-31B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;17.52 GiB&lt;/td&gt; &lt;td align="left"&gt;3m35.477s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-12b-it-UD-Q8_K_XL&lt;/td&gt; &lt;td align="left"&gt;12.69 GiB&lt;/td&gt; &lt;td align="left"&gt;1m58.800s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;15.83 GiB&lt;/td&gt; &lt;td align="left"&gt;1m44.697s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;13.26 GiB&lt;/td&gt; &lt;td align="left"&gt;1m29.604s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-E4B-it-BF16&lt;/td&gt; &lt;td align="left"&gt;14.00 GiB&lt;/td&gt; &lt;td align="left"&gt;1m46.234s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Gemma 4 Benchmark Results Summary&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model &lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;pp512 (t/s)&lt;/th&gt; &lt;th align="left"&gt;tg128 (t/s)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;31B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;17.52&lt;/td&gt; &lt;td align="left"&gt;30.70&lt;/td&gt; &lt;td align="left"&gt;56.21&lt;/td&gt; &lt;td align="left"&gt;7.12&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;12B Q8_0&lt;/td&gt; &lt;td align="left"&gt;12.69&lt;/td&gt; &lt;td align="left"&gt;11.91&lt;/td&gt; &lt;td align="left"&gt;128.85&lt;/td&gt; &lt;td align="left"&gt;13.47&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;15.83&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;114.05&lt;/td&gt; &lt;td align="left"&gt;41.28&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_0 QAT&lt;/td&gt; &lt;td align="left"&gt;13.26&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;123.50&lt;/td&gt; &lt;td align="left"&gt;53.08&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;E4B BF16&lt;/td&gt; &lt;td align="left"&gt;14.00&lt;/td&gt; &lt;td align="left"&gt;7.52&lt;/td&gt; &lt;td align="left"&gt;302.16&lt;/td&gt; &lt;td align="left"&gt;11.54&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Three Nvidia GTX-1070 running in 16x, 4x and 1x. One card sits on a PCIe 1x extender that I used for past mining expeditions. Model load time are slowed but was consistent in inference speed. The &lt;a href="https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF"&gt;Gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/a&gt; model showed great speed and has been very accurate for coding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tabletuser_blogspot"&gt; /u/tabletuser_blogspot &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T19:39:41+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u5lfvv</id>
     <title>Built a local AI assistant because I always knew this day would come, yesterday just made it feel very real</title>
     <updated>2026-06-14T13:39:00+00:00</updated>
@@ -149,19 +162,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5lfvv/built_a_local_ai_assistant_because_i_always_knew/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T13:39:00+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u5v8st</id>
-    <title>How are you handling memory provenance in persistent agents — verified vs. inferred facts?</title>
-    <updated>2026-06-14T20:05:48+00:00</updated>
-    <author>
-      <name>/u/Serious-Salary5930</name>
-      <uri>https://old.reddit.com/user/Serious-Salary5930</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hitting a wall that isn’t recall accuracy — it’s that my agent’s memory can’t distinguish what it actually verified from what it inferred once and now treats as fact several sessions later. Old inferences get promoted to facts; superseded info comes back as current; and I can’t cleanly audit why it believed something when it acts on it.&lt;br /&gt; I’ve been rolling my own discipline: tagging memory by provenance (verified / inferred / speculative), forcing a re-check before load-bearing use, keeping claims traceable to source. Feels like I’m rebuilding something that should exist.&lt;br /&gt; Is this solved with Zep / Mem0 / Cognee / native memory and I’m missing it — or is everyone quietly building their own epistemic layer on top? Curious how others handle the “trust what it remembers” problem.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Serious-Salary5930"&gt; /u/Serious-Salary5930 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5v8st/how_are_you_handling_memory_provenance_in/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T20:05:48+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5svlh</id>
@@ -190,17 +190,17 @@
     <published>2026-06-13T17:32:55+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5ul4k</id>
-    <title>Gemma 4 models benchmarked on with Triple GPU</title>
-    <updated>2026-06-14T19:39:41+00:00</updated>
+    <id>t3_1u5g9pr</id>
+    <title>Dual DGX Sparks- 40tk/s single 1M ; 350 tk/s agg. - Deepseek V4 Flash (vs RTX Pro 6000 vs Mac M2 Ultra 192)</title>
+    <updated>2026-06-14T09:07:57+00:00</updated>
     <author>
-      <name>/u/tabletuser_blogspot</name>
-      <uri>https://old.reddit.com/user/tabletuser_blogspot</uri>
+      <name>/u/elsung</name>
+      <uri>https://old.reddit.com/user/elsung</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hearing good things about Gemma 4. Ran a few models across my llama box. &lt;/p&gt; &lt;p&gt;Kubuntu 26.04 OS.&lt;br /&gt; AMD Ryzen 5 3600 6-core CPU.&lt;br /&gt; 48 GiB of DDR4 3600 Mhz RAM.&lt;br /&gt; &lt;a href="https://www.techpowerup.com/gpu-specs/geforce-gtx-1070.c2840"&gt;Nvidia GTX-1070&lt;/a&gt; at 8GiB VRAM ( X 3 ) with 24GiB total VRAM.&lt;/p&gt; &lt;p&gt;GPUs have power limit set to 120, 121, 122 watts using:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo nvidia-smi -i 0 -pl 120, sudo nvidia-smi -i 1 -pl 121, sudo nvidia-smi -i 2 -pl 122&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It's about a 5% performance hit for inference, but my power supply appreciates it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases"&gt;https://github.com/ggml-org/llama.cpp/releases&lt;/a&gt;.&lt;br /&gt; build: 726704a16 (9204).&lt;br /&gt; llama-b9204 Vulkan t&lt;/p&gt; &lt;h1&gt;GGUF Models Used, Size, and time to benchmark&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;GGUF Model&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Real Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-31B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;17.52 GiB&lt;/td&gt; &lt;td align="left"&gt;3m35.477s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-12b-it-UD-Q8_K_XL&lt;/td&gt; &lt;td align="left"&gt;12.69 GiB&lt;/td&gt; &lt;td align="left"&gt;1m58.800s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;15.83 GiB&lt;/td&gt; &lt;td align="left"&gt;1m44.697s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;13.26 GiB&lt;/td&gt; &lt;td align="left"&gt;1m29.604s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-E4B-it-BF16&lt;/td&gt; &lt;td align="left"&gt;14.00 GiB&lt;/td&gt; &lt;td align="left"&gt;1m46.234s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Gemma 4 Benchmark Results Summary&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model &lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;pp512 (t/s)&lt;/th&gt; &lt;th align="left"&gt;tg128 (t/s)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;31B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;17.52&lt;/td&gt; &lt;td align="left"&gt;30.70&lt;/td&gt; &lt;td align="left"&gt;56.21&lt;/td&gt; &lt;td align="left"&gt;7.12&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;12B Q8_0&lt;/td&gt; &lt;td align="left"&gt;12.69&lt;/td&gt; &lt;td align="left"&gt;11.91&lt;/td&gt; &lt;td align="left"&gt;128.85&lt;/td&gt; &lt;td align="left"&gt;13.47&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;15.83&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;114.05&lt;/td&gt; &lt;td align="left"&gt;41.28&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_0 QAT&lt;/td&gt; &lt;td align="left"&gt;13.26&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;123.50&lt;/td&gt; &lt;td align="left"&gt;53.08&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;E4B BF16&lt;/td&gt; &lt;td align="left"&gt;14.00&lt;/td&gt; &lt;td align="left"&gt;7.52&lt;/td&gt; &lt;td align="left"&gt;302.16&lt;/td&gt; &lt;td align="left"&gt;11.54&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Three Nvidia GTX-1070 running in 16x, 4x and 1x. One card sits on a PCIe 1x extender that I used for past mining expeditions. Model load time are slowed but was consistent in inference speed. The &lt;a href="https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF"&gt;Gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/a&gt; model showed great speed and has been very accurate for coding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tabletuser_blogspot"&gt; /u/tabletuser_blogspot &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First of all shout out to Aiden/Antirez &amp;amp; geniuses at the Nvidia community threads. I'm merely claude-vibing off of their works.&lt;/p&gt; &lt;p&gt;That a said, i thought i'd share recipes &amp;amp; learnings &amp;amp; benchmarks so far on running big MOE models on two dgx sparks at a reasonable speed for agent use:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/elsung/dgx-spark-deepseek-v4-flash"&gt;https://github.com/elsung/dgx-spark-deepseek-v4-flash&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The kicker here is that you need &lt;strong&gt;2 DGX sparks&lt;/strong&gt; to really get the speed we need, and you have to spend the &lt;strong&gt;$180&lt;/strong&gt; on that single cable for 200G/s over connectx7 in order to get this speed.&lt;/p&gt; &lt;p&gt;BUT, being able to run ~40tk/s on a model that is arguably in the same playpen as the frontiers is exciting and something myself and others probably have been striving/dreaming about for some time now.&lt;/p&gt; &lt;p&gt;I also put in benchmarks against the RTX Pro 6000 and the Mac M2 Ultra 192GB.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TLDR;&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Machine&lt;/th&gt; &lt;th align="left"&gt;engine / quant&lt;/th&gt; &lt;th align="left"&gt;decode t/s&lt;/th&gt; &lt;th align="left"&gt;prefill t/s&lt;/th&gt; &lt;th align="left"&gt;concurrency&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;RTX PRO 6000 (96 GB GDDR7)&lt;/td&gt; &lt;td align="left"&gt;ds4.c&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;46.9&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;344&lt;/td&gt; &lt;td align="left"&gt;single-stream only&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;2× DGX Spark&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;vLLM &lt;strong&gt;FP8&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;~41&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;~1785&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;~350 agg @ c=32&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Mac Studio M2 Ultra (192 GB)&lt;/td&gt; &lt;td align="left"&gt;ds4.c&lt;/td&gt; &lt;td align="left"&gt;29.7&lt;/td&gt; &lt;td align="left"&gt;389&lt;/td&gt; &lt;td align="left"&gt;single-stream only&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;1× DGX Spark&lt;/td&gt; &lt;td align="left"&gt;ds4.c IQ2_XXS&lt;/td&gt; &lt;td align="left"&gt;~14&lt;/td&gt; &lt;td align="left"&gt;410&lt;/td&gt; &lt;td align="left"&gt;single-stream&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;2x DGX wins cuz FP8 &amp;amp; fast and can run concurrent.&lt;/p&gt; &lt;p&gt;up to 350 tk/s aggregate running 32 requests at 256k context each.&lt;/p&gt; &lt;p&gt;Hopefully this is useful for other folks~&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Credit links / Threads&lt;/strong&gt; &lt;em&gt;(ongoing discussions here)&lt;/em&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Antirez &amp;amp; his awesome work&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://github.com/antirez/ds4"&gt;https://github.com/antirez/ds4&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Aiden thread &amp;amp; DGX threads i found via Nvidia Communty threads:&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://forums.developer.nvidia.com/t/deepseek-v4-flash-aiden-recipe-from-reddit-1m-token-session-operational-cuda-12-1-tailored-for-dgx-spark-gb10/372268/61"&gt;https://forums.developer.nvidia.com/t/deepseek-v4-flash-aiden-recipe-from-reddit-1m-token-session-operational-cuda-12-1-tailored-for-dgx-spark-gb10/372268/61&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://forums.developer.nvidia.com/t/deepseek-v4-flash-official-fp8-running-across-2x-dgx-spark-tp-2-mtp-200k-ctx-recipe-numbers/370309"&gt;https://forums.developer.nvidia.com/t/deepseek-v4-flash-official-fp8-running-across-2x-dgx-spark-tp-2-mtp-200k-ctx-recipe-numbers/370309&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;[EDITED TLDR for corrections / clarifications. also updated Github with longer-context benchmarks]&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/elsung"&gt; /u/elsung &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T19:39:41+00:00</published>
+    <published>2026-06-14T09:07:57+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5sdxx</id>
@@ -216,17 +216,17 @@
     <published>2026-06-14T18:15:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5g9pr</id>
-    <title>Dual DGX Sparks- 40tk/s single 1M ; 350 tk/s agg. - Deepseek V4 Flash (vs RTX Pro 6000 vs Mac M2 Ultra 192)</title>
-    <updated>2026-06-14T09:07:57+00:00</updated>
+    <id>t3_1u55rzy</id>
+    <title>Open source AI Must Win</title>
+    <updated>2026-06-13T23:49:23+00:00</updated>
     <author>
-      <name>/u/elsung</name>
-      <uri>https://old.reddit.com/user/elsung</uri>
+      <name>/u/rm-rf-rm</name>
+      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;First of all shout out to Aiden/Antirez &amp;amp; geniuses at the Nvidia community threads. I'm merely claude-vibing off of their works.&lt;/p&gt; &lt;p&gt;That a said, i thought i'd share recipes &amp;amp; learnings &amp;amp; benchmarks so far on running big MOE models on two dgx sparks at a reasonable speed for agent use:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/elsung/dgx-spark-deepseek-v4-flash"&gt;https://github.com/elsung/dgx-spark-deepseek-v4-flash&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The kicker here is that you need &lt;strong&gt;2 DGX sparks&lt;/strong&gt; to really get the speed we need, and you have to spend the &lt;strong&gt;$180&lt;/strong&gt; on that single cable for 200G/s over connectx7 in order to get this speed.&lt;/p&gt; &lt;p&gt;BUT, being able to run ~40tk/s on a model that is arguably in the same playpen as the frontiers is exciting and something myself and others probably have been striving/dreaming about for some time now.&lt;/p&gt; &lt;p&gt;I also put in benchmarks against the RTX Pro 6000 and the Mac M2 Ultra 192GB.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TLDR;&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Machine&lt;/th&gt; &lt;th align="left"&gt;engine / quant&lt;/th&gt; &lt;th align="left"&gt;decode t/s&lt;/th&gt; &lt;th align="left"&gt;prefill t/s&lt;/th&gt; &lt;th align="left"&gt;concurrency&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;RTX PRO 6000 (96 GB GDDR7)&lt;/td&gt; &lt;td align="left"&gt;ds4.c&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;46.9&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;344&lt;/td&gt; &lt;td align="left"&gt;single-stream only&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;2× DGX Spark&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;vLLM &lt;strong&gt;FP8&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;~41&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;~1785&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;~350 agg @ c=32&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Mac Studio M2 Ultra (192 GB)&lt;/td&gt; &lt;td align="left"&gt;ds4.c&lt;/td&gt; &lt;td align="left"&gt;29.7&lt;/td&gt; &lt;td align="left"&gt;389&lt;/td&gt; &lt;td align="left"&gt;single-stream only&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;1× DGX Spark&lt;/td&gt; &lt;td align="left"&gt;ds4.c IQ2_XXS&lt;/td&gt; &lt;td align="left"&gt;~14&lt;/td&gt; &lt;td align="left"&gt;410&lt;/td&gt; &lt;td align="left"&gt;single-stream&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;2x DGX wins cuz FP8 &amp;amp; fast and can run concurrent.&lt;/p&gt; &lt;p&gt;up to 350 tk/s aggregate running 32 requests at 256k context each.&lt;/p&gt; &lt;p&gt;Hopefully this is useful for other folks~&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Credit links / Threads&lt;/strong&gt; &lt;em&gt;(ongoing discussions here)&lt;/em&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Antirez &amp;amp; his awesome work&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://github.com/antirez/ds4"&gt;https://github.com/antirez/ds4&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Aiden thread &amp;amp; DGX threads i found via Nvidia Communty threads:&lt;/strong&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://forums.developer.nvidia.com/t/deepseek-v4-flash-aiden-recipe-from-reddit-1m-token-session-operational-cuda-12-1-tailored-for-dgx-spark-gb10/372268/61"&gt;https://forums.developer.nvidia.com/t/deepseek-v4-flash-aiden-recipe-from-reddit-1m-token-session-operational-cuda-12-1-tailored-for-dgx-spark-gb10/372268/61&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://forums.developer.nvidia.com/t/deepseek-v4-flash-official-fp8-running-across-2x-dgx-spark-tp-2-mtp-200k-ctx-recipe-numbers/370309"&gt;https://forums.developer.nvidia.com/t/deepseek-v4-flash-official-fp8-running-across-2x-dgx-spark-tp-2-mtp-200k-ctx-recipe-numbers/370309&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;[EDITED TLDR for corrections / clarifications. also updated Github with longer-context benchmarks]&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/elsung"&gt; /u/elsung &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"&gt; &lt;img alt="Open source AI Must Win" src="https://external-preview.redd.it/v-Q4hE8-ARuZKlxx6nv-gjP_Nu-MOjb_XM952Js3xf0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5ff3c3a16aa46f9dfa71780a3014be55becb1036" title="Open source AI Must Win" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://opensourceaimustwin.com/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T09:07:57+00:00</published>
+    <published>2026-06-13T23:49:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5vqpl</id>
@@ -240,19 +240,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T20:25:37+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u55rzy</id>
-    <title>Open source AI Must Win</title>
-    <updated>2026-06-13T23:49:23+00:00</updated>
-    <author>
-      <name>/u/rm-rf-rm</name>
-      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"&gt; &lt;img alt="Open source AI Must Win" src="https://external-preview.redd.it/v-Q4hE8-ARuZKlxx6nv-gjP_Nu-MOjb_XM952Js3xf0.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5ff3c3a16aa46f9dfa71780a3014be55becb1036" title="Open source AI Must Win" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://opensourceaimustwin.com/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-13T23:49:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5fv6n</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5mfaq/you_can_run_deepseek_4_flash_on_mac_m3_max_96gb/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T14:20:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u5wous</id>
+    <title>z.ai Poll on X: MIT-licensed open weights are losing</title>
+    <updated>2026-06-14T21:03:23+00:00</updated>
+    <author>
+      <name>/u/MadPelmewka</name>
+      <uri>https://old.reddit.com/user/MadPelmewka</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5wous/zai_poll_on_x_mitlicensed_open_weights_are_losing/"&gt; &lt;img alt="z.ai Poll on X: MIT-licensed open weights are losing" src="https://preview.redd.it/rtm5a98mbb7h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e71c815af8a913e465888e76bae21f8e6bdcc740" title="z.ai Poll on X: MIT-licensed open weights are losing" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;You can cast your vote here: &lt;a href="https://x.com/ZixuanLi_/status/2065646648777416770#m"&gt;https://x.com/ZixuanLi_/status/2065646648777416770#m&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Just to be clear: I am not urging or brigading anyone to vote specifically for MIT-licensed open weights.&lt;/p&gt; &lt;p&gt;Please choose the option you genuinely prefer. I previously shared this in another post, but since it wasn't the main topic there, many people missed it.&lt;/p&gt; &lt;p&gt;There are only 7 hours remaining in the poll, with 1,800 votes cast so far.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MadPelmewka"&gt; /u/MadPelmewka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rtm5a98mbb7h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5wous/zai_poll_on_x_mitlicensed_open_weights_are_losing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5wous/zai_poll_on_x_mitlicensed_open_weights_are_losing/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T21:03:23+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5jtr8</id>
