@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-14T22:32:59+00:00</updated>
+  <updated>2026-06-14T23:10:07+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -99,19 +99,6 @@
     <published>2026-06-14T02:53:58+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5va0u</id>
-    <title>Building a CPU LLM engine in C99 - stuck at 1.90 tok/s on DeepSeek MoE while llama.cpp does 13.79. Potential root cause identified. Implementation is not.</title>
-    <updated>2026-06-14T20:07:08+00:00</updated>
-    <author>
-      <name>/u/shifu_legend</name>
-      <uri>https://old.reddit.com/user/shifu_legend</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;been writing an LLM inference engine in C99 from scratch - no external dependencies, single binary, CPU only. GGUF models including DeepSeek-V2-Lite-Chat Q4_K_S. got stuck hard on MoE inference performance.&lt;/p&gt; &lt;p&gt;on i5-11300H, T=4: my engine 1.90 tok/s. llama.cpp same hardware same thread count: 13.79 tok/s. 7.3x gap.&lt;/p&gt; &lt;p&gt;i know why. with perf stat, the picture is not ambiguous:&lt;/p&gt; &lt;p&gt;my IPC at T=4: 0.80. llama.cpp IPC at T=4: 2.36. both memory-bound but llama.cpp gets 7x more throughput out of the same bandwidth because it reads 8x fewer bytes per matmul.&lt;/p&gt; &lt;p&gt;my engine dequantizes Q4K weights to F32 at load time for MLA projections (4 bytes per weight at inference time), and per-call for MoE expert weights. llama.cpp's ggml_vec_dot_q4_K_q8_K reads raw Q4K bytes - 0.5 bytes per weight element - and uses _mm256_maddubs_epi16 to decode nibbles and dot-product against a Q8-quantized activation vector in one pass. no F32 intermediate. the 7.3x throughput gap almost exactly mirrors this 8x bandwidth ratio.&lt;/p&gt; &lt;p&gt;i've documented everything i tried that didn't help:&lt;/p&gt; &lt;p&gt;switching SIMD backends (avx2 vs avx512f vs vnni) - within 2% of each other because the bottleneck isn't arithmetic, it's how many bytes you're reading&lt;/p&gt; &lt;p&gt;thread count - T=4 is the sweet spot on 4 physical cores, hyperthreads add scheduling overhead without adding DRAM bandwidth&lt;/p&gt; &lt;p&gt;INT8 classifier on lm_head - real +85% gain on that one layer, net ~1.7x system improvement. doesn't close a 7x gap when lm_head is 1 of ~90 matmuls per token.&lt;/p&gt; &lt;p&gt;Q4K zero-copy for MLA projections - tried keeping MLA weights in raw Q4K format and dispatching to my existing Q4K kernel. went from 1.75 to 0.69 tok/s. existing kernel separates dequant from multiply internally, so it reads the same bytes just with extra overhead on top.&lt;/p&gt; &lt;p&gt;the one thing that would actually close the gap is a fused Q4K matvec kernel: quantize the F32 activation vector to Q8_K once per matmul, then for each superblock load 32 bytes, split lo/hi nibbles, maddubs against Q8, accumulate, apply scale. llama.cpp does this but their codebase has it interleaved with repacking, GGML graph dispatch, and a lot of context that makes it hard to extract cleanly.&lt;/p&gt; &lt;p&gt;the part i keep getting wrong is the Q4K superblock scale layout - specifically how the 6+6 bit scale pairs in the 12-byte header map to the 8 sub-groups of 32 elements. the GGUF spec describes the bit layout but the actual decode sequence in quants.c does it in a way that i'm not following correctly.&lt;/p&gt; &lt;p&gt;has anyone done this outside llama.cpp's codebase? or knows a cleaner reference for Q4K superblock scale decoding than the ggml source?&lt;/p&gt; &lt;p&gt;engine is at &lt;a href="https://github.com/shifulegend/project-zero"&gt;https://github.com/shifulegend/project-zero&lt;/a&gt; if it's useful - BENCHMARK_REPORT.md has the full graveyard of what was tried.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/shifu_legend"&gt; /u/shifu_legend &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5va0u/building_a_cpu_llm_engine_in_c99_stuck_at_190/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T20:07:08+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u5r2ae</id>
     <title>Strange numbers of pp and tg rx7900xtx on ROCm and Vulcan with Qwen3.6-27b nonMTP and MTP</title>
     <updated>2026-06-14T17:23:51+00:00</updated>
@@ -177,6 +164,19 @@
     <published>2026-06-14T19:39:41+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u5z4j0</id>
+    <title>EAGLE support merged into llama.cpp</title>
+    <updated>2026-06-14T22:45:12+00:00</updated>
+    <author>
+      <name>/u/Diablo-D3</name>
+      <uri>https://old.reddit.com/user/Diablo-D3</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5z4j0/eagle_support_merged_into_llamacpp/"&gt; &lt;img alt="EAGLE support merged into llama.cpp" src="https://external-preview.redd.it/uT_6SPeN6jTZGDqzsF5PxK8_Inu9upQa--7jeVQM0zU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=84882c7e49c774bb22b39228d0f126e972bfe4ce" title="EAGLE support merged into llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Diablo-D3"&gt; /u/Diablo-D3 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9606"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5z4j0/eagle_support_merged_into_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5z4j0/eagle_support_merged_into_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T22:45:12+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u5g9pr</id>
     <title>Dual DGX Sparks- 40tk/s single 1M ; 350 tk/s agg. - Deepseek V4 Flash (vs RTX Pro 6000 vs Mac M2 Ultra 192)</title>
     <updated>2026-06-14T09:07:57+00:00</updated>
@@ -201,19 +201,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u55rzy/open_source_ai_must_win/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-13T23:49:23+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u5xd7x</id>
-    <title>Qwen 3.6 35B-A3B @ Q4 or Gemma 4 12B @ Q8?</title>
-    <updated>2026-06-14T21:30:44+00:00</updated>
-    <author>
-      <name>/u/mailto_devnull</name>
-      <uri>https://old.reddit.com/user/mailto_devnull</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Wondering how much model quantization matters here. Daily driver on my 32gb unified memory setup is the qwen model outputting ~15 tokens a second.&lt;/p&gt; &lt;p&gt;Heard good things about the 12B Gemma 4 model so interested in trying it against my codebase. Given its size I can very comfortably fit the Q8 in. Hell, I could probably run it at BF16 lol&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mailto_devnull"&gt; /u/mailto_devnull &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T21:30:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5sdxx</id>
@@ -242,17 +229,17 @@
     <published>2026-06-14T08:42:28+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5vqpl</id>
-    <title>Nemotron - King of the Deep? Comparison of 4 models &lt;=120B</title>
-    <updated>2026-06-14T20:25:37+00:00</updated>
+    <id>t3_1u5xd7x</id>
+    <title>Qwen 3.6 35B-A3B @ Q4 or Gemma 4 12B @ Q8?</title>
+    <updated>2026-06-14T21:30:44+00:00</updated>
     <author>
-      <name>/u/Reasonable_Goat</name>
-      <uri>https://old.reddit.com/user/Reasonable_Goat</uri>
+      <name>/u/mailto_devnull</name>
+      <uri>https://old.reddit.com/user/mailto_devnull</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"&gt; &lt;img alt="Nemotron - King of the Deep? Comparison of 4 models &amp;lt;=120B" src="https://preview.redd.it/7lw6rt9z1b7h1.png?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=fe3acd465e89d8864cfdb1dc301188256231bb9f" title="Nemotron - King of the Deep? Comparison of 4 models &amp;lt;=120B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Comparison was done on Strix Halo 128gb shared memory, Ubuntu 26.04, Lemonade Server, Vulkan backend.&lt;/p&gt; &lt;p&gt;I often run larger models like gpt-oss 120B or qwen but their performance seems to degrate quickly once in deep waters... ah.. deep context. The most important quality to me is prompt processing - we are talking existing code and context quickly fills up when analyzing it for a change request / bugfix. In existing code, I think 95-99% is PP and 1-5% is TG of the total time. I tried Nemotron Super (120B) recently and liked the quality, speed was decent but to my surprise I felt it handled deeper context (~100k) way better than what I am used to with similar models. To falsify that subjective impression, ran llama-bench with the three competitors in the 120B class (GPT-OSS, qwen 3.5, and Nemotron) and, mostly as a comparison, the popular smaller/weaker/faster Qwen 3.6 35B model. As a subjective baseline I set 100 TPS PP as &amp;quot;usable&amp;quot; and stopped the benchmark if the model fell below it. Also, I should mention that the max context varies by model: GPT-OSS can handle max ~128K, Qwen 3.5/6 can handle ~256K, but Nemotron up to 400k Tokens context depth.&lt;/p&gt; &lt;p&gt;My main conclusions are: My feeling was right, Nemotron Super handles deep context exceptionally well, compared to the others. The &amp;quot;speed king&amp;quot; GPT-OSS 120B looses speed so fast that Nemotron Super surpasses it in PP at 32K depth. QWEN 3.5 122B A10B is surpassed almost immediatelly at 16K depth. Even Qwen 3.6 35B A3B's PP is on par at the model's max context of ~256k context, surprisingly.&lt;/p&gt; &lt;p&gt;At token generation speed (IMO not as important), Nemotron Super starts usable (IMO &amp;gt;~10 TG TPS) but not yet really &amp;quot;fun&amp;quot; (IMO &amp;gt;~20 TG TPS) to use. It degrates slowly to &amp;quot;barely usable&amp;quot; according to that definition at ~400k context depth - which is stll impressive if you ask me. The most direct competitor Qwen 3.5 122B A10B is about as slow at 128k context. Note that I didn't enable MTP, though.&lt;/p&gt; &lt;p&gt;If you need high TG, Nemotron is not the best model for context below 128k; if you mainly need PP and a larger model, Nemotron seems a reasonable choice. The fallback if you don't need that large a model is obviously the smaller Qwen 3.6 variants like 35B.&lt;/p&gt; &lt;p&gt;Has anyone different results? Maybe with rocm? Any tweaking I didn't consider?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Reasonable_Goat"&gt; /u/Reasonable_Goat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1u5vqpl"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Wondering how much model quantization matters here. Daily driver on my 32gb unified memory setup is the qwen model outputting ~15 tokens a second.&lt;/p&gt; &lt;p&gt;Heard good things about the 12B Gemma 4 model so interested in trying it against my codebase. Given its size I can very comfortably fit the Q8 in. Hell, I could probably run it at BF16 lol&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mailto_devnull"&gt; /u/mailto_devnull &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5xd7x/qwen_36_35ba3b_q4_or_gemma_4_12b_q8/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T20:25:37+00:00</published>
+    <published>2026-06-14T21:30:44+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5uqsc</id>
@@ -266,6 +253,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T19:45:56+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u5vqpl</id>
+    <title>Nemotron - King of the Deep? Comparison of 4 models &lt;=120B</title>
+    <updated>2026-06-14T20:25:37+00:00</updated>
+    <author>
+      <name>/u/Reasonable_Goat</name>
+      <uri>https://old.reddit.com/user/Reasonable_Goat</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"&gt; &lt;img alt="Nemotron - King of the Deep? Comparison of 4 models &amp;lt;=120B" src="https://preview.redd.it/7lw6rt9z1b7h1.png?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=fe3acd465e89d8864cfdb1dc301188256231bb9f" title="Nemotron - King of the Deep? Comparison of 4 models &amp;lt;=120B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Comparison was done on Strix Halo 128gb shared memory, Ubuntu 26.04, Lemonade Server, Vulkan backend.&lt;/p&gt; &lt;p&gt;I often run larger models like gpt-oss 120B or qwen but their performance seems to degrate quickly once in deep waters... ah.. deep context. The most important quality to me is prompt processing - we are talking existing code and context quickly fills up when analyzing it for a change request / bugfix. In existing code, I think 95-99% is PP and 1-5% is TG of the total time. I tried Nemotron Super (120B) recently and liked the quality, speed was decent but to my surprise I felt it handled deeper context (~100k) way better than what I am used to with similar models. To falsify that subjective impression, ran llama-bench with the three competitors in the 120B class (GPT-OSS, qwen 3.5, and Nemotron) and, mostly as a comparison, the popular smaller/weaker/faster Qwen 3.6 35B model. As a subjective baseline I set 100 TPS PP as &amp;quot;usable&amp;quot; and stopped the benchmark if the model fell below it. Also, I should mention that the max context varies by model: GPT-OSS can handle max ~128K, Qwen 3.5/6 can handle ~256K, but Nemotron up to 400k Tokens context depth.&lt;/p&gt; &lt;p&gt;My main conclusions are: My feeling was right, Nemotron Super handles deep context exceptionally well, compared to the others. The &amp;quot;speed king&amp;quot; GPT-OSS 120B looses speed so fast that Nemotron Super surpasses it in PP at 32K depth. QWEN 3.5 122B A10B is surpassed almost immediatelly at 16K depth. Even Qwen 3.6 35B A3B's PP is on par at the model's max context of ~256k context, surprisingly.&lt;/p&gt; &lt;p&gt;At token generation speed (IMO not as important), Nemotron Super starts usable (IMO &amp;gt;~10 TG TPS) but not yet really &amp;quot;fun&amp;quot; (IMO &amp;gt;~20 TG TPS) to use. It degrates slowly to &amp;quot;barely usable&amp;quot; according to that definition at ~400k context depth - which is stll impressive if you ask me. The most direct competitor Qwen 3.5 122B A10B is about as slow at 128k context. Note that I didn't enable MTP, though.&lt;/p&gt; &lt;p&gt;If you need high TG, Nemotron is not the best model for context below 128k; if you mainly need PP and a larger model, Nemotron seems a reasonable choice. The fallback if you don't need that large a model is obviously the smaller Qwen 3.6 variants like 35B.&lt;/p&gt; &lt;p&gt;Has anyone different results? Maybe with rocm? Any tweaking I didn't consider?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Reasonable_Goat"&gt; /u/Reasonable_Goat &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1u5vqpl"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T20:25:37+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5mfaq</id>
