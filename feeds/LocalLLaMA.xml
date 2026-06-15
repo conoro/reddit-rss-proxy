@@ -2,63 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-15T04:13:42+00:00</updated>
+  <updated>2026-06-15T06:07:51+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1u56yr7</id>
-    <title>Codebase getting larger - Qwen3.6-27B starting to compound issues - how to work smartly with this model?</title>
-    <updated>2026-06-14T00:46:54+00:00</updated>
-    <author>
-      <name>/u/BitGreen1270</name>
-      <uri>https://old.reddit.com/user/BitGreen1270</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I had initially hand coded a small chat bot to interact with llama server with tool usage. But then started vibe coding with Qwen3.6-27B and was blown away. Obviously I added a ton of features since then and the codebase has blown up in size.&lt;/p&gt; &lt;p&gt;But I'm now noticing that there are a lot of tiny tiny bugs in the code that I'm having to review manually and fix. Things which should have been obvious (to a junior dev I feel). Thank goodness I'm doing this in Python which I have many years of professional experience.&lt;/p&gt; &lt;p&gt;But this lead me to thinking that maybe I'm not using it correctly. Maybe there is a better way to use this model. My approach so far has been:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Start pi&lt;/li&gt; &lt;li&gt;Prompt - &amp;quot;Read the current project&amp;quot;. This takes up about 50% of the current available context (out of 128K)&lt;/li&gt; &lt;li&gt;Implement this feature or Fix this bug.&lt;/li&gt; &lt;li&gt;Context hits 80% or above, run /compact.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;But after seeing all these bugs, I'm tracing through the code trying to patch one by one. I use a new conversation for every change, and instead of reading the entire workspace, I ask it to focus on exact functions or even lines ex: lines 670-650. And then ask it to read and confirm specific bugs and fix them exactly how I want them.&lt;/p&gt; &lt;p&gt;I have also removed all kv quantization in hopes of mitigating the bugs. This is the command I'm using now (My specs are 5090 w 64GB RAM)&lt;/p&gt; &lt;pre&gt;&lt;code&gt;/home/lenny/myp/llama.cpp/build/bin/llama-server \ -m ~/myp/models/unsloth_mtp_Qwen3.6-27B-UD-Q5_K_XL.gguf \ --temp 1.0 --top_p 0.95 --top_k 64 \ -c 131072 -t 16 -ngl 99 --flash-attn on \ --host 0.0.0.0 --port 8080 \ --spec-type draft-mtp --spec-draft-n-max 4 --parallel 1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Obviously this is now taking a lot more time to build and debug features. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;My question is - are there other approaches I can take to minimize bugs when using this model?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;PS: Example bug:&lt;/p&gt; &lt;p&gt;There's a feature to schedule a task at a specific time or recurrence. This takes execution_time as a param. The bug I found goes like this:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;try: parse time in UTC. except: logging.error(&amp;quot;failed to parse&amp;quot;) Insert into DB &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;which should have been:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;try: parse time in UTC. except: logging.error(&amp;quot;failed to parse&amp;quot;) return &amp;quot;Tool call failed - incorrect time format&amp;quot; Insert into DB &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I now have 1000s of lines of code which may or may not have such issues ready to happen at any time.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/BitGreen1270"&gt; /u/BitGreen1270 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u56yr7/codebase_getting_larger_qwen3627b_starting_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u56yr7/codebase_getting_larger_qwen3627b_starting_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u56yr7/codebase_getting_larger_qwen3627b_starting_to/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T00:46:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u5clts</id>
-    <title>Want to build a custom model</title>
-    <updated>2026-06-14T05:32:55+00:00</updated>
-    <author>
-      <name>/u/devildip</name>
-      <uri>https://old.reddit.com/user/devildip</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been toying with the idea of building my own model. At this point, the architecture and training pipeline seem fairly well established, and I'm feeling reasonably confident that I could put together a small model from scratch.&lt;/p&gt; &lt;p&gt;Hardware is obviously the limiting factor. I've only got 32 GB of VRAM, so this clearly isn't going to be some flagship foundation model. It may not even end up particularly useful for general tasks, but it sounds like a fun project and a good learning experience.&lt;/p&gt; &lt;p&gt;My current thought is to avoid full chat responses entirely and instead build a small autocomplete model, probably somewhere around 25M parameters. The goal would simply be: given context, predict the next token, sentence, or paragraph.&lt;/p&gt; &lt;p&gt;The biggest challenge seems to be data. My understanding is that a rough rule of thumb is training on several times the parameter count in tokens, so even a 25M parameter model would ideally want on the order of 100M+ tokens for experimentation.&lt;/p&gt; &lt;p&gt;For a first run, I was considering something more specialized or entertaining. One idea was a comedy model trained on cleaned transcripts fron YouTube to learn setup-to-punchline continuation patterns. Another more boring possibility would be a technical model focused on Python, Linux, or cybersecurity.&lt;/p&gt; &lt;p&gt;For those of you who've trained small models before: where are you finding high-quality datasets? beyond the obvious choices like Wikipedia, Common Crawl derivatives, or synthetic data generated by frontier models? Also curious how people are formatting data for autocomplete-style training versus chat or Q&amp;amp;A datasets.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/devildip"&gt; /u/devildip &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5clts/want_to_build_a_custom_model/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5clts/want_to_build_a_custom_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5clts/want_to_build_a_custom_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T05:32:55+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u59ibr</id>
-    <title>Strix Halo desktop trying to compete against DGX Spark</title>
-    <updated>2026-06-14T02:53:58+00:00</updated>
-    <author>
-      <name>/u/SkyFeistyLlama8</name>
-      <uri>https://old.reddit.com/user/SkyFeistyLlama8</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u59ibr/strix_halo_desktop_trying_to_compete_against_dgx/"&gt; &lt;img alt="Strix Halo desktop trying to compete against DGX Spark" src="https://external-preview.redd.it/xXhQM8oCAMtc5p4g2f3WLphtaeCtBDKeu8cvs1xoU-Q.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d096b9678e1d00522647c64fd72a7ae5d5025adf" title="Strix Halo desktop trying to compete against DGX Spark" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SkyFeistyLlama8"&gt; /u/SkyFeistyLlama8 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.tomshardware.com/desktops/mini-pcs/amd-challenges-nvidias-dgx-spark-with-usd3-999-ryzen-ai-halo-with-windows-11-support-strix-halo-desktop-undercuts-nvidia-by-usd700-packs-128gb-of-unified-memory"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u59ibr/strix_halo_desktop_trying_to_compete_against_dgx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u59ibr/strix_halo_desktop_trying_to_compete_against_dgx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T02:53:58+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1u64yc9</id>
-    <title>Models for Psychological Review of Converstions</title>
-    <updated>2026-06-15T03:18:20+00:00</updated>
-    <author>
-      <name>/u/Both-Activity6432</name>
-      <uri>https://old.reddit.com/user/Both-Activity6432</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;What models have you found that work well for psychological analysis of conversations (or other communications)? Not so much looking for diagnoses, so much as drawing connections and inference between different conversations to find key psychological concepts.&lt;/p&gt; &lt;p&gt;More as asking the model, less so the quant. But assume a normal to high end home rig. The smaller and more accessible hardware the better (to keep hyper local vs central).*&lt;/p&gt; &lt;p&gt;I am aware of the moral and ethical implications. This is experimentation being done in conjunction with trained professionals and knowledge of the risks by all parties.&lt;/p&gt; &lt;p&gt;Plan to generate transcripts of conversations else-wise, and feed them here. Secondary would be emails and text messages.&lt;/p&gt; &lt;p&gt;I believe context window would become a limiting factor?&lt;/p&gt; &lt;p&gt;&lt;em&gt;Edited to add the \&lt;/em&gt; line*&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Both-Activity6432"&gt; /u/Both-Activity6432 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64yc9/models_for_psychological_review_of_converstions/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64yc9/models_for_psychological_review_of_converstions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u64yc9/models_for_psychological_review_of_converstions/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-15T03:18:20+00:00</published>
-  </entry>
   <entry>
     <id>t3_1u5r2ae</id>
     <title>Strange numbers of pp and tg rx7900xtx on ROCm and Vulcan with Qwen3.6-27b nonMTP and MTP</title>
@@ -99,17 +47,30 @@
     <published>2026-06-14T13:39:00+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u60l19</id>
-    <title>Gemma 12b less than 10 watts 6.5pp 1.3tg</title>
-    <updated>2026-06-14T23:50:07+00:00</updated>
+    <id>t3_1u67p4b</id>
+    <title>I ported EXL3 to run well on Apple Silicon - PonyExl3</title>
+    <updated>2026-06-15T05:40:13+00:00</updated>
     <author>
-      <name>/u/bennmann</name>
-      <uri>https://old.reddit.com/user/bennmann</uri>
+      <name>/u/Beamsters</name>
+      <uri>https://old.reddit.com/user/Beamsters</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google pixel 10 pro&lt;/p&gt; &lt;p&gt;Termux &lt;/p&gt; &lt;p&gt;Llamacpp version: 9639 (ef8268fee)&lt;/p&gt; &lt;p&gt;$ ./llama.cpp/build_vulkan/bin/llama-cli -m storage/downloads/gemma-4-12b-it-UD-Q3_K_XL.gguf --model-draft storage/downloads/mtp-gemma-4-12b-it.gguf --temp 1.0 --top-p 0.95 --top-k 64 --spec-type draft-mtp --spec-draft-n-max 1 -c 32000 --mlock -b 512 -ctk q8_0 -ctv q8_0&lt;/p&gt; &lt;p&gt;~10,000 prompt depth [ Prompt: 6.5 t/s | Generation: 1.3 t/s ]&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bennmann"&gt; /u/bennmann &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67p4b/i_ported_exl3_to_run_well_on_apple_silicon/"&gt; &lt;img alt="I ported EXL3 to run well on Apple Silicon - PonyExl3" src="https://preview.redd.it/t3z3w078vd7h1.png?width=140&amp;amp;height=140&amp;amp;auto=webp&amp;amp;s=a07724907dd9508273f1d7dd50380daee56261d5" title="I ported EXL3 to run well on Apple Silicon - PonyExl3" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi guys, Beam's here. After I revamped the chat interface in oMLX, I was playing with turboderp's exllamav3 in my RTX 4090 machine and I wonder why can't I run this on my M5/M1 Max - so I built one.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/beamivalice/PonyExl3"&gt;https://github.com/beamivalice/PonyExl3&lt;/a&gt;&lt;/p&gt; &lt;p&gt;For those who don't know Exl3 - it's one of the best codec available for both quality/ram but trade the compute for it and it relies heavily on CUDA to make it work. Now it runs on Metal, and M5 Max can pull a respectable prefill ~600 tok/s and gen ~17 tok/s from Qwen3.6-27B model and with DFlash/MTP it went to ~38tok/s on greedy and around ~20-25 tok/s on normal temperature usage.&lt;/p&gt; &lt;p&gt;For Qwen3.6-35B-A3B 4.00bpw prefill reaches as high as 2700 tok/s and decode surpassed my RTX 4090's ~50/tok to 68.5 tok/s and 80 tok/s with Eagle3 greedy mode.&lt;/p&gt; &lt;p&gt;So How good was its quality/memory? - take a look at this chart, compiled by deepsweet and I ran mine (result still in txt file in the repo)&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/t3z3w078vd7h1.png?width=1200&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=e2127e9c95ea3a250c98ddcc81ec5dd5027a6370"&gt;https://preview.redd.it/t3z3w078vd7h1.png?width=1200&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=e2127e9c95ea3a250c98ddcc81ec5dd5027a6370&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/avf5ja3avd7h1.png?width=1202&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=e60712b1f2ab80ac0851569a0ec70b34680babf1"&gt;https://preview.redd.it/avf5ja3avd7h1.png?width=1202&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=e60712b1f2ab80ac0851569a0ec70b34680babf1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Then I wired it all to my omlx and as it to generate polarbear picnic - boom 27B-exl3-4.15bpw on omlx with perfect polar bear.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/g3qruvbzvd7h1.png?width=2750&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1fc19170960ef62839ceee503ff6b4df12ec10ef"&gt;https://preview.redd.it/g3qruvbzvd7h1.png?width=2750&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1fc19170960ef62839ceee503ff6b4df12ec10ef&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Cheers!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Beamsters"&gt; /u/Beamsters &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67p4b/i_ported_exl3_to_run_well_on_apple_silicon/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67p4b/i_ported_exl3_to_run_well_on_apple_silicon/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u67p4b/i_ported_exl3_to_run_well_on_apple_silicon/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T23:50:07+00:00</published>
+    <published>2026-06-15T05:40:13+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u67pw3</id>
+    <title>I made a private on-device LLM app for Android (notes + recall, nothing leaves the phone)</title>
+    <updated>2026-06-15T05:41:20+00:00</updated>
+    <author>
+      <name>/u/Interesting-Link5964</name>
+      <uri>https://old.reddit.com/user/Interesting-Link5964</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67pw3/i_made_a_private_ondevice_llm_app_for_android/"&gt; &lt;img alt="I made a private on-device LLM app for Android (notes + recall, nothing leaves the phone)" src="https://external-preview.redd.it/3OxtDsyz3cL-Nt0557Ha_-RYPH1_EOD8ITMq5Xj4-fw.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=14e12a3de85895c0e97f34080f3a7506967999d5" title="I made a private on-device LLM app for Android (notes + recall, nothing leaves the phone)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;so i've been building this thing for a while and finally want some people to try it and tell me whats wrong with it&lt;/p&gt; &lt;p&gt;it's an android app that runs an LLM fully on-device. you save notes, record/transcribe audio, and then later you can just ask it stuff about your own notes instead of digging through everything manually. nothing leaves the phone, no cloud, no server.&lt;/p&gt; &lt;p&gt;it's free, i'm not selling anything. i just want testers who'll actually use it and tell me if its useful or confusing or slow or pointless. honest criticism &amp;gt; praise, i'd rather hear what sucks.&lt;/p&gt; &lt;p&gt;works best on 8gb+ ram since the model runs locally. lower end phones work but slower.&lt;/p&gt; &lt;p&gt;it's my own app, currently in google play closed testing so i need the email on your play account + country to add you. dm me or email [&lt;a href="mailto:neurolicai@gmail.com"&gt;neurolicai@gmail.com&lt;/a&gt;](mailto:&lt;a href="mailto:neurolicai@gmail.com"&gt;neurolicai@gmail.com&lt;/a&gt;) if you want in.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Interesting-Link5964"&gt; /u/Interesting-Link5964 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtube.com/shorts/uEwMmG9S1vw?si=y4viAx3YhswgGQX0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67pw3/i_made_a_private_ondevice_llm_app_for_android/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u67pw3/i_made_a_private_ondevice_llm_app_for_android/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-15T05:41:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5svlh</id>
@@ -125,19 +86,6 @@
     <published>2026-06-14T18:33:59+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5ul4k</id>
-    <title>Gemma 4 models benchmarked on with Triple GPU</title>
-    <updated>2026-06-14T19:39:41+00:00</updated>
-    <author>
-      <name>/u/tabletuser_blogspot</name>
-      <uri>https://old.reddit.com/user/tabletuser_blogspot</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hearing good things about Gemma 4. Ran a few models across my llama box. &lt;/p&gt; &lt;p&gt;Kubuntu 26.04 OS.&lt;br /&gt; AMD Ryzen 5 3600 6-core CPU.&lt;br /&gt; 48 GiB of DDR4 3600 Mhz RAM.&lt;br /&gt; &lt;a href="https://www.techpowerup.com/gpu-specs/geforce-gtx-1070.c2840"&gt;Nvidia GTX-1070&lt;/a&gt; at 8GiB VRAM ( X 3 ) with 24GiB total VRAM.&lt;/p&gt; &lt;p&gt;GPUs have power limit set to 120, 121, 122 watts using:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo nvidia-smi -i 0 -pl 120, sudo nvidia-smi -i 1 -pl 121, sudo nvidia-smi -i 2 -pl 122&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It's about a 5% performance hit for inference, but my power supply appreciates it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases"&gt;https://github.com/ggml-org/llama.cpp/releases&lt;/a&gt;.&lt;br /&gt; build: 726704a16 (9204).&lt;br /&gt; llama-b9204 Vulkan t&lt;/p&gt; &lt;h1&gt;GGUF Models Used, Size, and time to benchmark&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;GGUF Model&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Real Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-31B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;17.52 GiB&lt;/td&gt; &lt;td align="left"&gt;3m35.477s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-12b-it-UD-Q8_K_XL&lt;/td&gt; &lt;td align="left"&gt;12.69 GiB&lt;/td&gt; &lt;td align="left"&gt;1m58.800s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;15.83 GiB&lt;/td&gt; &lt;td align="left"&gt;1m44.697s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;13.26 GiB&lt;/td&gt; &lt;td align="left"&gt;1m29.604s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-E4B-it-BF16&lt;/td&gt; &lt;td align="left"&gt;14.00 GiB&lt;/td&gt; &lt;td align="left"&gt;1m46.234s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Gemma 4 Benchmark Results Summary&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model &lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;pp512 (t/s)&lt;/th&gt; &lt;th align="left"&gt;tg128 (t/s)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;31B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;17.52&lt;/td&gt; &lt;td align="left"&gt;30.70&lt;/td&gt; &lt;td align="left"&gt;56.21&lt;/td&gt; &lt;td align="left"&gt;7.12&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;12B Q8_0&lt;/td&gt; &lt;td align="left"&gt;12.69&lt;/td&gt; &lt;td align="left"&gt;11.91&lt;/td&gt; &lt;td align="left"&gt;128.85&lt;/td&gt; &lt;td align="left"&gt;13.47&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;15.83&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;114.05&lt;/td&gt; &lt;td align="left"&gt;41.28&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_0 QAT&lt;/td&gt; &lt;td align="left"&gt;13.26&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;123.50&lt;/td&gt; &lt;td align="left"&gt;53.08&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;E4B BF16&lt;/td&gt; &lt;td align="left"&gt;14.00&lt;/td&gt; &lt;td align="left"&gt;7.52&lt;/td&gt; &lt;td align="left"&gt;302.16&lt;/td&gt; &lt;td align="left"&gt;11.54&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Three Nvidia GTX-1070 running in 16x, 4x and 1x. One card sits on a PCIe 1x extender that I used for past mining expeditions. Model load time are slowed but was consistent in inference speed. The &lt;a href="https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF"&gt;Gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/a&gt; model showed great speed and has been very accurate for coding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tabletuser_blogspot"&gt; /u/tabletuser_blogspot &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T19:39:41+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u55rzy</id>
     <title>Open source AI Must Win</title>
     <updated>2026-06-13T23:49:23+00:00</updated>
@@ -151,6 +99,32 @@
     <published>2026-06-13T23:49:23+00:00</published>
   </entry>
   <entry>
+    <id>t3_1u60l19</id>
+    <title>Gemma 12b less than 10 watts 6.5pp 1.3tg</title>
+    <updated>2026-06-14T23:50:07+00:00</updated>
+    <author>
+      <name>/u/bennmann</name>
+      <uri>https://old.reddit.com/user/bennmann</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Google pixel 10 pro&lt;/p&gt; &lt;p&gt;Termux &lt;/p&gt; &lt;p&gt;Llamacpp version: 9639 (ef8268fee)&lt;/p&gt; &lt;p&gt;$ ./llama.cpp/build_vulkan/bin/llama-cli -m storage/downloads/gemma-4-12b-it-UD-Q3_K_XL.gguf --model-draft storage/downloads/mtp-gemma-4-12b-it.gguf --temp 1.0 --top-p 0.95 --top-k 64 --spec-type draft-mtp --spec-draft-n-max 1 -c 32000 --mlock -b 512 -ctk q8_0 -ctv q8_0&lt;/p&gt; &lt;p&gt;~10,000 prompt depth [ Prompt: 6.5 t/s | Generation: 1.3 t/s ]&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/bennmann"&gt; /u/bennmann &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u60l19/gemma_12b_less_than_10_watts_65pp_13tg/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T23:50:07+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u5ul4k</id>
+    <title>Gemma 4 models benchmarked on with Triple GPU</title>
+    <updated>2026-06-14T19:39:41+00:00</updated>
+    <author>
+      <name>/u/tabletuser_blogspot</name>
+      <uri>https://old.reddit.com/user/tabletuser_blogspot</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hearing good things about Gemma 4. Ran a few models across my llama box. &lt;/p&gt; &lt;p&gt;Kubuntu 26.04 OS.&lt;br /&gt; AMD Ryzen 5 3600 6-core CPU.&lt;br /&gt; 48 GiB of DDR4 3600 Mhz RAM.&lt;br /&gt; &lt;a href="https://www.techpowerup.com/gpu-specs/geforce-gtx-1070.c2840"&gt;Nvidia GTX-1070&lt;/a&gt; at 8GiB VRAM ( X 3 ) with 24GiB total VRAM.&lt;/p&gt; &lt;p&gt;GPUs have power limit set to 120, 121, 122 watts using:&lt;/p&gt; &lt;p&gt;&lt;code&gt;sudo nvidia-smi -i 0 -pl 120, sudo nvidia-smi -i 1 -pl 121, sudo nvidia-smi -i 2 -pl 122&lt;/code&gt;&lt;/p&gt; &lt;p&gt;It's about a 5% performance hit for inference, but my power supply appreciates it.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/releases"&gt;https://github.com/ggml-org/llama.cpp/releases&lt;/a&gt;.&lt;br /&gt; build: 726704a16 (9204).&lt;br /&gt; llama-b9204 Vulkan t&lt;/p&gt; &lt;h1&gt;GGUF Models Used, Size, and time to benchmark&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;GGUF Model&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Real Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-31B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;17.52 GiB&lt;/td&gt; &lt;td align="left"&gt;3m35.477s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-12b-it-UD-Q8_K_XL&lt;/td&gt; &lt;td align="left"&gt;12.69 GiB&lt;/td&gt; &lt;td align="left"&gt;1m58.800s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;15.83 GiB&lt;/td&gt; &lt;td align="left"&gt;1m44.697s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/td&gt; &lt;td align="left"&gt;13.26 GiB&lt;/td&gt; &lt;td align="left"&gt;1m29.604s&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;gemma-4-E4B-it-BF16&lt;/td&gt; &lt;td align="left"&gt;14.00 GiB&lt;/td&gt; &lt;td align="left"&gt;1m46.234s&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Gemma 4 Benchmark Results Summary&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Model &lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;pp512 (t/s)&lt;/th&gt; &lt;th align="left"&gt;tg128 (t/s)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;31B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;17.52&lt;/td&gt; &lt;td align="left"&gt;30.70&lt;/td&gt; &lt;td align="left"&gt;56.21&lt;/td&gt; &lt;td align="left"&gt;7.12&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;12B Q8_0&lt;/td&gt; &lt;td align="left"&gt;12.69&lt;/td&gt; &lt;td align="left"&gt;11.91&lt;/td&gt; &lt;td align="left"&gt;128.85&lt;/td&gt; &lt;td align="left"&gt;13.47&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_K - Medium&lt;/td&gt; &lt;td align="left"&gt;15.83&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;114.05&lt;/td&gt; &lt;td align="left"&gt;41.28&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;26B.A4B Q4_0 QAT&lt;/td&gt; &lt;td align="left"&gt;13.26&lt;/td&gt; &lt;td align="left"&gt;25.23&lt;/td&gt; &lt;td align="left"&gt;123.50&lt;/td&gt; &lt;td align="left"&gt;53.08&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;E4B BF16&lt;/td&gt; &lt;td align="left"&gt;14.00&lt;/td&gt; &lt;td align="left"&gt;7.52&lt;/td&gt; &lt;td align="left"&gt;302.16&lt;/td&gt; &lt;td align="left"&gt;11.54&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Three Nvidia GTX-1070 running in 16x, 4x and 1x. One card sits on a PCIe 1x extender that I used for past mining expeditions. Model load time are slowed but was consistent in inference speed. The &lt;a href="https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF"&gt;Gemma-4-26B-A4B-it-qat-UD-Q4_K_XL&lt;/a&gt; model showed great speed and has been very accurate for coding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/tabletuser_blogspot"&gt; /u/tabletuser_blogspot &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5ul4k/gemma_4_models_benchmarked_on_with_triple_gpu/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T19:39:41+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u5g9pr</id>
     <title>Dual DGX Sparks- 40tk/s single 1M ; 350 tk/s agg. - Deepseek V4 Flash (vs RTX Pro 6000 vs Mac M2 Ultra 192)</title>
     <updated>2026-06-14T09:07:57+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5g9pr/dual_dgx_sparks_40tks_single_1m_350_tks_agg/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T09:07:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u67vq9</id>
+    <title>Could a distilled DiffusionGemma become a “local Opus”</title>
+    <updated>2026-06-15T05:50:08+00:00</updated>
+    <author>
+      <name>/u/gamblingapocalypse</name>
+      <uri>https://old.reddit.com/user/gamblingapocalypse</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m wondering if a distilled DiffusionGemma could eventually give us something that could give us Opus outputs. &lt;/p&gt; &lt;p&gt;Maybe not a single distilled model that can do it all. Maybe we can distill code outputs and have a DiffusionGemma dedicated to coding, and one dedicated to story telling and role playing and so on.&lt;/p&gt; &lt;p&gt;What are your thoughts, is it possible? Maybe some of you are working on one of your own?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gamblingapocalypse"&gt; /u/gamblingapocalypse &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67vq9/could_a_distilled_diffusiongemma_become_a_local/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u67vq9/could_a_distilled_diffusiongemma_become_a_local/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u67vq9/could_a_distilled_diffusiongemma_become_a_local/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-15T05:50:08+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5fv6n</id>
@@ -190,17 +177,17 @@
     <published>2026-06-14T18:15:11+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u63qny</id>
-    <title>Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B</title>
-    <updated>2026-06-15T02:20:11+00:00</updated>
+    <id>t3_1u66zjv</id>
+    <title>100M model recommendation?</title>
+    <updated>2026-06-15T05:02:52+00:00</updated>
     <author>
-      <name>/u/pizzaisprettyneato</name>
-      <uri>https://old.reddit.com/user/pizzaisprettyneato</uri>
+      <name>/u/Ok-Internal9317</name>
+      <uri>https://old.reddit.com/user/Ok-Internal9317</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"&gt; &lt;img alt="Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B" src="https://external-preview.redd.it/c2tkZDk5eGZ3YzdoMRQY3p9Q6dTUjPWJeVSoTxjeziKteMGz63XGiXRq8ppv.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5db26b98d55e29e1843c3b564b40e7adae1930d6" title="Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Apologies in advance as the video is demonstrating with GPT 5.4 mini (a local model would take too long for a video), however I’ve made the same app with Gemma 4 E4B.&lt;/p&gt; &lt;p&gt;Been working on an open source project for a while called Ironsmith. The gist is you can create highly personally macOS apps with just a prompt, and one of my main goals from the beginning was to get it to work with low end models like the Apple foundation and the Gemma series.&lt;/p&gt; &lt;p&gt;After a bunch of work and experimentation, I’m excited to finally release it!&lt;/p&gt; &lt;p&gt;It uses a custom agentic loop tailor made to work with small models with limited context. This means you can create very simple apps entirely on device with a Mac as limited as a 8gb MacBook Air.&lt;/p&gt; &lt;p&gt;I found that the secret sauce to making this work was just have the model generate the entire app in one go, and then run a bajillion formatting, linting and deterministic repairs until it makes something compileable. Turns out these little models are pretty decent at writing full apps if you fix all of their hallucinations and syntax errors.&lt;/p&gt; &lt;p&gt;That being said you will get higher quality apps and less chances for errors the better the model you build with. I find that Gemma 4 26b a4b gives the best balance here, but it does require at least 24gb memory.&lt;/p&gt; &lt;p&gt;You can use Ollama out of the box and also use all of your favorite local providers via an OpenAI compatible API. ChatGPT, Claude and Gemini are also available to connect to if you want to provide your own API key.&lt;/p&gt; &lt;p&gt;There’s also some more info on security and whatnot on this post if you’re curious: &lt;a href="https://www.reddit.com/r/macapps/s/dIXIXJzrcg"&gt;https://www.reddit.com/r/macapps/s/dIXIXJzrcg&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Here’s some links if you want to try it out:&lt;/p&gt; &lt;p&gt;Github: &lt;a href="https://github.com/Jeidoban/Ironsmith/"&gt;https://github.com/Jeidoban/Ironsmith&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Website: &lt;a href="https://ironsmith.app/"&gt;https://ironsmith.app&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ironsmith is still very much in beta so please bear with me as I work out the bugs. Also feedback is very welcome, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pizzaisprettyneato"&gt; /u/pizzaisprettyneato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/uevngh0gwc7h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Looking for model around the size of 100M, looking to see if it has improved since the last post on this topic from 2 years ago. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Internal9317"&gt; /u/Ok-Internal9317 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u66zjv/100m_model_recommendation/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u66zjv/100m_model_recommendation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u66zjv/100m_model_recommendation/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-15T02:20:11+00:00</published>
+    <published>2026-06-15T05:02:52+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5mfaq</id>
@@ -216,19 +203,6 @@
     <published>2026-06-14T14:20:57+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5uqsc</id>
-    <title>Voice-to-voice chatbot update</title>
-    <updated>2026-06-14T19:45:56+00:00</updated>
-    <author>
-      <name>/u/Responsible_Fig_1271</name>
-      <uri>https://old.reddit.com/user/Responsible_Fig_1271</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"&gt; &lt;img alt="Voice-to-voice chatbot update" src="https://external-preview.redd.it/9wHEnfaLZYCGSLsP1nuF3hLy387RknX-Ch9QIK3u5RI.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3bb1522eeede1664cb6c0977ca3e9e9ab1f5aea6" title="Voice-to-voice chatbot update" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on this after hours for a few months continuously improving it. Now at a point where the chatbot is close to real-time (thanks to SSE streaming) and also interruptible while preserving context of what was last said. 100% local and powered by Qwen3.5-397B (Unsloth's UD-Q3_K_XL), Whisper-small STT, and Orpheus Q4_K_XL TTS with a custom SNAC decoder on ONNX.&lt;/p&gt; &lt;p&gt;VRAM usage holds at 21.3 GB or less leaving decent headroom for compute graphs on a 24 GB GPU. System RAM MoE experts for Qwen occupy about ~150 GB. This is running with bf16 KV cache (Qwen3.5 spazzes out with Q8 KV), at 131,072 tokens. Enough for hours of conversation.&lt;/p&gt; &lt;p&gt;GitHub code coming soon - should be able to upload this evening after I'm done with the honey-do list.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Responsible_Fig_1271"&gt; /u/Responsible_Fig_1271 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtu.be/p-2UbK9iYgg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T19:45:56+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u5vqpl</id>
     <title>Nemotron - King of the Deep? Comparison of 4 models &lt;=120B</title>
     <updated>2026-06-14T20:25:37+00:00</updated>
@@ -240,6 +214,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5vqpl/nemotron_king_of_the_deep_comparison_of_4_models/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-14T20:25:37+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u63qny</id>
+    <title>Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B</title>
+    <updated>2026-06-15T02:20:11+00:00</updated>
+    <author>
+      <name>/u/pizzaisprettyneato</name>
+      <uri>https://old.reddit.com/user/pizzaisprettyneato</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"&gt; &lt;img alt="Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B" src="https://external-preview.redd.it/c2tkZDk5eGZ3YzdoMRQY3p9Q6dTUjPWJeVSoTxjeziKteMGz63XGiXRq8ppv.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5db26b98d55e29e1843c3b564b40e7adae1930d6" title="Made a macOS app that creates highly personal macOS apps. Works with models as small as Gemma 4 E2B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Apologies in advance as the video is demonstrating with GPT 5.4 mini (a local model would take too long for a video), however I’ve made the same app with Gemma 4 E4B.&lt;/p&gt; &lt;p&gt;Been working on an open source project for a while called Ironsmith. The gist is you can create highly personally macOS apps with just a prompt, and one of my main goals from the beginning was to get it to work with low end models like the Apple foundation and the Gemma series.&lt;/p&gt; &lt;p&gt;After a bunch of work and experimentation, I’m excited to finally release it!&lt;/p&gt; &lt;p&gt;It uses a custom agentic loop tailor made to work with small models with limited context. This means you can create very simple apps entirely on device with a Mac as limited as a 8gb MacBook Air.&lt;/p&gt; &lt;p&gt;I found that the secret sauce to making this work was just have the model generate the entire app in one go, and then run a bajillion formatting, linting and deterministic repairs until it makes something compileable. Turns out these little models are pretty decent at writing full apps if you fix all of their hallucinations and syntax errors.&lt;/p&gt; &lt;p&gt;That being said you will get higher quality apps and less chances for errors the better the model you build with. I find that Gemma 4 26b a4b gives the best balance here, but it does require at least 24gb memory.&lt;/p&gt; &lt;p&gt;You can use Ollama out of the box and also use all of your favorite local providers via an OpenAI compatible API. ChatGPT, Claude and Gemini are also available to connect to if you want to provide your own API key.&lt;/p&gt; &lt;p&gt;There’s also some more info on security and whatnot on this post if you’re curious: &lt;a href="https://www.reddit.com/r/macapps/s/dIXIXJzrcg"&gt;https://www.reddit.com/r/macapps/s/dIXIXJzrcg&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Here’s some links if you want to try it out:&lt;/p&gt; &lt;p&gt;Github: &lt;a href="https://github.com/Jeidoban/Ironsmith/"&gt;https://github.com/Jeidoban/Ironsmith&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Website: &lt;a href="https://ironsmith.app/"&gt;https://ironsmith.app&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Ironsmith is still very much in beta so please bear with me as I work out the bugs. Also feedback is very welcome, please let me know what you think!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pizzaisprettyneato"&gt; /u/pizzaisprettyneato &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/uevngh0gwc7h1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u63qny/made_a_macos_app_that_creates_highly_personal/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-15T02:20:11+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1u5uqsc</id>
+    <title>Voice-to-voice chatbot update</title>
+    <updated>2026-06-14T19:45:56+00:00</updated>
+    <author>
+      <name>/u/Responsible_Fig_1271</name>
+      <uri>https://old.reddit.com/user/Responsible_Fig_1271</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"&gt; &lt;img alt="Voice-to-voice chatbot update" src="https://external-preview.redd.it/9wHEnfaLZYCGSLsP1nuF3hLy387RknX-Ch9QIK3u5RI.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=3bb1522eeede1664cb6c0977ca3e9e9ab1f5aea6" title="Voice-to-voice chatbot update" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on this after hours for a few months continuously improving it. Now at a point where the chatbot is close to real-time (thanks to SSE streaming) and also interruptible while preserving context of what was last said. 100% local and powered by Qwen3.5-397B (Unsloth's UD-Q3_K_XL), Whisper-small STT, and Orpheus Q4_K_XL TTS with a custom SNAC decoder on ONNX.&lt;/p&gt; &lt;p&gt;VRAM usage holds at 21.3 GB or less leaving decent headroom for compute graphs on a 24 GB GPU. System RAM MoE experts for Qwen occupy about ~150 GB. This is running with bf16 KV cache (Qwen3.5 spazzes out with Q8 KV), at 131,072 tokens. Enough for hours of conversation.&lt;/p&gt; &lt;p&gt;GitHub code coming soon - should be able to upload this evening after I'm done with the honey-do list.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Responsible_Fig_1271"&gt; /u/Responsible_Fig_1271 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://youtu.be/p-2UbK9iYgg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5uqsc/voicetovoice_chatbot_update/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-14T19:45:56+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5jtr8</id>
@@ -268,17 +268,17 @@
     <published>2026-06-14T21:30:44+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u64t9i</id>
-    <title>Command A Plus GGUFs posted</title>
-    <updated>2026-06-15T03:11:28+00:00</updated>
+    <id>t3_1u5pkg1</id>
+    <title>Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat</title>
+    <updated>2026-06-14T16:24:51+00:00</updated>
     <author>
-      <name>/u/coder543</name>
-      <uri>https://old.reddit.com/user/coder543</uri>
+      <name>/u/Specter_Origin</name>
+      <uri>https://old.reddit.com/user/Specter_Origin</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"&gt; &lt;img alt="Command A Plus GGUFs posted" src="https://external-preview.redd.it/oqfegwbbB08NLbOg1a-YrAF75FH57kRDCFWzcaTSm2k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=930cee95b64188c559c38d0db854a752b394e31c" title="Command A Plus GGUFs posted" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Support for Command A Plus and North Mini Code was added to llama.cpp this weekend. Unsloth has North Mini Code GGUFs, but I didn’t find anyone with up to date GGUFs for Command A Plus, so I converted and quantized it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder543"&gt; /u/coder543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/coder543/command-a-plus-05-2026-gguf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"&gt; &lt;img alt="Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat" src="https://preview.redd.it/bvenl5k2y97h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0d7667a8c0a55d738ab0c51409391adb4170ca41" title="Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Specter_Origin"&gt; /u/Specter_Origin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/bvenl5k2y97h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-15T03:11:28+00:00</published>
+    <published>2026-06-14T16:24:51+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5z4j0</id>
@@ -294,17 +294,17 @@
     <published>2026-06-14T22:45:12+00:00</published>
   </entry>
   <entry>
-    <id>t3_1u5pkg1</id>
-    <title>Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat</title>
-    <updated>2026-06-14T16:24:51+00:00</updated>
+    <id>t3_1u64t9i</id>
+    <title>Command A Plus GGUFs posted</title>
+    <updated>2026-06-15T03:11:28+00:00</updated>
     <author>
-      <name>/u/Specter_Origin</name>
-      <uri>https://old.reddit.com/user/Specter_Origin</uri>
+      <name>/u/coder543</name>
+      <uri>https://old.reddit.com/user/coder543</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"&gt; &lt;img alt="Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat" src="https://preview.redd.it/bvenl5k2y97h1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0d7667a8c0a55d738ab0c51409391adb4170ca41" title="Nex claims Rio 3.5 is Nex 2.5 PRO in trench coat" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Specter_Origin"&gt; /u/Specter_Origin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/bvenl5k2y97h1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u5pkg1/nex_claims_rio_35_is_nex_25_pro_in_trench_coat/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"&gt; &lt;img alt="Command A Plus GGUFs posted" src="https://external-preview.redd.it/oqfegwbbB08NLbOg1a-YrAF75FH57kRDCFWzcaTSm2k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=930cee95b64188c559c38d0db854a752b394e31c" title="Command A Plus GGUFs posted" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Support for Command A Plus and North Mini Code was added to llama.cpp this weekend. Unsloth has North Mini Code GGUFs, but I didn’t find anyone with up to date GGUFs for Command A Plus, so I converted and quantized it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/coder543"&gt; /u/coder543 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/coder543/command-a-plus-05-2026-gguf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u64t9i/command_a_plus_ggufs_posted/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-14T16:24:51+00:00</published>
+    <published>2026-06-15T03:11:28+00:00</published>
   </entry>
   <entry>
     <id>t3_1u5lmge</id>
