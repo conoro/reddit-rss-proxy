@@ -2,50 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-19T20:55:19+00:00</updated>
+  <updated>2026-06-19T21:30:12+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1u9mpty</id>
-    <title>GLM-5.2 (744B, 2-bit) at 7.3 tok/s on 4×3090 + 192GB — and why IQ1_M wasn't any faster</title>
-    <updated>2026-06-19T00:06:31+00:00</updated>
-    <author>
-      <name>/u/Important_Quote_1180</name>
-      <uri>https://old.reddit.com/user/Important_Quote_1180</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TLDR: For the first time, I feel relief that they could shut down the cloud services and I would be ok. I got my 4th 3090 and then unsloth dropped the Q2 and Q1. I wrote nothing else here its from CC, so it might be wrong. GLM-5.2 UD-IQ2_M runs across 4×3090 + RAM expert offload at ~7.3 tok/s. Two decode A/Bs: halving the quant (IQ2-&amp;gt;IQ1) did NOTHING; going 6-&amp;gt;12 CPU threads gave +22%. The offloaded-expert decode is bound by CPU compute, not memory bandwidth.&lt;/p&gt; &lt;p&gt;## Hardware&lt;/p&gt; &lt;p&gt;- Ryzen 9900X, 192GB DDR5-5600&lt;/p&gt; &lt;p&gt;- 4× RTX 3090 (1 Ti + 3 FE), 96GB total. One card sits on a PCIe x1 link (chipset-lane tradeoff to keep the boot NVMe at x4).&lt;/p&gt; &lt;p&gt;## Config&lt;/p&gt; &lt;p&gt;- unsloth GLM-5.2 UD-IQ2_M, 223GB on disk (744B total / 40B active)&lt;/p&gt; &lt;p&gt;- llama.cpp master. Arch is glm-dsa (MLA + DeepSeek sparse attn + nextn). Older releases won't load it — needs a current build.&lt;/p&gt; &lt;p&gt;- ~83GB across the 4 GPUs (19 of 75 MoE layers' experts) + ~166GB resident RAM (the other 56 layers, computed on CPU). q8_0 KV is basically free thanks to MLA.&lt;/p&gt; &lt;p&gt;## --n-cpu-moe will OOM you&lt;/p&gt; &lt;p&gt;With -sm layer, the kept-on-GPU experts all land on the LAST card and it tried to alloc 54GB on a 24GB GPU. Fix: place experts per-device explicitly —&lt;/p&gt; &lt;p&gt;-ot &amp;quot;blk\.(3|4|5)\.ffn_(gate|up|down)_exps=CUDA0&amp;quot; ... CUDA1/2/3, with a =CPU catch-all last. Spread evenly; the card holding output/embeddings runs tightest.&lt;/p&gt; &lt;p&gt;## What actually moves decode (two A/Bs, one variable each)&lt;/p&gt; &lt;p&gt;- IQ1_M (213GB) vs IQ2_M (238GB), same split: 7.30 vs 7.29 tok/s. Identical.&lt;/p&gt; &lt;p&gt;- 6 threads vs 12 threads, same everything: 5.83 vs 7.14 tok/s. +22%.&lt;/p&gt; &lt;p&gt;Decode is bound by the CPU compute of the active offloaded experts (dequant + matmul), NOT bandwidth. Smaller quant = same matmul shape = same FLOPs = no gain. More cores = gain, up to your physical core count. (Prefill was flat at 135 tok/s across threads -- not core-bound.) The levers that work: more cores, more experts on GPU (fewer offloaded layers). Quant size isn't one.&lt;/p&gt; &lt;p&gt;## MLA helps long ctx but doesn't make 1M free&lt;/p&gt; &lt;p&gt;KV is ~6GB at 128K, but scales linearly: ~50GB at 1M (q8), ~29GB (q4_1). With ~15GB&lt;/p&gt; &lt;p&gt;free VRAM, 1M is out. q4_1 gets ~360K, q8_0 ~200K. DSA shrinks attention COMPUTE at&lt;/p&gt; &lt;p&gt;long ctx, not the cache size.&lt;/p&gt; &lt;p&gt;## The x1 card: useless for splits, perfect for a sidecar&lt;/p&gt; &lt;p&gt;A little bonus if you are ok with 5 toks instead of 7, you can do this with a Q1 across 3 cards and it frees a gpu. A x1 link kills tensor/layer split, but a single-card model never crosses the link at inference — x1 only costs load time. Dropped GLM to 3 cards and put a Qwen3.6-35B-A3B on the x1 card alone: 116 tok/s, full speed. &lt;/p&gt; &lt;p&gt;## No MTP yet&lt;/p&gt; &lt;p&gt;glm-dsa ships a nextn/MTP head but it's an unimplemented stub in llama.cpp (loads the tensors, builds no graph — only Qwen has MTP merged). ngram self-speculative is the fallback; helps on code/structured output, not prose.&lt;/p&gt; &lt;p&gt;## Biggest real speed lever: turn thinking off&lt;/p&gt; &lt;p&gt;Decode rate is fixed, but thinking burns tokens. Same prompt, same correct answer: non-thinking 13.5s vs reasoning_effort high/max 60-80s — ~5-6× wall-clock. Per-request dial; default it off, opt in for hard problems.&lt;/p&gt; &lt;p&gt;## Cost&lt;/p&gt; &lt;p&gt;192GB DDR5 + 4 used 3090s + a 9900X. No cloud, no subscriptions. Running cost is electricity (cards capped at 200W each).&lt;/p&gt; &lt;p&gt;This is the first validated config (even 5 layers/card, ubatch 512) — simplest to explain:&lt;/p&gt; &lt;p&gt;#!/usr/bin/env bash&lt;/p&gt; &lt;p&gt;# GLM-5.2 UD-IQ2_M (2-bit) on 4x 24GB GPUs + ~190GB RAM, llama.cpp expert offload.&lt;/p&gt; &lt;p&gt;# Arch is glm-dsa -&amp;gt; needs a CURRENT llama.cpp build. Older releases won't load it.&lt;/p&gt; &lt;p&gt;#&lt;/p&gt; &lt;p&gt;# Build llama.cpp master first (static avoids RUNPATH headaches):&lt;/p&gt; &lt;p&gt;# git clone &lt;a href="https://github.com/ggml-org/llama.cpp"&gt;https://github.com/ggml-org/llama.cpp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;# cmake llama.cpp -B llama.cpp/build -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON \&lt;/p&gt; &lt;p&gt;# -DCMAKE_CUDA_ARCHITECTURES=86 # 86=Ampere/3090; set to your arch&lt;/p&gt; &lt;p&gt;# cmake --build llama.cpp/build -j --target llama-server&lt;/p&gt; &lt;p&gt;#&lt;/p&gt; &lt;p&gt;# Download: hf download unsloth/GLM-5.2-GGUF --include &amp;quot;*UD-IQ2_M*&amp;quot; --local-dir GLM-5.2&lt;/p&gt; &lt;p&gt;SERVER=./llama.cpp/build/bin/llama-server&lt;/p&gt; &lt;p&gt;MODEL=./GLM-5.2/UD-IQ2_M/GLM-5.2-UD-IQ2_M-00001-of-00006.gguf&lt;/p&gt; &lt;p&gt;# THE KEY BIT: distribute on-GPU experts EXPLICITLY across cards, rest to CPU.&lt;/p&gt; &lt;p&gt;# DON'T use --n-cpu-moe here -- with -sm layer it dumps all kept-on-GPU experts&lt;/p&gt; &lt;p&gt;# onto the LAST card and OOMs (it tried 54GB on a 24GB card). Instead, pin ~5 MoE&lt;/p&gt; &lt;p&gt;# layers' experts per card via -ot, and send the rest to CPU with the catch-all.&lt;/p&gt; &lt;p&gt;# Tune the layer counts to your VRAM: more on GPU = faster (fewer CPU round-trips),&lt;/p&gt; &lt;p&gt;# but the card holding output+embeddings (CUDA0) runs tightest -- back it off if it OOMs.&lt;/p&gt; &lt;p&gt;# blk.0-2 are dense (no experts); MoE layers are 3-77.&lt;/p&gt; &lt;p&gt;CUDA_VISIBLE_DEVICES=0,1,2,3 CUDA_DEVICE_ORDER=PCI_BUS_ID &amp;quot;$SERVER&amp;quot; \&lt;/p&gt; &lt;p&gt;--model &amp;quot;$MODEL&amp;quot; \&lt;/p&gt; &lt;p&gt;--host &lt;a href="http://0.0.0.0"&gt;0.0.0.0&lt;/a&gt; --port 8001 \&lt;/p&gt; &lt;p&gt;--ctx-size 131072 \&lt;/p&gt; &lt;p&gt;--n-predict -1 \&lt;/p&gt; &lt;p&gt;--n-gpu-layers 999 \&lt;/p&gt; &lt;p&gt;--split-mode layer --tensor-split 1,1,1,1 \&lt;/p&gt; &lt;p&gt;-ot &amp;quot;blk\.(3|4|5|6|7)\.ffn_(gate|up|down)_exps\.=CUDA0&amp;quot; \&lt;/p&gt; &lt;p&gt;-ot &amp;quot;blk\.(8|9|10|11|12)\.ffn_(gate|up|down)_exps\.=CUDA1&amp;quot; \&lt;/p&gt; &lt;p&gt;-ot &amp;quot;blk\.(13|14|15|16|17)\.ffn_(gate|up|down)_exps\.=CUDA2&amp;quot; \&lt;/p&gt; &lt;p&gt;-ot &amp;quot;blk\.(18|19|20|21|22)\.ffn_(gate|up|down)_exps\.=CUDA3&amp;quot; \&lt;/p&gt; &lt;p&gt;-ot &amp;quot;ffn_(gate|up|down)_exps\.=CPU&amp;quot; \&lt;/p&gt; &lt;p&gt;--threads 12 \&lt;/p&gt; &lt;p&gt;--batch-size 2048 --ubatch-size 512 \&lt;/p&gt; &lt;p&gt;--flash-attn on \&lt;/p&gt; &lt;p&gt;--cache-type-k q8_0 --cache-type-v q8_0 \&lt;/p&gt; &lt;p&gt;--no-mmap \&lt;/p&gt; &lt;p&gt;--jinja \&lt;/p&gt; &lt;p&gt;--reasoning off # default non-thinking (~5-6x faster wall-clock);&lt;/p&gt; &lt;p&gt;# callers opt in per-request with&lt;/p&gt; &lt;p&gt;# chat_template_kwargs:{&amp;quot;enable_thinking&amp;quot;:true}&lt;/p&gt; &lt;p&gt;Notes for whoever reads it:&lt;/p&gt; &lt;p&gt;- 20 of 75 MoE layers on GPU, 55 on CPU → ~83 GB VRAM + ~166 GB RAM, ~7.3 tok/s decode.&lt;/p&gt; &lt;p&gt;- Generic paths (./llama.cpp, ./GLM-5.2) so they edit two lines and go.&lt;/p&gt; &lt;p&gt;- The -ot block is the whole point — that's the OOM-avoiding trick and the comment explains the tuning. The catch-all =CPU must come last.&lt;/p&gt; &lt;p&gt;- I dropped the ngram/--spec-type line (niche, optional) and all my env-var scaffolding.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Important_Quote_1180"&gt; /u/Important_Quote_1180 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u9mpty/glm52_744b_2bit_at_73_toks_on_43090_192gb_and_why/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1u9mpty/glm52_744b_2bit_at_73_toks_on_43090_192gb_and_why/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u9mpty/glm52_744b_2bit_at_73_toks_on_43090_192gb_and_why/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T00:06:31+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ua9qbw</id>
-    <title>Maximizing performance of 2x3090 + NVLink</title>
-    <updated>2026-06-19T18:26:15+00:00</updated>
-    <author>
-      <name>/u/IUseClifford</name>
-      <uri>https://old.reddit.com/user/IUseClifford</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I have built myself a decent rig with the following specs:&lt;/p&gt; &lt;p&gt;- Ubuntu 24.04&lt;br /&gt; - 2x3090 founder’s with NVLink&lt;br /&gt; - Ryzen 7950x3d&lt;br /&gt; - 64GB DDR5&lt;/p&gt; &lt;p&gt;I am currently routing my display through an eGPU to maximize available VRAM. My current go-to is Qwen 3.6 27B Q8_0 with MTP and ik_llama’s graph split + ngl 99. It works very well with pi and I get very good output, but I can only manage to get ~60 Tok/s at the absolute maximum in very short bursts, and it lives around 40-45TPS on average.&lt;/p&gt; &lt;p&gt;I imagine that my setup, minus maybe the nvlink, is pretty common to this sub, so I’m curious to hear how people are squeezing more performance out of their cards, or if the stats I’m seeing are par for the course.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IUseClifford"&gt; /u/IUseClifford &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T18:26:15+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ua5nnv</id>
-    <title>Improving local models with an API based "consultant"?</title>
-    <updated>2026-06-19T15:52:33+00:00</updated>
-    <author>
-      <name>/u/milpster</name>
-      <uri>https://old.reddit.com/user/milpster</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm sure that someone else has come up with this before, but i just wanted to ask:&lt;/p&gt; &lt;p&gt;Has it occurred to anyone to improve their local AI workflow by adding a more powerful API based &amp;quot;consultant&amp;quot; agent (GLM 5.2 now springs to mind) to call upon for refining plans, learnings and such?&lt;/p&gt; &lt;p&gt;If so, do/did you see any potential behind it?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/milpster"&gt; /u/milpster &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5nnv/improving_local_models_with_an_api_based/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5nnv/improving_local_models_with_an_api_based/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5nnv/improving_local_models_with_an_api_based/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T15:52:33+00:00</published>
-  </entry>
   <entry>
     <id>t3_1u99hel</id>
     <title>GLM-5.2 inference is free on Hugging Face for the next 6 hours</title>
@@ -86,6 +47,19 @@
     <published>2026-06-18T21:40:26+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ua9qbw</id>
+    <title>Maximizing performance of 2x3090 + NVLink</title>
+    <updated>2026-06-19T18:26:15+00:00</updated>
+    <author>
+      <name>/u/IUseClifford</name>
+      <uri>https://old.reddit.com/user/IUseClifford</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I have built myself a decent rig with the following specs:&lt;/p&gt; &lt;p&gt;- Ubuntu 24.04&lt;br /&gt; - 2x3090 founder’s with NVLink&lt;br /&gt; - Ryzen 7950x3d&lt;br /&gt; - 64GB DDR5&lt;/p&gt; &lt;p&gt;I am currently routing my display through an eGPU to maximize available VRAM. My current go-to is Qwen 3.6 27B Q8_0 with MTP and ik_llama’s graph split + ngl 99. It works very well with pi and I get very good output, but I can only manage to get ~60 Tok/s at the absolute maximum in very short bursts, and it lives around 40-45TPS on average.&lt;/p&gt; &lt;p&gt;I imagine that my setup, minus maybe the nvlink, is pretty common to this sub, so I’m curious to hear how people are squeezing more performance out of their cards, or if the stats I’m seeing are par for the course.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/IUseClifford"&gt; /u/IUseClifford &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua9qbw/maximizing_performance_of_2x3090_nvlink/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-19T18:26:15+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1u9kvza</id>
     <title>LQ50/LQ50-24GB cost around $1200</title>
     <updated>2026-06-18T22:45:42+00:00</updated>
@@ -99,17 +73,17 @@
     <published>2026-06-18T22:45:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uabrzn</id>
-    <title>How do I set the right llama.cpp parameters?</title>
-    <updated>2026-06-19T19:46:30+00:00</updated>
+    <id>t3_1uad893</id>
+    <title>I need help to run local Hermes Agent on my rig. llama-cpp self compiled</title>
+    <updated>2026-06-19T20:44:33+00:00</updated>
     <author>
-      <name>/u/x6q5g3o7</name>
-      <uri>https://old.reddit.com/user/x6q5g3o7</uri>
+      <name>/u/OddUnderstanding2309</name>
+      <uri>https://old.reddit.com/user/OddUnderstanding2309</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;--n-gpu-layers all --ctx-size 0 --reasoning-budget 0 --presence-penalty 1.1 --repeat-penalty 1.1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;How do I figure out the optimal llama.cpp parameters for my setup? llama.cpp + Open WebUI in Docker with an AMD GPU (16GB VRAM) running gemma 4 12b and 26b models.&lt;/p&gt; &lt;p&gt;Is it all about trial and error? Are there more materials I can study to learn beyond the &lt;a href="https://github.com/ggml-org/llama.cpp/tree/master/tools/server"&gt;llama.cpp docs&lt;/a&gt;?&lt;/p&gt; &lt;p&gt;Google provides recommended settings for temp (1.0), top-p (0.95), and top-k (64). Asking my LLM gives inconsistent results, so I'm looking for better recommendations from others. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/x6q5g3o7"&gt; /u/x6q5g3o7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey folks.&lt;/p&gt; &lt;p&gt;For weeks I try to run a &amp;quot;good setup&amp;quot; for a local Hermes agent.&lt;/p&gt; &lt;p&gt;This is my Hardware:&lt;br /&gt; - Ryzen 9 5950X 48GB DDR4 3600 some NVME disks blablabla&lt;br /&gt; - 2x RTX 3080 12G&lt;br /&gt; - 2x RTX 3090 24GB&lt;br /&gt; - 1x 1500 NZXT PSU&lt;br /&gt; - 1x Corsair 750W PSU&lt;/p&gt; &lt;p&gt;So a quite capable system with 72GB VMEM, so I thought.&lt;/p&gt; &lt;p&gt;Software:&lt;br /&gt; - Fedora 44 Workstation&lt;br /&gt; - llama-cpp compiled from source&lt;br /&gt; - Hermes AI agent&lt;br /&gt; - local LLM (I do not want any cloud llm, I need my data in my house all the time) &lt;/p&gt; &lt;p&gt;Startup parameters right now (working kinda):&lt;/p&gt; &lt;p&gt;&lt;code&gt;~/Tools/llama.cpp/build/bin/llama-server \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-hf llmfan46/gemma-4-31B-it-uncensored-heretic-GGUF:Q8_0 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--mmproj-offload \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--host&lt;/code&gt; &lt;a href="http://0.0.0.0"&gt;&lt;code&gt;0.0.0.0&lt;/code&gt;&lt;/a&gt; &lt;code&gt;--port 8080 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--reasoning-budget 4000 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--reasoning-budget-message &amp;quot;... thinking budget exceeded, let's answer now.&amp;quot; \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--jinja \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--chat-template-kwargs &amp;quot;{\&amp;quot;preserve_thinking\&amp;quot;: true}&amp;quot; \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-c 256000 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-np 1 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-ngl 99 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-t 16 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-b 2048 -ub 1024 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-fa on \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-fit on \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--cache-type-k q8_0 --cache-type-v q8_0 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--no-warmup \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--slot-prompt-similarity 0.1 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--cache-prompt --no-context-shift \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;--temp 0.6 --top-k 20 --top-p 0.95 --min-p 0.0 --repeat-penalty 1.1 \&lt;/code&gt;&lt;/p&gt; &lt;p&gt;&lt;code&gt;-ts 2.2,2.2,0.9,0.9 -sm tensor&lt;/code&gt;&lt;/p&gt; &lt;p&gt;That runs about 1000t/s pp and 30 t/s tg, What is fine with my for Q8 and KV-k and KV-v Q8.&lt;/p&gt; &lt;p&gt;My problem &lt;del&gt;is&lt;/del&gt; &lt;del&gt;this&lt;/del&gt; are these:&lt;br /&gt; - llama-cpp kv cache reprocessing kind of often (every 5 messages or so). This takes 1-2 minutes at ~1000t/s pp.&lt;br /&gt; - I need to hold hands with gemma4 all the time, it gets a complex task, and always reports back after a few minutes instead of just juggling along on its own. I made a /goal and &amp;quot;told it&amp;quot; to not ask back and work on its own. But it stops all the time and tells me how great it did and where we are right now.&lt;br /&gt; But what I want is, that it runs for an hour or so without waiting all the time...&lt;/p&gt; &lt;p&gt;I tried the A3B MOE versions, they are fast, but completely unusable for agentic work.&lt;br /&gt; I tried qwen 27b A LOT, but the kv reprocessings are worse, that it takes hours for a few runs because constant KV cache reprocessings.&lt;/p&gt; &lt;p&gt;I tried qwen 27B on vLLM on the two 3090 only with the club-3090 project. That was &amp;quot;fine&amp;quot; but also not really good. It crawled to a halt after about 24h every day, that I had to restart the vLLM server to get it out of the 0.1 t/s mud hell.&lt;/p&gt; &lt;p&gt;Are my parameters for llama-cpp wrong that lead to my &amp;quot;agent asking on every turn&amp;quot; problems? Or what can I do?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/OddUnderstanding2309"&gt; /u/OddUnderstanding2309 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uad893/i_need_help_to_run_local_hermes_agent_on_my_rig/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uad893/i_need_help_to_run_local_hermes_agent_on_my_rig/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uad893/i_need_help_to_run_local_hermes_agent_on_my_rig/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T19:46:30+00:00</published>
+    <published>2026-06-19T20:44:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1u9zt2w</id>
@@ -123,6 +97,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u9zt2w/watching_a_local_ai_voice_assistant_get_dumber_a/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-19T11:46:48+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uabrzn</id>
+    <title>How do I set the right llama.cpp parameters?</title>
+    <updated>2026-06-19T19:46:30+00:00</updated>
+    <author>
+      <name>/u/x6q5g3o7</name>
+      <uri>https://old.reddit.com/user/x6q5g3o7</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;pre&gt;&lt;code&gt;--n-gpu-layers all --ctx-size 0 --reasoning-budget 0 --presence-penalty 1.1 --repeat-penalty 1.1 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;How do I figure out the optimal llama.cpp parameters for my setup? llama.cpp + Open WebUI in Docker with an AMD GPU (16GB VRAM) running gemma 4 12b and 26b models.&lt;/p&gt; &lt;p&gt;Is it all about trial and error? Are there more materials I can study to learn beyond the &lt;a href="https://github.com/ggml-org/llama.cpp/tree/master/tools/server"&gt;llama.cpp docs&lt;/a&gt;?&lt;/p&gt; &lt;p&gt;Google provides recommended settings for temp (1.0), top-p (0.95), and top-k (64). Asking my LLM gives inconsistent results, so I'm looking for better recommendations from others. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/x6q5g3o7"&gt; /u/x6q5g3o7 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uabrzn/how_do_i_set_the_right_llamacpp_parameters/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-19T19:46:30+00:00</published>
   </entry>
   <entry>
     <id>t3_1u96jof</id>
@@ -203,19 +190,6 @@
     <published>2026-06-19T00:17:31+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ua53c5</id>
-    <title>LQ50-24 English translate</title>
-    <updated>2026-06-19T15:30:25+00:00</updated>
-    <author>
-      <name>/u/MundanePercentage674</name>
-      <uri>https://old.reddit.com/user/MundanePercentage674</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"&gt; &lt;img alt="LQ50-24 English translate" src="https://preview.redd.it/d9ub1x7xc98h1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=ff23d4f905a47cb921bb430deb559fcff94ac706" title="LQ50-24 English translate" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;here the full English using google translate for you guy &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MundanePercentage674"&gt; /u/MundanePercentage674 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1ua53c5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T15:30:25+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u9z4e4</id>
     <title>The Eagle(3) has landed (for Qwen)</title>
     <updated>2026-06-19T11:11:50+00:00</updated>
@@ -227,6 +201,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1u9z4e4/the_eagle3_has_landed_for_qwen/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-19T11:11:50+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ua53c5</id>
+    <title>LQ50-24 English translate</title>
+    <updated>2026-06-19T15:30:25+00:00</updated>
+    <author>
+      <name>/u/MundanePercentage674</name>
+      <uri>https://old.reddit.com/user/MundanePercentage674</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"&gt; &lt;img alt="LQ50-24 English translate" src="https://preview.redd.it/d9ub1x7xc98h1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=ff23d4f905a47cb921bb430deb559fcff94ac706" title="LQ50-24 English translate" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;here the full English using google translate for you guy &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MundanePercentage674"&gt; /u/MundanePercentage674 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1ua53c5"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua53c5/lq5024_english_translate/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-19T15:30:25+00:00</published>
   </entry>
   <entry>
     <id>t3_1ua5otx</id>
@@ -294,19 +281,6 @@
     <published>2026-06-19T11:43:22+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ua5b16</id>
-    <title>The economics of AI are starting to favor open models</title>
-    <updated>2026-06-19T15:38:43+00:00</updated>
-    <author>
-      <name>/u/Mr-serial_killer</name>
-      <uri>https://old.reddit.com/user/Mr-serial_killer</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"&gt; &lt;img alt="The economics of AI are starting to favor open models" src="https://preview.redd.it/8b0vm62ke98h1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9fb86f5b1b137492173520373e8b6b25ef18a05d" title="The economics of AI are starting to favor open models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;For the last couple of years, the assumption was pretty simple: Want the smartest model? Pay for a closed API. Want something cheaper? Accept a capability hit. Looking at recent model releases, that tradeoff is starting to break down. The most interesting part of the chart isn't the models at the very top. It's the upper-left quadrant. High intelligence. Low cost. And it's increasingly dominated by open-weight models. DeepSeek. Qwen. GLM. Kimi. MiniMax. Most real-world workloads don't need the absolute best model on Earth. They need a model that's: Good enough Cheap enough And that's exactly where open models are becoming incredibly competitive. A year ago I would've assumed the gap would stay huge because the frontier labs had access to significantly more compute and data. For a lot of tasks, the difference between a frontier model and a strong open model is becoming smaller than the difference in cost. That's a dangerous trend if you're selling expensive API tokens(and good news for everyone else lol) Closed models still have advantages: Zero infrastructure Better reliability Faster access to frontier capabilities But open models offer something APIs never can: (i mean some do say things like trust me bro im secure and give full privacy but u cant take them on their word) Full control Privacy Customization Predictable costs My prediction: Within 12-18 months, most businesses won't be asking: What's the smartest model? They'll be asking: Why am I paying 10x more for a 5% improvement? and how does it compare to the open source stuff&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mr-serial_killer"&gt; /u/Mr-serial_killer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8b0vm62ke98h1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-19T15:38:43+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1u9w6my</id>
     <title>Researchers trained a Deep Research agent with 32 H100s and open-sourced everything</title>
     <updated>2026-06-19T08:20:43+00:00</updated>
@@ -320,6 +294,19 @@
     <published>2026-06-19T08:20:43+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ua5b16</id>
+    <title>The economics of AI are starting to favor open models</title>
+    <updated>2026-06-19T15:38:43+00:00</updated>
+    <author>
+      <name>/u/Mr-serial_killer</name>
+      <uri>https://old.reddit.com/user/Mr-serial_killer</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"&gt; &lt;img alt="The economics of AI are starting to favor open models" src="https://preview.redd.it/8b0vm62ke98h1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9fb86f5b1b137492173520373e8b6b25ef18a05d" title="The economics of AI are starting to favor open models" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;For the last couple of years, the assumption was pretty simple: Want the smartest model? Pay for a closed API. Want something cheaper? Accept a capability hit. Looking at recent model releases, that tradeoff is starting to break down. The most interesting part of the chart isn't the models at the very top. It's the upper-left quadrant. High intelligence. Low cost. And it's increasingly dominated by open-weight models. DeepSeek. Qwen. GLM. Kimi. MiniMax. Most real-world workloads don't need the absolute best model on Earth. They need a model that's: Good enough Cheap enough And that's exactly where open models are becoming incredibly competitive. A year ago I would've assumed the gap would stay huge because the frontier labs had access to significantly more compute and data. For a lot of tasks, the difference between a frontier model and a strong open model is becoming smaller than the difference in cost. That's a dangerous trend if you're selling expensive API tokens(and good news for everyone else lol) Closed models still have advantages: Zero infrastructure Better reliability Faster access to frontier capabilities But open models offer something APIs never can: (i mean some do say things like trust me bro im secure and give full privacy but u cant take them on their word) Full control Privacy Customization Predictable costs My prediction: Within 12-18 months, most businesses won't be asking: What's the smartest model? They'll be asking: Why am I paying 10x more for a 5% improvement? and how does it compare to the open source stuff&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mr-serial_killer"&gt; /u/Mr-serial_killer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/8b0vm62ke98h1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua5b16/the_economics_of_ai_are_starting_to_favor_open/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-19T15:38:43+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ua1na0</id>
     <title>What's more impressive, GLM 5.1 -&gt; 5.2 or Qwen 3.5 -&gt; 3.6?</title>
     <updated>2026-06-19T13:11:57+00:00</updated>
@@ -331,5 +318,18 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ua1na0/whats_more_impressive_glm_51_52_or_qwen_35_36/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-19T13:11:57+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uaebfe</id>
+    <title>Best Local Agents - Jun 2026</title>
+    <updated>2026-06-19T21:29:33+00:00</updated>
+    <author>
+      <name>/u/rm-rf-rm</name>
+      <uri>https://old.reddit.com/user/rm-rf-rm</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A megathread that is overdue! Let's discuss and debate on what the &lt;strong&gt;&lt;em&gt;best local agents&lt;/em&gt;&lt;/strong&gt; available today are&lt;/p&gt; &lt;h1&gt;Prologue&lt;/h1&gt; &lt;p&gt;First a note on terminology: While most regular users are going to have a general sense of what these are, I think its worth a brief pause to preempt turbulence in the discussion. &lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Agent&lt;/strong&gt;: There is no standard/universally agreed upon term that I can find - and rightly so. Its hard to tell if this is a hypecycle buzzword or a new primitive. I think its important to first relate to stuff that already exist and highlight how its new/different. So from that lens, I think it should largely be thought of just another software that takes autonomous/semi-autonomous action based on user input, with the distuinguishing aspect being that it can self determine path/logic and does not require to be pre-programmed (unlike IFTTT, n8n, Apple Shortcuts etc.). This definition largely agrees with &lt;a href="/r/AI_Agents"&gt;/r/AI_Agents&lt;/a&gt;'s &lt;/li&gt; &lt;li&gt;&lt;strong&gt;Harness&lt;/strong&gt;: I specifically did not use this neologism which seems to be the new buzzword replacing the Agent buzzword, but without any sufficient need. Search/LLMs dont offer a substantative or consensus definition for it either. The best that can eked out is LLM+Harness=Agent. However, I think that's the equivalent of saying Engine+Chassis=Car. So its much more useful to talk about the car and thus the titling of this post&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;The standard spiel:&lt;/h1&gt; &lt;p&gt;still applies.. &lt;/p&gt; &lt;p&gt;Share what you are running right now and &lt;strong&gt;why&lt;/strong&gt;. Given the nature of the beast in evaluating these immature systems (rapidly changing landscape, untrustworthiness of benchmarks, immature tooling, intrinsic stochasticity), please be as detailed as possible in describing your setup, nature of your usage (how much, personal/professional use), how you evaluate etc.&lt;/p&gt; &lt;h1&gt;Rules&lt;/h1&gt; &lt;ol&gt; &lt;li&gt;Agents must be using open weight models&lt;/li&gt; &lt;li&gt;Agents must be running locally (a.k.a hardware, including VPCs, that you control)&lt;/li&gt; &lt;li&gt;Strongly recommend discussing OSS Agent software but doesn't necessarily have to be so. Why? Claude Code/Codex are relatively the most mature, well understood, largest ecosystem softwares today + they can be used with local models. At least for now we cant ignore the reality that many of us are using those - so its worth allowing at least as a reference point.&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/rm-rf-rm"&gt; /u/rm-rf-rm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uaebfe/best_local_agents_jun_2026/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uaebfe/best_local_agents_jun_2026/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uaebfe/best_local_agents_jun_2026/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-19T21:29:33+00:00</published>
   </entry>
 </feed>
