@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-25T08:12:00+00:00</updated>
+  <updated>2026-06-25T09:27:23+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
-  <entry>
-    <id>t3_1ue9v4b</id>
-    <title>Qwen3.6 27B more dumb in vLLM compared to llama.cpp</title>
-    <updated>2026-06-24T10:35:30+00:00</updated>
-    <author>
-      <name>/u/DanielusGamer26</name>
-      <uri>https://old.reddit.com/user/DanielusGamer26</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello, I recently bought a new RTX 5060Ti to pair with the RTX 5060Ti I already own, now I have 32GB of VRAM.&lt;/p&gt; &lt;p&gt;Up until now for convenience I've used llama.cpp, for goodness' sake it works excellently when only 1 user is using it, but now there are 2 of us using it and llama.cpp can't keep up, often user 1's cache gets invalidated when user 2 writes and vice versa.&lt;/p&gt; &lt;p&gt;Until now I have always used this command to start llama.cpp:&lt;/p&gt; &lt;pre&gt;&lt;code&gt; &amp;quot;Qwen3.6-27B&amp;quot;: ttl: 0 filters: strip_params: &amp;quot;top_p, top_k, presence_penalty, frequency_penalty, temperature, min_p&amp;quot; setParamsByID: &amp;quot;${MODEL_ID}:coding&amp;quot;: temperature: 0.6 top_p: 0.95 top_k: 20 min_p: 0.0 presence_penalty: 0.0 &amp;quot;${MODEL_ID}:general&amp;quot;: temperature: 1.0 top_p: 0.95 top_k: 20 min_p: 0.0 presence_penalty: 0.0 &amp;quot;${MODEL_ID}:instruct&amp;quot;: chat_template_kwargs: enable_thinking: false temperature: 0.7 top_p: 0.8 top_k: 20 min_p: 0.0 presence_penalty: 1.5 cmd: | ${llama-server} --model /home/daniele/models/Qwen3.6-27B-UD-Q5_K_XL.gguf \ --threads 9 --ctx-size 120000 -fa 1 --jinja -np 2 -ngl 99 --spec-type draft-mtp --spec-draft-n-max 3 --chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' --cache-ram 24000 --mmproj /home/daniele/models/mmproj-BF16.gguf --no-mmproj-offload -kvu --ctx-checkpoints 6 -b 8192 -ub 512 -mg 0 -ctv q8_0 -ts 0.5,0.5 &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The parameters you see configured I tuned one after another after many attempts, and this is the best I've found for my hardware.&lt;/p&gt; &lt;p&gt;So I decide to switch to vLLM, I use the model: `cyankiwi/Qwen3.6-27B-AWQ-INT4` which has roughly the same size (in weights) as `Qwen3.6-27B-UD-Q5_K_XL.gguf`&lt;/p&gt; &lt;p&gt;I start vLLM with:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;docker run --rm --gpus all \ --name vllm \ -v /mnt/fast_data/huggingface_cache:/root/.cache/huggingface \ -v /mnt/fast_data/vllm_cache:/root/.cache/vllm \ -v /mnt/fast_data/models/chat_template.jinja:/templates/chat.jinja \ -v /home/daniele/Desktop/qwen36_27b_parser:/plugins \ -v /mnt/fast_data/vllm_ec_cache:/ec_cache \ -e PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512 -p 8002:8000 \ -e QWEN36_PARSER_DEBUG=1 \ --ipc=host \ vllm/vllm-openai:v0.23.0 \ cyankiwi/Qwen3.6-27B-AWQ-INT4 \ --served-model-name qwen3.6-27b \ --trust-remote-code \ --max-model-len 100000 \ --max-num-seqs 4 \ --kv-cache-dtype fp8 \ --gpu-memory-utilization 0.79 \ --reasoning-parser qwen3 \ --speculative-config '{&amp;quot;method&amp;quot;:&amp;quot;mtp&amp;quot;,&amp;quot;num_speculative_tokens&amp;quot;:3}' \ -tp 2 \ --enable-auto-tool-choice \ --tool-call-parser qwen36_27b \ --tool-parser-plugin /plugins/qwen36_27b_parser.py \ --enable-prefix-caching \ --override-generation-config '{&amp;quot;temperature&amp;quot;:0.6,&amp;quot;top_p&amp;quot;:0.95,&amp;quot;top_k&amp;quot;:20,&amp;quot;min_p&amp;quot;:0.0,&amp;quot;presence_penalty&amp;quot;:0.0,&amp;quot;repetition_penalty&amp;quot;:1.0}' \ --enable-prompt-tokens-details \ --default-chat-template-kwargs '{&amp;quot;preserve_thinking&amp;quot;: true}' --kv-offloading-size 16 --kv-offloading-backend native --chat-template /templates/chat.jinja --enable-request-id-headers &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;I have to be honest... IT WAS A NIGHTMARE, I had an absurd amount of problems, in some cases the model was completely lobotomized (trying with QuantTrio/Qwen3.6-27B-AWQ) then I tried&lt;/p&gt; &lt;pre&gt;&lt;code&gt;sakamakismile/Qwen3.6-27B-Text-NVFP4-MTP &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;and also: &lt;code&gt;Lorbus/Qwen3.6-27B-int4-AutoRound&lt;/code&gt;&lt;/p&gt; &lt;p&gt;But even in this case it was lobotomized, a bit less, but it made a lot of tool errors, it gets stuck on its own, and it's not sporadic, with stock Pi without any particular extension the tool calls were broken at least 60% of the time starting from the first message in the conversation.&lt;/p&gt; &lt;p&gt;So with some elbow grease and Gemma31B UD5XL from llama.cpp I managed to create a custom parser of my own made with Python that intercepts the model's errors, the most common ones I noticed are:&lt;/p&gt; &lt;p&gt;- Forgetting angle brackets&lt;/p&gt; &lt;p&gt;- Messing up syntax, for example instead of &amp;lt;function=edit&amp;gt;&amp;lt;parameter=content&amp;gt; it would write &amp;lt;parameter=edit&amp;gt;... completely baked...&lt;/p&gt; &lt;p&gt;With llama.cpp I've never had these problems, I tried 3/4 chat templates, from the official one with qwen3_coder to qwen3_xml to froggeric's (&lt;a href="https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates"&gt;https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates&lt;/a&gt;) but nothing, all with the same problem, to varying degrees..&lt;/p&gt; &lt;p&gt;At the moment the most stable one I've found is exactly the one you see in the startup command above with: `cyankiwi/Qwen3.6-27B-AWQ-INT4` and my custom parser, I manage to run it fairly decently, but having used the 27b UD 5 XL a lot with llama.cpp for programming (not vibe coding, but assisting) I realize that it has lost that sharpness of intelligence..&lt;/p&gt; &lt;p&gt;The most glaring problem right now, though, is: the model literally sometimes seems completely blind to certain messages!&lt;/p&gt; &lt;p&gt;Basically, I write the initial prompt with “let's implement X”&lt;/p&gt; &lt;p&gt;He says “Sure! I'll check the files...”&lt;/p&gt; &lt;p&gt;Reads 2/3 files&lt;/p&gt; &lt;p&gt;Then says “At the moment I don't have a specific task to work on - I was exploring the pi-coding-agent structure but with no clear goal. What do you want to do?”&lt;/p&gt; &lt;p&gt;So I asked “Tell me step by step what you see in this conversation, message by message, tool by tool”&lt;/p&gt; &lt;p&gt;and he sees his own tools as the first message! Never happened to me in my life with any other model. I just don't understand where the problem might come from, I even tried logging the requests and in the vLLM console, the prompt with the chat template applied comes out and my input is clearly visible...&lt;/p&gt; &lt;p&gt;Or right after a write that wrote the file it says &amp;quot;wait, the file doesn't exist, I need to rewrite it&amp;quot;, bro wtf, the tool call succeeded and I can even see it in the HTTP request logged via LiteLLM...&lt;/p&gt; &lt;p&gt;I wonder, am I doing something wrong? Is it normal that quantized models on vLLM compared to llama.cpp are so much more lobotomized? I really like vLLM because it's faster than llama.cpp and handles concurrent requests excellently, but this way it's impossible... after spending 2 days banging my head against it, I convinced myself to write here to ask for your opinion and discuss it.&lt;/p&gt; &lt;p&gt;P.S. I wrote this post entirely by hand, in one go, out of frustration, forgive any mistakes, I'm open to dialogue :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/DanielusGamer26"&gt; /u/DanielusGamer26 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ue9v4b/qwen36_27b_more_dumb_in_vllm_compared_to_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ue9v4b/qwen36_27b_more_dumb_in_vllm_compared_to_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ue9v4b/qwen36_27b_more_dumb_in_vllm_compared_to_llamacpp/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-24T10:35:30+00:00</published>
-  </entry>
   <entry>
     <id>t3_1ueuc33</id>
     <title>Anybody used DwarfStar with DeepSeek V4 Flash on 1x DGX Spark yet? What are your thoughts?</title>
@@ -32,19 +19,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueuc33/anybody_used_dwarfstar_with_deepseek_v4_flash_on/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-25T00:02:54+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uey9fu</id>
-    <title>[NEW MODEL] SupraWeather-Nano-Preview Just released!</title>
-    <updated>2026-06-25T03:05:26+00:00</updated>
-    <author>
-      <name>/u/Dangerous_Try3619</name>
-      <uri>https://old.reddit.com/user/Dangerous_Try3619</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;SupraWeather Nano is live! ⛈️&lt;/p&gt; &lt;p&gt;We just released SupraWeather-Nano (preview), a small FT-Transformer model purpose-built to classify weather phenomena from raw tabular meteorological features.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/SupraLabs/SupraWeather-Nano-Preview"&gt;https://huggingface.co/SupraLabs/SupraWeather-Nano-Preview &lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/SupraLabs"&gt;https://huggingface.co/SupraLabs&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Most weather classification setups either bolt a generic model onto tabular data or skip structure entirely. SupraWeather Nano uses a dedicated Feature Tokenizer + Transformer Encoder (FT-Transformer), each input feature gets its own learned token, a CLS token aggregates them, and a small transformer stack does the rest. No system prompt, no text input. Just send the numbers and get a class back.&lt;/p&gt; &lt;p&gt;Inputs: temperature, humidity, pressure, pressure trend, wind speed, wind direction, altitude, month, air mass.&lt;/p&gt; &lt;p&gt;Examples:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Input (temp / humidity / pressure / wind / air mass)&lt;/th&gt; &lt;th align="left"&gt;Predicted class&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;30°C / 30% / 1025 hPa / 5 km/h / tropical&lt;/td&gt; &lt;td align="left"&gt;Clear&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;6°C / 99% / 1018 hPa / 1 km/h / maritime&lt;/td&gt; &lt;td align="left"&gt;Fog&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;-10°C / 98% / 998 hPa / 10 km/h / polar&lt;/td&gt; &lt;td align="left"&gt;Snow&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;0°C / 95% / 1002 hPa / 8 km/h / polar&lt;/td&gt; &lt;td align="left"&gt;Freezing Rain&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;28°C / 99% / 985 hPa / 35 km/h / equatorial&lt;/td&gt; &lt;td align="left"&gt;Thunderstorm&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;15°C / 50% / 980 hPa / 70 km/h / polar&lt;/td&gt; &lt;td align="left"&gt;Windstorm&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Quick start:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;*FULL CODE ON REPO* &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Live demo (Space): &lt;a href="https://huggingface.co/spaces/SupraLabs/SupraWeather-Nano-Preview"&gt;https://huggingface.co/spaces/SupraLabs/SupraWeather-Nano-Preview&lt;/a&gt;&lt;/p&gt; &lt;p&gt;This is a &lt;strong&gt;preview&lt;/strong&gt; release trained entirely on a synthetic dataset (rule-based generator, 120k samples). It is not intended for real-world forecasting, it's an architecture and pipeline experiment. 5/6 internal stress tests pass; the one failure (windstorm vs. cold front) is documented in the model card.&lt;/p&gt; &lt;p&gt;Feedback welcome!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Dangerous_Try3619"&gt; /u/Dangerous_Try3619 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uey9fu/new_model_supraweathernanopreview_just_released/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uey9fu/new_model_supraweathernanopreview_just_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uey9fu/new_model_supraweathernanopreview_just_released/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-25T03:05:26+00:00</published>
   </entry>
   <entry>
     <id>t3_1ue5149</id>
@@ -99,6 +73,19 @@
     <published>2026-06-24T21:23:27+00:00</published>
   </entry>
   <entry>
+    <id>t3_1ueexbr</id>
+    <title>OpenAI and Broadcom unveil LLM-optimized inference chip</title>
+    <updated>2026-06-24T14:22:25+00:00</updated>
+    <author>
+      <name>/u/z_latent</name>
+      <uri>https://old.reddit.com/user/z_latent</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openai.com/index/openai-broadcom-jalapeno-inference-chip/"&gt;https://openai.com/index/openai-broadcom-jalapeno-inference-chip/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Quoted from the start of the blog post:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Early testing shows that the first-generation accelerator will deliver performance per watt substantially better than current state-of-the-art&lt;/li&gt; &lt;li&gt;Built from the ground up for current and future LLMs across the industry&lt;/li&gt; &lt;li&gt;Developed from design to production in nine months, accelerated by OpenAI’s models&lt;/li&gt; &lt;li&gt;Expands OpenAI’s full-stack platform, from products to models and now to chips&lt;/li&gt; &lt;li&gt;To be deployed at gigawatt scale with data center partners, over multiple generations&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The announcement doesn't have much content beyond this. This does not look like it will be a chip aimed at consumers, but it's worth knowing about either way.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/z_latent"&gt; /u/z_latent &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-24T14:22:25+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1uf2l0y</id>
     <title>Could you help me test MTP for GLM-4.7-Flash?</title>
     <updated>2026-06-25T06:52:21+00:00</updated>
@@ -123,32 +110,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uf2u3k/glm_52_on_dual_strix_halo_256gb_worth_it/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-25T07:06:49+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1ueexbr</id>
-    <title>OpenAI and Broadcom unveil LLM-optimized inference chip</title>
-    <updated>2026-06-24T14:22:25+00:00</updated>
-    <author>
-      <name>/u/z_latent</name>
-      <uri>https://old.reddit.com/user/z_latent</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://openai.com/index/openai-broadcom-jalapeno-inference-chip/"&gt;https://openai.com/index/openai-broadcom-jalapeno-inference-chip/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Quoted from the start of the blog post:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Early testing shows that the first-generation accelerator will deliver performance per watt substantially better than current state-of-the-art&lt;/li&gt; &lt;li&gt;Built from the ground up for current and future LLMs across the industry&lt;/li&gt; &lt;li&gt;Developed from design to production in nine months, accelerated by OpenAI’s models&lt;/li&gt; &lt;li&gt;Expands OpenAI’s full-stack platform, from products to models and now to chips&lt;/li&gt; &lt;li&gt;To be deployed at gigawatt scale with data center partners, over multiple generations&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The announcement doesn't have much content beyond this. This does not look like it will be a chip aimed at consumers, but it's worth knowing about either way.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/z_latent"&gt; /u/z_latent &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueexbr/openai_and_broadcom_unveil_llmoptimized_inference/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-24T14:22:25+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uf3dvy</id>
-    <title>Has anyone tried to hack into their own system using a local model?</title>
-    <updated>2026-06-25T07:38:50+00:00</updated>
-    <author>
-      <name>/u/MrMrsPotts</name>
-      <uri>https://old.reddit.com/user/MrMrsPotts</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With all this talk about Mythos being able to hack into. US government systems, I was wondering if anyone has tried to get root on their own system using a local model?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrMrsPotts"&gt; /u/MrMrsPotts &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-25T07:38:50+00:00</published>
   </entry>
   <entry>
     <id>t3_1uedlas</id>
@@ -203,6 +164,19 @@
     <published>2026-06-24T19:15:49+00:00</published>
   </entry>
   <entry>
+    <id>t3_1uf3dvy</id>
+    <title>Has anyone tried to hack into their own system using a local model?</title>
+    <updated>2026-06-25T07:38:50+00:00</updated>
+    <author>
+      <name>/u/MrMrsPotts</name>
+      <uri>https://old.reddit.com/user/MrMrsPotts</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;With all this talk about Mythos being able to hack into. US government systems, I was wondering if anyone has tried to get root on their own system using a local model?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/MrMrsPotts"&gt; /u/MrMrsPotts &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uf3dvy/has_anyone_tried_to_hack_into_their_own_system/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-25T07:38:50+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1ue51uk</id>
     <title>Unlimited-OCR is now on ModelScope! A 3.3B multilingual OCR model for one-shot parsing across single images, multi-page documents, and PDFs. License: MIT</title>
     <updated>2026-06-24T05:53:49+00:00</updated>
@@ -214,6 +188,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ue51uk/unlimitedocr_is_now_on_modelscope_a_33b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-24T05:53:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uf48js</id>
+    <title>USB4 RDMA seems doable</title>
+    <updated>2026-06-25T08:30:15+00:00</updated>
+    <author>
+      <name>/u/alanoo</name>
+      <uri>https://old.reddit.com/user/alanoo</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just found this blog : &lt;a href="https://blog.hellas.ai/blog/thunderbolt-ibverbs/"&gt;https://blog.hellas.ai/blog/thunderbolt-ibverbs/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Experimental implementation of RDMA, demonstrated on two Strix Halo&lt;br /&gt; Did a quick search and can't really find it posted before ? &lt;/p&gt; &lt;p&gt;This could be huge as it shoud work with any USB4 host.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/alanoo"&gt; /u/alanoo &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf48js/usb4_rdma_seems_doable/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf48js/usb4_rdma_seems_doable/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uf48js/usb4_rdma_seems_doable/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-25T08:30:15+00:00</published>
   </entry>
   <entry>
     <id>t3_1uf2wn9</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueuki7/gemma426ba4b_31bqat_uncensored_balanced_are_out/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-25T00:13:17+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uf4azy</id>
+    <title>NVIDIA has released Nemotron-TwoTower-30B-A3B-Base-BF16, an unusual diffusion-based language model built from the Nemotron 3 Nano 30B-A3B backbone.</title>
+    <updated>2026-06-25T08:34:20+00:00</updated>
+    <author>
+      <name>/u/nikhilprasanth</name>
+      <uri>https://old.reddit.com/user/nikhilprasanth</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf4azy/nvidia_has_released/"&gt; &lt;img alt="NVIDIA has released Nemotron-TwoTower-30B-A3B-Base-BF16, an unusual diffusion-based language model built from the Nemotron 3 Nano 30B-A3B backbone." src="https://external-preview.redd.it/_kkA9e3HsY86n32m9EWFK0WWBV1w2YUI5BkS68vNpPU.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed8725a1932bf88154c94879c0af72b0b026d2a2" title="NVIDIA has released Nemotron-TwoTower-30B-A3B-Base-BF16, an unusual diffusion-based language model built from the Nemotron 3 Nano 30B-A3B backbone." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;NVIDIA has released Nemotron-TwoTower-30B-A3B-Base-BF16, an unusual diffusion-based language model built from the Nemotron 3 Nano 30B-A3B backbone.&lt;/p&gt; &lt;p&gt;Instead of generating strictly one token at a time, it uses a frozen autoregressive context tower plus a diffusion denoiser tower that iteratively fills blocks of tokens in parallel. NVIDIA says its default mask-diffusion setup retains 98.7% of the autoregressive baseline’s aggregate benchmark quality while reaching 2.42× its wall-clock generation throughput.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/nikhilprasanth"&gt; /u/nikhilprasanth &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/nvidia/Nemotron-TwoTower-30B-A3B-Base-BF16"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uf4azy/nvidia_has_released/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uf4azy/nvidia_has_released/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-25T08:34:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1ueyl2i</id>
