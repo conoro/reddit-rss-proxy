@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-24T23:40:54+00:00</updated>
+  <updated>2026-06-25T00:11:37+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -99,19 +99,6 @@
     <published>2026-06-24T17:12:40+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uerbyi</id>
-    <title>Any chance I could cluster my DGX Spark (128GB unified memory) and my AMD Ryzen AI Max 395 (128GM unified memory) together to run 1 model?</title>
-    <updated>2026-06-24T21:57:43+00:00</updated>
-    <author>
-      <name>/u/StartupTim</name>
-      <uri>https://old.reddit.com/user/StartupTim</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all,&lt;/p&gt; &lt;p&gt;So I have a Nvidia DGX Spark and an AMD Strix 395, both have 128GB of unified memory. The Spark has 200Gbit network and the AMD Strix has 5Gbit ethernet (but it has a pcie gen 4x4 slot).&lt;/p&gt; &lt;p&gt;Is there any chance I can cluster the 2 together to run a larger model that can fit in the ~256GB (minus OS) unified memory?&lt;/p&gt; &lt;p&gt;I've seen that Deepseek v4 Flash can fit on 2x DGX Spark, but maybe I can use my Strix system instead?&lt;/p&gt; &lt;p&gt;Any ideas on if this would be possible? If so, how would you go abouts doing it? Would it help if I added a Mellanox ConnectX-6 QSFP+28 to the AMD Strix and connected it to the DGX Spark? I would have maybe 64Gbps over the 100Gbps link, but 64 is faster than 5.&lt;/p&gt; &lt;p&gt;Thoughts?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/StartupTim"&gt; /u/StartupTim &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-24T21:57:43+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uebknk</id>
     <title>llama.cpp's web UI now supports executing model generated JavaScript in the browser, through Web Workers (opt in)</title>
     <updated>2026-06-24T12:02:38+00:00</updated>
@@ -151,19 +138,6 @@
     <published>2026-06-24T11:17:32+00:00</published>
   </entry>
   <entry>
-    <id>t3_1ueqfzl</id>
-    <title>Got GLM-5.2 + MTP speculative decode running on 4× DGX Spark (GB10) — and the build piece the public recipe is missing</title>
-    <updated>2026-06-24T21:23:27+00:00</updated>
-    <author>
-      <name>/u/anvarazizov</name>
-      <uri>https://old.reddit.com/user/anvarazizov</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TL;DR: the recipe's image-build mods aren't actually public – I reconstructed them from the public kernels (with Claude) – and you have to build vLLM at the author's exact pinned ref or the real AWQ weights crash on load. Running now at ~9.4 tok/s on my own 4× GB10.&lt;/p&gt; &lt;p&gt;Saw a link on X to CosmicRaisins' GLM-5.2 stack for 4× GB10: vLLM TP=4, MTP speculative decode, ported sparse-MLA Triton kernels (the Hopper-only _flashmla_C path doesn't exist on sm_121), and a data-free 15% expert prune so the AWQ-INT4 weights fit. Great work. I'd actually tried vanilla vLLM for GLM-5.2 on these boxes months ago and it fell over around 512-token context, so I'd been serving it on llama.cpp RPC (~5 tok/s) instead – a working sparse-MLA&lt;/p&gt; &lt;p&gt;MTP path was exactly what I'd been after. Porting it to my own 4-node Spark cluster, I hit two walls worth sharing:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;The image isn't reproducible from the public repo. The README points at two vLLM mods in a spark-vllm-docker fork, but they aren't actually published (only the kernels are). So I reconstructed them from the public kernels – a single &lt;a href="http://build-recon-image.sh"&gt;build-recon-image.sh&lt;/a&gt; that bakes the kernels in, patches deep_gemm.py (route the 3 DSA fns to the sm12x_* fallbacks on the sm_120/121 family, before the _missing() gate) and sparse_attn_indexer.py (drop the has_deep_gemm gate on sm12x), auto-applies the flashmla→Triton monkeypatch, and pip install b12x==0.23.0. The wiring validates with a quick import check on the GPU.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;The base vLLM ref really matters. Building on a newer vLLM than the author's pinned commit made the real AWQ weights crash at process_weights_after_loading (_k_scale.fill_ → async CUDA error: invalid argument). Dummy weights loaded fine, so it was specific to real-weight processing. Rebuilding vLLM at the author's exact ref fixed it instantly. If you port this: pin the ref.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Other port notes: you can skip the 378 GB weight download – the 15% prune is deterministic from the cyankiwi AWQ base via the repo's awq_surgery.py (~20 min, pure safetensors surgery). On nodes with less free memory, gpu-memory-utilization 0.93 trips the boot guard – drop to 0.90 + lower max-model-len. No shared FS? NFS-export the weights from the head. And set the RoCE HCA/GID-index for your fabric.&lt;/p&gt; &lt;p&gt;Result: serving fine, coherent output, ~9.4 tok/s decode on a single RoCE rail – roughly 2× the llama.cpp fallback it replaced (MTP acceptance ~2.8/4). The author gets ~20 with dual-rail – the inter-node allreduce bandwidth is the decode bottleneck, so the 2nd rail is the ~2× lever (still debugging NCCL dual-rail GID resolution on mine).&lt;/p&gt; &lt;p&gt;Full notes + my fork + the reconstruction script: &lt;a href="https://github.com/anvarazizov/glm-5.2-gb10"&gt;https://github.com/anvarazizov/glm-5.2-gb10&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Huge credit to CosmicRaisins for the kernels/prune/MTP work — this is just the integration glue to make it portable. Would love for the maintainer to vendor the build script so nobody else has to reverse-engineer it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anvarazizov"&gt; /u/anvarazizov &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-24T21:23:27+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ue2fd7</id>
     <title>Seems this community might have missed it: Bill that would mandate AI chip location tracking gains industry support | Half a dozen companies have come out in support of the Chip Security Act, which would require location-tracking mechanisms for America’s most advanced computing chips.</title>
     <updated>2026-06-24T03:35:39+00:00</updated>
@@ -188,6 +162,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uep8o5/do_cloud_chatbots_system_prompts_make_them/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-24T20:38:30+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uerbyi</id>
+    <title>Any chance I could cluster my DGX Spark (128GB unified memory) and my AMD Ryzen AI Max 395 (128GM unified memory) together to run 1 model?</title>
+    <updated>2026-06-24T21:57:43+00:00</updated>
+    <author>
+      <name>/u/StartupTim</name>
+      <uri>https://old.reddit.com/user/StartupTim</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all,&lt;/p&gt; &lt;p&gt;So I have a Nvidia DGX Spark and an AMD Strix 395, both have 128GB of unified memory. The Spark has 200Gbit network and the AMD Strix has 5Gbit ethernet (but it has a pcie gen 4x4 slot).&lt;/p&gt; &lt;p&gt;Is there any chance I can cluster the 2 together to run a larger model that can fit in the ~256GB (minus OS) unified memory?&lt;/p&gt; &lt;p&gt;I've seen that Deepseek v4 Flash can fit on 2x DGX Spark, but maybe I can use my Strix system instead?&lt;/p&gt; &lt;p&gt;Any ideas on if this would be possible? If so, how would you go abouts doing it? Would it help if I added a Mellanox ConnectX-6 QSFP+28 to the AMD Strix and connected it to the DGX Spark? I would have maybe 64Gbps over the 100Gbps link, but 64 is faster than 5.&lt;/p&gt; &lt;p&gt;Thoughts?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/StartupTim"&gt; /u/StartupTim &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uerbyi/any_chance_i_could_cluster_my_dgx_spark_128gb/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-24T21:57:43+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1ueqfzl</id>
+    <title>Got GLM-5.2 + MTP speculative decode running on 4× DGX Spark (GB10) — and the build piece the public recipe is missing</title>
+    <updated>2026-06-24T21:23:27+00:00</updated>
+    <author>
+      <name>/u/anvarazizov</name>
+      <uri>https://old.reddit.com/user/anvarazizov</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TL;DR: the recipe's image-build mods aren't actually public – I reconstructed them from the public kernels (with Claude) – and you have to build vLLM at the author's exact pinned ref or the real AWQ weights crash on load. Running now at ~9.4 tok/s on my own 4× GB10.&lt;/p&gt; &lt;p&gt;Saw a link on X to CosmicRaisins' GLM-5.2 stack for 4× GB10: vLLM TP=4, MTP speculative decode, ported sparse-MLA Triton kernels (the Hopper-only _flashmla_C path doesn't exist on sm_121), and a data-free 15% expert prune so the AWQ-INT4 weights fit. Great work. I'd actually tried vanilla vLLM for GLM-5.2 on these boxes months ago and it fell over around 512-token context, so I'd been serving it on llama.cpp RPC (~5 tok/s) instead – a working sparse-MLA&lt;/p&gt; &lt;p&gt;MTP path was exactly what I'd been after. Porting it to my own 4-node Spark cluster, I hit two walls worth sharing:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;The image isn't reproducible from the public repo. The README points at two vLLM mods in a spark-vllm-docker fork, but they aren't actually published (only the kernels are). So I reconstructed them from the public kernels – a single &lt;a href="http://build-recon-image.sh"&gt;build-recon-image.sh&lt;/a&gt; that bakes the kernels in, patches deep_gemm.py (route the 3 DSA fns to the sm12x_* fallbacks on the sm_120/121 family, before the _missing() gate) and sparse_attn_indexer.py (drop the has_deep_gemm gate on sm12x), auto-applies the flashmla→Triton monkeypatch, and pip install b12x==0.23.0. The wiring validates with a quick import check on the GPU.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;The base vLLM ref really matters. Building on a newer vLLM than the author's pinned commit made the real AWQ weights crash at process_weights_after_loading (_k_scale.fill_ → async CUDA error: invalid argument). Dummy weights loaded fine, so it was specific to real-weight processing. Rebuilding vLLM at the author's exact ref fixed it instantly. If you port this: pin the ref.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Other port notes: you can skip the 378 GB weight download – the 15% prune is deterministic from the cyankiwi AWQ base via the repo's awq_surgery.py (~20 min, pure safetensors surgery). On nodes with less free memory, gpu-memory-utilization 0.93 trips the boot guard – drop to 0.90 + lower max-model-len. No shared FS? NFS-export the weights from the head. And set the RoCE HCA/GID-index for your fabric.&lt;/p&gt; &lt;p&gt;Result: serving fine, coherent output, ~9.4 tok/s decode on a single RoCE rail – roughly 2× the llama.cpp fallback it replaced (MTP acceptance ~2.8/4). The author gets ~20 with dual-rail – the inter-node allreduce bandwidth is the decode bottleneck, so the 2nd rail is the ~2× lever (still debugging NCCL dual-rail GID resolution on mine).&lt;/p&gt; &lt;p&gt;Full notes + my fork + the reconstruction script: &lt;a href="https://github.com/anvarazizov/glm-5.2-gb10"&gt;https://github.com/anvarazizov/glm-5.2-gb10&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Huge credit to CosmicRaisins for the kernels/prune/MTP work — this is just the integration glue to make it portable. Would love for the maintainer to vendor the build script so nobody else has to reverse-engineer it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anvarazizov"&gt; /u/anvarazizov &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ueqfzl/got_glm52_mtp_speculative_decode_running_on_4_dgx/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-24T21:23:27+00:00</published>
   </entry>
   <entry>
     <id>t3_1ue9v4b</id>
@@ -229,19 +229,6 @@
     <published>2026-06-24T14:22:25+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uemzsb</id>
-    <title>SDXL running locally in the browser on WebGPU, open-source</title>
-    <updated>2026-06-24T19:15:49+00:00</updated>
-    <author>
-      <name>/u/xoqq</name>
-      <uri>https://old.reddit.com/user/xoqq</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"&gt; &lt;img alt="SDXL running locally in the browser on WebGPU, open-source" src="https://preview.redd.it/c62v5zmf5a9h1.png?width=140&amp;amp;height=140&amp;amp;auto=webp&amp;amp;s=e26f6ef35ecfb7ae50c88c4097ded10d540f87dc" title="SDXL running locally in the browser on WebGPU, open-source" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I needed simple local image generation without the usual setup. No virtual environments, no ComfyUI with a complex graph and installation as an exe.&lt;/p&gt; &lt;p&gt;So i tried to push the whole thing into the browser and run it on WebGPU. &lt;/p&gt; &lt;p&gt;It's a browser extension. You install it, then it loads model, and after that it runs on your own GPU, offline.&lt;/p&gt; &lt;p&gt;It use text encoders, UNet, and VAE are ONNX graphs, running on the browser's WebGPU stack.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Github&lt;/strong&gt;: &lt;a href="https://github.com/d0grr/generate-ai-images"&gt;https://github.com/d0grr/generate-ai-images&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Firefox&lt;/strong&gt;: &lt;a href="https://addons.mozilla.org/en-US/firefox/addon/generate-ai-images/"&gt;https://addons.mozilla.org/en-US/firefox/addon/generate-ai-images/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Chrome&lt;/strong&gt;: &lt;a href="https://chromewebstore.google.com/detail/generate-ai-images/agcbeefcfjkldpankmceehdhbpldakae"&gt;https://chromewebstore.google.com/detail/generate-ai-images/agcbeefcfjkldpankmceehdhbpldakae&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Currently 2 models are supported:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;SDXL-Lighting fp16(~7 GB storage)&lt;/li&gt; &lt;li&gt;4-bit version for weaker cards(~3.6 GB storage)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Here are some rough points to give you an idea: &lt;strong&gt;when you load model&lt;/strong&gt; in the browser, it &lt;strong&gt;freezes for about 10 seconds&lt;/strong&gt;, and &lt;strong&gt;freezes in the end of generation.&lt;/strong&gt; Reason - synchronous WebGPU shader compilation in Chrome's GPU process. A Web Worker doesn't help - bottleneck is the GPU process.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Requirements:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;You need a browser with WebGPU support(O RLY?) Chrome/Edge 122+ or the latest version of Firefox. &lt;/li&gt; &lt;li&gt;min ~7 GB, needs ~8 GB VRAM for SDXL-Lighting fp16&lt;/li&gt; &lt;li&gt;or min ~3.6 GB, ~4-5 GB VRAM for 4-bit version SDXL-Lighting&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;As for speed, on my 14&amp;quot; MacBook M4, processing one image takes about 50-60 seconds.&lt;/p&gt; &lt;p&gt;I started doing this just to see if it was even possible. It works, that's all. I wonder how it would work on other hardware.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xoqq"&gt; /u/xoqq &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1uemzsb"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-24T19:15:49+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uedlas</id>
     <title>I did some model hacks, and got GLM5.2 from about 2.5 tok/s to &gt;50 tok/s on my GH200 system.</title>
     <updated>2026-06-24T13:30:36+00:00</updated>
@@ -253,6 +240,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uedlas/i_did_some_model_hacks_and_got_glm52_from_about/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-24T13:30:36+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uemzsb</id>
+    <title>SDXL running locally in the browser on WebGPU, open-source</title>
+    <updated>2026-06-24T19:15:49+00:00</updated>
+    <author>
+      <name>/u/xoqq</name>
+      <uri>https://old.reddit.com/user/xoqq</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"&gt; &lt;img alt="SDXL running locally in the browser on WebGPU, open-source" src="https://preview.redd.it/c62v5zmf5a9h1.png?width=140&amp;amp;height=140&amp;amp;auto=webp&amp;amp;s=e26f6ef35ecfb7ae50c88c4097ded10d540f87dc" title="SDXL running locally in the browser on WebGPU, open-source" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I needed simple local image generation without the usual setup. No virtual environments, no ComfyUI with a complex graph and installation as an exe.&lt;/p&gt; &lt;p&gt;So i tried to push the whole thing into the browser and run it on WebGPU. &lt;/p&gt; &lt;p&gt;It's a browser extension. You install it, then it loads model, and after that it runs on your own GPU, offline.&lt;/p&gt; &lt;p&gt;It use text encoders, UNet, and VAE are ONNX graphs, running on the browser's WebGPU stack.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Github&lt;/strong&gt;: &lt;a href="https://github.com/d0grr/generate-ai-images"&gt;https://github.com/d0grr/generate-ai-images&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Firefox&lt;/strong&gt;: &lt;a href="https://addons.mozilla.org/en-US/firefox/addon/generate-ai-images/"&gt;https://addons.mozilla.org/en-US/firefox/addon/generate-ai-images/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Chrome&lt;/strong&gt;: &lt;a href="https://chromewebstore.google.com/detail/generate-ai-images/agcbeefcfjkldpankmceehdhbpldakae"&gt;https://chromewebstore.google.com/detail/generate-ai-images/agcbeefcfjkldpankmceehdhbpldakae&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Currently 2 models are supported:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;SDXL-Lighting fp16(~7 GB storage)&lt;/li&gt; &lt;li&gt;4-bit version for weaker cards(~3.6 GB storage)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Here are some rough points to give you an idea: &lt;strong&gt;when you load model&lt;/strong&gt; in the browser, it &lt;strong&gt;freezes for about 10 seconds&lt;/strong&gt;, and &lt;strong&gt;freezes in the end of generation.&lt;/strong&gt; Reason - synchronous WebGPU shader compilation in Chrome's GPU process. A Web Worker doesn't help - bottleneck is the GPU process.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Requirements:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;You need a browser with WebGPU support(O RLY?) Chrome/Edge 122+ or the latest version of Firefox. &lt;/li&gt; &lt;li&gt;min ~7 GB, needs ~8 GB VRAM for SDXL-Lighting fp16&lt;/li&gt; &lt;li&gt;or min ~3.6 GB, ~4-5 GB VRAM for 4-bit version SDXL-Lighting&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;As for speed, on my 14&amp;quot; MacBook M4, processing one image takes about 50-60 seconds.&lt;/p&gt; &lt;p&gt;I started doing this just to see if it was even possible. It works, that's all. I wonder how it would work on other hardware.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/xoqq"&gt; /u/xoqq &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1uemzsb"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uemzsb/sdxl_running_locally_in_the_browser_on_webgpu/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-24T19:15:49+00:00</published>
   </entry>
   <entry>
     <id>t3_1uegdu0</id>
