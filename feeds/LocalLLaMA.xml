@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-06-28T13:12:32+00:00</updated>
+  <updated>2026-06-28T13:57:54+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,17 +34,17 @@
     <published>2026-06-28T09:11:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uhwra3</id>
-    <title>Step-3.7-Flash (198B-A11B vision MoE) on 4×3090 — fully-resident IQ3_XXS beats thespilled IQ4 by 2.4×, and MTP speculative decode silently breaks vision</title>
-    <updated>2026-06-28T13:02:20+00:00</updated>
+    <id>t3_1uh8von</id>
+    <title>Ornith 35B is great so far</title>
+    <updated>2026-06-27T17:39:19+00:00</updated>
     <author>
-      <name>/u/Important_Quote_1180</name>
-      <uri>https://old.reddit.com/user/Important_Quote_1180</uri>
+      <name>/u/anubhav_200</name>
+      <uri>https://old.reddit.com/user/anubhav_200</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhwra3/step37flash_198ba11b_vision_moe_on_43090/"&gt; &lt;img alt="Step-3.7-Flash (198B-A11B vision MoE) on 4×3090 — fully-resident IQ3_XXS beats thespilled IQ4 by 2.4×, and MTP speculative decode silently breaks vision" src="https://preview.redd.it/j9to40z26y9h1.png?width=140&amp;amp;height=96&amp;amp;auto=webp&amp;amp;s=c5a44e847c5a94266dcbe7b2ade3d5433942dcb9" title="Step-3.7-Flash (198B-A11B vision MoE) on 4×3090 — fully-resident IQ3_XXS beats thespilled IQ4 by 2.4×, and MTP speculative decode silently breaks vision" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;TLDR: Biggest quant that fits 100% in VRAM beats a higher quant that spills. And if your MoE ships an MTP draft head, the draft can't decode image tokens — MTP and vision don't coexist.&lt;/p&gt; &lt;p&gt;Solo dev, local vision+tools+reasoning daily-driver. Building mega projects, enterprise plugins and custom agents. 4×3090, no NVLink. A day turning StepFun's Step-3.7-Flash into something usable. Method came from NVIDIA's MoE-optimization agent skill (the &amp;quot;three walls&amp;quot; framing: memory / communication / compute — profile which one you're on before touching knobs). Mine was the memory wall, then compute.&lt;/p&gt; &lt;p&gt;## Hardware&lt;/p&gt; &lt;p&gt;Ryzen 9 9900X, 192GB DDR5-5600, 4×3090 (1 Ti + 3 FE) PCIe 12x 4x 4x 1x, 96GB VRAM, 200W cap each. 1250W MSI Platinum PSU. B840 MSI Mobo, 2 PCIe risers and 1 M2 NVMe riser adapter. llama.cpp HEAD (32eddaf) — only build that knows step35/step3vl.&lt;/p&gt; &lt;p&gt;## Resident beats spill&lt;/p&gt; &lt;p&gt;IQ4_XS (99GB) spills ~20% of experts to CPU → 33 t/s. IQ3_XXS (72GB) fits fully across the 4 cards, zero RAM-bus traffic → 65 t/s. Same model, 2.4×, purely from getting it off the DDR bus. 11B active, so the quant drop is survivable.&lt;/p&gt; &lt;p&gt;## MTP is incompatible with vision&lt;/p&gt; &lt;p&gt;Step-3.7 ships an MTP/NextN draft head (separate 3.5GB GGUF). On text it's a clean +25% (65 → 81 t/s, code peaks 87, 68% draft acceptance, n_max=2 optimal). Then I sent an image and the server hard-aborted: `llama_decode(ctx_dft) failed` → ggml_abort (PR 20277). The draft ctx can't decode image tokens, so any multimodal request kills the speculative batch. Repros on every image. MTP = text-only sprint, no-MTP = vision driver. One per launch.&lt;/p&gt; &lt;p&gt;## The trap inside the fix&lt;/p&gt; &lt;p&gt;Adding the draft naively forces a spill to fit it → 53 t/s. MTP made it *slower*. Fix: drop KV to q4_0 (frees ~4.5GB) so weights+draft+KV all stay resident → full 81. Fix one wall, open another.&lt;/p&gt; &lt;p&gt;## Harness&lt;/p&gt; &lt;p&gt;- StepFun's real sampling: temp 1.0 / top_p 0.95 reasoning, 0.6 chat (llama.cpp default 0.8 is neither).&lt;/p&gt; &lt;p&gt;- Infinite-reasoning loop bug in llama.cpp — cap with --reasoning-budget 16384.&lt;/p&gt; &lt;p&gt;- Native tool-calling works via the embedded jinja template — clean structured tool_calls with reasoning_content alongside, no grammar. Round-tripped a real shell tool through a local agent.&lt;/p&gt; &lt;p&gt;- Hallucinations reported &amp;gt;100K ctx; I run 96K.&lt;/p&gt; &lt;p&gt;## Bottom line for your box&lt;/p&gt; &lt;p&gt;The numbers are 4×3090-specific; the shape isn't. Whatever your VRAM: VRAM is ~10× the DDR bus, so the biggest quant that's 100% resident beats the highest quant that &amp;quot;mostly&amp;quot; fits and spills a real fraction of *active* experts. Find the resident line, then spend leftover VRAM keeping the spec-decode draft resident too. MTP+vision exclusivity is engine-level — holds on any GPU.&lt;/p&gt; &lt;p&gt;## Cost&lt;/p&gt; &lt;p&gt;4×3090 ~$3200 used, 192GB DDR5 ~$1600, rest ~$800. Running cost is power, but its on solar. 800W capped&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Important_Quote_1180"&gt; /u/Important_Quote_1180 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1uhwra3"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhwra3/step37flash_198ba11b_vision_moe_on_43090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhwra3/step37flash_198ba11b_vision_moe_on_43090/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tried creating a quick 3d game with it, after 3 prompts, it got me this(checkvideo). If I compare this with qwen3.5-35b-a3b, it was not able to successfully generate this and was failing even after multiple prompts.&lt;/p&gt; &lt;p&gt;Harness: Claude Code&lt;/p&gt; &lt;p&gt;How is your experience so far ?&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1uh8von/video/csrnhpwy2v9h1/player"&gt;https://reddit.com/link/1uh8von/video/csrnhpwy2v9h1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anubhav_200"&gt; /u/anubhav_200 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-28T13:02:20+00:00</published>
+    <published>2026-06-27T17:39:19+00:00</published>
   </entry>
   <entry>
     <id>t3_1uhmz3o</id>
@@ -60,19 +60,6 @@
     <published>2026-06-28T04:01:21+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uh8von</id>
-    <title>Ornith 35B is great so far</title>
-    <updated>2026-06-27T17:39:19+00:00</updated>
-    <author>
-      <name>/u/anubhav_200</name>
-      <uri>https://old.reddit.com/user/anubhav_200</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Tried creating a quick 3d game with it, after 3 prompts, it got me this(checkvideo). If I compare this with qwen3.5-35b-a3b, it was not able to successfully generate this and was failing even after multiple prompts.&lt;/p&gt; &lt;p&gt;Harness: Claude Code&lt;/p&gt; &lt;p&gt;How is your experience so far ?&lt;/p&gt; &lt;p&gt;&lt;a href="https://reddit.com/link/1uh8von/video/csrnhpwy2v9h1/player"&gt;https://reddit.com/link/1uh8von/video/csrnhpwy2v9h1/player&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/anubhav_200"&gt; /u/anubhav_200 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uh8von/ornith_35b_is_great_so_far/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-27T17:39:19+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1ugyqsi</id>
     <title>96 gig 5090s from Shenzhen's Huaqiangbei</title>
     <updated>2026-06-27T10:00:35+00:00</updated>
@@ -84,19 +71,6 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1ugyqsi/96_gig_5090s_from_shenzhens_huaqiangbei/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-27T10:00:35+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uhv2hi</id>
-    <title>Best case for dual RTX 3090 (250W each) on Crosshair VIII Hero?</title>
-    <updated>2026-06-28T11:38:46+00:00</updated>
-    <author>
-      <name>/u/Tordhm</name>
-      <uri>https://old.reddit.com/user/Tordhm</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm building a local LLM workstation and would appreciate some advice from people already running 2×3090s.&lt;/p&gt; &lt;p&gt;Current hardware:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ASUS Crosshair VIII Hero (X570)&lt;/li&gt; &lt;li&gt;One Gainward Phoenix RTX 3090&lt;/li&gt; &lt;li&gt;Looking for a second used 3090 (not necessarily the same model)&lt;/li&gt; &lt;li&gt;Both GPUs will be power-limited to ~250W&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm trying to keep the case budget under 200 euros SEK (including any extra fans), but might stretch if neccesary...&lt;/p&gt; &lt;p&gt;So far I've been looking at:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Fractal North XL Mesh (looks nice, but worried about thermals)&lt;/li&gt; &lt;li&gt;Meshify xl 2 (better thermals but expensive, still not so good thermals due to cards sitting close horizontally?)&lt;/li&gt; &lt;li&gt;Lian Li O11D EVO (second GPU mounted vertically via a PCIe 4.0 riser?)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Has anyone here built a stable 2×3090 air-cooled system? If so:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Which case did you choose?&lt;/li&gt; &lt;li&gt;What GPU temperatures do you see under sustained LLM inference/training?&lt;/li&gt; &lt;li&gt;Any regrets?&lt;/li&gt; &lt;li&gt;Has anyone had good results with a vertical-mounted second GPU?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Photos of your builds would also be greatly appreciated.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tordhm"&gt; /u/Tordhm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-28T11:38:46+00:00</published>
   </entry>
   <entry>
     <id>t3_1uhi81a</id>
@@ -125,6 +99,19 @@
     <published>2026-06-28T07:02:50+00:00</published>
   </entry>
   <entry>
+    <id>t3_1uhv2hi</id>
+    <title>Best case for dual RTX 3090 (250W each) on Crosshair VIII Hero?</title>
+    <updated>2026-06-28T11:38:46+00:00</updated>
+    <author>
+      <name>/u/Tordhm</name>
+      <uri>https://old.reddit.com/user/Tordhm</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm building a local LLM workstation and would appreciate some advice from people already running 2×3090s.&lt;/p&gt; &lt;p&gt;Current hardware:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;ASUS Crosshair VIII Hero (X570)&lt;/li&gt; &lt;li&gt;One Gainward Phoenix RTX 3090&lt;/li&gt; &lt;li&gt;Looking for a second used 3090 (not necessarily the same model)&lt;/li&gt; &lt;li&gt;Both GPUs will be power-limited to ~250W&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I'm trying to keep the case budget under 200 euros SEK (including any extra fans), but might stretch if neccesary...&lt;/p&gt; &lt;p&gt;So far I've been looking at:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Fractal North XL Mesh (looks nice, but worried about thermals)&lt;/li&gt; &lt;li&gt;Meshify xl 2 (better thermals but expensive, still not so good thermals due to cards sitting close horizontally?)&lt;/li&gt; &lt;li&gt;Lian Li O11D EVO (second GPU mounted vertically via a PCIe 4.0 riser?)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Has anyone here built a stable 2×3090 air-cooled system? If so:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Which case did you choose?&lt;/li&gt; &lt;li&gt;What GPU temperatures do you see under sustained LLM inference/training?&lt;/li&gt; &lt;li&gt;Any regrets?&lt;/li&gt; &lt;li&gt;Has anyone had good results with a vertical-mounted second GPU?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Photos of your builds would also be greatly appreciated.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Tordhm"&gt; /u/Tordhm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhv2hi/best_case_for_dual_rtx_3090_250w_each_on/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-28T11:38:46+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1uhfg05</id>
     <title>I built a tool to turn your Claude Code sessions into fine-tuning data for local models</title>
     <updated>2026-06-27T22:08:35+00:00</updated>
@@ -138,19 +125,6 @@
     <published>2026-06-27T22:08:35+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uhobd0</id>
-    <title>clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face</title>
-    <updated>2026-06-28T05:10:53+00:00</updated>
-    <author>
-      <name>/u/pmttyji</name>
-      <uri>https://old.reddit.com/user/pmttyji</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"&gt; &lt;img alt="clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face" src="https://external-preview.redd.it/zfvkx31-NM_6KccYq9q1OexxZ6aookbW9oDQ8RFfnSM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=461521a2b34831b06346a8011edb847d7706514d" title="clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;A Sana 1.6B text-to-image transformer compressed to ternary (~1.85 bits/weight): 8.6× smaller than FP16, near-FP16 quality.&lt;/strong&gt;&lt;/p&gt; &lt;h1&gt;Footprint (measured)&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Artifact&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;vs FP16&lt;/th&gt; &lt;th align="left"&gt;What it is&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;FP16 transformer&lt;/td&gt; &lt;td align="left"&gt;3.21 GB&lt;/td&gt; &lt;td align="left"&gt;1× (100%)&lt;/td&gt; &lt;td align="left"&gt;reference&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Clark Air (packed)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;374 MB&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;8.6× (≈12%)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;packed ternary (&lt;code&gt;clark-air-sana-1.6b-packed.safetensors&lt;/code&gt;)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Clark Air (unpacked)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;3.21 GB&lt;/td&gt; &lt;td align="left"&gt;compatibility&lt;/td&gt; &lt;td align="left"&gt;this repo's &lt;code&gt;transformer/&lt;/code&gt;, dequantized bf16, drop-in &lt;code&gt;diffusers&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Measured &lt;strong&gt;~1.85 bits/weight → 8.6× smaller&lt;/strong&gt; (374 MB packed ÷ 3.21 GB FP16).&lt;/p&gt; &lt;h1&gt;About&lt;/h1&gt; &lt;p&gt;The transformer weights are quantized to &lt;strong&gt;ternary&lt;/strong&gt; with group-wise scales; a small high-precision tail (~5% of parameters, the conditioning and projection layers) is kept at higher precision.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Base:&lt;/strong&gt; Sana 1.6B, 512px&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/clark-labs/clark-air-sana-1.6b-1.58bit#license"&gt;&lt;/a&gt;License&lt;/h1&gt; &lt;p&gt;Apache-2.0 © Clark Labs, Inc.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/clark-labs/clark-air-sana-1.6b-1.58bit"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-06-28T05:10:53+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uh68gu</id>
     <title>Mythos was the first, now GPT-5.6</title>
     <updated>2026-06-27T15:53:06+00:00</updated>
@@ -162,6 +136,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uh68gu/mythos_was_the_first_now_gpt56/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-27T15:53:06+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uhobd0</id>
+    <title>clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face</title>
+    <updated>2026-06-28T05:10:53+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"&gt; &lt;img alt="clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face" src="https://external-preview.redd.it/zfvkx31-NM_6KccYq9q1OexxZ6aookbW9oDQ8RFfnSM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=461521a2b34831b06346a8011edb847d7706514d" title="clark-labs/clark-air-sana-1.6b-1.58bit · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;A Sana 1.6B text-to-image transformer compressed to ternary (~1.85 bits/weight): 8.6× smaller than FP16, near-FP16 quality.&lt;/strong&gt;&lt;/p&gt; &lt;h1&gt;Footprint (measured)&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Artifact&lt;/th&gt; &lt;th align="left"&gt;Size&lt;/th&gt; &lt;th align="left"&gt;vs FP16&lt;/th&gt; &lt;th align="left"&gt;What it is&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;FP16 transformer&lt;/td&gt; &lt;td align="left"&gt;3.21 GB&lt;/td&gt; &lt;td align="left"&gt;1× (100%)&lt;/td&gt; &lt;td align="left"&gt;reference&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Clark Air (packed)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;374 MB&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;8.6× (≈12%)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;packed ternary (&lt;code&gt;clark-air-sana-1.6b-packed.safetensors&lt;/code&gt;)&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;&lt;strong&gt;Clark Air (unpacked)&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;3.21 GB&lt;/td&gt; &lt;td align="left"&gt;compatibility&lt;/td&gt; &lt;td align="left"&gt;this repo's &lt;code&gt;transformer/&lt;/code&gt;, dequantized bf16, drop-in &lt;code&gt;diffusers&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Measured &lt;strong&gt;~1.85 bits/weight → 8.6× smaller&lt;/strong&gt; (374 MB packed ÷ 3.21 GB FP16).&lt;/p&gt; &lt;h1&gt;About&lt;/h1&gt; &lt;p&gt;The transformer weights are quantized to &lt;strong&gt;ternary&lt;/strong&gt; with group-wise scales; a small high-precision tail (~5% of parameters, the conditioning and projection layers) is kept at higher precision.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Base:&lt;/strong&gt; Sana 1.6B, 512px&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/clark-labs/clark-air-sana-1.6b-1.58bit#license"&gt;&lt;/a&gt;License&lt;/h1&gt; &lt;p&gt;Apache-2.0 © Clark Labs, Inc.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/clark-labs/clark-air-sana-1.6b-1.58bit"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhobd0/clarklabsclarkairsana16b158bit_hugging_face/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-28T05:10:53+00:00</published>
   </entry>
   <entry>
     <id>t3_1uhusqt</id>
@@ -292,6 +279,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uht9rf/a_barebones_cpuonly_inference_engine_for_qwen_3/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-06-28T09:58:10+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uhx862</id>
+    <title>DFlash support merged into llama.cpp</title>
+    <updated>2026-06-28T13:24:00+00:00</updated>
+    <author>
+      <name>/u/sammcj</name>
+      <uri>https://old.reddit.com/user/sammcj</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhx862/dflash_support_merged_into_llamacpp/"&gt; &lt;img alt="DFlash support merged into llama.cpp" src="https://external-preview.redd.it/M3mdnEysfP0uVC2ZSlECyu-WrkIZqJe9ud0VDkfR66g.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=04b7c4a6ef10f11fab69ba83869b032dd4cd9d50" title="DFlash support merged into llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/sammcj"&gt; /u/sammcj &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/22105#event-27298914025"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uhx862/dflash_support_merged_into_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uhx862/dflash_support_merged_into_llamacpp/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-06-28T13:24:00+00:00</published>
   </entry>
   <entry>
     <id>t3_1uhv3wc</id>
