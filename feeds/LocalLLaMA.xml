@@ -2,75 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-07-06T16:01:42+00:00</updated>
+  <updated>2026-07-06T18:20:25+00:00</updated>
   <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
   <entry>
-    <id>t3_1uogebv</id>
-    <title>I asked Codex to optimize DeepSeek V4 Flash 8-bit MLX on oMLX. Got ~1.6x prefill and ~3x decode speedup.</title>
-    <updated>2026-07-05T23:06:31+00:00</updated>
+    <id>t3_1uoj0um</id>
+    <title>I wrote a GGUF inferencer from scratch, AMA</title>
+    <updated>2026-07-06T01:03:20+00:00</updated>
     <author>
-      <name>/u/No_Run8812</name>
-      <uri>https://old.reddit.com/user/No_Run8812</uri>
+      <name>/u/mantisalt</name>
+      <uri>https://old.reddit.com/user/mantisalt</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Follow-up to my earlier posts:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Should I sell my Mac Studio? &lt;a href="https://www.reddit.com/r/MacStudio/s/GK7QP8Lg87"&gt;https://www.reddit.com/r/MacStudio/s/GK7QP8Lg87&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Kimi benchmark: &lt;a href="https://www.reddit.com/r/LocalLLaMA/s/ujBsYLYmpd"&gt;https://www.reddit.com/r/LocalLLaMA/s/ujBsYLYmpd&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Short version: my Mac Studio was sitting mostly idle, and from those Reddit threads I learned about DS4 and then oMLX. DS4 got me running DeepSeek V4 locally, but I wanted the 8-bit MLX version because I worry about accuracy loss in 4-bit variants.&lt;/p&gt; &lt;p&gt;So I tried &lt;code&gt;mlx-community/deepseek-ai-DeepSeek-V4-Flash-8bit&lt;/code&gt;, the 302GB 8-bit affine MLX model, and asked Codex to optimize oMLX for the model.&lt;/p&gt; &lt;p&gt;I am not an oMLX/Metal kernel expert, so I am sharing this partly to sanity-check the work. Codex claims the changes should not reduce accuracy, and my Hermes/tool-calling runs look fine so far, but I would appreciate review from people who understand this stack better.&lt;/p&gt; &lt;h1&gt;Base oMLX work&lt;/h1&gt; &lt;p&gt;DeepSeek V4 support/tool calling came from oMLX DeepSeek V4 DSML/template/parser work, especially:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/jundot/omlx/pull/2048"&gt;https://github.com/jundot/omlx/pull/2048&lt;/a&gt;&lt;/p&gt; &lt;p&gt;There were also follow-up fixes for DSML/tool-call stopping, parser-side stop behavior, prompt/prefix-cache determinism, shared expert SwiGLU clamp behavior, and native DeepSeek V4 2-bit/3-bit Metal paths.&lt;/p&gt; &lt;p&gt;The work below was separate: it focused on making the 8-bit affine model faster while keeping the same 302GB model format.&lt;/p&gt; &lt;h1&gt;What changed for 8-bit affine&lt;/h1&gt; &lt;p&gt;The issue was that DeepSeek V4 Flash 8-bit affine MoE was falling back to slower generic affine paths instead of using native DeepSeek MoE Metal kernels.&lt;/p&gt; &lt;p&gt;Codex changed:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Enabled native DeepSeek affine MoE kernels for &lt;code&gt;bits=8&lt;/code&gt;, &lt;code&gt;group_size=64&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Added 8-bit affine Metal kernel instantiations&lt;/li&gt; &lt;li&gt;Replaced some generic route sorting with bucket/counting route paths&lt;/li&gt; &lt;li&gt;Set &lt;code&gt;route_sort_min_routes=1&lt;/code&gt; so the native route path is used earlier&lt;/li&gt; &lt;li&gt;Added route-indexed decode kernels to avoid route sort/materialization overhead during decode&lt;/li&gt; &lt;li&gt;Tuned affine8 dequant/load with a &lt;code&gt;uint32&lt;/code&gt; load specialization&lt;/li&gt; &lt;li&gt;Verified DeepSeek V4 parser/template and OpenAI-style tool calling still worked&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Current config:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;affine8_variant = 7 route_sort = bucket route_sort_min_routes = 1 affine8_route_decode = 1 &lt;/code&gt;&lt;/pre&gt; &lt;h1&gt;Results&lt;/h1&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Metric&lt;/th&gt; &lt;th align="left"&gt;Before patches&lt;/th&gt; &lt;th align="left"&gt;After patches&lt;/th&gt; &lt;th align="left"&gt;Notes&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Prefill&lt;/td&gt; &lt;td align="left"&gt;~300-321 tok/s&lt;/td&gt; &lt;td align="left"&gt;~533 tok/s&lt;/td&gt; &lt;td align="left"&gt;12K prompt, salted uncached&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Prefill&lt;/td&gt; &lt;td align="left"&gt;~300-321 tok/s&lt;/td&gt; &lt;td align="left"&gt;~528-530 tok/s&lt;/td&gt; &lt;td align="left"&gt;30K prompt, salted uncached&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Decode&lt;/td&gt; &lt;td align="left"&gt;~7.31 tok/s&lt;/td&gt; &lt;td align="left"&gt;~20-22 tok/s&lt;/td&gt; &lt;td align="left"&gt;Controlled benchmark&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Decode&lt;/td&gt; &lt;td align="left"&gt;~7.31 tok/s&lt;/td&gt; &lt;td align="left"&gt;~19.5-20.7 tok/s&lt;/td&gt; &lt;td align="left"&gt;Real Hermes runs, ~80K-120K context&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Recent real Hermes/oMLX runs:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Prompt size&lt;/th&gt; &lt;th align="left"&gt;Output&lt;/th&gt; &lt;th align="left"&gt;Result&lt;/th&gt; &lt;th align="left"&gt;Notes&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;79K&lt;/td&gt; &lt;td align="left"&gt;1,175 tokens&lt;/td&gt; &lt;td align="left"&gt;19.8 tok/s&lt;/td&gt; &lt;td align="left"&gt;Long-context run&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;80K&lt;/td&gt; &lt;td align="left"&gt;Tool call&lt;/td&gt; &lt;td align="left"&gt;20.7 tok/s&lt;/td&gt; &lt;td align="left"&gt;Tool-calling run&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;95K&lt;/td&gt; &lt;td align="left"&gt;443 tokens&lt;/td&gt; &lt;td align="left"&gt;19.5 tok/s&lt;/td&gt; &lt;td align="left"&gt;Long-context run&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;117K&lt;/td&gt; &lt;td align="left"&gt;1,680 tokens&lt;/td&gt; &lt;td align="left"&gt;19.2 tok/s&lt;/td&gt; &lt;td align="left"&gt;Tool-calling run&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;119K&lt;/td&gt; &lt;td align="left"&gt;431 tokens&lt;/td&gt; &lt;td align="left"&gt;19.3 tok/s&lt;/td&gt; &lt;td align="left"&gt;Tool-calling run&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;h1&gt;Accuracy / correctness question&lt;/h1&gt; &lt;p&gt;Codex says there should be no meaningful accuracy loss because:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;weights and quantization format were unchanged&lt;/li&gt; &lt;li&gt;router/top-k/expert selection was not intentionally changed&lt;/li&gt; &lt;li&gt;no experts were dropped&lt;/li&gt; &lt;li&gt;optimized affine8 MoE outputs were compared against gather/qmm/native reference paths&lt;/li&gt; &lt;li&gt;focused affine8 tests, DeepSeek V4 parser/template tests, and live tool-call smoke tests passed&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;I understand tiny numerical drift may still happen because kernel/load/order changed, but Codex claims this is not the same as a model-level accuracy drop.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Is that reasoning sound? What evals/tests would you run to verify no meaningful accuracy or tool-calling regression?&lt;/strong&gt;&lt;/p&gt; &lt;h1&gt;Next optimization direction?&lt;/h1&gt; &lt;p&gt;Codex suggested these possible next directions:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;More affine8 dequant/load tuning: better vectorized loads, memory coalescing, fewer scale/bias reloads, less threadgroup-memory pressure&lt;/li&gt; &lt;li&gt;Fewer kernel launches / less intermediate movement in routing and MoE buffers&lt;/li&gt; &lt;li&gt;More fused MoE work, although this seems harder and riskier&lt;/li&gt; &lt;li&gt;More single-token decode profiling, since real runs are still around ~20 tok/s&lt;/li&gt; &lt;li&gt;Better instrumentation around routing, bucket/sort, block-plan build, native kernel time, down-projection, affine8 dequant/load, and decode costs&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Questions:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Is affine8 dequant/load tuning the right next direction for prefill?&lt;/li&gt; &lt;li&gt;Has anyone done similar DeepSeek MoE route-indexed/fused/affine8 work in MLX, oMLX, llama.cpp, vLLM, or another runtime?&lt;/li&gt; &lt;li&gt;Is ~530 tok/s prefill and ~20 tok/s decode on a Mac Studio M3 Ultra 512GB close to the ceiling for this 302GB 8-bit model, or is there obvious headroom?&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Again, I am mostly asking the community to verify whether the result and next direction make sense.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/No_Run8812"&gt; /u/No_Run8812 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uogebv/i_asked_codex_to_optimize_deepseek_v4_flash_8bit/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uogebv/i_asked_codex_to_optimize_deepseek_v4_flash_8bit/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uogebv/i_asked_codex_to_optimize_deepseek_v4_flash_8bit/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;*for a specific model, in the R language. veeery impractical.&lt;/p&gt; &lt;p&gt;60 seconds per token, yum 😋&lt;br /&gt; not vibecoded, I just wanted to learn how the architecture works on our end lmao (and all of karpathy's guides are outdated 😢)&lt;br /&gt; writeup &lt;a href="https://gbkorr.github.io/r-bites/ggufr/ggufr.html"&gt;here&lt;/a&gt;, though it's kinda old news if you're already familiar with the math&lt;/p&gt; &lt;p&gt;I'd really like to make a useful inferencer next (you know, with an actual GPU kernel and memory management, in a language people actually use) but I can't find a good niche for one... llamacpp already runs on everything :/&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mantisalt"&gt; /u/mantisalt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-05T23:06:31+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uodoli</id>
-    <title>LivePortrait distilled model that can run at 25fps in the browser</title>
-    <updated>2026-07-05T21:12:53+00:00</updated>
-    <author>
-      <name>/u/stephen_holograf</name>
-      <uri>https://old.reddit.com/user/stephen_holograf</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uodoli/liveportrait_distilled_model_that_can_run_at/"&gt; &lt;img alt="LivePortrait distilled model that can run at 25fps in the browser" src="https://external-preview.redd.it/0Kfb9hNuYK2KBr0wSzdJmkrBW5BVRuYLWyjNcbaMY7g.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8d898d0fddd73b4c01502be7b6b60c9deadd7634" title="LivePortrait distilled model that can run at 25fps in the browser" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This began as me attempting to run the ONNX version of LivePortrait (&lt;a href="https://github.com/KlingAIResearch/LivePortrait"&gt;https://github.com/KlingAIResearch/LivePortrait&lt;/a&gt;) in Chrome with WebGPU. It took 30 seconds to generate a single frame. I investigated a few different options to improve performance, but eventually decided it would be fun to try to distill that model into something much smaller. &lt;/p&gt; &lt;p&gt;Linked is a demo of the first proof-of-concept version of the distilled model. On my 5090, a frame takes less than 30ms to generate and runs 100% in the browser. Quality is just ok and some portraits will work better than others simply because I trained this using a small number of portraits and only trained for a few hours. I’d love to hear how quickly (or not!) frames are rendering for others with different GPUs.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/stephen_holograf"&gt; /u/stephen_holograf &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/spaces/slperez/flp-distillation-demo"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uodoli/liveportrait_distilled_model_that_can_run_at/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uodoli/liveportrait_distilled_model_that_can_run_at/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-05T21:12:53+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uoa1t3</id>
-    <title>Who Has The “Jankiest” Local LLM Setup? | Non-Official | Fun Contest | No Prizes</title>
-    <updated>2026-07-05T18:46:53+00:00</updated>
-    <author>
-      <name>/u/joorklee</name>
-      <uri>https://old.reddit.com/user/joorklee</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Had an idea for a fun no prize/non official competition to see who has the “Jankiest” local LLM setup.&lt;/p&gt; &lt;p&gt;NOTE: This is &lt;strong&gt;NOT&lt;/strong&gt; an official competition. There are &lt;strong&gt;NO&lt;/strong&gt; prizes. This is just for &lt;strong&gt;fun&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Rules:&lt;/strong&gt;&lt;br /&gt; 1. One Submission via comment per person&lt;br /&gt; 2. Has to be your current setup or your previous setup.&lt;br /&gt; 3. Submission comment cannot be modified after posting to ensure no photo swapping occurs.&lt;br /&gt; 4. No prizes. To ensure there is less incentive to attempt to rig the competition and since this is not an official contest.&lt;br /&gt; 5. Highest upvoted submission that doesn’t violate reddit tos, &lt;a href="/r/locallama"&gt;/r/locallama&lt;/a&gt; rules, or this non official competition rules will be declared the winner after 24 hours from this post being posted.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Requirements for submission:&lt;/strong&gt;&lt;br /&gt; 1. Photo of the local llm setup,&lt;br /&gt; 2. Any explanation/benchmarks/etc (optional) that you want to include&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/joorklee"&gt; /u/joorklee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoa1t3/who_has_the_jankiest_local_llm_setup_nonofficial/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoa1t3/who_has_the_jankiest_local_llm_setup_nonofficial/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoa1t3/who_has_the_jankiest_local_llm_setup_nonofficial/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-05T18:46:53+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1uohu6j</id>
-    <title>What do you guys use local models for?</title>
-    <updated>2026-07-06T00:09:21+00:00</updated>
-    <author>
-      <name>/u/Destinyciello</name>
-      <uri>https://old.reddit.com/user/Destinyciello</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I previously built a telegram bot that chatted with people. But it was never put in production.&lt;/p&gt; &lt;p&gt;Besides that I often find that even the cheap tier premium models like ChatGPT 4.1mini are a little bit too stupid to do things. They just don't seem to grasp the job as well as the bigger models. You have to compartmentalize everything with separate calls but even that doesn't always work.&lt;/p&gt; &lt;p&gt;So I'm just curious what kind of work flows can be done with these 7B or 35B models. Do you guys write code? I've been using mostly Claude Code with Sonnet 5 (and Opus 4.6 prior to that) and Codex with 5.5. Again since those models don't always perform I can't imagine what a 7B model would do.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Destinyciello"&gt; /u/Destinyciello &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uohu6j/what_do_you_guys_use_local_models_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uohu6j/what_do_you_guys_use_local_models_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uohu6j/what_do_you_guys_use_local_models_for/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T00:09:21+00:00</published>
-  </entry>
-  <entry>
-    <id>t3_1unyvnz</id>
-    <title>longcat 2.0 (1.6T, ~48B active) weights are now open under MIT license</title>
-    <updated>2026-07-05T10:35:23+00:00</updated>
-    <author>
-      <name>/u/Nunki08</name>
-      <uri>https://old.reddit.com/user/Nunki08</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1unyvnz/longcat_20_16t_48b_active_weights_are_now_open/"&gt; &lt;img alt="longcat 2.0 (1.6T, ~48B active) weights are now open under MIT license" src="https://external-preview.redd.it/Tl4T00m03mXi9dnysuPMT3ZoHlKwgeMAyvE7uTJqM4o.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=13c43b98a88d05ab28ba5000aec6daa339a442bf" title="longcat 2.0 (1.6T, ~48B active) weights are now open under MIT license" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;From:&lt;/p&gt; &lt;p&gt;elie on 𝕏: &lt;a href="https://x.com/eliebakouch/status/2073690402503487902"&gt;https://x.com/eliebakouch/status/2073690402503487902&lt;/a&gt;&lt;/p&gt; &lt;p&gt;ModelScope on 𝕏: &lt;a href="https://x.com/ModelScope2022/status/2073710226365165679"&gt;https://x.com/ModelScope2022/status/2073710226365165679&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Technical blog post (June, 30): &lt;a href="https://longcat.chat/blog/longcat-2.0/"&gt;https://longcat.chat/blog/longcat-2.0/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Nunki08"&gt; /u/Nunki08 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/meituan-longcat/LongCat-2.0"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1unyvnz/longcat_20_16t_48b_active_weights_are_now_open/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1unyvnz/longcat_20_16t_48b_active_weights_are_now_open/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-05T10:35:23+00:00</published>
+    <published>2026-07-06T01:03:20+00:00</published>
   </entry>
   <entry>
     <id>t3_1uoxjty</id>
@@ -86,19 +34,6 @@
     <published>2026-07-06T13:35:15+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uoj0um</id>
-    <title>I wrote a GGUF inferencer from scratch, AMA</title>
-    <updated>2026-07-06T01:03:20+00:00</updated>
-    <author>
-      <name>/u/mantisalt</name>
-      <uri>https://old.reddit.com/user/mantisalt</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;*for a specific model, in the R language. veeery impractical.&lt;/p&gt; &lt;p&gt;60 seconds per token, yum 😋&lt;br /&gt; not vibecoded, I just wanted to learn how the architecture works on our end lmao (and all of karpathy's guides are outdated 😢)&lt;br /&gt; writeup &lt;a href="https://gbkorr.github.io/r-bites/ggufr/ggufr.html"&gt;here&lt;/a&gt;, though it's kinda old news if you're already familiar with the math&lt;/p&gt; &lt;p&gt;I'd really like to make a useful inferencer next (you know, with an actual GPU kernel and memory management, in a language people actually use) but I can't find a good niche for one... llamacpp already runs on everything :/&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/mantisalt"&gt; /u/mantisalt &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoj0um/i_wrote_a_gguf_inferencer_from_scratch_ama/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T01:03:20+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uohsov</id>
     <title>Llama-Server is Throwing Away Your Perfectly Good KV Caches, and How to Fix It</title>
     <updated>2026-07-06T00:07:27+00:00</updated>
@@ -112,19 +47,6 @@
     <published>2026-07-06T00:07:27+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uouw10</id>
-    <title>Using Codex instead of Opencode</title>
-    <updated>2026-07-06T11:41:42+00:00</updated>
-    <author>
-      <name>/u/wgaca2</name>
-      <uri>https://old.reddit.com/user/wgaca2</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone,&lt;/p&gt; &lt;p&gt;I have spent quite a lot of time trying to make Opencode feel more like Codex (the Windows app), and it got me thinking&lt;/p&gt; &lt;p&gt;If I am chasing a &amp;quot;Codex&amp;quot; like experience, is there any reason to use Opencode instead of Codex itself?&lt;/p&gt; &lt;p&gt;For reference, I am running Qwen 3.6 27b Q8&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wgaca2"&gt; /u/wgaca2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T11:41:42+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uo9m72</id>
     <title>Is the current Open Weight LLM model viable in the long term?</title>
     <updated>2026-07-05T18:29:49+00:00</updated>
@@ -136,6 +58,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uo9m72/is_the_current_open_weight_llm_model_viable_in/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-07-05T18:29:49+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1up4d62</id>
+    <title>Impact of dual PCIe 5 x8 vs dual PCIe 5 x16 for dual Rtx 6000 pro max-q</title>
+    <updated>2026-07-06T17:38:33+00:00</updated>
+    <author>
+      <name>/u/BitXorBit</name>
+      <uri>https://old.reddit.com/user/BitXorBit</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i have an existing system with:&lt;br /&gt; &lt;strong&gt;Asus ROG MAXIMUS Z790 DARK HERO LGA1700&lt;/strong&gt;&lt;br /&gt; &lt;strong&gt;Intel Core i9-14900K&lt;/strong&gt;&lt;br /&gt; &lt;strong&gt;G.Skill Trident Z5 RGB 2x48GB DDR5 6800MHz CL34 (x2, 4 sticks in total), right now im running only 2 sticks.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The issue with my motherboard it doesn’t support dual gpu in 16x mode, it changes the pice 5 to 8x.&lt;/p&gt; &lt;p&gt;The alternative is to change to brand new Threadripper PRO that supports multiple PCIe 5 at x16, but it would make the cost much higher than expected at this moment.&lt;/p&gt; &lt;p&gt;My question is: how bad the difference would be between dual 8x and x16 running inference with vllm and graphic generation and LoRA (flux.2, z-image, video generation, etc).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Appreciate the help&lt;/strong&gt; 🙏&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/BitXorBit"&gt; /u/BitXorBit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up4d62/impact_of_dual_pcie_5_x8_vs_dual_pcie_5_x16_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up4d62/impact_of_dual_pcie_5_x8_vs_dual_pcie_5_x16_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up4d62/impact_of_dual_pcie_5_x8_vs_dual_pcie_5_x16_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T17:38:33+00:00</published>
   </entry>
   <entry>
     <id>t3_1uowbmv</id>
@@ -164,17 +99,17 @@
     <published>2026-07-05T21:39:29+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uow9wf</id>
-    <title>GitHub - kallewoof/tftf: Transforming Transformers -- ultra light-weight pipeline for enormous transformer model manipulation with minimal overhead</title>
-    <updated>2026-07-06T12:43:29+00:00</updated>
+    <id>t3_1uouw10</id>
+    <title>Using Codex instead of Opencode</title>
+    <updated>2026-07-06T11:41:42+00:00</updated>
     <author>
-      <name>/u/kallewoof</name>
-      <uri>https://old.reddit.com/user/kallewoof</uri>
+      <name>/u/wgaca2</name>
+      <uri>https://old.reddit.com/user/wgaca2</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Working with large models that don't fit in your VRAM+RAM is extremely annoying when you want to do things like LoRA merging or converting between formats, so I started the tftf (transforming transformers) project.&lt;/p&gt; &lt;p&gt;The idea is simple: do all operations on a per tensor level. Never load &amp;quot;everything&amp;quot; into (V)RAM. This tool is mostly aimed at people who finetune models, especially big models.&lt;/p&gt; &lt;p&gt;Vibe-coded for the most part, but figured I'd post it, since it is probably useful to finetuners.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kallewoof"&gt; /u/kallewoof &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/kallewoof/tftf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uow9wf/github_kallewooftftf_transforming_transformers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uow9wf/github_kallewooftftf_transforming_transformers/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello everyone,&lt;/p&gt; &lt;p&gt;I have spent quite a lot of time trying to make Opencode feel more like Codex (the Windows app), and it got me thinking&lt;/p&gt; &lt;p&gt;If I am chasing a &amp;quot;Codex&amp;quot; like experience, is there any reason to use Opencode instead of Codex itself?&lt;/p&gt; &lt;p&gt;For reference, I am running Qwen 3.6 27b Q8&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/wgaca2"&gt; /u/wgaca2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uouw10/using_codex_instead_of_opencode/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T12:43:29+00:00</published>
+    <published>2026-07-06T11:41:42+00:00</published>
   </entry>
   <entry>
     <id>t3_1uoauvk</id>
@@ -190,6 +125,19 @@
     <published>2026-07-05T19:18:27+00:00</published>
   </entry>
   <entry>
+    <id>t3_1uow9wf</id>
+    <title>GitHub - kallewoof/tftf: Transforming Transformers -- ultra light-weight pipeline for enormous transformer model manipulation with minimal overhead</title>
+    <updated>2026-07-06T12:43:29+00:00</updated>
+    <author>
+      <name>/u/kallewoof</name>
+      <uri>https://old.reddit.com/user/kallewoof</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Working with large models that don't fit in your VRAM+RAM is extremely annoying when you want to do things like LoRA merging or converting between formats, so I started the tftf (transforming transformers) project.&lt;/p&gt; &lt;p&gt;The idea is simple: do all operations on a per tensor level. Never load &amp;quot;everything&amp;quot; into (V)RAM. This tool is mostly aimed at people who finetune models, especially big models.&lt;/p&gt; &lt;p&gt;Vibe-coded for the most part, but figured I'd post it, since it is probably useful to finetuners.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/kallewoof"&gt; /u/kallewoof &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/kallewoof/tftf"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uow9wf/github_kallewooftftf_transforming_transformers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uow9wf/github_kallewooftftf_transforming_transformers/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T12:43:29+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1uoqdxj</id>
     <title>ggml-hip: enable -ffast-math for HIP builds by a-huk · Pull Request #23862 · ggml-org/llama.cpp</title>
     <updated>2026-07-06T07:30:02+00:00</updated>
@@ -201,6 +149,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoqdxj/ggmlhip_enable_ffastmath_for_hip_builds_by_ahuk/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-07-06T07:30:02+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1up38ap</id>
+    <title>Pulpie Orange Small: Pareto-optimal HTML content extraction</title>
+    <updated>2026-07-06T16:59:29+00:00</updated>
+    <author>
+      <name>/u/paf1138</name>
+      <uri>https://old.reddit.com/user/paf1138</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up38ap/pulpie_orange_small_paretooptimal_html_content/"&gt; &lt;img alt="Pulpie Orange Small: Pareto-optimal HTML content extraction" src="https://external-preview.redd.it/mwwOevpvmqoXSbWPadRgoD2AL54WZADt_7tTqeNz-Mg.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ef9ae17f5ed8e7d41eed4b4ef3ca79998048a75f" title="Pulpie Orange Small: Pareto-optimal HTML content extraction" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/paf1138"&gt; /u/paf1138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/feyninc/pulpie"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up38ap/pulpie_orange_small_paretooptimal_html_content/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up38ap/pulpie_orange_small_paretooptimal_html_content/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T16:59:29+00:00</published>
   </entry>
   <entry>
     <id>t3_1uoxdp8</id>
@@ -229,6 +190,19 @@
     <published>2026-07-06T03:44:55+00:00</published>
   </entry>
   <entry>
+    <id>t3_1up3eg4</id>
+    <title>New strix halo box: GMKtec EVO-X3, superior cooling to avoid thermal throttling, $3,600</title>
+    <updated>2026-07-06T17:05:12+00:00</updated>
+    <author>
+      <name>/u/Terminator857</name>
+      <uri>https://old.reddit.com/user/Terminator857</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.gmktec.com/products/gmktec-evo-x3-ai-mini-pc-amd-ryzen-ai-max-395"&gt;https://www.gmktec.com/products/gmktec-evo-x3-ai-mini-pc-amd-ryzen-ai-max-395&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Features: USB 4. Adds a dedicated OCuLink port. OCuLink provides a direct, high-speed cable connection to a desktop graphics card, minimizing data loss and improving external GPU (eGPU) performance compared to USB4.&lt;/p&gt; &lt;p&gt;Price : More than double what I paid for my first strix halo that cost $1,600 for 128gb machine.&lt;/p&gt; &lt;p&gt;That box looks ready for gorgon halo to be released in the next 3 months.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up3eg4/new_strix_halo_box_gmktec_evox3_superior_cooling/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up3eg4/new_strix_halo_box_gmktec_evox3_superior_cooling/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up3eg4/new_strix_halo_box_gmktec_evox3_superior_cooling/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T17:05:12+00:00</published>
+  </entry>
+  <entry>
     <id>t3_1uoq1wi</id>
     <title>Is DeepSeek v4 (Flash) really extremely cheap to run? If yes, how?</title>
     <updated>2026-07-06T07:09:58+00:00</updated>
@@ -240,6 +214,19 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoq1wi/is_deepseek_v4_flash_really_extremely_cheap_to/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-07-06T07:09:58+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1up47qv</id>
+    <title>Ant Group released LingBot-Vision: DINO-family vision backbones in 4 sizes, and the 0.3B ViT-L matches DINOv3-7B on NYUv2 depth with ~23x fewer params</title>
+    <updated>2026-07-06T17:33:16+00:00</updated>
+    <author>
+      <name>/u/Simple_Response8041</name>
+      <uri>https://old.reddit.com/user/Simple_Response8041</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up47qv/ant_group_released_lingbotvision_dinofamily/"&gt; &lt;img alt="Ant Group released LingBot-Vision: DINO-family vision backbones in 4 sizes, and the 0.3B ViT-L matches DINOv3-7B on NYUv2 depth with ~23x fewer params" src="https://preview.redd.it/b4wskrweanbh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cf61191d101ea52c942f3cc30df5b53dcf48415a" title="Ant Group released LingBot-Vision: DINO-family vision backbones in 4 sizes, and the 0.3B ViT-L matches DINOv3-7B on NYUv2 depth with ~23x fewer params" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Weights, all 4 sizes, Apache-2.0 (ViT-S / ViT-B / ViT-L / ViT-g): &lt;a href="https://huggingface.co/collections/robbyant/lingbot-vision"&gt;https://huggingface.co/collections/robbyant/lingbot-vision&lt;/a&gt;&lt;br /&gt; Code: &lt;a href="https://github.com/robbyant/lingbot-vision"&gt;https://github.com/robbyant/lingbot-vision&lt;/a&gt;&lt;br /&gt; Project page: &lt;a href="https://technology.robbyant.com/lingbot-vision"&gt;https://technology.robbyant.com/lingbot-vision&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Self-supervised DINO-family backbone, but the masking is boundary-driven: the teacher predicts where object boundaries are and those tokens get forced into the student's mask, so it can't solve reconstruction by copying flat context. No labels, no text supervision, no external edge detector.&lt;/p&gt; &lt;p&gt;The screenshot is Table 2. The 1.1B flagship gets the best NYUv2 RMSE in the whole comparison (0.296 vs 0.309 for DINOv3-7B, with V-JEPA 2.1 at 2B in between at 0.307). The 0.3B ViT-L number (0.310, basically the 7B's 0.309) is from Table 5. Sizes per the report: 1.1B ViT-g, 0.3B ViT-L, 86M ViT-B and a 21M ViT-S. ViT-L is ~0.6GB in fp16. The repos ship a small custom loader (lbot_vision_infer) that returns the frozen backbone for feature extraction, and dense features (depth/segmentation probes, tracking) are the point, not chat.&lt;/p&gt; &lt;p&gt;Where it loses, same tables: ImageNet classification trails DINOv3 at the flagship and L scales (the B/S students actually lead their class on linear probe), and KITTI favors the bigger models (both the 7B and the 2B V-JEPA beat it there). Trained on 161M images, less than 1/3 of DINOv3's training samples.&lt;/p&gt; &lt;p&gt;All numbers are self-reported. The eval protocol is the standard DINOv3 frozen linear-probe recipe, so it's cheap to check independently. Given how the Ling-1T threads went, I'd treat the deltas as unverified until someone reruns the probe.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Simple_Response8041"&gt; /u/Simple_Response8041 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/b4wskrweanbh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up47qv/ant_group_released_lingbotvision_dinofamily/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up47qv/ant_group_released_lingbotvision_dinofamily/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T17:33:16+00:00</published>
   </entry>
   <entry>
     <id>t3_1up01zs</id>
@@ -255,19 +242,6 @@
     <published>2026-07-06T15:08:42+00:00</published>
   </entry>
   <entry>
-    <id>t3_1up07mk</id>
-    <title>Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS</title>
-    <updated>2026-07-06T15:14:18+00:00</updated>
-    <author>
-      <name>/u/gvij</name>
-      <uri>https://old.reddit.com/user/gvij</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"&gt; &lt;img alt="Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS" src="https://preview.redd.it/824d4y2elmbh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=18553270097be20a822584b41a8ba8782be365e3" title="Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Kyutai dropped Pocket TTS a bit ago and I've been sitting on it for a benchmark. Finally ran it head to head against the three CPU TTS models that have been getting attention (Kokoro 82M, Supertonic 3, Inflect-Nano-v1). 180 timed runs, 36 audio samples, objective MOS scores via UTMOS.&lt;/p&gt; &lt;p&gt;Short version: Pocket TTS is the slowest of the six configs I tested, and it's still the most interesting model in the field. Here's why.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What Pocket TTS actually is:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It's a ~100M param streaming language model that generates audio tokens over Kyutai's Mimi neural codec, then decodes to 24kHz. So instead of the usual acoustic-model-plus-vocoder setup, it's more like an autoregressive LLM but for audio. Token by token.&lt;/p&gt; &lt;p&gt;Two consequences of that architecture:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Latency is dead flat across text lengths. Its RTF is 0.69 to 0.76 whether you feed it 12 chars or 1712 chars. No fixed overhead to amortize. Compare with Kokoro PyTorch which climbs from 0.49 on tiny text to 0.83 on long text.&lt;/li&gt; &lt;li&gt;It streams. Which matters if you're building anything interactive.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Zero-shot voice cloning from 5 seconds. On CPU.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This is the headline feature. Hand it a 5-second reference clip of any voice and it speaks in that voice. Accent, timbre, pacing, even the mic character of the reference. No fine-tuning. No GPU. MIT license.&lt;/p&gt; &lt;p&gt;None of the other CPU-friendly models can do this at all. Kokoro and Inflect-Nano ship fixed voice sets, Supertonic same. If you want a user-supplied voice on a CPU box, Pocket TTS is currently in a category of one.&lt;/p&gt; &lt;p&gt;I ran the benchmark with Pocket TTS pinned to a preset voice (&lt;code&gt;alba&lt;/code&gt;) for a fair speed/quality comparison. The cloning capability isn't in the numbers below because you can't benchmark it against models that don't have it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Full results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Config&lt;/th&gt; &lt;th align="left"&gt;Mean RTF&lt;/th&gt; &lt;th align="left"&gt;UTMOS MOS&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;License&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Supertonic 3 (2-step)&lt;/td&gt; &lt;td align="left"&gt;0.121&lt;/td&gt; &lt;td align="left"&gt;1.53&lt;/td&gt; &lt;td align="left"&gt;~99M&lt;/td&gt; &lt;td align="left"&gt;OpenRAIL-M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Inflect-Nano-v1&lt;/td&gt; &lt;td align="left"&gt;0.145&lt;/td&gt; &lt;td align="left"&gt;3.48*&lt;/td&gt; &lt;td align="left"&gt;4.6M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Supertonic 3 (5-step)&lt;/td&gt; &lt;td align="left"&gt;0.240&lt;/td&gt; &lt;td align="left"&gt;4.32&lt;/td&gt; &lt;td align="left"&gt;~99M&lt;/td&gt; &lt;td align="left"&gt;OpenRAIL-M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Kokoro 82M (ONNX)&lt;/td&gt; &lt;td align="left"&gt;0.641&lt;/td&gt; &lt;td align="left"&gt;4.44&lt;/td&gt; &lt;td align="left"&gt;82M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Kokoro 82M (PyTorch)&lt;/td&gt; &lt;td align="left"&gt;0.665&lt;/td&gt; &lt;td align="left"&gt;4.46&lt;/td&gt; &lt;td align="left"&gt;82M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Pocket TTS&lt;/td&gt; &lt;td align="left"&gt;0.714&lt;/td&gt; &lt;td align="left"&gt;4.10&lt;/td&gt; &lt;td align="left"&gt;~100M&lt;/td&gt; &lt;td align="left"&gt;MIT&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Hardware: Intel Xeon 8272CL, 4 cores, 16GB RAM, no GPU. UTMOS is &lt;code&gt;utmos22_strong&lt;/code&gt;, an objective MOS predictor, so it's not just my ears this time.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Inflect-Nano asterisk:&lt;/strong&gt; UTMOS gave it 3.48 but to the ear it's buzzy and robotic. Known UTMOS failure mode where it over-rates small HiFi-GAN vocoders for being clean rather than natural. Also it has a hard ~15 second output cap I discovered mid-benchmark, so its RTF on long inputs is inflated.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Practical picks:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Need voice cloning on CPU → Pocket TTS, no other option in this field&lt;/li&gt; &lt;li&gt;Fixed voice, highest quality → Kokoro 82M&lt;/li&gt; &lt;li&gt;Latency-critical with acceptable quality → Supertonic 3 at 5 steps&lt;/li&gt; &lt;li&gt;Tiny footprint for short utterances → Inflect-Nano-v1, if you can live with the buzz and the 15s cap&lt;/li&gt; &lt;li&gt;Prototyping only → Supertonic 3 at 2 steps&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Two things worth calling out:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Pocket TTS install is genuinely painless. &lt;code&gt;pip install pocket-tts&lt;/code&gt;, no CUDA build, no HuggingFace-repo-plus-sys.path wiring. Downloads weights on first load. The least fussy of the six.&lt;/p&gt; &lt;p&gt;The MIT license is a big deal. Kokoro is Apache 2.0 (also great). Supertonic is OpenRAIL-M with commercial restrictions. Pocket TTS being MIT means you can do essentially whatever with it commercially.&lt;/p&gt; &lt;p&gt;Repo with raw CSV (180 rows), all 36 WAV samples, and the benchmark script is in comments below 👇&lt;/p&gt; &lt;p&gt;If anyone here has run Pocket TTS voice cloning with a real reference clip, would love to hear how it holds up on different voice types (accented English, non-English, singing, etc). That's the next thing I want to test but I need a clean dataset.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gvij"&gt; /u/gvij &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/824d4y2elmbh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T15:14:18+00:00</published>
-  </entry>
-  <entry>
     <id>t3_1uoozt4</id>
     <title>New open model from Tencent Hy: Hy3 (295B total 21B active - apache 2.0)</title>
     <updated>2026-07-06T06:09:27+00:00</updated>
@@ -279,6 +253,32 @@
     <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoozt4/new_open_model_from_tencent_hy_hy3_295b_total_21b/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-07-06T06:09:27+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1up3mui</id>
+    <title>ThinkingCap-Qwen3.6-27B: same accuracy as base Qwen3.6 with ~50% fewer thinking</title>
+    <updated>2026-07-06T17:13:16+00:00</updated>
+    <author>
+      <name>/u/paf1138</name>
+      <uri>https://old.reddit.com/user/paf1138</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up3mui/thinkingcapqwen3627b_same_accuracy_as_base_qwen36/"&gt; &lt;img alt="ThinkingCap-Qwen3.6-27B: same accuracy as base Qwen3.6 with ~50% fewer thinking" src="https://external-preview.redd.it/4uM-Gz_43tIWtpC1wa3i4zvwm6sRQlfzWDQfbaDDzek.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=8ded512252a5682bf9561419c9fc09cf20c025e6" title="ThinkingCap-Qwen3.6-27B: same accuracy as base Qwen3.6 with ~50% fewer thinking" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;blockquote&gt; &lt;p&gt;We rigorously evaluate the resulting checkpoint across general reasoning, non-reasoning multiple-choice question answering, everyday multi-turn conversations, system prompt adherence, safety, math, code and agentic use cases. Due to the high variability of reasoning quality at Qwen-recommended sampling temperature 1.0, we run each benchmark with multiple seeds and do statistical significance testing on all the results. We evaluate both in domain (holdout parts of selected datasets included in training) and out of domain.&lt;/p&gt; &lt;/blockquote&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/bottlecapai/ThinkingCap-Qwen3.6-27B#out-of-domain-token-efficiency"&gt;&lt;/a&gt;&lt;/h1&gt; &lt;p&gt;to be verified of course but interesting promise :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/paf1138"&gt; /u/paf1138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/bottlecapai/ThinkingCap-Qwen3.6-27B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up3mui/thinkingcapqwen3627b_same_accuracy_as_base_qwen36/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up3mui/thinkingcapqwen3627b_same_accuracy_as_base_qwen36/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T17:13:16+00:00</published>
+  </entry>
+  <entry>
+    <id>t3_1uoij3s</id>
+    <title>If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years</title>
+    <updated>2026-07-06T00:40:32+00:00</updated>
+    <author>
+      <name>/u/PetersOdyssey</name>
+      <uri>https://old.reddit.com/user/PetersOdyssey</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"&gt; &lt;img alt="If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years" src="https://preview.redd.it/5xwuga6pwhbh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=faca5b4a106fde7d7dd88cfd363b58f80b260ded" title="If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PetersOdyssey"&gt; /u/PetersOdyssey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/5xwuga6pwhbh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-06T00:40:32+00:00</published>
   </entry>
   <entry>
     <id>t3_1uotkm7</id>
@@ -307,17 +307,17 @@
     <published>2026-07-06T06:51:09+00:00</published>
   </entry>
   <entry>
-    <id>t3_1uoij3s</id>
-    <title>If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years</title>
-    <updated>2026-07-06T00:40:32+00:00</updated>
+    <id>t3_1up07mk</id>
+    <title>Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS</title>
+    <updated>2026-07-06T15:14:18+00:00</updated>
     <author>
-      <name>/u/PetersOdyssey</name>
-      <uri>https://old.reddit.com/user/PetersOdyssey</uri>
+      <name>/u/gvij</name>
+      <uri>https://old.reddit.com/user/gvij</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"&gt; &lt;img alt="If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years" src="https://preview.redd.it/5xwuga6pwhbh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=faca5b4a106fde7d7dd88cfd363b58f80b260ded" title="If trends hold, Mythos-class capability may be running on high-end consumer hardware within ~2 years" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/PetersOdyssey"&gt; /u/PetersOdyssey &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/5xwuga6pwhbh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1uoij3s/if_trends_hold_mythosclass_capability_may_be/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"&gt; &lt;img alt="Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS" src="https://preview.redd.it/824d4y2elmbh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=18553270097be20a822584b41a8ba8782be365e3" title="Kyutai's Pocket TTS clones a voice from 5 seconds of audio, on CPU, under MIT. Benchmarked against Kokoro, Supertonic, and Inflect-Nano for Eng. TTS" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Kyutai dropped Pocket TTS a bit ago and I've been sitting on it for a benchmark. Finally ran it head to head against the three CPU TTS models that have been getting attention (Kokoro 82M, Supertonic 3, Inflect-Nano-v1). 180 timed runs, 36 audio samples, objective MOS scores via UTMOS.&lt;/p&gt; &lt;p&gt;Short version: Pocket TTS is the slowest of the six configs I tested, and it's still the most interesting model in the field. Here's why.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What Pocket TTS actually is:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It's a ~100M param streaming language model that generates audio tokens over Kyutai's Mimi neural codec, then decodes to 24kHz. So instead of the usual acoustic-model-plus-vocoder setup, it's more like an autoregressive LLM but for audio. Token by token.&lt;/p&gt; &lt;p&gt;Two consequences of that architecture:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Latency is dead flat across text lengths. Its RTF is 0.69 to 0.76 whether you feed it 12 chars or 1712 chars. No fixed overhead to amortize. Compare with Kokoro PyTorch which climbs from 0.49 on tiny text to 0.83 on long text.&lt;/li&gt; &lt;li&gt;It streams. Which matters if you're building anything interactive.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Zero-shot voice cloning from 5 seconds. On CPU.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;This is the headline feature. Hand it a 5-second reference clip of any voice and it speaks in that voice. Accent, timbre, pacing, even the mic character of the reference. No fine-tuning. No GPU. MIT license.&lt;/p&gt; &lt;p&gt;None of the other CPU-friendly models can do this at all. Kokoro and Inflect-Nano ship fixed voice sets, Supertonic same. If you want a user-supplied voice on a CPU box, Pocket TTS is currently in a category of one.&lt;/p&gt; &lt;p&gt;I ran the benchmark with Pocket TTS pinned to a preset voice (&lt;code&gt;alba&lt;/code&gt;) for a fair speed/quality comparison. The cloning capability isn't in the numbers below because you can't benchmark it against models that don't have it.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Full results:&lt;/strong&gt;&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Config&lt;/th&gt; &lt;th align="left"&gt;Mean RTF&lt;/th&gt; &lt;th align="left"&gt;UTMOS MOS&lt;/th&gt; &lt;th align="left"&gt;Params&lt;/th&gt; &lt;th align="left"&gt;License&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;Supertonic 3 (2-step)&lt;/td&gt; &lt;td align="left"&gt;0.121&lt;/td&gt; &lt;td align="left"&gt;1.53&lt;/td&gt; &lt;td align="left"&gt;~99M&lt;/td&gt; &lt;td align="left"&gt;OpenRAIL-M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Inflect-Nano-v1&lt;/td&gt; &lt;td align="left"&gt;0.145&lt;/td&gt; &lt;td align="left"&gt;3.48*&lt;/td&gt; &lt;td align="left"&gt;4.6M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Supertonic 3 (5-step)&lt;/td&gt; &lt;td align="left"&gt;0.240&lt;/td&gt; &lt;td align="left"&gt;4.32&lt;/td&gt; &lt;td align="left"&gt;~99M&lt;/td&gt; &lt;td align="left"&gt;OpenRAIL-M&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Kokoro 82M (ONNX)&lt;/td&gt; &lt;td align="left"&gt;0.641&lt;/td&gt; &lt;td align="left"&gt;4.44&lt;/td&gt; &lt;td align="left"&gt;82M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Kokoro 82M (PyTorch)&lt;/td&gt; &lt;td align="left"&gt;0.665&lt;/td&gt; &lt;td align="left"&gt;4.46&lt;/td&gt; &lt;td align="left"&gt;82M&lt;/td&gt; &lt;td align="left"&gt;Apache 2.0&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;Pocket TTS&lt;/td&gt; &lt;td align="left"&gt;0.714&lt;/td&gt; &lt;td align="left"&gt;4.10&lt;/td&gt; &lt;td align="left"&gt;~100M&lt;/td&gt; &lt;td align="left"&gt;MIT&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Hardware: Intel Xeon 8272CL, 4 cores, 16GB RAM, no GPU. UTMOS is &lt;code&gt;utmos22_strong&lt;/code&gt;, an objective MOS predictor, so it's not just my ears this time.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The Inflect-Nano asterisk:&lt;/strong&gt; UTMOS gave it 3.48 but to the ear it's buzzy and robotic. Known UTMOS failure mode where it over-rates small HiFi-GAN vocoders for being clean rather than natural. Also it has a hard ~15 second output cap I discovered mid-benchmark, so its RTF on long inputs is inflated.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Practical picks:&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Need voice cloning on CPU → Pocket TTS, no other option in this field&lt;/li&gt; &lt;li&gt;Fixed voice, highest quality → Kokoro 82M&lt;/li&gt; &lt;li&gt;Latency-critical with acceptable quality → Supertonic 3 at 5 steps&lt;/li&gt; &lt;li&gt;Tiny footprint for short utterances → Inflect-Nano-v1, if you can live with the buzz and the 15s cap&lt;/li&gt; &lt;li&gt;Prototyping only → Supertonic 3 at 2 steps&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Two things worth calling out:&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Pocket TTS install is genuinely painless. &lt;code&gt;pip install pocket-tts&lt;/code&gt;, no CUDA build, no HuggingFace-repo-plus-sys.path wiring. Downloads weights on first load. The least fussy of the six.&lt;/p&gt; &lt;p&gt;The MIT license is a big deal. Kokoro is Apache 2.0 (also great). Supertonic is OpenRAIL-M with commercial restrictions. Pocket TTS being MIT means you can do essentially whatever with it commercially.&lt;/p&gt; &lt;p&gt;Repo with raw CSV (180 rows), all 36 WAV samples, and the benchmark script is in comments below 👇&lt;/p&gt; &lt;p&gt;If anyone here has run Pocket TTS voice cloning with a real reference clip, would love to hear how it holds up on different voice types (accented English, non-English, singing, etc). That's the next thing I want to test but I need a clean dataset.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/gvij"&gt; /u/gvij &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/824d4y2elmbh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1up07mk/kyutais_pocket_tts_clones_a_voice_from_5_seconds/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-07-06T00:40:32+00:00</published>
+    <published>2026-07-06T15:14:18+00:00</published>
   </entry>
   <entry>
     <id>t3_1uoalfq</id>
