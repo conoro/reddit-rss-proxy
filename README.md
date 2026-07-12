@@ -2,7 +2,7 @@
 
 ![Logo](reddit_rss_2_small.png)
 
-This helps Feedly grab the latest RSS feeds for various subreddits from Old Reddit by acting as an Atom proxy.
+This helps Feedly or FreshRSS grab the latest RSS feeds for various subreddits from Old Reddit by acting as an Atom proxy.
 
 To use it:
 
@@ -11,7 +11,9 @@ To use it:
 - Give GitHub Actions Read/Write permissions on your repo in: https://github.com/yourusername/reddit-rss-proxy/settings/actions
 - GitHub Actions should run every 15 minutes
 - The feed files are then in /feeds
-- Give Feedly a feed URL for each one like: https://raw.githubusercontent.com/conoro/reddit-rss-proxy/refs/heads/main/feeds/LocalLLaMA.xml
+- Give Feedly a feed URL for each one like:
+
+[https://conoro.github.io/reddit-rss-proxy/feeds/openclaw.xml](https://conoro.github.io/reddit-rss-proxy/feeds/openclaw.xml)
 
 
 
