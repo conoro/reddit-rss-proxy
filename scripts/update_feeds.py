@@ -15,6 +15,28 @@ import requests
 import feedparser
 from feedgen.feed import FeedGenerator
 import subprocess
+from urllib.parse import urljoin, urlparse
+
+
+REDDIT_BASE_URL = "https://old.reddit.com"
+
+
+def absolute_url(value, base_url=REDDIT_BASE_URL):
+    """Return value as an absolute URL, or an empty string if it cannot be one."""
+    if not value:
+        return ""
+
+    parsed = urlparse(value)
+    if parsed.scheme and parsed.netloc:
+        return value
+    if value.startswith("/"):
+        return urljoin(base_url, value)
+
+    return ""
+
+
+def reddit_url(path):
+    return urljoin(REDDIT_BASE_URL, path)
 
 def main():
     """
@@ -68,10 +90,10 @@ def main():
 
         # Top-level feed fields
         feed_title   = getattr(feed_data.feed, 'title',    f"r/{subreddit}")
-        feed_link    = getattr(feed_data.feed, 'link',     feed_url)
+        feed_link    = absolute_url(getattr(feed_data.feed, 'link', '')) or feed_url
         feed_desc    = getattr(feed_data.feed, 'subtitle', f"Atom feed for r/{subreddit}")
-        feed_icon    = getattr(feed_data.feed, 'icon',     None)
-        feed_id      = getattr(feed_data.feed, 'id',       feed_link)
+        feed_icon    = absolute_url(getattr(feed_data.feed, 'icon', ''))
+        feed_id      = absolute_url(getattr(feed_data.feed, 'id', '')) or feed_url
         feed_updated = getattr(feed_data.feed, 'updated',  '')
 
         fg.title(feed_title)
@@ -85,7 +107,7 @@ def main():
             fg.updated(feed_updated)
 
         # Copy entries
-        for entry in feed_data.entries:
+        for entry_index, entry in enumerate(feed_data.entries, start=1):
             fe = fg.add_entry()
 
             # Author info (Reddit’s <author><name>...<uri>...</author>)
@@ -106,8 +128,14 @@ def main():
                         fe.category(term=term, label=label)
 
             entry_title     = getattr(entry, 'title', 'No Title')
-            entry_link      = getattr(entry, 'link', '')
-            entry_id        = getattr(entry, 'id', entry_link)
+            raw_entry_link  = getattr(entry, 'link', '')
+            raw_entry_id    = getattr(entry, 'id', '')
+            entry_link      = absolute_url(raw_entry_link)
+            entry_id        = (
+                absolute_url(raw_entry_id)
+                or entry_link
+                or (reddit_url(f"/{raw_entry_id}") if raw_entry_id else f"{feed_url}#entry-{entry_index}")
+            )
             entry_updated   = getattr(entry, 'updated', '')
             entry_published = getattr(entry, 'published', '')
             entry_content   = getattr(entry, 'content', None)
