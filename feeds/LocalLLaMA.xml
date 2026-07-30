@@ -1,9 +1,335 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/LocalLLaMA/.rss</id>
-  <title>r/LocalLLaMA</title>
-  <updated>2026-07-30T01:03:30.138213+00:00</updated>
-  <link href="https://old.reddit.com/r/LocalLLaMA/.rss" rel="alternate"/>
+  <title>LocalLlama</title>
+  <updated>2026-07-30T04:21:35+00:00</updated>
+  <link href="https://old.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
-  <subtitle>Atom feed for r/LocalLLaMA</subtitle>
+  <icon>https://www.redditstatic.com/icon.png/</icon>
+  <subtitle>Subreddit to discuss locally hostable AI.</subtitle>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9zbcr/5060ti_chads_vllm_updates_and_nvfp4/</id>
+    <title>5060ti Chads, vllm updates and nvfp4</title>
+    <updated>2026-07-29T15:23:07+00:00</updated>
+    <author>
+      <name>/u/see_spot_ruminate</name>
+      <uri>https://old.reddit.com/user/see_spot_ruminate</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey y'all!&lt;/p&gt; &lt;p&gt;How is it going. Today this will be a short posting for posterity, mostly so the future llm/scraping overlords catch it since they like reddit and also for anyone out there trying this shit. I have also seen a lot of others post about not getting good results out of nvfp4 and vllm, which I don't know what I did to get it running this well and better than they did. &lt;/p&gt; &lt;p&gt;So I waffle between llama.cpp and vllm. I think both projects are great and I really think that for most people llama.cpp is the best thing since photosynthesis. That said, I got 4 cards and I want to make sure my server is pushing the boundaries. I want every nook, cranny, and lane filled to the brim with all that it can take. Like, picture a rando pushing a funnel down the mouth of their server to fatten up the liver foie gras style... that's what I want. I have been experimenting with different quants and my current fave is the unsloth/Qwen3.6-27B-NVFP4, though there were problems getting it running on my system. &lt;/p&gt; &lt;p&gt;Per vllm github issue &lt;a href="https://github.com/vllm-project/vllm/issues/46268"&gt;#46268&lt;/a&gt; there is a OOM problem for some systems and I was having the same error. The fix was to include 2 (not only one as the github issue says) environmental variables into the systemd service file I use to start vllm:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;Environment=MAX_JOBS=4&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Environment=NVCC_THREADS=4&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;This fix takes a bit more time to start up vllm, but prevents the OOM error from happening when using nvfp4 quants, you do not need this for fp8. I think you could increase these more until you happen upon another OOM, but I don't really care, it only seems to affect startup which does not happen that often. &lt;/p&gt; &lt;p&gt;Then I was tweaking how to get the max speed out of vllm on single concurrency. I know, that is not what vllm is really for, but I wanted to push it. So I limited (for my 4x5060ti setup) the gpu usage to 0.6 which gives just enough room for ~300k total context tokens. I also played around with MTP and after checking I have settled on 5. I used to have a problem with MTP greater than 2 and tool calls but unsloth seems to have done a really good job with this quant. In the end, I have been getting around 70 to 80 t/s tg and over 2000 t/s pp. So far I haven't been having any tool call failures and in my (I am a hobbiest) opinion I don't really notice a large difference in quality. I also didn't do anything crazy to install vllm, I play around with nightly some time but really just use uv to install the stable version with the command vllm has on their website. &lt;/p&gt; &lt;p&gt;Current system software versions:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;ubuntu 26.04&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;cuda 13.3 (installed after, ubuntu 26.04 still, at the time of install, shipped with 13.2)&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;nvidia driver 595.71.05&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;also installed nccl&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;vllm 0.26.0&lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Current hardware limitations:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;p&gt;4x5060ti but since this is a consumer motherboard the lane use is &amp;quot;janky&amp;quot; -&amp;gt; x8, x4 (nvme to oculink), x4 (nvme to oculink), x1&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;power limits on cards of 150w, 2000mhz, and 50v/f offset, found these to be a good compromise before we start getting tooooo low and affecting the pp/tg too much. &lt;/p&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Here is the gist of my startup command / systemd service file: &lt;/p&gt; &lt;p&gt;ExecStart=/path/to/your/vllm/folder/.venv/bin/vllm serve unsloth/Qwen3.6-27B-NVFP4 \&lt;/p&gt; &lt;p&gt;--enable-prefix-caching \&lt;/p&gt; &lt;p&gt;--trust-remote-code \&lt;/p&gt; &lt;p&gt;--tensor-parallel-size 4 \&lt;/p&gt; &lt;p&gt;--max-num-seqs 1 \&lt;/p&gt; &lt;p&gt;--max-model-len auto \&lt;/p&gt; &lt;p&gt;--gpu-memory-utilization 0.60 \&lt;/p&gt; &lt;p&gt;--max-num-batched-tokens 8192 \&lt;/p&gt; &lt;p&gt;--enable-auto-tool-choice \&lt;/p&gt; &lt;p&gt;--tool-call-parser qwen3_coder \&lt;/p&gt; &lt;p&gt;--reasoning-parser qwen3 \&lt;/p&gt; &lt;p&gt;--speculative-config '{&amp;quot;method&amp;quot;:&amp;quot;mtp&amp;quot;,&amp;quot;num_speculative_tokens&amp;quot;:5}' \&lt;/p&gt; &lt;p&gt;--language-model-only \&lt;/p&gt; &lt;p&gt;--port 9999&lt;/p&gt; &lt;p&gt;Environment=CUDA_HOME=/usr/local/cuda-13.3&lt;/p&gt; &lt;p&gt;Environment=PATH=/path/to/your/vllm/folder/.venv/bin:/usr/local/cuda-13.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&lt;/p&gt; &lt;p&gt;Environment=LD_LIBRARY_PATH=/usr/local/cuda-13.3/lib64:$LD_LIBRARY_PATH&lt;/p&gt; &lt;p&gt;Environment=MAX_JOBS=4 &lt;/p&gt; &lt;p&gt;Environment=NVCC_THREADS=4&lt;/p&gt; &lt;p&gt;Thinking ahead, I have thought about increasing the max-num-batched-tokens up, but for now it runs without issue. I also need to one day get a plx board to put all the cards on x8 lanes which would also benefit from the p2p drivers being installed. I also don't know when I will upgrade now. I constantly think about it, but with the monsters coming out that are trillions of parameters I don't think any reasonable consumer hardware will run them soon. There have not been any more competitive models that could outpace the 27b either. For now, I guess we will wait for that perfect unicorn to come out and make me think about upgrading.&lt;/p&gt; &lt;p&gt;edit: was also thinking about it, for those with 2x5060ti (or something similar), you could probably get similar performance but you would just need to think about limiting available context down to maybe 150k?? (speculating), and readjust the parameters I used in my startup command like the gpu utilization of 0.6&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/see_spot_ruminate"&gt; /u/see_spot_ruminate &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9zbcr/5060ti_chads_vllm_updates_and_nvfp4/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9zbcr/5060ti_chads_vllm_updates_and_nvfp4/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9zbcr/5060ti_chads_vllm_updates_and_nvfp4/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T15:23:07+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9dm4u/sk_hynix_stock_fell_some_40_in_the_last_30_days/</id>
+    <title>SK Hynix stock fell some 40% in the last 30 days, finally cheap RAM and GPUs again?</title>
+    <updated>2026-07-28T22:37:04+00:00</updated>
+    <author>
+      <name>/u/Mr_Moonsilver</name>
+      <uri>https://old.reddit.com/user/Mr_Moonsilver</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;They actually halted trading on the Korean stock exchange today. Finally some hope?&lt;/p&gt; &lt;p&gt;And do you think the ruptures in the Korean market will finally free up supply again, and we can finally go back to normal? Or are we doomed to continue the hardware-starved life we endured for the past 12 months?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Mr_Moonsilver"&gt; /u/Mr_Moonsilver &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9dm4u/sk_hynix_stock_fell_some_40_in_the_last_30_days/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9dm4u/sk_hynix_stock_fell_some_40_in_the_last_30_days/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9dm4u/sk_hynix_stock_fell_some_40_in_the_last_30_days/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-28T22:37:04+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9fetk/zucks_opinion_the_ai_future_is_for_everyone/</id>
+    <title>Zuck's opinion: The AI Future Is for Everyone</title>
+    <updated>2026-07-28T23:49:52+00:00</updated>
+    <author>
+      <name>/u/etherd0t</name>
+      <uri>https://old.reddit.com/user/etherd0t</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9fetk/zucks_opinion_the_ai_future_is_for_everyone/"&gt; &lt;img alt="Zuck's opinion: The AI Future Is for Everyone" src="https://preview.redd.it/fypdn9gv42gh1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=119db82e2db8aa37380b86d4dee5b5f0cf5d4570" title="Zuck's opinion: The AI Future Is for Everyone" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;’Tis the season of AI open letters and manifestos, apparently.&lt;/p&gt; &lt;p&gt;Mark Zuckerberg has now entered the debate over the future of AI with a WSJ op-ed published today - and frankly, his position is much more balanced and technologically coherent than &lt;em&gt;Pacing the Frontier&lt;/em&gt;.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.wsj.com/opinion/the-ai-future-is-for-everyone-a0c24e20?mod=hp_opin_pos_2"&gt;The AI Future Is for Everyone - WSJ&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Zuckerberg’s argument is the most pro-diffusion of the four positions now circulating. His core view is that advanced AI should not be enclosed within a handful of frontier labs or government-controlled systems. It should spread through businesses, individuals, open ecosystems, products, and national infrastructure.&lt;/p&gt; &lt;p&gt;The emphasis is on opportunity, competitiveness, American leadership, and broad human agency - not on “buying time” by attempting to slow the frontier.&lt;/p&gt; &lt;p&gt;His argument, distilled:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;AI should primarily be understood as a tool for expanding individual agency - not as a force from which institutions must protect humanity.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;So far, the emerging AI-policy map looks something like this:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. The open-model coalition: openness as national strategy&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Nvidia, Microsoft, Meta, Google, OpenAI, IBM, the Linux Foundation, and others argue that open models, open weights, and ecosystem competition are strategic assets rather than threats.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. Dario Amodei: open below the danger threshold, restricted above it&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Open models are beneficial until they cross a frontier capability threshold in areas such as cyber or biology.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. “Pacing the Frontier”: build machinery to slow automated AI R&amp;amp;D&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;The 1,100+ employee letter is qualitatively different: it asks governments to develop international mechanisms capable of deliberately pacing frontier progress.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. Zuckerberg: broad access, American leadership, targeted safeguards&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Accelerate diffusion, preserve innovation, and regulate concrete harms rather than intelligence itself.&lt;/p&gt; &lt;p&gt;On a more fringe note, this sudden accumulation of AI manifestos may itself be a sign of the times. Astrologers are fretting about an “inflection point” coinciding with this month’s full Moon in Aquarius - but that is material for another sub. 🥲&lt;/p&gt; &lt;p&gt;Either way, we live in freaking interesting times.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/etherd0t"&gt; /u/etherd0t &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/fypdn9gv42gh1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9fetk/zucks_opinion_the_ai_future_is_for_everyone/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9fetk/zucks_opinion_the_ai_future_is_for_everyone/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-28T23:49:52+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9c77r/unsloth_has_begun_dropping_kimi_k3_ggufs_the/</id>
+    <title>Unsloth has begun dropping Kimi K3 GGUFs. The MXFP4 (it's 1.5 TB) and mmproj are already there.</title>
+    <updated>2026-07-28T21:43:17+00:00</updated>
+    <author>
+      <name>/u/_TheWolfOfWalmart_</name>
+      <uri>https://old.reddit.com/user/_TheWolfOfWalmart_</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9c77r/unsloth_has_begun_dropping_kimi_k3_ggufs_the/"&gt; &lt;img alt="Unsloth has begun dropping Kimi K3 GGUFs. The MXFP4 (it's 1.5 TB) and mmproj are already there." src="https://external-preview.redd.it/-Pi0PiNmpJmI17QD0uo-SnFZHONDxkrCISpiFrdpHa8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=48f4e0f32c02df68aeb40a87995bb8f7d6d7cc0f" title="Unsloth has begun dropping Kimi K3 GGUFs. The MXFP4 (it's 1.5 TB) and mmproj are already there." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/_TheWolfOfWalmart_"&gt; /u/_TheWolfOfWalmart_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/unsloth/Kimi-K3-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9c77r/unsloth_has_begun_dropping_kimi_k3_ggufs_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9c77r/unsloth_has_begun_dropping_kimi_k3_ggufs_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-28T21:43:17+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9vo75/the_idea_on_a_cpu_the_decode_speed_depends_on_the/</id>
+    <title>The idea: on a CPU the decode speed depends on the active params per token, not the total. My objective is trying to run a 10B at 100tok/s on a mid level PC (No GPU).</title>
+    <updated>2026-07-29T13:06:08+00:00</updated>
+    <author>
+      <name>/u/WildPino25</name>
+      <uri>https://old.reddit.com/user/WildPino25</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vo75/the_idea_on_a_cpu_the_decode_speed_depends_on_the/"&gt; &lt;img alt="The idea: on a CPU the decode speed depends on the active params per token, not the total. My objective is trying to run a 10B at 100tok/s on a mid level PC (No GPU)." src="https://preview.redd.it/odjum24tp5gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=78daaf776854d4524c6e54d3f31306eca2b6a19a" title="The idea: on a CPU the decode speed depends on the active params per token, not the total. My objective is trying to run a 10B at 100tok/s on a mid level PC (No GPU)." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;On the CPU, batch 1 is memory bandwidth bound. But if token/s = bandwidth / (bytes_per_weight * active_weights_per_token) the total number of parameters doesnt slow down the generation speed. So building the architecture aroud a small batch &amp;quot;active parameters per token&amp;quot; (ternary weights and a granular MoE), the total capacity can grow without effecting the speed.&lt;/p&gt; &lt;p&gt;Now the new catch: if speed is not the problem (a 105M and a 206M model run at the same tok/s (predicted 739–1309 tok/s)), will the model capacity scale with the number of params or the model will go &amp;quot;dumber&amp;quot; because of the lack of routing capacity with more experts?&lt;/p&gt; &lt;p&gt;My measurements: On a Ryzen r5 3600X (single thread), the engine went from 176 tok/s to 848 tok/s on a 8.3M sandbox model with ternary LUT MLP, activation skip, deterministic SSM scan, two pool MoE with only a +0.00004 BPB quality cost. (Here the model is cache resident).&lt;/p&gt; &lt;p&gt;I launched the full training on a 30M (11M active) model on the 2x T4 on Kaggle. Before the run I pushed 5 gates. Four passed and one failure: distilling from a bigger teacher using a different tokenizer lost against simply cross entropy (-0.0116 BPB, about 2.3 sigma worse), so I flipped the recipe to CE-primary. This is my idea of a 100% transparent project. (nothing above the 8.3M sandbox is trained yet, the 10B is the target)&lt;/p&gt; &lt;p&gt;Repo in the comments&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/WildPino25"&gt; /u/WildPino25 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/odjum24tp5gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vo75/the_idea_on_a_cpu_the_decode_speed_depends_on_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vo75/the_idea_on_a_cpu_the_decode_speed_depends_on_the/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T13:06:08+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1vabgly/3090_owners_what_vram_tempature_do_you_get_under/</id>
+    <title>3090 owners, what vram tempature do you get under ai load?</title>
+    <updated>2026-07-29T22:37:39+00:00</updated>
+    <author>
+      <name>/u/Whole_Alternative_18</name>
+      <uri>https://old.reddit.com/user/Whole_Alternative_18</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello&lt;/p&gt; &lt;p&gt;Can you please share the tempature you get on your rtx 3090 under active llm load?&lt;/p&gt; &lt;p&gt;Im trying to findout if my rtx 3090's tempatures are healthy or not&lt;/p&gt; &lt;p&gt;please share VRAM Tempature only, you can track it via gpu-z on windows&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Whole_Alternative_18"&gt; /u/Whole_Alternative_18 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vabgly/3090_owners_what_vram_tempature_do_you_get_under/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vabgly/3090_owners_what_vram_tempature_do_you_get_under/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1vabgly/3090_owners_what_vram_tempature_do_you_get_under/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T22:37:39+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v99nlk/should_we_be_calling_elon_a_liar/</id>
+    <title>Should we be calling Elon a liar?</title>
+    <updated>2026-07-28T20:06:07+00:00</updated>
+    <author>
+      <name>/u/Terminator857</name>
+      <uri>https://old.reddit.com/user/Terminator857</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Last year he said grok 3 would be open sourced in about 6 months. A year later and nada.&lt;/p&gt; &lt;p&gt;&lt;a href="https://x.com/elonmusk/status/1959379349322313920"&gt;https://x.com/elonmusk/status/1959379349322313920&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v99nlk/should_we_be_calling_elon_a_liar/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v99nlk/should_we_be_calling_elon_a_liar/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v99nlk/should_we_be_calling_elon_a_liar/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-28T20:06:07+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va118v/has_anyone_tried_qwen37_flash_on_openrouter_how/</id>
+    <title>Has anyone tried Qwen3.7 flash on openrouter? How does it compare to our Qwen 3.6 27B?</title>
+    <updated>2026-07-29T16:22:53+00:00</updated>
+    <author>
+      <name>/u/Kirito275</name>
+      <uri>https://old.reddit.com/user/Kirito275</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This might be the next open weight release by qwen team. What you feel like is improved or have become worse from previous model? Please share your experience.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Kirito275"&gt; /u/Kirito275 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va118v/has_anyone_tried_qwen37_flash_on_openrouter_how/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va118v/has_anyone_tried_qwen37_flash_on_openrouter_how/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va118v/has_anyone_tried_qwen37_flash_on_openrouter_how/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T16:22:53+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1vac9e9/extracting_moe_experts_from_kimi_k3/</id>
+    <title>Extracting MoE experts from Kimi K3</title>
+    <updated>2026-07-29T23:09:47+00:00</updated>
+    <author>
+      <name>/u/StableDiffer</name>
+      <uri>https://old.reddit.com/user/StableDiffer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone yet tried to extract experts from kimi (or GLM 5.2) per chance? There is REAP that removes experts based on routing, but I could only run one K3 expert on my hardware. Could there maybe be a usual expert for different tasks? Would be fun to have a 104B Kimi model, although I think that it would be garbage&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/StableDiffer"&gt; /u/StableDiffer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vac9e9/extracting_moe_experts_from_kimi_k3/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vac9e9/extracting_moe_experts_from_kimi_k3/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1vac9e9/extracting_moe_experts_from_kimi_k3/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T23:09:47+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9vnpk/understand_kimi_k3_from_first_principles_a/</id>
+    <title>Understand Kimi K3 from first principles: a recommended order for anyone trying to understand this beast</title>
+    <updated>2026-07-29T13:05:37+00:00</updated>
+    <author>
+      <name>/u/East-Muffin-6472</name>
+      <uri>https://old.reddit.com/user/East-Muffin-6472</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vnpk/understand_kimi_k3_from_first_principles_a/"&gt; &lt;img alt="Understand Kimi K3 from first principles: a recommended order for anyone trying to understand this beast" src="https://preview.redd.it/fwky26ig36gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=22244cbf3056236cdf382695f5ce2ef13098bd1a" title="Understand Kimi K3 from first principles: a recommended order for anyone trying to understand this beast" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Everyone is talking about Kimi K3, but if you jump straight into the technical report, you’ll quickly realize it’s standing on years of research -- just like any breakthrough is!&lt;/p&gt; &lt;p&gt;If you want to understand the work put into it by the Kimi team, here’s the reading order I’d recommend.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Linear Transformers Are Secretly Fast Weight Programmers&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;This is the foundation.&lt;/p&gt; &lt;p&gt;The paper provides one of the most influential interpretations of linear attention, showing that many linear attention mechanisms can be viewed as fast weight programmers. Instead of thinking of attention purely as pairwise token interactions, it frames linear attention as a system that continuously updates an associative memory.&lt;/p&gt; &lt;p&gt;Without understanding this perspective, it’s difficult to appreciate why modern linear-attention architectures have become competitive again.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Gated DeltaNet (arXiv:2412.06464)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Once you’re comfortable with linear attention, move on to Gated DeltaNet.&lt;/p&gt; &lt;p&gt;This paper introduces the gated delta update mechanism, improving how state is updated over long sequences. Rather than using fixed update rules, the model learns when and how much information should be written into memory.&lt;/p&gt; &lt;p&gt;Many of the ideas that later appear in Moonshot AI’s work build directly on these state-update concepts.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Kimi Linear / Kimi Delta Attention (KDA)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;This is where Moonshot AI introduces the architecture that ultimately becomes the backbone of Kimi K3.&lt;/p&gt; &lt;p&gt;Kimi Linear presents Kimi Delta Attention (KDA), a hybrid linear-attention architecture designed to combine the efficiency of linear attention with competitive or better performance than full attention across short contexts, long contexts, and reinforcement learning settings.&lt;/p&gt; &lt;p&gt;Understanding KDA is essential because Kimi K3 is built on it.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;LatentMoE (arXiv:2601.18089) → Stable LatentMoE&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Kimi K3 isn’t just about attention.&lt;/p&gt; &lt;p&gt;It also significantly advances the Mixture-of-Experts (MoE) design.&lt;/p&gt; &lt;p&gt;Start with LatentMoE, which introduces a latent-space routing formulation that enables much higher sparsity while maintaining strong model quality.&lt;/p&gt; &lt;p&gt;Then study Stable LatentMoE, Moonshot AI’s evolution of those ideas, which is used in Kimi K3 to efficiently scale sparse expert routing. In K3, Stable LatentMoE activates 16 out of 896 routed experts per token, contributing to its reported scaling efficiency improvements.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Attention Residuals (arXiv:2603.15031)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Residual connections have remained largely unchanged since Transformers were introduced.&lt;/p&gt; &lt;p&gt;Attention Residuals asks a simple question:&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;What if instead of naively squishing all these residuals together, we let the model decide how it wanted to use the residual network? (thanks to this &lt;a href="https://www.reddit.com/r/ArtificialInteligence/comments/1v9voy4/comment/p0gu1cr/?utm_source=share&amp;amp;utm_medium=web3x&amp;amp;utm_name=web3xcss&amp;amp;utm_term=1&amp;amp;utm_content=share_button"&gt;person&lt;/a&gt; for framing the question correctly: mine version was little wrongly framed)&lt;/p&gt; &lt;/blockquote&gt; &lt;p&gt;Kimi K3 adopts this mechanism to improve information flow across model depth while keeping the approach practical for large-scale training.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Follow the Kimi model evolution&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Finally, read the Kimi model reports in order:&lt;/p&gt; &lt;p&gt;Kimi K1.5 – reinforcement learning scaling and reasoning.&lt;/p&gt; &lt;p&gt;Kimi K2 – continued scaling of the architecture and training pipeline.&lt;/p&gt; &lt;p&gt;Kimi K2.5 – multimodal and agentic improvements.&lt;/p&gt; &lt;p&gt;Kimi K3 – integrates Kimi Delta Attention, Attention Residuals, Stable LatentMoE, refined training recipes, infrastructure advances, and large-scale reinforcement learning into a single frontier model.&lt;/p&gt; &lt;p&gt;Reading them sequentially makes it much easier to see how the architecture evolved instead of viewing K3 as an isolated release.&lt;/p&gt; &lt;p&gt;The biggest takeaway is that Kimi K3 didn’t appear overnight. It’s the result of multiple research threads converging: • Linear attention foundations • Better recurrent state updates • A stronger linear-attention architecture (KDA) • More scalable sparse MoE routing • Improved residual connections • Successive generations of Kimi models that integrated and refined these ideas If you’re planning to study the Kimi K3 technical report in depth, this reading path will give you the context needed to understand why the architectural choices were made—not just what they are.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/East-Muffin-6472"&gt; /u/East-Muffin-6472 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/fwky26ig36gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vnpk/understand_kimi_k3_from_first_principles_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vnpk/understand_kimi_k3_from_first_principles_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T13:05:37+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va6dvv/i_pretrained_a_700m_on_18b_tokens_optimized_for/</id>
+    <title>I pre-trained a 700m on 18B tokens optimized for Python and Wikitext | TheOneWhoWill/Shibai-700M-Base · Hugging Face</title>
+    <updated>2026-07-29T19:29:11+00:00</updated>
+    <author>
+      <name>/u/TheOneWhoWil</name>
+      <uri>https://old.reddit.com/user/TheOneWhoWil</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va6dvv/i_pretrained_a_700m_on_18b_tokens_optimized_for/"&gt; &lt;img alt="I pre-trained a 700m on 18B tokens optimized for Python and Wikitext | TheOneWhoWill/Shibai-700M-Base · Hugging Face" src="https://external-preview.redd.it/ee_qSSWDs2WtdngWQo5t7N8S2srpNgld3U6-1_6EcfE.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=17d219205a7c31140fddb8b48a47fe987df6d0c6" title="I pre-trained a 700m on 18B tokens optimized for Python and Wikitext | TheOneWhoWill/Shibai-700M-Base · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I know this is the 1000000th new sub billion parameter model out there and probably isn't as good as Qwen 3 0.6B or Qwen 3.5 0.8B but it still packs a decent punch. My intention to to continuously pre-train this model on another 5 Billion tokens or so on pure doc string based Python.&lt;/p&gt; &lt;p&gt;It's not fine tuned for chat, just simple next-token prediction. It's definitely an order of magnitude better than GPT-2 at least &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/TheOneWhoWil"&gt; /u/TheOneWhoWil &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/TheOneWhoWill/Shibai-700M-Base"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va6dvv/i_pretrained_a_700m_on_18b_tokens_optimized_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va6dvv/i_pretrained_a_700m_on_18b_tokens_optimized_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T19:29:11+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9h6y9/nvidia_is_expected_to_raise_geforce_rtx_gpu/</id>
+    <title>Nvidia is expected to raise GeForce RTX GPU prices again by up to 30%</title>
+    <updated>2026-07-29T01:05:03+00:00</updated>
+    <author>
+      <name>/u/ab2377</name>
+      <uri>https://old.reddit.com/user/ab2377</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9h6y9/nvidia_is_expected_to_raise_geforce_rtx_gpu/"&gt; &lt;img alt="Nvidia is expected to raise GeForce RTX GPU prices again by up to 30%" src="https://external-preview.redd.it/OHnm0D5XAWPA4pBJD9Xwjm7m-Odp3cdhWx_AJgD35nY.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=28d512a1a331e8317c77b2e82af1335791d19362" title="Nvidia is expected to raise GeForce RTX GPU prices again by up to 30%" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ab2377"&gt; /u/ab2377 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.notebookcheck.net/Nvidia-is-expected-to-raise-GeForce-RTX-GPU-prices-again-by-up-to-30.1353981.0.html"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9h6y9/nvidia_is_expected_to_raise_geforce_rtx_gpu/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9h6y9/nvidia_is_expected_to_raise_geforce_rtx_gpu/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T01:05:03+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9vewv/a_slide_deck_you_can_edit_with_a_local_model_or/</id>
+    <title>A slide deck you can edit with a local model or in Chrome — the whole deck is a JSON block in one HTML file (~640KB with editor and viewer included)</title>
+    <updated>2026-07-29T12:56:08+00:00</updated>
+    <author>
+      <name>/u/starfallg</name>
+      <uri>https://old.reddit.com/user/starfallg</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vewv/a_slide_deck_you_can_edit_with_a_local_model_or/"&gt; &lt;img alt="A slide deck you can edit with a local model or in Chrome — the whole deck is a JSON block in one HTML file (~640KB with editor and viewer included)" src="https://external-preview.redd.it/a2dpamVyNnV1NWdoMc3JaGETXWqPBN0W4mtcj4HHFCuD_ux4FGAJoVRckqSd.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e7d9fc8cf8c4e0c1add3a7e7a70c75f5b11c8634" title="A slide deck you can edit with a local model or in Chrome — the whole deck is a JSON block in one HTML file (~640KB with editor and viewer included)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Over the past few months, our team has been building more and more slidedecks using web frontend technologies with coding harnesses, but a common complaint is to make even small edits we need to edit the code either manually or via the harness.&lt;/p&gt; &lt;p&gt;To avoid this loop, I ended up creating Bento, a single HTML file with everything you need in a slide tool including animations and shared editing. There's no install or cloud login, everything works offline. The default deck is around 640 KB and it doesn't need to fetch anything once you got it.&lt;/p&gt; &lt;p&gt;Open it in a browser and then you can edit, present, print and save. Share it via email or via Airdrop and all they need is a browser to edit, present and also do live collab on the slides. Drop it in to an LLM to transform existing pptx files into Bento slides. There is no cloud involved, only an encrypted blind relay to allow for shared editing. The relay doesn't see any of the data.&lt;/p&gt; &lt;p&gt;Check it out at &lt;a href="https://bento.page/slides/"&gt;https://bento.page/slides/&lt;/a&gt; which takes you straight to the editor.&lt;/p&gt; &lt;p&gt;Go to &lt;a href="https://bento.page/guestbook/"&gt;https://bento.page/guestbook/&lt;/a&gt; to try out the live guestbook to experience share editing / collab.&lt;/p&gt; &lt;p&gt;There is also a gallery with some sample decks on the website - &lt;a href="https://bento.page/"&gt;https://bento.page/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;All the code is MIT licensed and you can find it here - &lt;a href="https://github.com/nyblnet/bento"&gt;https://github.com/nyblnet/bento&lt;/a&gt; . I used reveal.js with several other libraries (including some homegrown ones that I had to implement to keep the size small and license open).&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/starfallg"&gt; /u/starfallg &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/zws4qd6uu5gh1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vewv/a_slide_deck_you_can_edit_with_a_local_model_or/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vewv/a_slide_deck_you_can_edit_with_a_local_model_or/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T12:56:08+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1vaaqdl/quantizing_kimi_k3_28t_a50b_to_gguf_ourselves_q3/</id>
+    <title>Quantizing Kimi K3 (2.8T A50B) to GGUF ourselves - Q3_K_S works, 1.1 TB on disk</title>
+    <updated>2026-07-29T22:08:40+00:00</updated>
+    <author>
+      <name>/u/Fun-Meaning-6474</name>
+      <uri>https://old.reddit.com/user/Fun-Meaning-6474</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vaaqdl/quantizing_kimi_k3_28t_a50b_to_gguf_ourselves_q3/"&gt; &lt;img alt="Quantizing Kimi K3 (2.8T A50B) to GGUF ourselves - Q3_K_S works, 1.1 TB on disk" src="https://preview.redd.it/bd7jqhj6s8gh1.png?width=140&amp;amp;height=112&amp;amp;auto=webp&amp;amp;s=33914c3e856f9d8cc25457e5270d091ff98ec8a1" title="Quantizing Kimi K3 (2.8T A50B) to GGUF ourselves - Q3_K_S works, 1.1 TB on disk" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;we're experimenting with our own dynamic GGUF quants of kimi k3, made from the original weights with our llama.cpp fork. Q3_K_S is done and works 1114.76 GiB on disk. Q1 and Q2 are in progress, results on those tomorrow&lt;/p&gt; &lt;p&gt;rented box hardware:&lt;/p&gt; &lt;p&gt;- AMD EPYC 9554P, 64 cores&lt;br /&gt; - 1.5 TB of DDR5&lt;br /&gt; - NVMe in raid0 to store the weights (inference runs fully from ram)&lt;br /&gt; - no GPU&lt;/p&gt; &lt;p&gt;the run:&lt;/p&gt; &lt;p&gt;- 110 threads&lt;br /&gt; - pp512: 4.21 t/s&lt;/p&gt; &lt;p&gt;we ran a short test for text coherence and image understanding to make sure the quant isn't lobotomized. loaded the 1969 NYT &amp;quot;men walk on moon&amp;quot; front page and asked the model to describe what's going on. it listed the masthead, the &amp;quot;all the news that's fit to print&amp;quot; slogan, the date, the 10 cent price, the headline, the sub-headline about astronauts collecting rocks and the &amp;quot;voice from moon&amp;quot; column. we haven't noticed any hallucinated text&lt;/p&gt; &lt;p&gt;wdyt about running quants of giant models like this on cpu instead of going with smth smaller but with normal tps and zero extra costs?&lt;/p&gt; &lt;p&gt;disclaimer: we're the team behind atomic chat ( &lt;a href="http://atomic.chat"&gt;atomic.chat&lt;/a&gt; )&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Fun-Meaning-6474"&gt; /u/Fun-Meaning-6474 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1vaaqdl"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vaaqdl/quantizing_kimi_k3_28t_a50b_to_gguf_ourselves_q3/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1vaaqdl/quantizing_kimi_k3_28t_a50b_to_gguf_ourselves_q3/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T22:08:40+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9swx1/microsoft_did_it_again_404_for_their_mageflow/</id>
+    <title>Microsoft did it .... again! (404 for their Mage-Flow models on HF)</title>
+    <updated>2026-07-29T11:02:15+00:00</updated>
+    <author>
+      <name>/u/pmttyji</name>
+      <uri>https://old.reddit.com/user/pmttyji</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9swx1/microsoft_did_it_again_404_for_their_mageflow/"&gt; &lt;img alt="Microsoft did it .... again! (404 for their Mage-Flow models on HF)" src="https://preview.redd.it/zw9ct2yxf5gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e14be50900c44774384900d34d88635da8f35a99" title="Microsoft did it .... again! (404 for their Mage-Flow models on HF)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Still you could grab GGUF, MLX, FP8, etc., from others on HuggingFace.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/models?sort=trending&amp;amp;search=Mage-Flow"&gt;https://huggingface.co/models?sort=trending&amp;amp;search=Mage-Flow&lt;/a&gt;&lt;/p&gt; &lt;p&gt;GitHub : &lt;a href="https://github.com/microsoft/Mage"&gt;https://github.com/microsoft/Mage&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Take backup of GitHub ASAP.&lt;/p&gt; &lt;p&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1v3o024/comment/p0fyifk/?utm_source=share&amp;amp;utm_medium=web3x&amp;amp;utm_name=web3xcss&amp;amp;utm_term=1&amp;amp;utm_content=share_button"&gt;Thanks&lt;/a&gt; for your comment &lt;a href="/u/Mk-Daniel"&gt;u/Mk-Daniel&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Links for their Mage-Flow Models:&lt;/strong&gt; (Currently it's only 404)&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;a href="https://huggingface.co/microsoft/Mage-Flow"&gt;https://huggingface.co/microsoft/Mage-Flow&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://huggingface.co/microsoft/Mage-Flow-Turbo"&gt;https://huggingface.co/microsoft/Mage-Flow-Turbo&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a href="https://huggingface.co/microsoft/Mage-Flow-Edit"&gt;https://huggingface.co/microsoft/Mage-Flow-Edit&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/pmttyji"&gt; /u/pmttyji &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/zw9ct2yxf5gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9swx1/microsoft_did_it_again_404_for_their_mageflow/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9swx1/microsoft_did_it_again_404_for_their_mageflow/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T11:02:15+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va1zoc/everyone_posts_dayone_impressions_whats_still_in/</id>
+    <title>Everyone posts day-one impressions. What's still in your stack a month later?</title>
+    <updated>2026-07-29T16:56:02+00:00</updated>
+    <author>
+      <name>/u/derspenti</name>
+      <uri>https://old.reddit.com/user/derspenti</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va1zoc/everyone_posts_dayone_impressions_whats_still_in/"&gt; &lt;img alt="Everyone posts day-one impressions. What's still in your stack a month later?" src="https://preview.redd.it/21nsd5ho87gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=82f41df3ae6c9a91934c654a0bf3807d48a54e2c" title="Everyone posts day-one impressions. What's still in your stack a month later?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Day one threads are the least useful thing we produce here and we produce a lot of them. Model drops, forty people run their favourite prompt, half say it's the best thing ever and half say benchmaxxed, and none of that survives contact with two weeks of real work.&lt;/p&gt; &lt;p&gt;So: what did you install in the last month or two that's still in the rotation, and what quietly got uninstalled?&lt;/p&gt; &lt;p&gt;I'll go first. Still here: Qwen3.6 27B for anything that has to actually know something. Ling-3.0-flash sitting in the executor slot of my agent setup, which surprised me because I only put it there expecting to watch it fail and it hasn't yet, and officially confirmed open source soon (now is free on open router). Gone: two things I was very excited about on day one, which I'm not naming because I don't want that argument in this thread.&lt;/p&gt; &lt;p&gt;What I'd like to hear is the boring version. Not &amp;quot;X is amazing&amp;quot;, but &amp;quot;X is still doing Y for me on Z and I've stopped thinking about it&amp;quot;. A model you've stopped thinking about is the highest praise available.&lt;/p&gt; &lt;p&gt;Also interested in the reverse. Stuff that got worse for you over time, or that you kept using out of inertia and then finally dropped. That never shows up in the day one threads either&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/derspenti"&gt; /u/derspenti &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/21nsd5ho87gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va1zoc/everyone_posts_dayone_impressions_whats_still_in/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va1zoc/everyone_posts_dayone_impressions_whats_still_in/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T16:56:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va4i9e/ilintars_official_guide_to_model_selection/</id>
+    <title>Ilintar's Official Guide To Model Selection</title>
+    <updated>2026-07-29T18:23:54+00:00</updated>
+    <author>
+      <name>/u/ilintar</name>
+      <uri>https://old.reddit.com/user/ilintar</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va4i9e/ilintars_official_guide_to_model_selection/"&gt; &lt;img alt="Ilintar's Official Guide To Model Selection" src="https://preview.redd.it/44uk0k7ho7gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=12b7b814fcaceb43f850abfc79d3d16da61173f8" title="Ilintar's Official Guide To Model Selection" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Inspired by multiple discussions here and on some Discords I frequent, I've decided to share with you this high quality training material. You can thank me later ;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/ilintar"&gt; /u/ilintar &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/44uk0k7ho7gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va4i9e/ilintars_official_guide_to_model_selection/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va4i9e/ilintars_official_guide_to_model_selection/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T18:23:54+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9vwev/uncensored_llms_are_measurably_more_optimistic/</id>
+    <title>"Uncensored" LLMs are measurably more optimistic than their base models</title>
+    <updated>2026-07-29T13:15:09+00:00</updated>
+    <author>
+      <name>/u/oleczek</name>
+      <uri>https://old.reddit.com/user/oleczek</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi. Many people think uncensored models are basically the same model that just doesn't refuse, but...&lt;/p&gt; &lt;p&gt;I was recently checking whether uncensored models would give me better answers for stock market predictions (my idea was: the uncensored one will tell you the truth and won't be polite where it shouldn't be). And I noticed that abliteration didn't only remove the refusals, it also changed the model's attitude. &lt;/p&gt; &lt;p&gt;Generally, &lt;strong&gt;after removing censorship the models are more optimistic&lt;/strong&gt;. More &amp;quot;it will go up&amp;quot; calls, fewer words like maybe/uncertain, longer and more confident reasoning.&lt;/p&gt; &lt;p&gt;They were not actually any better at the task, same coinflip accuracy as before - as expected. So more confident, not more right.&lt;/p&gt; &lt;p&gt;The thing I didn't expect: on Gemma the confidence went down, on Qwen it went up. Same edit, opposite direction.&lt;/p&gt; &lt;p&gt;I tested it on &lt;strong&gt;Gemma and Qwen&lt;/strong&gt; (ran it locally on my GB10/Dell - took a while), 21,600 decisions total, and the models decided on the exact same input data (Gemma with and without censorship, Qwen with and without). I preregistered it beforehand so I wasn't just fishing for a result.&lt;/p&gt; &lt;p&gt;Setup was basically: the model gets a prompt + a payload with data about a listed company (quotes, news etc.) and has to say, among other things, where it thinks the stock goes in a week: up if things look good, down if bad.&lt;/p&gt; &lt;p&gt;I tried to write the whole thing up properly here if anyone's curious, data and code are in there too: &lt;a href="https://arxiv.org/abs/2607.17427"&gt;https://arxiv.org/abs/2607.17427&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Has anyone seen similar disposition drift with other families (Llama, Mistral) or other methods like Heretic? Mine were huihui's abliterated ones.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/oleczek"&gt; /u/oleczek &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vwev/uncensored_llms_are_measurably_more_optimistic/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vwev/uncensored_llms_are_measurably_more_optimistic/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9vwev/uncensored_llms_are_measurably_more_optimistic/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T13:15:09+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va54em/psa_llamacpp_now_loads_mtp_tensors_by_default_for/</id>
+    <title>PSA: llama.cpp now loads MTP tensors by default for any draft-mtp arch, even with MTP disabled</title>
+    <updated>2026-07-29T18:45:34+00:00</updated>
+    <author>
+      <name>/u/Shoddy_Bed3240</name>
+      <uri>https://old.reddit.com/user/Shoddy_Bed3240</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If your GGUF has MTP/NextN tensors baked in (GLM-5.2, hy_v3, qwen35moe, step35, etc.), recent llama.cpp builds load them by default — even if you never pass &lt;code&gt;--spec-type draft-mtp&lt;/code&gt;. Before, they were skipped unless you actually enabled speculative decoding.&lt;/p&gt; &lt;p&gt;Most community GGUFs bundle the MTP block by default, so this means extra VRAM/RAM use (~1 extra MoE layer) on every load, whether you use MTP or not.&lt;/p&gt; &lt;p&gt;See &lt;a href="https://github.com/ggml-org/llama.cpp/pull/25980"&gt;https://github.com/ggml-org/llama.cpp/pull/25980&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Shoddy_Bed3240"&gt; /u/Shoddy_Bed3240 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va54em/psa_llamacpp_now_loads_mtp_tensors_by_default_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va54em/psa_llamacpp_now_loads_mtp_tensors_by_default_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va54em/psa_llamacpp_now_loads_mtp_tensors_by_default_for/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T18:45:34+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1v9xsi8/i_keep_coming_back_to_qwen_over_and_over_is_there/</id>
+    <title>I keep coming back to Qwen... Over and Over. Is there really nothing better under 120B?</title>
+    <updated>2026-07-29T14:27:51+00:00</updated>
+    <author>
+      <name>/u/Possible_Grocery8079</name>
+      <uri>https://old.reddit.com/user/Possible_Grocery8079</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I was looking for a strong coding model and a strong general model, both should be 120b or under. After weeks of researching, qwen3.6 27b(general) and qwen3 coder next(coding) are the top choices. I mean there has to be something better.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Any reccommendations?&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Possible_Grocery8079"&gt; /u/Possible_Grocery8079 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9xsi8/i_keep_coming_back_to_qwen_over_and_over_is_there/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1v9xsi8/i_keep_coming_back_to_qwen_over_and_over_is_there/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1v9xsi8/i_keep_coming_back_to_qwen_over_and_over_is_there/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T14:27:51+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va7nm7/are_you_guys_not_scared_of_where_were_heading_a/</id>
+    <title>Are you guys not scared of where we're heading? A year ago, GPT-5 was considered one of the best models in the world. Today, we have open-weight models like Qwen3.6-27B that are competitive enough to run locally on high-end consumer hardware. The pace of progress is absolutely brutal.</title>
+    <updated>2026-07-29T20:13:52+00:00</updated>
+    <author>
+      <name>/u/SilverRegion9394</name>
+      <uri>https://old.reddit.com/user/SilverRegion9394</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va7nm7/are_you_guys_not_scared_of_where_were_heading_a/"&gt; &lt;img alt="Are you guys not scared of where we're heading? A year ago, GPT-5 was considered one of the best models in the world. Today, we have open-weight models like Qwen3.6-27B that are competitive enough to run locally on high-end consumer hardware. The pace of progress is absolutely brutal." src="https://preview.redd.it/6dqiz91y78gh1.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=53e57bf7e12346e48d76fcbefca796184a68448b" title="Are you guys not scared of where we're heading? A year ago, GPT-5 was considered one of the best models in the world. Today, we have open-weight models like Qwen3.6-27B that are competitive enough to run locally on high-end consumer hardware. The pace of progress is absolutely brutal." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think the claims about having Mythos level-model in our laptops in 1-2 years might not be so crazy of a theory&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/SilverRegion9394"&gt; /u/SilverRegion9394 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/6dqiz91y78gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va7nm7/are_you_guys_not_scared_of_where_were_heading_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va7nm7/are_you_guys_not_scared_of_where_were_heading_a/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T20:13:52+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1vacf09/bought_a_5090_to_escape_api_fees_ended_up/</id>
+    <title>Bought a 5090 to escape API fees. Ended up building a mini datacenter. Sound familiar?</title>
+    <updated>2026-07-29T23:16:20+00:00</updated>
+    <author>
+      <name>/u/Ok-Shower7286</name>
+      <uri>https://old.reddit.com/user/Ok-Shower7286</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I bought an RTX 5090 last year just to run 27B models natively. I even fine-tuned it with my own data using LoRA, building RAGs and was pretty damn happy with the results at first. But, Q8 quantization 130k context was barely squeezing through. Naturally, I bought two RTX 6000 Pros, just waiting for the next-gen releases.&lt;/p&gt; &lt;p&gt;When I back to reality, minimum 100B class models started dropping everywhere these days, lol, making even this feel insufficient. Just as I felt I want at least 512GB cluster, it hit me, almost every single task I actually need to do runs totally fine on just that one 5090. So now I’m just lending the extra compute to my friends.&lt;/p&gt; &lt;p&gt;Sound familiar? What do you use as your daily LLM model?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/Ok-Shower7286"&gt; /u/Ok-Shower7286 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vacf09/bought_a_5090_to_escape_api_fees_ended_up/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1vacf09/bought_a_5090_to_escape_api_fees_ended_up/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1vacf09/bought_a_5090_to_escape_api_fees_ended_up/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T23:16:20+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va0rce/first_kimi_k3_results_on_home_lab_4ts/</id>
+    <title>First Kimi K3 results on home lab ~ 4t/s</title>
+    <updated>2026-07-29T16:13:30+00:00</updated>
+    <author>
+      <name>/u/iVoider</name>
+      <uri>https://old.reddit.com/user/iVoider</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va0rce/first_kimi_k3_results_on_home_lab_4ts/"&gt; &lt;img alt="First Kimi K3 results on home lab ~ 4t/s" src="https://preview.redd.it/o65n2kt017gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=376efed1a7d1bb98107ccbbbebff24518929b7cb" title="First Kimi K3 results on home lab ~ 4t/s" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've got better results than expected for 768gb DDR5 and 2x5090. &lt;/p&gt; &lt;p&gt;Using fork &lt;a href="https://github.com/pwilkin/llama.cpp/tree/kimi-k3-text"&gt;https://github.com/pwilkin/llama.cpp/tree/kimi-k3-text&lt;/a&gt; and &lt;a href="https://huggingface.co/GrEarl/Kimi-K3-GGUF"&gt;https://huggingface.co/GrEarl/Kimi-K3-GGUF&lt;/a&gt; Q2_K quant.&lt;/p&gt; &lt;p&gt;Prefill speed for big prompt is 50-70 tps.&lt;br /&gt; The most fun thing that decoding tps growing over time. Maybe some kind of warmup or swap thingy. Llama-becnh crashes, so can't share.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/iVoider"&gt; /u/iVoider &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/o65n2kt017gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va0rce/first_kimi_k3_results_on_home_lab_4ts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va0rce/first_kimi_k3_results_on_home_lab_4ts/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T16:13:30+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va6ot2/kimi_k3_for_local_use_156tb_594gb_compressed_and/</id>
+    <title>Kimi K3 for local use (1.56TB → 594GB) compressed and released by Unsloth</title>
+    <updated>2026-07-29T19:39:41+00:00</updated>
+    <author>
+      <name>/u/BankApprehensive7612</name>
+      <uri>https://old.reddit.com/user/BankApprehensive7612</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va6ot2/kimi_k3_for_local_use_156tb_594gb_compressed_and/"&gt; &lt;img alt="Kimi K3 for local use (1.56TB → 594GB) compressed and released by Unsloth" src="https://external-preview.redd.it/-Pi0PiNmpJmI17QD0uo-SnFZHONDxkrCISpiFrdpHa8.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=48f4e0f32c02df68aeb40a87995bb8f7d6d7cc0f" title="Kimi K3 for local use (1.56TB → 594GB) compressed and released by Unsloth" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The model was quantized to 8, 4, 2, and 1 bit. Characteristics:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Q8&lt;/strong&gt;: 8-bit 1.56 TB, lossless&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Q4&lt;/strong&gt;: 4-bit, 1.51 TB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Q2&lt;/strong&gt;: 2-bit: 861 GB&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Q1&lt;/strong&gt;: 1-bit, 594 GB&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The smallest Q1 model keeps 78.9% accuracy, while being almost 3 times smaller than the original one. Instruction for running the model is in the model's card&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/BankApprehensive7612"&gt; /u/BankApprehensive7612 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/unsloth/Kimi-K3-GGUF"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va6ot2/kimi_k3_for_local_use_156tb_594gb_compressed_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va6ot2/kimi_k3_for_local_use_156tb_594gb_compressed_and/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T19:39:41+00:00</published>
+  </entry>
+  <entry>
+    <id>https://old.reddit.com/r/LocalLLaMA/comments/1va73s6/the_openweights_carousel_never_stops/</id>
+    <title>The open-weights carousel never stops.</title>
+    <updated>2026-07-29T19:54:19+00:00</updated>
+    <author>
+      <name>/u/InternationalGap3698</name>
+      <uri>https://old.reddit.com/user/InternationalGap3698</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va73s6/the_openweights_carousel_never_stops/"&gt; &lt;img alt="The open-weights carousel never stops." src="https://preview.redd.it/5v8mtzib48gh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4e6790afb8c412c39465024a8b7f99825f085d29" title="The open-weights carousel never stops." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://old.reddit.com/user/InternationalGap3698"&gt; /u/InternationalGap3698 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/5v8mtzib48gh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://old.reddit.com/r/LocalLLaMA/comments/1va73s6/the_openweights_carousel_never_stops/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://old.reddit.com/r/LocalLLaMA/comments/1va73s6/the_openweights_carousel_never_stops/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-07-29T19:54:19+00:00</published>
+  </entry>
 </feed>
