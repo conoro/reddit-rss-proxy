@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-09-18T03:38:37+00:00</updated>
+  <updated>2026-09-18T06:42:36+00:00</updated>
   <link href="https://www.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -15,10 +15,23 @@
       <name>/u/Namish_Mudgal</name>
       <uri>https://www.reddit.com/user/Namish_Mudgal</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the first week of September building a personal assistant over Gemma 4 in Ollama on a 16 GB M1 Pro: Node backend, React web UI, Expo phone client, two-model routing, cross-session memory, RAG over my notes, web search through tool calling, and a coding agent behind a command policy. Most of what I assumed going in turned out to be wrong, so here are the measurements that actually changed the design.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The two models do not fit together, whatever &amp;quot;ollama ps&amp;quot; says.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;ollama ps showed 3.2 GB for gemma4:latest and 8.1 GB for gemma4:12b, so I planned on both resident. Ollama's scheduler predicts 10.6 GiB for the e4b build (about 6 GB of embedding tables sit in host memory and never show in ps) and evicts the other model every time. Each swap is a 4 to 7 s cold load. Switching to gemma4:e4b-it-qat dropped the footprint to 6.4 GiB and went from 27 to 33 tok/s, but still not co-resident with the 12B. The router became &amp;quot;sticky&amp;quot;: fast by default, deep only on strong signals, and once a conversation is on deep it stays. At most one swap per conversation.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Where the date sits in the prompt cost me 1.5 seconds per turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Ollama reuses the KV cache for the longest shared prefix. With the current date at the top of the system prompt, every follow-up re-evaluated the whole conversation: 1.8, 1.9, 2.0 s to first token. Moving everything that changes per message (date, retrieved chunks, recalled memory) into a marked block at the top of the user turn, and keeping the system prompt stable, took follow-ups to 0.5 and 0.4 s. Nothing else changed.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The system prompt suppresses tool calling, and nudge position matters more than wording.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;gemma4-fast with web_search offered, 9 prompts (5 needing a lookup), seed 7:&lt;/p&gt; &lt;p&gt;- bare prompt, no system message: 8/9 correct&lt;/p&gt; &lt;p&gt;- my full system prompt (about 700 tokens of &amp;quot;say when you don't know&amp;quot;): 5/9, missed 4 lookups&lt;/p&gt; &lt;p&gt;- same, with a one-line &amp;quot;this needs current information, search first&amp;quot; placed in the context block BEFORE the question: 5/10, worse than no nudge&lt;/p&gt; &lt;p&gt;- same nudge placed AFTER the question, last thing before generation: 9/9, zero needless searches&lt;/p&gt; &lt;p&gt;Gemma has no system role, so Ollama folds the system prompt into the first user turn, and a small model reads &amp;quot;say when you don't know&amp;quot; as permission not to look. The failure mode wasn't a refusal either: with the nudge in the wrong place it answered &amp;quot;32°C and partly cloudy [weather.com]&amp;quot; without ever calling the tool. I now have a separate rule that it may only cite a domain that appeared in an actual tool result.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Memory: injecting everything cost 2,300 tokens a turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The idle-time extractor had accumulated 109 facts about me. Injecting all of them was half the fixed cost of every prompt. Now preferences and pinned facts go in the system prompt, and plain facts are embedded with nomic-embed-text and the nearest 10 within L2 1.0 are recalled per message into the user turn. Ten recalled facts cost about 150 tokens. Rewordings of the same fact sit 0.12 to 0.30 apart, different facts about the same subject 0.53 and up, so anything within 0.35 replaces the old wording instead of piling up.&lt;/p&gt; &lt;p&gt;Also learned the hard way: the extractor once stored &amp;quot;the user wants replies of exactly three lowercase words describing the sea&amp;quot; (a test prompt) as a standing preference. Every answer afterwards was terse and lowercase until I found it. Small models over-collect; every fact needs to be one click from deletion.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Coding agent: default to confirm, not safe.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Same tool loop as web search, ten tools (read, search, edit_file, run_command, git inspection). edit_file with exact old text works far more reliably on a small model than unified diffs. Every command is split on shell operators and each piece is classified safe / confirm / deny; anything unrecognised is confirm. The UI tags test commands &amp;quot;passed&amp;quot; or &amp;quot;failed&amp;quot; from the real exit code, not from what the model says, because the model will say tests passed when it never ran them.&lt;/p&gt; &lt;p&gt;I wrote up the full thing (architecture, all the numbers, the order I'd build it in again) as a single HTML doc. Happy to share it in the comments if there's interest.&lt;/p&gt; &lt;p&gt;Stack: Node/TypeScript/Fastify, SQLite + sqlite-vec, Vite + React, Expo. Ollama for the models, Whisper in-process (transformers.js) for dictation so audio never leaves the machine, Tailscale between phone and Mac.&lt;/p&gt; &lt;p&gt;Question for people who've done this on 16 GB: has anyone found a fast/deep pair that actually stays co-resident with something 9B or larger as the deep model? qwen3.5:4b at about 2.5 GB looks like it should, but I haven't measured it yet.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Namish_Mudgal"&gt; /u/Namish_Mudgal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt; &lt;img alt="Six days building a local assistant on a 16 GB Mac. The numbers that changed my design." src="https://preview.redd.it/6xz6kruzb7qh1.png?width=140&amp;amp;height=97&amp;amp;auto=webp&amp;amp;s=1aad53936d05347e6cd260aa6c054b6d4d6cf1a2" title="Six days building a local assistant on a 16 GB Mac. The numbers that changed my design." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the first week of September building a personal assistant over Gemma 4 in Ollama on a 16 GB M1 Pro: Node backend, React web UI, Expo phone client, two-model routing, cross-session memory, RAG over my notes, web search through tool calling, and a coding agent behind a command policy. Most of what I assumed going in turned out to be wrong, so here are the measurements that actually changed the design.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The two models do not fit together, whatever &amp;quot;ollama ps&amp;quot; says.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;ollama ps showed 3.2 GB for gemma4:latest and 8.1 GB for gemma4:12b, so I planned on both resident. Ollama's scheduler predicts 10.6 GiB for the e4b build (about 6 GB of embedding tables sit in host memory and never show in ps) and evicts the other model every time. Each swap is a 4 to 7 s cold load. Switching to gemma4:e4b-it-qat dropped the footprint to 6.4 GiB and went from 27 to 33 tok/s, but still not co-resident with the 12B. The router became &amp;quot;sticky&amp;quot;: fast by default, deep only on strong signals, and once a conversation is on deep it stays. At most one swap per conversation.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Where the date sits in the prompt cost me 1.5 seconds per turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Ollama reuses the KV cache for the longest shared prefix. With the current date at the top of the system prompt, every follow-up re-evaluated the whole conversation: 1.8, 1.9, 2.0 s to first token. Moving everything that changes per message (date, retrieved chunks, recalled memory) into a marked block at the top of the user turn, and keeping the system prompt stable, took follow-ups to 0.5 and 0.4 s. Nothing else changed.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The system prompt suppresses tool calling, and nudge position matters more than wording.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;gemma4-fast with web_search offered, 9 prompts (5 needing a lookup), seed 7:&lt;/p&gt; &lt;p&gt;- bare prompt, no system message: 8/9 correct&lt;/p&gt; &lt;p&gt;- my full system prompt (about 700 tokens of &amp;quot;say when you don't know&amp;quot;): 5/9, missed 4 lookups&lt;/p&gt; &lt;p&gt;- same, with a one-line &amp;quot;this needs current information, search first&amp;quot; placed in the context block BEFORE the question: 5/10, worse than no nudge&lt;/p&gt; &lt;p&gt;- same nudge placed AFTER the question, last thing before generation: 9/9, zero needless searches&lt;/p&gt; &lt;p&gt;Gemma has no system role, so Ollama folds the system prompt into the first user turn, and a small model reads &amp;quot;say when you don't know&amp;quot; as permission not to look. The failure mode wasn't a refusal either: with the nudge in the wrong place it answered &amp;quot;32°C and partly cloudy [weather.com]&amp;quot; without ever calling the tool. I now have a separate rule that it may only cite a domain that appeared in an actual tool result.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Memory: injecting everything cost 2,300 tokens a turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The idle-time extractor had accumulated 109 facts about me. Injecting all of them was half the fixed cost of every prompt. Now preferences and pinned facts go in the system prompt, and plain facts are embedded with nomic-embed-text and the nearest 10 within L2 1.0 are recalled per message into the user turn. Ten recalled facts cost about 150 tokens. Rewordings of the same fact sit 0.12 to 0.30 apart, different facts about the same subject 0.53 and up, so anything within 0.35 replaces the old wording instead of piling up.&lt;/p&gt; &lt;p&gt;Also learned the hard way: the extractor once stored &amp;quot;the user wants replies of exactly three lowercase words describing the sea&amp;quot; (a test prompt) as a standing preference. Every answer afterwards was terse and lowercase until I found it. Small models over-collect; every fact needs to be one click from deletion.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Coding agent: default to confirm, not safe.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Same tool loop as web search, ten tools (read, search, edit_file, run_command, git inspection). edit_file with exact old text works far more reliably on a small model than unified diffs. Every command is split on shell operators and each piece is classified safe / confirm / deny; anything unrecognised is confirm. The UI tags test commands &amp;quot;passed&amp;quot; or &amp;quot;failed&amp;quot; from the real exit code, not from what the model says, because the model will say tests passed when it never ran them.&lt;/p&gt; &lt;p&gt;I wrote up the full thing (architecture, all the numbers, the order I'd build it in again) as a single HTML doc. Happy to share it in the comments if there's interest.&lt;/p&gt; &lt;p&gt;Stack: Node/TypeScript/Fastify, SQLite + sqlite-vec, Vite + React, Expo. Ollama for the models, Whisper in-process (transformers.js) for dictation so audio never leaves the machine, Tailscale between phone and Mac.&lt;/p&gt; &lt;p&gt;Question for people who've done this on 16 GB: has anyone found a fast/deep pair that actually stays co-resident with something 9B or larger as the deep model? qwen3.5:4b at about 2.5 GB looks like it should, but I haven't measured it yet.&lt;/p&gt; &lt;p&gt;Some of the screenshots of my local chat assistant on both Web and Mobile interface:&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/6xz6kruzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1491727e3c307906433c7f99eb0679d2a2932cd3"&gt;https://preview.redd.it/6xz6kruzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1491727e3c307906433c7f99eb0679d2a2932cd3&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/hoib8ruzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=237c8596bd584ccbe04c1319db3b0686d839b6f0"&gt;https://preview.redd.it/hoib8ruzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=237c8596bd584ccbe04c1319db3b0686d839b6f0&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/vwm8vsuzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=d6557d999a2e48cc0e395dc22bec359fc6d52048"&gt;https://preview.redd.it/vwm8vsuzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=d6557d999a2e48cc0e395dc22bec359fc6d52048&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/t3wgwruzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=9a1b463b36315c635da6004e079e4ed21670855c"&gt;https://preview.redd.it/t3wgwruzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=9a1b463b36315c635da6004e079e4ed21670855c&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/4v75jquzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1dc9090a72bc722e2c51b2fe6087fd3e771c1579"&gt;https://preview.redd.it/4v75jquzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=1dc9090a72bc722e2c51b2fe6087fd3e771c1579&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/wym35suzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0b3718d019e158a58df96cd66a6684a44974a64c"&gt;https://preview.redd.it/wym35suzb7qh1.png?width=1080&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0b3718d019e158a58df96cd66a6684a44974a64c&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/mif7tquzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f5e6fc235ea4257b6dd5ea3795f6514e569926db"&gt;https://preview.redd.it/mif7tquzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=f5e6fc235ea4257b6dd5ea3795f6514e569926db&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/l9ul8quzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14caf42477f506a6f5a9556e667fe854feaf4396"&gt;https://preview.redd.it/l9ul8quzb7qh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=14caf42477f506a6f5a9556e667fe854feaf4396&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Namish_Mudgal"&gt; /u/Namish_Mudgal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
     <link href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-09-17T17:22:51+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wjhk0r/ctx_size_in_ollama_vs_llamacpp/</id>
+    <title>Ctx size in Ollama Vs llama.cpp</title>
+    <updated>2026-09-18T05:38:13+00:00</updated>
+    <author>
+      <name>/u/circumcised_hobbit</name>
+      <uri>https://www.reddit.com/user/circumcised_hobbit</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;So I know that Ollama is built on top of llama.cpp, I decided to run a model on both and applied settings on llama.cpp like flash attention and q8/q4 kv cache. On Ollama (using the Python package) I was able to get 260k context using the num_ctx option, it would take a bit to load but it would eventually. On llama&lt;/p&gt; &lt;p&gt;cpp, anything over 32k causes an OOM, why is that? How can I reproduce?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/circumcised_hobbit"&gt; /u/circumcised_hobbit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wjhk0r/ctx_size_in_ollama_vs_llamacpp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wjhk0r/ctx_size_in_ollama_vs_llamacpp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wjhk0r/ctx_size_in_ollama_vs_llamacpp/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-18T05:38:13+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wiijww/beginner_confused_about_ollama_vs_lm_studio_vs/</id>
@@ -86,6 +99,19 @@
     <published>2026-09-17T20:16:03+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/</id>
+    <title>Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built.</title>
+    <updated>2026-09-17T15:56:39+00:00</updated>
+    <author>
+      <name>/u/Abject-Analyst-3367</name>
+      <uri>https://www.reddit.com/user/Abject-Analyst-3367</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt; &lt;img alt="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." src="https://external-preview.redd.it/PxWk3nnmyEPwTIu-Ynt0fcEgpAdECBogpmLBHMP1bbA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed918069d1f5d48992b850ac59900623337ac43d" title="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Abject-Analyst-3367"&gt; /u/Abject-Analyst-3367 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1wixwd0/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T15:56:39+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wj1f7u/feature_request/</id>
     <title>FEATURE REQUEST!!!!</title>
     <updated>2026-09-17T18:03:54+00:00</updated>
@@ -112,19 +138,6 @@
     <published>2026-09-17T01:42:45+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/</id>
-    <title>Do i need to be able to code to use an Ollama model?</title>
-    <updated>2026-09-17T17:49:07+00:00</updated>
-    <author>
-      <name>/u/AdvicePretty490</name>
-      <uri>https://www.reddit.com/user/AdvicePretty490</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i can’t code for shit , i’m interested in using a local LLM for privacy reasons and because it seems way more diverse and fun&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AdvicePretty490"&gt; /u/AdvicePretty490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-09-17T17:49:07+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/</id>
     <title>(Old)Pro plan: 5.3flash, v4.1flash, 0731 confusion regarding usages</title>
     <updated>2026-09-17T09:56:24+00:00</updated>
@@ -138,17 +151,30 @@
     <published>2026-09-17T09:56:24+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/</id>
-    <title>Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built.</title>
-    <updated>2026-09-17T15:56:39+00:00</updated>
+    <id>https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/</id>
+    <title>KaozKit: sandboxed LLM agents in JS, fully on-device on Apple Silicon (MLX / Apple Intelligence / Ollama), MIT</title>
+    <updated>2026-09-17T08:36:21+00:00</updated>
     <author>
-      <name>/u/Abject-Analyst-3367</name>
-      <uri>https://www.reddit.com/user/Abject-Analyst-3367</uri>
+      <name>/u/sburel</name>
+      <uri>https://www.reddit.com/user/sburel</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt; &lt;img alt="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." src="https://external-preview.redd.it/PxWk3nnmyEPwTIu-Ynt0fcEgpAdECBogpmLBHMP1bbA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed918069d1f5d48992b850ac59900623337ac43d" title="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Abject-Analyst-3367"&gt; /u/Abject-Analyst-3367 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1wixwd0/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I released KaozKit this week, a Swift library for running LLM agents written in JavaScript inside a Mac app. Built from the start to keep everything local.&lt;/p&gt; &lt;p&gt;Providers: MLX with Hugging Face model management built in, Apple Intelligence using the on-device model (no key, no network), plus Ollama and LM Studio if that's your setup. Cloud providers exist too but the point was to not need them. The README demo is an agent that audits your Downloads folder on Apple's local model with zero config.&lt;/p&gt; &lt;p&gt;An agent is a JS module of about ten lines. It runs inside XS, a JavaScript engine originally built for microcontrollers, which is why one isolated engine per agent costs almost nothing and you ship neither Node nor Python.&lt;/p&gt; &lt;p&gt;What I spent the most time on is what an agent can't do. No fetch, no fs, no ambient anything: it only sees the host functions you hand it. File access is per authorized folder, and anything that acts (shell, HTTP, writes) is opt-in with allow-lists. API keys never reach the JS side.&lt;/p&gt; &lt;p&gt;XS also does heap snapshots. The engine dumps its whole heap to disk, so a resident agent, state, conversation and pending timers included, comes back after a restart exactly where it was, with no serialization code on my side.&lt;/p&gt; &lt;p&gt;macOS 26+, Apple Silicon, MIT.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sebastien-burel/KaozKit"&gt;https://github.com/sebastien-burel/KaozKit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Longer write-up on why a microcontroller JS engine turned out to be a good agent runtime: &lt;a href="https://www.haruni.net/en/blog/kaozkit-xs-agents"&gt;https://www.haruni.net/en/blog/kaozkit-xs-agents&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Question for people running agents locally: what's your runtime today, and what would it take for you to trust one enough to leave it resident? Sandboxing, auditability, something else?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/sburel"&gt; /u/sburel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-09-17T15:56:39+00:00</published>
+    <published>2026-09-17T08:36:21+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/</id>
+    <title>Do i need to be able to code to use an Ollama model?</title>
+    <updated>2026-09-17T17:49:07+00:00</updated>
+    <author>
+      <name>/u/AdvicePretty490</name>
+      <uri>https://www.reddit.com/user/AdvicePretty490</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i can’t code for shit , i’m interested in using a local LLM for privacy reasons and because it seems way more diverse and fun&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AdvicePretty490"&gt; /u/AdvicePretty490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T17:49:07+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wj9ouk/current_ai/</id>
@@ -175,19 +201,6 @@
     <link href="https://www.reddit.com/r/ollama/comments/1wip63x/v41flash_api_thinking_effort_vs_model_thinking/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-09-17T09:29:02+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/</id>
-    <title>KaozKit: sandboxed LLM agents in JS, fully on-device on Apple Silicon (MLX / Apple Intelligence / Ollama), MIT</title>
-    <updated>2026-09-17T08:36:21+00:00</updated>
-    <author>
-      <name>/u/sburel</name>
-      <uri>https://www.reddit.com/user/sburel</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I released KaozKit this week, a Swift library for running LLM agents written in JavaScript inside a Mac app. Built from the start to keep everything local.&lt;/p&gt; &lt;p&gt;Providers: MLX with Hugging Face model management built in, Apple Intelligence using the on-device model (no key, no network), plus Ollama and LM Studio if that's your setup. Cloud providers exist too but the point was to not need them. The README demo is an agent that audits your Downloads folder on Apple's local model with zero config.&lt;/p&gt; &lt;p&gt;An agent is a JS module of about ten lines. It runs inside XS, a JavaScript engine originally built for microcontrollers, which is why one isolated engine per agent costs almost nothing and you ship neither Node nor Python.&lt;/p&gt; &lt;p&gt;What I spent the most time on is what an agent can't do. No fetch, no fs, no ambient anything: it only sees the host functions you hand it. File access is per authorized folder, and anything that acts (shell, HTTP, writes) is opt-in with allow-lists. API keys never reach the JS side.&lt;/p&gt; &lt;p&gt;XS also does heap snapshots. The engine dumps its whole heap to disk, so a resident agent, state, conversation and pending timers included, comes back after a restart exactly where it was, with no serialization code on my side.&lt;/p&gt; &lt;p&gt;macOS 26+, Apple Silicon, MIT.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sebastien-burel/KaozKit"&gt;https://github.com/sebastien-burel/KaozKit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Longer write-up on why a microcontroller JS engine turned out to be a good agent runtime: &lt;a href="https://www.haruni.net/en/blog/kaozkit-xs-agents"&gt;https://www.haruni.net/en/blog/kaozkit-xs-agents&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Question for people running agents locally: what's your runtime today, and what would it take for you to trust one enough to leave it resident? Sandboxing, auditability, something else?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/sburel"&gt; /u/sburel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-09-17T08:36:21+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wic41t/beta_testers_wanted_gemma_426b_andor_qwen_3827b/</id>
@@ -255,19 +268,6 @@
     <published>2026-09-17T02:36:52+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/</id>
-    <title>M4 MacBook Air 16GB/512GB for Local LLMs and agent based trading- worth $800?</title>
-    <updated>2026-09-16T19:01:30+00:00</updated>
-    <author>
-      <name>/u/soboinsomniac</name>
-      <uri>https://www.reddit.com/user/soboinsomniac</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Planning to buy a MacBook Air M4 (16 GB / 512 GB) for about $800 to run local LLM agents for:&lt;/p&gt; &lt;p&gt;Indian mid‑cap equity research (using Screener.in CSVs)&lt;/p&gt; &lt;p&gt;Building/testing trading ideas via Zerodha Kite API (prices, history, holdings; maybe orders later)&lt;/p&gt; &lt;p&gt;Also want to run Hermes-based agents on it&lt;/p&gt; &lt;p&gt;Questions:&lt;/p&gt; &lt;p&gt;On 16 GB M4 Air, which local LLMs are best for reasoning, coding, and tool use? Is Qwen 3.5 9B (Q4) + a smaller fast model (e.g. LFM2.5 8B / Llama 3.2 3B) a good combo alongside Hermes?&lt;/p&gt; &lt;p&gt;Best local stack (Ollama vs LM Studio, etc.) and any existing Kite + LLM or Indian‑stock agent projects to reference?&lt;/p&gt; &lt;p&gt;Any tips on context length, thermals, and multi‑agent setups (including Hermes) on a 16 GB fanless Air?&lt;/p&gt; &lt;p&gt;Getting the laptop for ~$800, so stuck with 16 GB for now. If you’ve done similar work (local LLMs for equity research / algo trading, especially in India), what models and setup would you recommend?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/soboinsomniac"&gt; /u/soboinsomniac &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-09-16T19:01:30+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/</id>
     <title>Testing Qwen 3.8 27B running locally on a single 5090 via Ollama</title>
     <updated>2026-09-16T10:52:17+00:00</updated>
@@ -279,6 +279,19 @@
     <link href="https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-09-16T10:52:17+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/</id>
+    <title>M4 MacBook Air 16GB/512GB for Local LLMs and agent based trading- worth $800?</title>
+    <updated>2026-09-16T19:01:30+00:00</updated>
+    <author>
+      <name>/u/soboinsomniac</name>
+      <uri>https://www.reddit.com/user/soboinsomniac</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Planning to buy a MacBook Air M4 (16 GB / 512 GB) for about $800 to run local LLM agents for:&lt;/p&gt; &lt;p&gt;Indian mid‑cap equity research (using Screener.in CSVs)&lt;/p&gt; &lt;p&gt;Building/testing trading ideas via Zerodha Kite API (prices, history, holdings; maybe orders later)&lt;/p&gt; &lt;p&gt;Also want to run Hermes-based agents on it&lt;/p&gt; &lt;p&gt;Questions:&lt;/p&gt; &lt;p&gt;On 16 GB M4 Air, which local LLMs are best for reasoning, coding, and tool use? Is Qwen 3.5 9B (Q4) + a smaller fast model (e.g. LFM2.5 8B / Llama 3.2 3B) a good combo alongside Hermes?&lt;/p&gt; &lt;p&gt;Best local stack (Ollama vs LM Studio, etc.) and any existing Kite + LLM or Indian‑stock agent projects to reference?&lt;/p&gt; &lt;p&gt;Any tips on context length, thermals, and multi‑agent setups (including Hermes) on a 16 GB fanless Air?&lt;/p&gt; &lt;p&gt;Getting the laptop for ~$800, so stuck with 16 GB for now. If you’ve done similar work (local LLMs for equity research / algo trading, especially in India), what models and setup would you recommend?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/soboinsomniac"&gt; /u/soboinsomniac &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T19:01:30+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1whz0fu/tps_slowdown_on_cloud/</id>
@@ -318,18 +331,5 @@
     <link href="https://www.reddit.com/r/ollama/comments/1wi9fyd/the_part_of_ai_progress_were_skipping/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-09-16T20:50:58+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/</id>
-    <title>Cmp30 6gb VRAM local agent help</title>
-    <updated>2026-09-16T20:18:17+00:00</updated>
-    <author>
-      <name>/u/Mosquito_Naftero</name>
-      <uri>https://www.reddit.com/user/Mosquito_Naftero</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Mosquito_Naftero"&gt; /u/Mosquito_Naftero &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-09-16T20:18:17+00:00</published>
   </entry>
 </feed>
