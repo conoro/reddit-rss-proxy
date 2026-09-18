@@ -1,9 +1,335 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/ollama/.rss</id>
-  <title>r/ollama</title>
-  <updated>2026-09-18T01:34:52.710854+00:00</updated>
-  <link href="https://old.reddit.com/r/ollama/.rss" rel="alternate"/>
+  <title>ollama</title>
+  <updated>2026-09-18T03:05:37+00:00</updated>
+  <link href="https://www.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
+  <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/</id>
+    <title>Six days building a local assistant on a 16 GB Mac. The numbers that changed my design.</title>
+    <updated>2026-09-17T17:22:51+00:00</updated>
+    <author>
+      <name>/u/Namish_Mudgal</name>
+      <uri>https://www.reddit.com/user/Namish_Mudgal</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I spent the first week of September building a personal assistant over Gemma 4 in Ollama on a 16 GB M1 Pro: Node backend, React web UI, Expo phone client, two-model routing, cross-session memory, RAG over my notes, web search through tool calling, and a coding agent behind a command policy. Most of what I assumed going in turned out to be wrong, so here are the measurements that actually changed the design.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The two models do not fit together, whatever &amp;quot;ollama ps&amp;quot; says.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;ollama ps showed 3.2 GB for gemma4:latest and 8.1 GB for gemma4:12b, so I planned on both resident. Ollama's scheduler predicts 10.6 GiB for the e4b build (about 6 GB of embedding tables sit in host memory and never show in ps) and evicts the other model every time. Each swap is a 4 to 7 s cold load. Switching to gemma4:e4b-it-qat dropped the footprint to 6.4 GiB and went from 27 to 33 tok/s, but still not co-resident with the 12B. The router became &amp;quot;sticky&amp;quot;: fast by default, deep only on strong signals, and once a conversation is on deep it stays. At most one swap per conversation.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Where the date sits in the prompt cost me 1.5 seconds per turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Ollama reuses the KV cache for the longest shared prefix. With the current date at the top of the system prompt, every follow-up re-evaluated the whole conversation: 1.8, 1.9, 2.0 s to first token. Moving everything that changes per message (date, retrieved chunks, recalled memory) into a marked block at the top of the user turn, and keeping the system prompt stable, took follow-ups to 0.5 and 0.4 s. Nothing else changed.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;The system prompt suppresses tool calling, and nudge position matters more than wording.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;gemma4-fast with web_search offered, 9 prompts (5 needing a lookup), seed 7:&lt;/p&gt; &lt;p&gt;- bare prompt, no system message: 8/9 correct&lt;/p&gt; &lt;p&gt;- my full system prompt (about 700 tokens of &amp;quot;say when you don't know&amp;quot;): 5/9, missed 4 lookups&lt;/p&gt; &lt;p&gt;- same, with a one-line &amp;quot;this needs current information, search first&amp;quot; placed in the context block BEFORE the question: 5/10, worse than no nudge&lt;/p&gt; &lt;p&gt;- same nudge placed AFTER the question, last thing before generation: 9/9, zero needless searches&lt;/p&gt; &lt;p&gt;Gemma has no system role, so Ollama folds the system prompt into the first user turn, and a small model reads &amp;quot;say when you don't know&amp;quot; as permission not to look. The failure mode wasn't a refusal either: with the nudge in the wrong place it answered &amp;quot;32°C and partly cloudy [weather.com]&amp;quot; without ever calling the tool. I now have a separate rule that it may only cite a domain that appeared in an actual tool result.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Memory: injecting everything cost 2,300 tokens a turn.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;The idle-time extractor had accumulated 109 facts about me. Injecting all of them was half the fixed cost of every prompt. Now preferences and pinned facts go in the system prompt, and plain facts are embedded with nomic-embed-text and the nearest 10 within L2 1.0 are recalled per message into the user turn. Ten recalled facts cost about 150 tokens. Rewordings of the same fact sit 0.12 to 0.30 apart, different facts about the same subject 0.53 and up, so anything within 0.35 replaces the old wording instead of piling up.&lt;/p&gt; &lt;p&gt;Also learned the hard way: the extractor once stored &amp;quot;the user wants replies of exactly three lowercase words describing the sea&amp;quot; (a test prompt) as a standing preference. Every answer afterwards was terse and lowercase until I found it. Small models over-collect; every fact needs to be one click from deletion.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Coding agent: default to confirm, not safe.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Same tool loop as web search, ten tools (read, search, edit_file, run_command, git inspection). edit_file with exact old text works far more reliably on a small model than unified diffs. Every command is split on shell operators and each piece is classified safe / confirm / deny; anything unrecognised is confirm. The UI tags test commands &amp;quot;passed&amp;quot; or &amp;quot;failed&amp;quot; from the real exit code, not from what the model says, because the model will say tests passed when it never ran them.&lt;/p&gt; &lt;p&gt;I wrote up the full thing (architecture, all the numbers, the order I'd build it in again) as a single HTML doc. Happy to share it in the comments if there's interest.&lt;/p&gt; &lt;p&gt;Stack: Node/TypeScript/Fastify, SQLite + sqlite-vec, Vite + React, Expo. Ollama for the models, Whisper in-process (transformers.js) for dictation so audio never leaves the machine, Tailscale between phone and Mac.&lt;/p&gt; &lt;p&gt;Question for people who've done this on 16 GB: has anyone found a fast/deep pair that actually stays co-resident with something 9B or larger as the deep model? qwen3.5:4b at about 2.5 GB looks like it should, but I haven't measured it yet.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Namish_Mudgal"&gt; /u/Namish_Mudgal &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj0arv/six_days_building_a_local_assistant_on_a_16_gb/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T17:22:51+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wiijww/beginner_confused_about_ollama_vs_lm_studio_vs/</id>
+    <title>Beginner confused about Ollama vs LM Studio vs llama.cpp vs vLLM vs Unsloth — can someone explain?</title>
+    <updated>2026-09-17T03:22:32+00:00</updated>
+    <author>
+      <name>/u/__Beastboy__</name>
+      <uri>https://www.reddit.com/user/__Beastboy__</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone!&lt;/p&gt; &lt;p&gt;I'm a beginner getting into local LLMs, and so far I'm familiar with Ollama. I've used it to download and run models locally, but I'm starting to see a lot of other tools being mentioned, and honestly I'm a bit confused about what each one actually does.&lt;/p&gt; &lt;p&gt;I keep coming across:&lt;/p&gt; &lt;p&gt;Ollama&lt;/p&gt; &lt;p&gt;LM Studio&lt;/p&gt; &lt;p&gt;llama.cpp&lt;/p&gt; &lt;p&gt;VLLM&lt;/p&gt; &lt;p&gt;Unsloth&lt;/p&gt; &lt;p&gt;From what I understand, some of these might overlap while others serve completely different purposes, but I'm not clear on which tool is meant for what.&lt;/p&gt; &lt;p&gt;I'm especially interested in understanding the big picture, rather than just which one is &amp;quot;better.&amp;quot;&lt;/p&gt; &lt;p&gt;If someone could explain these in simple terms, maybe with an example workflow showing how they fit together, I'd really appreciate it!&lt;/p&gt; &lt;p&gt;Thanks in advance!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/__Beastboy__"&gt; /u/__Beastboy__ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wiijww/beginner_confused_about_ollama_vs_lm_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wiijww/beginner_confused_about_ollama_vs_lm_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wiijww/beginner_confused_about_ollama_vs_lm_studio_vs/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T03:22:32+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wjb97a/does_ollama_reallly_need_32gb_ram_or_more_to/</id>
+    <title>Does Ollama reallly need 32Gb ram or more to actually use MLX backend?</title>
+    <updated>2026-09-18T00:31:29+00:00</updated>
+    <author>
+      <name>/u/Packetbytes</name>
+      <uri>https://www.reddit.com/user/Packetbytes</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;AI keeps telling me that Ollama will not use MLX backend if Ram is below 32GB on macs and will just fallback to GGUF. Just want to find the truth&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Packetbytes"&gt; /u/Packetbytes &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wjb97a/does_ollama_reallly_need_32gb_ram_or_more_to/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wjb97a/does_ollama_reallly_need_32gb_ram_or_more_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wjb97a/does_ollama_reallly_need_32gb_ram_or_more_to/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-18T00:31:29+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj0c9x/technical_feedback_glm51_retirement_significant/</id>
+    <title>Technical Feedback: GLM-5.1 Retirement — Significant Regression in Agentic Workloads</title>
+    <updated>2026-09-17T17:24:25+00:00</updated>
+    <author>
+      <name>/u/uTuned</name>
+      <uri>https://www.reddit.com/user/uTuned</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi Ollama Team,&lt;/p&gt; &lt;p&gt;I’m writing regarding the announced retirement of GLM-5.1 from Ollama Cloud on 25 September 2026.&lt;/p&gt; &lt;p&gt;I wanted to provide some fairly detailed technical feedback because GLM-5.1 is not simply a model we happen to prefer. We have been benchmarking models for use within an agentic software-development and orchestration environment, and GLM-5.1 has demonstrated materially different runtime behaviour from GLM-5.3.&lt;/p&gt; &lt;p&gt;In our testing, GLM-5.3 cannot currently be treated as a drop-in replacement for GLM-5.1.&lt;/p&gt; &lt;p&gt;ENVIRONMENT / USE CASE&lt;/p&gt; &lt;p&gt;Our workload is primarily agentic rather than conventional single-turn chat.&lt;/p&gt; &lt;p&gt;The model is used as part of an orchestration system involving:&lt;/p&gt; &lt;p&gt;- autonomous software-development tasks&lt;br /&gt; - structured task briefs&lt;br /&gt; - repository inspection&lt;br /&gt; - reasoning across existing project state&lt;br /&gt; - tool invocation&lt;br /&gt; - terminal operations&lt;br /&gt; - file creation/modification&lt;br /&gt; - validation and test execution&lt;br /&gt; - iterative correction&lt;br /&gt; - completion reporting&lt;br /&gt; - multi-step agent workflows&lt;br /&gt; - OpenClaw-style agent orchestration&lt;br /&gt; - model routing across multiple workers/models&lt;/p&gt; &lt;p&gt;The key metric for us is therefore not simply subjective answer quality.&lt;/p&gt; &lt;p&gt;We care about whether a model can reliably progress through:&lt;/p&gt; &lt;p&gt;reasoning&lt;br /&gt; → planning&lt;br /&gt; → tool execution&lt;br /&gt; → observation&lt;br /&gt; → correction&lt;br /&gt; → validation&lt;br /&gt; → final task completion&lt;/p&gt; &lt;p&gt;within the available execution envelope.&lt;/p&gt; &lt;p&gt;BENCHMARK RESULT&lt;/p&gt; &lt;p&gt;One of our controlled benchmark runs, internally identified as T02-R2, produced the following result:&lt;/p&gt; &lt;p&gt;GLM-5.1&lt;br /&gt; Median result: 26 / 31&lt;/p&gt; &lt;p&gt;GLM-5.3&lt;br /&gt; Median result: 0 / 31&lt;/p&gt; &lt;p&gt;This is an extremely significant regression for our workload.&lt;/p&gt; &lt;p&gt;Importantly, the GLM-5.3 result was not caused primarily by poor generated code, misunderstanding of the task, or an inability to reason about the problem.&lt;/p&gt; &lt;p&gt;The dominant failure mode observed was execution-time exhaustion during the model's thinking/reasoning phase.&lt;/p&gt; &lt;p&gt;In other words, GLM-5.3 frequently consumed so much of the available execution window before progressing sufficiently into actionable tool use that the agent failed to complete the benchmark objective.&lt;/p&gt; &lt;p&gt;This resulted in a paradoxical behaviour:&lt;/p&gt; &lt;p&gt;GLM-5.3 may possess greater theoretical reasoning capacity and a substantially larger context window, but under an agent runtime with finite execution budgets it can perform substantially worse because the reasoning phase prevents the model from reaching the execution/completion phase.&lt;/p&gt; &lt;p&gt;CONTEXT WINDOW DIFFERENCE&lt;/p&gt; &lt;p&gt;For reference, the models we evaluated expose approximately:&lt;/p&gt; &lt;p&gt;GLM-5.1:&lt;br /&gt; 202,752 token context&lt;/p&gt; &lt;p&gt;GLM-5.3:&lt;br /&gt; 1,048,576 token context&lt;/p&gt; &lt;p&gt;We recognise that the approximately 1M-token context capability of GLM-5.3 is a major architectural improvement.&lt;/p&gt; &lt;p&gt;However, for our agent workloads, context capacity is not currently the limiting factor.&lt;/p&gt; &lt;p&gt;Execution efficiency is.&lt;/p&gt; &lt;p&gt;A model with a 1M-token context window is of limited operational benefit if an autonomous worker frequently exhausts its execution budget before completing the tool-driven task.&lt;/p&gt; &lt;p&gt;AGENTIC PERFORMANCE CHARACTERISTIC&lt;/p&gt; &lt;p&gt;GLM-5.1 currently exhibits a behaviour which is particularly valuable for autonomous agents:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Sufficient reasoning to understand the objective.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Relatively rapid transition from reasoning to execution.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Effective use of tools.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Continued progression through the task.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Validation of the resulting state.&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Production of a final completion response within the runtime envelope.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;GLM-5.3 appears considerably more reasoning-heavy.&lt;/p&gt; &lt;p&gt;For interactive use this may be beneficial.&lt;/p&gt; &lt;p&gt;For autonomous execution, however, excessive pre-execution reasoning becomes a systems-level problem.&lt;/p&gt; &lt;p&gt;The issue is therefore not simply:&lt;/p&gt; &lt;p&gt;&amp;quot;GLM-5.1 gives us better answers.&amp;quot;&lt;/p&gt; &lt;p&gt;It is closer to:&lt;/p&gt; &lt;p&gt;&amp;quot;GLM-5.1 currently has a substantially better reasoning-to-action ratio for bounded autonomous agent execution.&amp;quot;&lt;/p&gt; &lt;p&gt;That distinction is important to us.&lt;/p&gt; &lt;p&gt;MODEL EVALUATION PHILOSOPHY&lt;/p&gt; &lt;p&gt;We are deliberately benchmarking models based on end-to-end task completion rather than evaluating them purely through conversational prompts.&lt;/p&gt; &lt;p&gt;For an agent system, we consider successful completion to include the entire chain:&lt;/p&gt; &lt;p&gt;prompt interpretation&lt;br /&gt; → planning&lt;br /&gt; → correct tool selection&lt;br /&gt; → tool execution&lt;br /&gt; → state observation&lt;br /&gt; → error recovery&lt;br /&gt; → continued execution&lt;br /&gt; → verification&lt;br /&gt; → terminal task state&lt;br /&gt; → final report&lt;/p&gt; &lt;p&gt;A model that produces excellent reasoning but does not reach the terminal state is therefore scored as an unsuccessful agent run.&lt;/p&gt; &lt;p&gt;This methodology is why the difference between GLM-5.1 and GLM-5.3 became so visible.&lt;/p&gt; &lt;p&gt;OPERATIONAL CONSEQUENCE&lt;/p&gt; &lt;p&gt;We are working towards a model-routing architecture where different models can be selected according to workload characteristics.&lt;/p&gt; &lt;p&gt;GLM-5.1 was emerging as a particularly useful model for execution-oriented workers.&lt;/p&gt; &lt;p&gt;GLM-5.3 may ultimately be better suited to:&lt;/p&gt; &lt;p&gt;- very large context analysis&lt;br /&gt; - architectural reasoning&lt;br /&gt; - research&lt;br /&gt; - planning&lt;br /&gt; - complex synthesis&lt;/p&gt; &lt;p&gt;while GLM-5.1 currently appears better suited to certain:&lt;/p&gt; &lt;p&gt;- bounded coding tasks&lt;br /&gt; - autonomous execution loops&lt;br /&gt; - tool-heavy workflows&lt;br /&gt; - repository operations&lt;br /&gt; - iterative agent tasks&lt;/p&gt; &lt;p&gt;Retiring GLM-5.1 therefore removes a behaviourally distinct model from the available model pool rather than simply replacing an older model with a universally superior version.&lt;/p&gt; &lt;p&gt;REQUEST / SUGGESTIONS&lt;/p&gt; &lt;p&gt;If technically and commercially feasible, we would strongly value one of the following:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Continued availability of GLM-5.1 as a legacy cloud model.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;An extended deprecation period while GLM-5.3 agentic execution behaviour is improved.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;A GLM-5.3 &amp;quot;fast&amp;quot; / &amp;quot;agent&amp;quot; / reduced-reasoning profile designed specifically for tool-driven autonomous execution.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Runtime parameters allowing developers to control the model's reasoning budget separately from:&lt;br /&gt; - output token budget&lt;br /&gt; - context window&lt;br /&gt; - tool execution budget&lt;br /&gt; - overall request timeout.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;A supported mechanism to cap internal reasoning duration/tokens before forcing transition towards action/tool invocation.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Guidance from Ollama regarding the recommended GLM-5.3 inference configuration for latency-sensitive autonomous-agent workloads.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;For agent runtimes in particular, explicit control over the reasoning budget would be extremely valuable.&lt;/p&gt; &lt;p&gt;An ideal control surface might conceptually expose parameters such as:&lt;/p&gt; &lt;p&gt;reasoning_effort&lt;br /&gt; max_reasoning_tokens&lt;br /&gt; reasoning_timeout&lt;br /&gt; max_total_execution_time&lt;br /&gt; tool_bias / action_bias&lt;/p&gt; &lt;p&gt;or an equivalent abstraction.&lt;/p&gt; &lt;p&gt;That would allow the orchestration layer to deliberately choose between:&lt;/p&gt; &lt;p&gt;deep analytical reasoning&lt;/p&gt; &lt;p&gt;and&lt;/p&gt; &lt;p&gt;fast execution-oriented reasoning&lt;/p&gt; &lt;p&gt;depending upon the worker role.&lt;/p&gt; &lt;p&gt;WHY WE ARE RAISING THIS&lt;/p&gt; &lt;p&gt;We are not arguing that GLM-5.3 is an inferior model overall.&lt;/p&gt; &lt;p&gt;It clearly has capabilities that GLM-5.1 does not, particularly its substantially expanded context window.&lt;/p&gt; &lt;p&gt;Our concern is narrower and measurable:&lt;/p&gt; &lt;p&gt;For the bounded autonomous-agent workload we have tested, GLM-5.1 currently completes tasks substantially more reliably than GLM-5.3.&lt;/p&gt; &lt;p&gt;Our T02-R2 result — median 26/31 versus 0/31 — was sufficiently pronounced that we do not consider GLM-5.3 a safe transparent replacement for GLM-5.1 in our orchestration stack at this point.&lt;/p&gt; &lt;p&gt;We would be very interested to know whether Ollama is seeing similar behaviour from other agent developers, and whether agent-runtime optimisation is part of the planned work around GLM-5.3.&lt;/p&gt; &lt;p&gt;We would also be happy to provide additional information about the benchmark methodology, execution envelope and observed failure modes if that would be useful to your engineering team.&lt;/p&gt; &lt;p&gt;Kind regards,&lt;/p&gt; &lt;p&gt;uTuned!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/uTuned"&gt; /u/uTuned &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0c9x/technical_feedback_glm51_retirement_significant/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj0c9x/technical_feedback_glm51_retirement_significant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj0c9x/technical_feedback_glm51_retirement_significant/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T17:24:25+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj5j10/made_a_vs_code_coding_extension_for_ollama/</id>
+    <title>Made a VS Code coding extension for Ollama</title>
+    <updated>2026-09-17T20:34:51+00:00</updated>
+    <author>
+      <name>/u/spellsingerka</name>
+      <uri>https://www.reddit.com/user/spellsingerka</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wj5j10/made_a_vs_code_coding_extension_for_ollama/"&gt; &lt;img alt="Made a VS Code coding extension for Ollama" src="https://preview.redd.it/hqjagw8d55qh1.gif?width=320&amp;amp;crop=smart&amp;amp;s=6a4721f8c09c1e48d1ddb5c827cfabcb793d7590" title="Made a VS Code coding extension for Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building &lt;strong&gt;Selfcoder&lt;/strong&gt;, a VS Code coding agent focused specifically on local models.&lt;/p&gt; &lt;p&gt;I originally started working on it because I was frustrated with the context management when using local models through the native Copilot Chat. I often felt that the model either wasn't getting the context it actually needed or that too much irrelevant context was being included, which led to pretty poor results with smaller local models.&lt;/p&gt; &lt;p&gt;So a big part of Selfcoder is built around managing context more deliberately for local LLMs, selecting relevant workspace context while trying not to waste a limited context window.&lt;/p&gt; &lt;p&gt;It supports Ollama, LM Studio, vLLM as backend providers and Opencode as agent layer. It can investigate the codebase, edit files and run commands.&lt;/p&gt; &lt;p&gt;If you looking for local focused copilot alternative, you can look on it and I'd really like to get some feedback.&lt;/p&gt; &lt;p&gt;&lt;a href="https://marketplace.visualstudio.com/items?itemName=coderoom.Selfcoder"&gt;https://marketplace.visualstudio.com/items?itemName=coderoom.Selfcoder&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/spellsingerka"&gt; /u/spellsingerka &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/hqjagw8d55qh1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj5j10/made_a_vs_code_coding_extension_for_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj5j10/made_a_vs_code_coding_extension_for_ollama/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T20:34:51+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj511c/best_ollama_model_for_minecraft_ai_mods/</id>
+    <title>Best ollama model for minecraft ai mods?</title>
+    <updated>2026-09-17T20:16:03+00:00</updated>
+    <author>
+      <name>/u/NewspaperCorrect7006</name>
+      <uri>https://www.reddit.com/user/NewspaperCorrect7006</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wj511c/best_ollama_model_for_minecraft_ai_mods/"&gt; &lt;img alt="Best ollama model for minecraft ai mods?" src="https://preview.redd.it/jo96mka225qh1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=a8795feb3b28d1a893e1b416362d7e00373a9b7a" title="Best ollama model for minecraft ai mods?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://www.curseforge.com/minecraft/mc-mods/verity-je"&gt;https://www.curseforge.com/minecraft/mc-mods/verity-je&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hi guys &amp;lt;3&lt;br /&gt; What is the best performing ai agent that works with this mod? its called the verity mod. to be more general for anyone who doesnt know about it, which ai agent is efficient and fast, but also is good at roleplaying as an AI character in a game?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/jo96mka225qh1.png?width=615&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=69dcd967ddfcd90e109b9921da4cc1919908c562"&gt;https://preview.redd.it/jo96mka225qh1.png?width=615&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=69dcd967ddfcd90e109b9921da4cc1919908c562&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/NewspaperCorrect7006"&gt; /u/NewspaperCorrect7006 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj511c/best_ollama_model_for_minecraft_ai_mods/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj511c/best_ollama_model_for_minecraft_ai_mods/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj511c/best_ollama_model_for_minecraft_ai_mods/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T20:16:03+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj1f7u/feature_request/</id>
+    <title>FEATURE REQUEST!!!!</title>
+    <updated>2026-09-17T18:03:54+00:00</updated>
+    <author>
+      <name>/u/ParticularlyStrange</name>
+      <uri>https://www.reddit.com/user/ParticularlyStrange</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wj1f7u/feature_request/"&gt; &lt;img alt="FEATURE REQUEST!!!!" src="https://preview.redd.it/v7ayvf1ie4qh1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9a67128dfefbda928d3e9808d11978421625cea6" title="FEATURE REQUEST!!!!" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I would like a toggle in settings that I can switch on to use my extra credits I paid in my balance before using my plans usage. I’m on the old plan with usage.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ParticularlyStrange"&gt; /u/ParticularlyStrange &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/v7ayvf1ie4qh1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj1f7u/feature_request/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj1f7u/feature_request/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T18:03:54+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wigesu/the_following_models_will_be_retired_soon_please/</id>
+    <title>The following models will be retired soon. Please switch to a different model before then to avoid disruption.deepseek-v4-flash:0731 in 1 week (September 25, 2026)</title>
+    <updated>2026-09-17T01:42:45+00:00</updated>
+    <author>
+      <name>/u/subimpact</name>
+      <uri>https://www.reddit.com/user/subimpact</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;omg why are they doing this ? im getting so much request from deepseek-v4-flash:0731 comparing to dsv4.1-flash :( anyone know some alternatives which still uses 0731 flash ?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/subimpact"&gt; /u/subimpact &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wigesu/the_following_models_will_be_retired_soon_please/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wigesu/the_following_models_will_be_retired_soon_please/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wigesu/the_following_models_will_be_retired_soon_please/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T01:42:45+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/</id>
+    <title>Do i need to be able to code to use an Ollama model?</title>
+    <updated>2026-09-17T17:49:07+00:00</updated>
+    <author>
+      <name>/u/AdvicePretty490</name>
+      <uri>https://www.reddit.com/user/AdvicePretty490</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i can’t code for shit , i’m interested in using a local LLM for privacy reasons and because it seems way more diverse and fun&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AdvicePretty490"&gt; /u/AdvicePretty490 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj10f5/do_i_need_to_be_able_to_code_to_use_an_ollama/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T17:49:07+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/</id>
+    <title>(Old)Pro plan: 5.3flash, v4.1flash, 0731 confusion regarding usages</title>
+    <updated>2026-09-17T09:56:24+00:00</updated>
+    <author>
+      <name>/u/No_Drop_6901</name>
+      <uri>https://www.reddit.com/user/No_Drop_6901</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/"&gt; &lt;img alt="(Old)Pro plan: 5.3flash, v4.1flash, 0731 confusion regarding usages" src="https://preview.redd.it/wiznigb8x1qh1.png?width=140&amp;amp;height=124&amp;amp;auto=webp&amp;amp;s=b310688f4399236f5a74f9457e093af5e3962885" title="(Old)Pro plan: 5.3flash, v4.1flash, 0731 confusion regarding usages" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello,&lt;/p&gt; &lt;p&gt;I'm at the old pro plan.&lt;/p&gt; &lt;p&gt;With the upcoming cloud model retirement of deepseek v4 0731 flash in mind because 4.1 is supposed to be more efficient while providing even better results I remembered a test of mine from last week. I tested 4.1 flash and noticed it consumes so much more usage. So I went back to glm 5.3 flash.&lt;/p&gt; &lt;p&gt;Took some quick screenshots, dumped it into my notebook and left.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/wiznigb8x1qh1.png?width=929&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7bea60272d69526f6dcb3be8f2625900899e85e1"&gt;https://preview.redd.it/wiznigb8x1qh1.png?width=929&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=7bea60272d69526f6dcb3be8f2625900899e85e1&lt;/a&gt;&lt;/p&gt; &lt;p&gt;It was mostly the same usecase with hermes or pi.&lt;br /&gt; They might have changed this since then but I stopped using deepseek v4.1 flash after seeing it consumed more than 5.3 flash while dont provide substentially better answers for my case.&lt;/p&gt; &lt;p&gt;Can someone replicate this? Is this because of the old pro plan? Or is the total numbers of requests not comparable because they might have changed the measurement of newer models to token based even though Im at the old plan?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/No_Drop_6901"&gt; /u/No_Drop_6901 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wipnc1/oldpro_plan_53flash_v41flash_0731_confusion/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T09:56:24+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/</id>
+    <title>Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built.</title>
+    <updated>2026-09-17T15:56:39+00:00</updated>
+    <author>
+      <name>/u/Abject-Analyst-3367</name>
+      <uri>https://www.reddit.com/user/Abject-Analyst-3367</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt; &lt;img alt="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." src="https://external-preview.redd.it/PxWk3nnmyEPwTIu-Ynt0fcEgpAdECBogpmLBHMP1bbA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=ed918069d1f5d48992b850ac59900623337ac43d" title="Benchmarked llama.cpp vs llamafile vs LM Studio vs Ollama on 3 machines (Metal/Vulkan/CUDA). Throughput is almost identical until you change how they're built." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Abject-Analyst-3367"&gt; /u/Abject-Analyst-3367 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1wixwd0/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wixwtk/benchmarked_llamacpp_vs_llamafile_vs_lm_studio_vs/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T15:56:39+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wj9ouk/current_ai/</id>
+    <title>Current AI</title>
+    <updated>2026-09-17T23:22:23+00:00</updated>
+    <author>
+      <name>/u/Ashebir_</name>
+      <uri>https://www.reddit.com/user/Ashebir_</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wj9ouk/current_ai/"&gt; &lt;img alt="Current AI" src="https://preview.redd.it/oxv64jhbz5qh1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=32b1f2ae2289421ac439c84232e333973694b65e" title="Current AI" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;One thing we realized about AI is that when you ask it a question and have a conversation, the AI may give you a real answer, but it doesn't connect you to the real community behind your question!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Ashebir_"&gt; /u/Ashebir_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/oxv64jhbz5qh1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wj9ouk/current_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wj9ouk/current_ai/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T23:22:23+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wip63x/v41flash_api_thinking_effort_vs_model_thinking/</id>
+    <title>v4.1-flash API thinking effort vs model thinking effort (low/medium/high vs 0-100)</title>
+    <updated>2026-09-17T09:29:02+00:00</updated>
+    <author>
+      <name>/u/elzerouno</name>
+      <uri>https://www.reddit.com/user/elzerouno</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wip63x/v41flash_api_thinking_effort_vs_model_thinking/"&gt; &lt;img alt="v4.1-flash API thinking effort vs model thinking effort (low/medium/high vs 0-100)" src="https://external-preview.redd.it/3lBEFLQUARzXL2LQvzR4hFBEJoacZj3wSErIs-8t1iM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d2b5559c61a2423a0ef34e7f0ff07a7dcffebb7a" title="v4.1-flash API thinking effort vs model thinking effort (low/medium/high vs 0-100)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/elzerouno"&gt; /u/elzerouno &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/DeepSeek/comments/1wip5u7/v41flash_api_thinking_effort_vs_model_thinking/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wip63x/v41flash_api_thinking_effort_vs_model_thinking/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wip63x/v41flash_api_thinking_effort_vs_model_thinking/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T09:29:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/</id>
+    <title>KaozKit: sandboxed LLM agents in JS, fully on-device on Apple Silicon (MLX / Apple Intelligence / Ollama), MIT</title>
+    <updated>2026-09-17T08:36:21+00:00</updated>
+    <author>
+      <name>/u/sburel</name>
+      <uri>https://www.reddit.com/user/sburel</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I released KaozKit this week, a Swift library for running LLM agents written in JavaScript inside a Mac app. Built from the start to keep everything local.&lt;/p&gt; &lt;p&gt;Providers: MLX with Hugging Face model management built in, Apple Intelligence using the on-device model (no key, no network), plus Ollama and LM Studio if that's your setup. Cloud providers exist too but the point was to not need them. The README demo is an agent that audits your Downloads folder on Apple's local model with zero config.&lt;/p&gt; &lt;p&gt;An agent is a JS module of about ten lines. It runs inside XS, a JavaScript engine originally built for microcontrollers, which is why one isolated engine per agent costs almost nothing and you ship neither Node nor Python.&lt;/p&gt; &lt;p&gt;What I spent the most time on is what an agent can't do. No fetch, no fs, no ambient anything: it only sees the host functions you hand it. File access is per authorized folder, and anything that acts (shell, HTTP, writes) is opt-in with allow-lists. API keys never reach the JS side.&lt;/p&gt; &lt;p&gt;XS also does heap snapshots. The engine dumps its whole heap to disk, so a resident agent, state, conversation and pending timers included, comes back after a restart exactly where it was, with no serialization code on my side.&lt;/p&gt; &lt;p&gt;macOS 26+, Apple Silicon, MIT.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/sebastien-burel/KaozKit"&gt;https://github.com/sebastien-burel/KaozKit&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Longer write-up on why a microcontroller JS engine turned out to be a good agent runtime: &lt;a href="https://www.haruni.net/en/blog/kaozkit-xs-agents"&gt;https://www.haruni.net/en/blog/kaozkit-xs-agents&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Question for people running agents locally: what's your runtime today, and what would it take for you to trust one enough to leave it resident? Sandboxing, auditability, something else?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/sburel"&gt; /u/sburel &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wioa1s/kaozkit_sandboxed_llm_agents_in_js_fully_ondevice/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T08:36:21+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wic41t/beta_testers_wanted_gemma_426b_andor_qwen_3827b/</id>
+    <title>Beta testers wanted (Gemma 4:26b and/or Qwen 3.8:27b)</title>
+    <updated>2026-09-16T22:36:13+00:00</updated>
+    <author>
+      <name>/u/edwinapp</name>
+      <uri>https://www.reddit.com/user/edwinapp</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone interested in trying out a new inference provider?&lt;/p&gt; &lt;p&gt;We're testing Gemma 4:26b and Qwen 3.8:27B behind an OpenAI-compatible API and looking for a few users to give them a spin and tell us how it works for them. You can use it for any regular llm/inference purpose via any standard client (VSCode, OpenCode, Cline, Pi, etc.) and we will provide free credits. We're looking for feedback, bug reports, etc. in return.&lt;/p&gt; &lt;p&gt;To anticipate a few questions: 1) Yes we are &amp;quot;Zero Data Retention&amp;quot; (formal ZDR policy document is in the works), 2) Our offering is centered around some core technology that can compile models down to a very efficient executable allowing us to deploy (and collocate them) very quickly and flexibly, and 3) We are being a bit coy about the actual identity of the company because we are still in (semi-)stealth mode.&lt;/p&gt; &lt;p&gt;If you're interested, please DM me (I'm also happy to answer questions or provide more details).&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/edwinapp"&gt; /u/edwinapp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wic41t/beta_testers_wanted_gemma_426b_andor_qwen_3827b/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wic41t/beta_testers_wanted_gemma_426b_andor_qwen_3827b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wic41t/beta_testers_wanted_gemma_426b_andor_qwen_3827b/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T22:36:13+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1winkw3/claude_code_ollama_impossible_de_faire/</id>
+    <title>Claude Code + Ollama : impossible de faire fonctionner correctement les tools avec les modèles locaux</title>
+    <updated>2026-09-17T07:54:34+00:00</updated>
+    <author>
+      <name>/u/Unable-Chemistry-491</name>
+      <uri>https://www.reddit.com/user/Unable-Chemistry-491</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Salut, je cherche de l'aide pour un projet d'IA locale. J'ai un Dell OptiPlex 7070 Micro sous ubuntu server avec un i5-9500T, 32 Go de RAM et aucun GPU (j'en ajouterai un à l'avenir). Je sais que la machine est loin d'être puissante, mais ça ne me dérange absolument pas : je peux laisser les modèles tourner toute la nuit. Mon objectif est surtout d'avoir un agent capable de travailler réellement sur mes fichiers avec Claude Code, et pas seulement de générer du texte.&lt;/p&gt; &lt;p&gt;L'agent devrait pouvoir lire/créer/modifier des fichiers et exécuter des commandes.&lt;/p&gt; &lt;p&gt;J'ai essayé Qwen3-Coder 30B, mais il génère parfois les tool calls sous forme de texte (&lt;code&gt;&amp;lt;function=write&amp;gt;&lt;/code&gt;) et Claude Code ne les interprète pas correctement. J'ai essayé de corriger ça avec un Modelfile et un prompt personnalisé, sans succès fiable.&lt;/p&gt; &lt;p&gt;J'ai ensuite essayé GLM-4.7-Flash, qui est censé être compatible avec Claude Code via Ollama. Le modèle répond normalement, mais quand je lui demande simplement de créer &lt;code&gt;test.txt&lt;/code&gt;, Claude Code renvoie une erreur du genre &lt;code&gt;file_path type expected as string but provided as unknown&lt;/code&gt; et &lt;code&gt;content ... unknown&lt;/code&gt;. Les logs Ollama montrent également des requêtes &lt;code&gt;/v1/messages&lt;/code&gt; qui terminent en HTTP 500. J'ai aussi remarqué qu'Ollama utilise parfois une limite de 4096 tokens alors que le modèle annonce un contexte de 202752.&lt;/p&gt; &lt;p&gt;Enfin, j'ai essayé GPT-OSS 20B avec &lt;code&gt;ollama launch claude --model gpt-oss:20b&lt;/code&gt;, mais j'obtiens directement &lt;code&gt;API Error&lt;/code&gt; ou des error writting file/no such tool availaible:write&lt;/p&gt; &lt;p&gt;Je suis donc un peu bloqué. Je cherche surtout un modèle qui fonctionne réellement avec Claude Code + Ollama et ses tools (&lt;code&gt;Read&lt;/code&gt;, &lt;code&gt;Write&lt;/code&gt;, &lt;code&gt;Edit&lt;/code&gt;, &lt;code&gt;Bash&lt;/code&gt;, etc.), sans devoir passer des heures à modifier des parsers ou créer des configurations custom.&lt;/p&gt; &lt;p&gt;Si quelqu'un utilise actuellement Claude Code avec Ollama et un modèle local, je serais vraiment intéressé de connaître votre configuration et ce qui fonctionne chez vous.&lt;/p&gt; &lt;p&gt;Merci !&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Unable-Chemistry-491"&gt; /u/Unable-Chemistry-491 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1winkw3/claude_code_ollama_impossible_de_faire/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1winkw3/claude_code_ollama_impossible_de_faire/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1winkw3/claude_code_ollama_impossible_de_faire/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T07:54:34+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wif8bw/deepseekv41flash_vs_glm53flash_old_subscription/</id>
+    <title>deepseek-v4.1-flash vs glm-5.3-flash (old subscription)</title>
+    <updated>2026-09-17T00:51:00+00:00</updated>
+    <author>
+      <name>/u/FinalAliens</name>
+      <uri>https://www.reddit.com/user/FinalAliens</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I think these models are fairly comparable in performance but which uses more compute in the old subscription model? The old subscription model is at least still working in compute usage instead of coins per token.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/FinalAliens"&gt; /u/FinalAliens &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wif8bw/deepseekv41flash_vs_glm53flash_old_subscription/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wif8bw/deepseekv41flash_vs_glm53flash_old_subscription/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wif8bw/deepseekv41flash_vs_glm53flash_old_subscription/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T00:51:00+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wii4gx/my_homelab/</id>
+    <title>My homelab</title>
+    <updated>2026-09-17T03:01:56+00:00</updated>
+    <author>
+      <name>/u/Hefty-Result-6807</name>
+      <uri>https://www.reddit.com/user/Hefty-Result-6807</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Hefty-Result-6807"&gt; /u/Hefty-Result-6807 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1wii1ra"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wii4gx/my_homelab/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wii4gx/my_homelab/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T03:01:56+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wihlb5/i_developed_a_lorapeft_directory_for_local_models/</id>
+    <title>I developed a LoRA/PEFT directory for local models — what am I missing?</title>
+    <updated>2026-09-17T02:36:52+00:00</updated>
+    <author>
+      <name>/u/Nagisa_Yamada514</name>
+      <uri>https://www.reddit.com/user/Nagisa_Yamada514</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I developed &lt;a href="https://lora-hunt.info/"&gt;https://lora-hunt.info/&lt;/a&gt; for finding LoRA/PEFT adapters that might work with local LLM setups. The site collects public model metadata from Hugging Face and tries to make base-model compatibility and practical feedback easier to compare.&lt;/p&gt; &lt;p&gt;Do local model users actually need a separate adapter directory, or is the Hub enough? In particular, would you care about runtime or quantization compatibility, VRAM notes, training details, or “works / doesn’t work” reports?&lt;/p&gt; &lt;p&gt;I developed it, so please be skeptical: what would make this genuinely useful?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Nagisa_Yamada514"&gt; /u/Nagisa_Yamada514 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wihlb5/i_developed_a_lorapeft_directory_for_local_models/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wihlb5/i_developed_a_lorapeft_directory_for_local_models/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wihlb5/i_developed_a_lorapeft_directory_for_local_models/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-17T02:36:52+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/</id>
+    <title>M4 MacBook Air 16GB/512GB for Local LLMs and agent based trading- worth $800?</title>
+    <updated>2026-09-16T19:01:30+00:00</updated>
+    <author>
+      <name>/u/soboinsomniac</name>
+      <uri>https://www.reddit.com/user/soboinsomniac</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Planning to buy a MacBook Air M4 (16 GB / 512 GB) for about $800 to run local LLM agents for:&lt;/p&gt; &lt;p&gt;Indian mid‑cap equity research (using Screener.in CSVs)&lt;/p&gt; &lt;p&gt;Building/testing trading ideas via Zerodha Kite API (prices, history, holdings; maybe orders later)&lt;/p&gt; &lt;p&gt;Also want to run Hermes-based agents on it&lt;/p&gt; &lt;p&gt;Questions:&lt;/p&gt; &lt;p&gt;On 16 GB M4 Air, which local LLMs are best for reasoning, coding, and tool use? Is Qwen 3.5 9B (Q4) + a smaller fast model (e.g. LFM2.5 8B / Llama 3.2 3B) a good combo alongside Hermes?&lt;/p&gt; &lt;p&gt;Best local stack (Ollama vs LM Studio, etc.) and any existing Kite + LLM or Indian‑stock agent projects to reference?&lt;/p&gt; &lt;p&gt;Any tips on context length, thermals, and multi‑agent setups (including Hermes) on a 16 GB fanless Air?&lt;/p&gt; &lt;p&gt;Getting the laptop for ~$800, so stuck with 16 GB for now. If you’ve done similar work (local LLMs for equity research / algo trading, especially in India), what models and setup would you recommend?&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/soboinsomniac"&gt; /u/soboinsomniac &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wi6flq/m4_macbook_air_16gb512gb_for_local_llms_and_agent/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T19:01:30+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/</id>
+    <title>Testing Qwen 3.8 27B running locally on a single 5090 via Ollama</title>
+    <updated>2026-09-16T10:52:17+00:00</updated>
+    <author>
+      <name>/u/Acceptable-Object390</name>
+      <uri>https://www.reddit.com/user/Acceptable-Object390</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/"&gt; &lt;img alt="Testing Qwen 3.8 27B running locally on a single 5090 via Ollama" src="https://external-preview.redd.it/ZW8zdnVtbmg0dnBoMb0K1HcLak6vTnudcTw6EClmUPnEmnaBGaQtH_ZzRt-4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c0f7f5365d22a55ed5026abbd02bae58bc0a26c3" title="Testing Qwen 3.8 27B running locally on a single 5090 via Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to test what Qwen 3.8 27B running locally on a single 5090 could do in &lt;a href="https://github.com/siddsachar/row-bot"&gt;Row-Bot&lt;/a&gt;. I gave it just one prompt:&lt;/p&gt; &lt;p&gt;&amp;quot;I want you to create an animation showing what the current local model can do. Testing it to the extreme. Do not use image generation or video generation. Use whatever else you can. Make it as visually rich as you can. Show me what the model is capable of.&amp;quot;&lt;/p&gt; &lt;p&gt;This is what it produced. It also automatically loaded the frontend design skill using the new progressive loading of skills feature.&lt;/p&gt; &lt;p&gt;Local models can already do a lot more than people think they can. All you need is a well built harness like Row-Bot to run them. I was genuinely impressed by the results:&lt;/p&gt; &lt;p&gt;&amp;quot;It's open in your browser now, sir. Eight scenes, ~105 seconds of autonomous animation, then a replay button at the end:&lt;/p&gt; &lt;p&gt;Cold boot — terminal log + scramble-decode title&lt;br /&gt; Language synthesis — a passage streamed word-by-word with a live token ticker, drafting log, and a real-time words/sec sparkline&lt;/p&gt; &lt;p&gt;Live mathematics — e^{iθ} drawn on the complex plane as θ sweeps to π, landing on e^{iπ} + 1 = 0; alongside, the Leibniz series converging to π with ~4,200 terms and a live error/matching-digit readout&lt;/p&gt; &lt;p&gt;Fractal computation — a Mandelbrot zoom into the seahorse valley, recomputed pixel-by-pixel in the page (57,600 points/frame) with live zoom/iteration/render-time telemetry&lt;/p&gt; &lt;p&gt;Knowledge graph — a live network of your 612 local entities with auto-drawn relations and a highlighted query path&lt;/p&gt; &lt;p&gt;Tool orchestration — plan → search → read → synth → write → verify, with terminal log plus a fan-out ×2 parallel agent progress demo&lt;/p&gt; &lt;p&gt;Physics sandbox — 1,500 particles through three fields (gravity, vortex, flow) — move your cursor through it to perturb the field; color encodes velocity, with live FPS&lt;/p&gt; &lt;p&gt;Verdict — the scorecard ticks 0→8, closing on &amp;quot;Written, computed, rendered — entirely on this machine.&amp;quot;&lt;/p&gt; &lt;p&gt;Controls: click or → to advance, ← to go back, space to pause. The HUD shows live FPS, the clock, and the current scene.&amp;quot;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Acceptable-Object390"&gt; /u/Acceptable-Object390 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/tq3h8tmh4vph1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1whtu01/testing_qwen_38_27b_running_locally_on_a_single/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T10:52:17+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1whz0fu/tps_slowdown_on_cloud/</id>
+    <title>TPS Slowdown on Cloud</title>
+    <updated>2026-09-16T14:35:41+00:00</updated>
+    <author>
+      <name>/u/ProfessionMean2085</name>
+      <uri>https://www.reddit.com/user/ProfessionMean2085</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Has anyone noticed severe slowdown of TPS using exact same settings compared to a few weeks prior? Models I've seen affected are GLM 5.3, GLM 5.3 Flash, Deepseek 4 Flash 0731, and Kimi K3. Full-turn TPS average reported by opencode is 58 on GLM 5.3. Response is fine at ~330, but that's just final output. Mid-turn thinking is especially slow and &amp;quot;chunky&amp;quot;, doing 2-3 lines -&amp;gt; waiting -&amp;gt; 2-3 lines. &lt;/p&gt; &lt;p&gt;Same project flow that would get a template out for me in ~1-2 hours now takes 4 with no difference in average tokens. Just a slowdown on speed.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ProfessionMean2085"&gt; /u/ProfessionMean2085 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1whz0fu/tps_slowdown_on_cloud/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1whz0fu/tps_slowdown_on_cloud/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1whz0fu/tps_slowdown_on_cloud/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T14:35:41+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wi4z74/psa_for_those_using_agents_dsflash_41_has_solid/</id>
+    <title>PSA for those using agents -- DSFlash 4.1 has solid agentic performance -- now on Ollama Cloud</title>
+    <updated>2026-09-16T18:10:02+00:00</updated>
+    <author>
+      <name>/u/OneDev42</name>
+      <uri>https://www.reddit.com/user/OneDev42</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wi4z74/psa_for_those_using_agents_dsflash_41_has_solid/"&gt; &lt;img alt="PSA for those using agents -- DSFlash 4.1 has solid agentic performance -- now on Ollama Cloud" src="https://preview.redd.it/j33cw4meaxph1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=b65f6e0fee0150b16cd68432e7a6d63ebb6d9d07" title="PSA for those using agents -- DSFlash 4.1 has solid agentic performance -- now on Ollama Cloud" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/OneDev42"&gt; /u/OneDev42 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/j33cw4meaxph1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi4z74/psa_for_those_using_agents_dsflash_41_has_solid/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wi4z74/psa_for_those_using_agents_dsflash_41_has_solid/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T18:10:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wi9fyd/the_part_of_ai_progress_were_skipping/</id>
+    <title>The part of AI progress we’re skipping</title>
+    <updated>2026-09-16T20:50:58+00:00</updated>
+    <author>
+      <name>/u/lovettsendit</name>
+      <uri>https://www.reddit.com/user/lovettsendit</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I keep coming back to this idea.&lt;br /&gt; We’re getting very good at making AI more capable. I’m much more interested in what has to happen before that capability deserves more authority.&lt;/p&gt; &lt;p&gt;I wrote out where I think that path should lead in &lt;a href="/r/ProvenAI"&gt;r/ProvenAI&lt;/a&gt;. Curious where people disagree.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/lovettsendit"&gt; /u/lovettsendit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ProvenAI/comments/1wi9e5t/ai_should_earn_autonomy/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi9fyd/the_part_of_ai_progress_were_skipping/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wi9fyd/the_part_of_ai_progress_were_skipping/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T20:50:58+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/</id>
+    <title>Cmp30 6gb VRAM local agent help</title>
+    <updated>2026-09-16T20:18:17+00:00</updated>
+    <author>
+      <name>/u/Mosquito_Naftero</name>
+      <uri>https://www.reddit.com/user/Mosquito_Naftero</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Mosquito_Naftero"&gt; /u/Mosquito_Naftero &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wi8k7a/cmp30_6gb_vram_local_agent_help/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-09-16T20:18:17+00:00</published>
+  </entry>
 </feed>

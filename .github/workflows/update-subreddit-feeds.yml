@@ -5,6 +5,13 @@ on:
     - cron: "*/15 * * * *"  # Runs every 15 minutes
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: update-subreddit-feeds
+  cancel-in-progress: false
+
 jobs:
   update_rss:
     runs-on: ubuntu-latest
@@ -19,7 +26,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser feedgen requests
+          pip install -r requirements.txt
+
+      - name: Test feed validation
+        run: python -m unittest discover -s tests -v
 
       - name: Run update_feeds script
         run: |
@@ -28,6 +38,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A
-          git commit --allow-empty -m "update Reddit feeds" -a
-          git push
+          git add feeds/*.xml
+          if ! git diff --cached --quiet; then
+            git commit -m "update Reddit feeds"
+            git push
+          fi
