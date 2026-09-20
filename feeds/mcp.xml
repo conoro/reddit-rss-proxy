@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-09-19T22:27:40+00:00</updated>
+  <updated>2026-09-20T00:19:25+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -47,6 +47,32 @@
     <published>2026-09-19T12:29:34+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wkzpbz/we_built_a_selfhosted_authorization_server_for/</id>
+    <title>We built a self-hosted authorization server for MCP. v0.2.0 covers the 2026-07-28 auth spec end to end</title>
+    <updated>2026-09-19T22:34:08+00:00</updated>
+    <author>
+      <name>/u/incaroses</name>
+      <uri>https://www.reddit.com/user/incaroses</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wkzpbz/we_built_a_selfhosted_authorization_server_for/"&gt; &lt;img alt="We built a self-hosted authorization server for MCP. v0.2.0 covers the 2026-07-28 auth spec end to end" src="https://external-preview.redd.it/Sjp_22yN_46JmBiq5eOwzaEl7q9qMPTvxnyC7iOgatk.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=6bed088d53de46c024f4e7e230af84ef8d020415" title="We built a self-hosted authorization server for MCP. v0.2.0 covers the 2026-07-28 auth spec end to end" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey all, I'm one of the maintainers of AuthPlane/authserver, an open source OAuth 2.1 authorization server built for the MCP authorization spec. Just got back from AGNTCon+MCPCon Europe where we sponsored and presented it, and since v0.2.0 went out a few days ago it seemed like the right time to post here too.&lt;/p&gt; &lt;p&gt;What it is: a single Go binary you run yourself. It issues tokens for your MCP servers, does discovery, federates to whatever IdP you already have (Okta, Google, Azure AD, Auth0, anything OIDC), and handles agent-to-agent delegation via token exchange so a chain of agents doesn't lose the user at the bottom. Admin UI is embedded in the binary. SQLite by default, Postgres for real deployments.&lt;/p&gt; &lt;p&gt;Beyond the OAuth core:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Vaults upstream provider tokens (GitHub, Google, Slack, etc) encrypted at rest and vends fresh ones to agents with per-user consent&lt;/li&gt; &lt;li&gt;Audit trail of every hop in an agent chain&lt;/li&gt; &lt;li&gt;HashiCorp Vault Transit for signing keys and at-rest encryption if you don't want secrets on disk&lt;/li&gt; &lt;li&gt;Full OpenTelemetry traces and metrics, with three Grafana dashboards (overview, security, operations) in the repo&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/9pxmkxnszjqh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=99562b7fd953da5baadf034d92e915dc171b5143"&gt;Admin UI on 0.2.0. The audit log at the bottom is one user login → consent → token → refresh → exchange by another client → revoke.&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Spec coverage in 0.2.0 (MCP Authorization 2026-07-28):&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Client ID Metadata Documents, on by default, with the spec's identifier rules (https + path)&lt;/li&gt; &lt;li&gt;RFC 9207 &lt;code&gt;iss&lt;/code&gt; on every authorization response&lt;/li&gt; &lt;li&gt;Protected Resource Metadata served by the AS&lt;/li&gt; &lt;li&gt;&lt;code&gt;authorization_grant_profiles_supported&lt;/code&gt; for Enterprise-Managed Authorization&lt;/li&gt; &lt;li&gt;&lt;code&gt;application_type&lt;/code&gt; on registration&lt;/li&gt; &lt;li&gt;DPoP, client credentials, token exchange and XAA all enabled out of the box. DPoP &amp;quot;enabled&amp;quot; means supported, not required, so bearer clients still work.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/f7lqcyu00kqh1.png?width=2880&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=2bcb52e5463582fca3ada8acc3b57d328d2321da"&gt;Consent screen now shows where the approval will be sent. The client name is self-declared; the redirect host is the one thing the AS actually verified.&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Tested against Claude Desktop and Claude Code 2.1.x (both register via CIMD now, no DCR) and MCP Inspector (still DCR by default). There's a compat table in the repo with versions and what actually got tested.&lt;/p&gt; &lt;p&gt;Server is AGPL-3.0. The SDKs for the resource server side are Apache 2.0: Go, TypeScript, Python, Java, C#. Each one has an adapter for the official MCP SDK in that language plus one for FastMCP / mark3labs / Spring where that makes sense. The goal was &amp;quot;add auth to an existing MCP server in about five lines&amp;quot; and the examples dir has the line counts checked in CI so we can't cheat on that claim.&lt;/p&gt; &lt;p&gt;Quickstart is one &lt;code&gt;docker run&lt;/code&gt;:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;export AUTHPLANE_ADMIN_API_KEY=&amp;quot;$(openssl rand -hex 32)&amp;quot; export AUTHPLANE_SESSION_SECRET=&amp;quot;$(openssl rand -hex 32)&amp;quot; docker run -p 9000:9000 -p 9001:9001 \ -e AUTHPLANE_ADMIN_API_KEY -e AUTHPLANE_SESSION_SECRET \ -v authserver-data:/data authplane/authserver:latest serve &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Helm chart and compose files are in the repo for real deployments.&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/AuthPlane/authserver"&gt;https://github.com/AuthPlane/authserver&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Happy to answer questions. If you try it, tell me what worked, what didn't, and what you're missing.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/incaroses"&gt; /u/incaroses &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkzpbz/we_built_a_selfhosted_authorization_server_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkzpbz/we_built_a_selfhosted_authorization_server_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wkzpbz/we_built_a_selfhosted_authorization_server_for/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-19T22:34:08+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wl0n7j/a_readonly_mcp_connector_for_football_leagues/</id>
+    <title>A read-only MCP connector for football leagues across ESPN, Sleeper and Fantrax</title>
+    <updated>2026-09-19T23:15:24+00:00</updated>
+    <author>
+      <name>/u/Parking-Cash3586</name>
+      <uri>https://www.reddit.com/user/Parking-Cash3586</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I build League Loom, a free hosted MCP server for fantasy league data. Football is the current use case: ask Claude or ChatGPT to read your connected rosters, matchups and available players across ESPN, Sleeper and Fantrax.&lt;/p&gt; &lt;p&gt;The endpoint is &lt;code&gt;https://leagueloom.com/mcp&lt;/code&gt;, using Streamable HTTP and OAuth. One connection can contain several leagues. Start with &lt;code&gt;fantasy_get_my_setup&lt;/code&gt;, verify one roster, then use the cross-league tools.&lt;/p&gt; &lt;p&gt;Provider coverage is deliberately explicit. Sleeper doesn't supply native projections or ownership through this connector, and Fantrax doesn't have the same live-score detail as ESPN/Sleeper. Public player research has its own source and scoring labels. No write-action tools are registered.&lt;/p&gt; &lt;p&gt;&lt;a href="https://leagueloom.com/capabilities?utm_source=reddit&amp;amp;utm_medium=organic_social&amp;amp;utm_campaign=nfl_inseason_2026&amp;amp;utm_content=mcp_capabilities_20260919"&gt;Tools and coverage&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href="https://leagueloom.com/fantasy-mcp-server?utm_source=reddit&amp;amp;utm_medium=organic_social&amp;amp;utm_campaign=nfl_inseason_2026&amp;amp;utm_content=mcp_showcase_20260919"&gt;Setup and examples&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The connector is free with fair-use request limits; your AI client's access requirements still apply. If you try it, I'd especially like to hear where a successful connection still leaves the assistant missing data.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Parking-Cash3586"&gt; /u/Parking-Cash3586 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wl0n7j/a_readonly_mcp_connector_for_football_leagues/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wl0n7j/a_readonly_mcp_connector_for_football_leagues/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wl0n7j/a_readonly_mcp_connector_for_football_leagues/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-19T23:15:24+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wkrei2/personal_mcps_what_are_you_building/</id>
     <title>Personal MCPs: What are you building?</title>
     <updated>2026-09-19T16:59:43+00:00</updated>
@@ -84,6 +110,45 @@
     <link href="https://www.reddit.com/r/mcp/comments/1wkoayn/awwwardsmcp_mcp_server_that_gives_agents_design/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-09-19T14:54:00+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wl1m8l/chatpipemcp_publish_live_web_pages_from_ai_coding/</id>
+    <title>chatpipe-mcp – Publish live web pages from AI coding agents. Instant shareable URLs for dashboards, landing pages, and reports with password protection.</title>
+    <updated>2026-09-20T00:00:01+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wl1m8l/chatpipemcp_publish_live_web_pages_from_ai_coding/"&gt; &lt;img alt="chatpipe-mcp – Publish live web pages from AI coding agents. Instant shareable URLs for dashboards, landing pages, and reports with password protection." src="https://external-preview.redd.it/xrLsYX2ERCaUWf_SJtBDFb3BTlG0ySmaPWh8dAibuok.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=064602c25b9717ceeb53d4ffe8977c88f381a609" title="chatpipe-mcp – Publish live web pages from AI coding agents. Instant shareable URLs for dashboards, landing pages, and reports with password protection." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/darktw/chatpipe-mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wl1m8l/chatpipemcp_publish_live_web_pages_from_ai_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wl1m8l/chatpipemcp_publish_live_web_pages_from_ai_coding/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-20T00:00:01+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wl1m6h/bring_your_ai_nodata_mcp_handoff_for_local_claude/</id>
+    <title>Bring Your AI – No-data MCP handoff for local Claude Code to Codex harness moves. $49 lifetime.</title>
+    <updated>2026-09-20T00:00:00+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wl1m6h/bring_your_ai_nodata_mcp_handoff_for_local_claude/"&gt; &lt;img alt="Bring Your AI – No-data MCP handoff for local Claude Code to Codex harness moves. $49 lifetime." src="https://external-preview.redd.it/Rt_-GZhrCUBlsJrzNwHXsUC0Wz_j2RT1hmIQy0tNkKk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1916c18cc6f3b153425e0bc55a0b1026b613cb4e" title="Bring Your AI – No-data MCP handoff for local Claude Code to Codex harness moves. $49 lifetime." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.bringyour/bringyour"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wl1m6h/bring_your_ai_nodata_mcp_handoff_for_local_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wl1m6h/bring_your_ai_nodata_mcp_handoff_for_local_claude/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-20T00:00:00+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wl1boe/i_added_an_mcp_server_to_my_native_macos_drawing/</id>
+    <title>I added an MCP server to my native MacOS drawing app to help test tools. It turned out to be the killer feature.</title>
+    <updated>2026-09-19T23:46:13+00:00</updated>
+    <author>
+      <name>/u/DrawSimple_for_MacOS</name>
+      <uri>https://www.reddit.com/user/DrawSimple_for_MacOS</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wl1boe/i_added_an_mcp_server_to_my_native_macos_drawing/"&gt; &lt;img alt="I added an MCP server to my native MacOS drawing app to help test tools. It turned out to be the killer feature." src="https://external-preview.redd.it/m16mxOfpB7OQmeJ7jlBePRKwhVD93kJ7_VzGrARbzOM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f1b4a41a82d139b601b15e937528a28b11e8747e" title="I added an MCP server to my native MacOS drawing app to help test tools. It turned out to be the killer feature." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/DrawSimple_for_MacOS"&gt; /u/DrawSimple_for_MacOS &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://apps.apple.com/ca/app/drawsimple/id6759507748?mt=12 DrawSimple"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wl1boe/i_added_an_mcp_server_to_my_native_macos_drawing/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wl1boe/i_added_an_mcp_server_to_my_native_macos_drawing/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-19T23:46:13+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wkqgg9/mcp_tool_naming_short_generic_verbs_or_explicit/</id>
@@ -190,6 +255,19 @@
     <published>2026-09-19T15:08:13+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/</id>
+    <title>Anyone using MCP apps?</title>
+    <updated>2026-09-19T10:24:28+00:00</updated>
+    <author>
+      <name>/u/The_Gluxer</name>
+      <uri>https://www.reddit.com/user/The_Gluxer</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone here actually using MCP Apps, especially while coding in ChatGPT, Claude, or Cursor desktop apps?&lt;/p&gt; &lt;p&gt;I’m surprised they haven’t gotten more traction. I’m working on a new SaaS right now, and the more I build it, the more I think the best form factor might actually be an MCP app rather than another standalone SaaS UI.&lt;/p&gt; &lt;p&gt;My hesitation is adoption. It seems like more and more people are using ChatGPT, Claude, Cursor, etc. as the “harness” where they actually work, but I don’t see many people talking about or using MCP apps inside them.&lt;/p&gt; &lt;p&gt;Curious if I’m missing something. Are people actually using MCP apps day to day? If so, what are you using them for?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/The_Gluxer"&gt; /u/The_Gluxer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-09-19T10:24:28+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wkjkog/i_built_a_cli_that_triages_broken_mcp_setups/</id>
     <title>I built a CLI that triages broken MCP setups across 8 clients (free, open source)</title>
     <updated>2026-09-19T11:19:02+00:00</updated>
@@ -242,19 +320,6 @@
     <published>2026-09-19T11:03:27+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/</id>
-    <title>Anyone using MCP apps?</title>
-    <updated>2026-09-19T10:24:28+00:00</updated>
-    <author>
-      <name>/u/The_Gluxer</name>
-      <uri>https://www.reddit.com/user/The_Gluxer</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Anyone here actually using MCP Apps, especially while coding in ChatGPT, Claude, or Cursor desktop apps?&lt;/p&gt; &lt;p&gt;I’m surprised they haven’t gotten more traction. I’m working on a new SaaS right now, and the more I build it, the more I think the best form factor might actually be an MCP app rather than another standalone SaaS UI.&lt;/p&gt; &lt;p&gt;My hesitation is adoption. It seems like more and more people are using ChatGPT, Claude, Cursor, etc. as the “harness” where they actually work, but I don’t see many people talking about or using MCP apps inside them.&lt;/p&gt; &lt;p&gt;Curious if I’m missing something. Are people actually using MCP apps day to day? If so, what are you using them for?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/The_Gluxer"&gt; /u/The_Gluxer &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wkilct/anyone_using_mcp_apps/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-19T10:24:28+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wkm2vi/113_backtests_from_one_desk_2_from_the_median_one/</id>
     <title>113 backtests from one desk, 2 from the median one. The trial count is the number my own verdict never prints</title>
     <updated>2026-09-19T13:19:50+00:00</updated>
@@ -266,70 +331,5 @@
     <link href="https://www.reddit.com/r/mcp/comments/1wkm2vi/113_backtests_from_one_desk_2_from_the_median_one/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-09-19T13:19:50+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wki5mb/uncorreotemporal_disposable_email_mcp_server_for/</id>
-    <title>UnCorreoTemporal – Disposable email MCP server for autonomous AI agents. Create labeled temporary inboxes, wait for verification emails, extract OTP codes and confirmation links — zero human intervention required.</title>
-    <updated>2026-09-19T10:00:01+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wki5mb/uncorreotemporal_disposable_email_mcp_server_for/"&gt; &lt;img alt="UnCorreoTemporal – Disposable email MCP server for autonomous AI agents. Create labeled temporary inboxes, wait for verification emails, extract OTP codes and confirmation links — zero human intervention required." src="https://external-preview.redd.it/NQRGQejGG0Tg8UPnWWmHhS3Qu5UGgD3KCmzB-JrkVtw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f8e77aa74adce4bb2286ebd789097f41787ec141" title="UnCorreoTemporal – Disposable email MCP server for autonomous AI agents. Create labeled temporary inboxes, wait for verification emails, extract OTP codes and confirmation links — zero human intervention required." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/francofuji/uncorreotemporal-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wki5mb/uncorreotemporal_disposable_email_mcp_server_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wki5mb/uncorreotemporal_disposable_email_mcp_server_for/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-19T10:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wki5ls/sideways_use_sideways_for_unexpected_questions/</id>
-    <title>Sideways – Use Sideways for unexpected questions and lateral thinking prompts to break through mental blocks.</title>
-    <updated>2026-09-19T10:00:00+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wki5ls/sideways_use_sideways_for_unexpected_questions/"&gt; &lt;img alt="Sideways – Use Sideways for unexpected questions and lateral thinking prompts to break through mental blocks." src="https://external-preview.redd.it/W7dkXbqLnFIppwqnE0OEg8C2FtRIH88gPP3sdXFuCJo.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=afd36c4daed5c71f234fad8b3aafde55fdfb114c" title="Sideways – Use Sideways for unexpected questions and lateral thinking prompts to break through mental blocks." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.usesideways/sideways"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wki5ls/sideways_use_sideways_for_unexpected_questions/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wki5ls/sideways_use_sideways_for_unexpected_questions/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-19T10:00:00+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wkcv2t/usecortexmcp_persistent_memory_for_ai_coding/</id>
-    <title>usecortex-mcp – Persistent memory for AI coding agents. Store coding standards, architecture decisions, and project context across sessions with AES-256 encryption.</title>
-    <updated>2026-09-19T05:00:01+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wkcv2t/usecortexmcp_persistent_memory_for_ai_coding/"&gt; &lt;img alt="usecortex-mcp – Persistent memory for AI coding agents. Store coding standards, architecture decisions, and project context across sessions with AES-256 encryption." src="https://external-preview.redd.it/7GLY339eLjc2Sl4tOZiOs09pvdgkldIBG5m0gImHdSg.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=39f4f05165599da9ad1790f0dcc529fef71bc0b2" title="usecortex-mcp – Persistent memory for AI coding agents. Store coding standards, architecture decisions, and project context across sessions with AES-256 encryption." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/usecortex-official/usecortex-mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkcv2t/usecortexmcp_persistent_memory_for_ai_coding/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wkcv2t/usecortexmcp_persistent_memory_for_ai_coding/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-19T05:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wjr0ky/running_15_mcp_servers_can_burn_60000_tokens/</id>
-    <title>Running 15+ MCP servers can burn 60,000 tokens before your agent reads a message</title>
-    <updated>2026-09-18T13:59:59+00:00</updated>
-    <author>
-      <name>/u/Future_AGI</name>
-      <uri>https://www.reddit.com/user/Future_AGI</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Running 15+ MCP servers can burn 60,000 tokens before your agent reads a message.&lt;/p&gt; &lt;p&gt;A lot of teams run 15 or more MCP servers. Each one exposes 20 to 30 tools. Multiply that out and the agent burns through 60,000 tokens on every single request loading tool schemas.&lt;/p&gt; &lt;p&gt;More servers should mean more capability. Agents get slower, more expensive, and worse at picking the right tool.&lt;/p&gt; &lt;p&gt;Anthropic published research on this. Their agents connected to thousands of tools consumed hundreds of thousands of tokens before reading a single request. Two problems appear: tool definitions fill the context window, and intermediate results burn even more tokens as they pass through the model.&lt;/p&gt; &lt;p&gt;One developer deleted every MCP server in his setup and got 40% of his context window back. The agent performed better with fewer tools because it could focus on what mattered.&lt;/p&gt; &lt;p&gt;Grouping servers works better than running one per service. Code and CI tools go in one grouped server with GitHub, GitLab, and Buildkite. Internal comms go in another with Slack, Discord, and email. Data stores go in another with Postgres, Redis, and BigQuery. Product tracking goes in another with Jira, Notion, and Linear.&lt;/p&gt; &lt;p&gt;The agent picks the right group first, then uses the tools inside it. It doesn't see GitHub pull request tools when answering a Slack question.&lt;/p&gt; &lt;p&gt;This cuts context usage in half. Response quality goes up because the agent stops sorting through irrelevant tool definitions.&lt;/p&gt; &lt;p&gt;You can check your own numbers. Count your MCP servers. Multiply by the average number of tools per server. Multiply by 150 tokens per tool definition. That's your baseline context cost per request. If it's over 30,000 tokens, you're paying for tools your agent rarely uses.&lt;/p&gt; &lt;p&gt;The tradeoff: MCP gives you a standardized protocol for connecting agents to services. That standardization is worth the token cost for remote or authenticated services. For local tools that get called frequently, the overhead is not justified.&lt;/p&gt; &lt;p&gt;Other teams do similar things. Claude Code switched to lazy loading. The agent decides which tools to load instead of dumping everything at once. For high-frequency local calls, some developers skip MCP entirely and use direct code execution. Anthropic measured a 98% token reduction when agents write code to call tools instead of loading every schema.&lt;/p&gt; &lt;p&gt;Four well-designed grouped servers beat fifteen scattered ones.&lt;/p&gt; &lt;p&gt;What's your MCP server count? Have you measured what it costs in tokens?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Future_AGI"&gt; /u/Future_AGI &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wjr0ky/running_15_mcp_servers_can_burn_60000_tokens/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wjr0ky/running_15_mcp_servers_can_burn_60000_tokens/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wjr0ky/running_15_mcp_servers_can_burn_60000_tokens/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-18T13:59:59+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wkcv2o/epa_echo_epa_echo_mcp_wraps_epa_echo_web_services/</id>
-    <title>Epa Echo – EPA ECHO MCP — wraps EPA ECHO Web Services (free, no auth)</title>
-    <updated>2026-09-19T05:00:01+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wkcv2o/epa_echo_epa_echo_mcp_wraps_epa_echo_web_services/"&gt; &lt;img alt="Epa Echo – EPA ECHO MCP — wraps EPA ECHO Web Services (free, no auth)" src="https://external-preview.redd.it/xyZMlKsvbVJxltgMv2ip58ocGWxskTOppvbPimAOnEM.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e9f39ba6cf68bd33cfbeae101a8385060e4d2b87" title="Epa Echo – EPA ECHO MCP — wraps EPA ECHO Web Services (free, no auth)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.pipeworx-io/epa-echo"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wkcv2o/epa_echo_epa_echo_mcp_wraps_epa_echo_web_services/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wkcv2o/epa_echo_epa_echo_mcp_wraps_epa_echo_web_services/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-09-19T05:00:01+00:00</published>
   </entry>
 </feed>
