@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/LocalLLaMA/.rss</id>
   <title>LocalLlama</title>
-  <updated>2026-09-24T06:39:14+00:00</updated>
+  <updated>2026-09-24T12:15:05+00:00</updated>
   <link href="https://www.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -21,6 +21,32 @@
     <published>2026-09-14T19:03:23+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wouby6/jev_almost_dead_clm_vs_jev/</id>
+    <title>JEV almost dead: CLM vs JEV</title>
+    <updated>2026-09-24T06:40:15+00:00</updated>
+    <author>
+      <name>/u/R_Duncan</name>
+      <uri>https://www.reddit.com/user/R_Duncan</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Original post: &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woscea/contrastive_language_models/"&gt;https://www.reddit.com/r/LocalLLaMA/comments/1woscea/contrastive_language_models/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;(sorry I felt it wasn't giving CLM the highlight it deserves)&lt;/p&gt; &lt;p&gt;What it is: a new projection head for Qwen3-8B.&lt;/p&gt; &lt;p&gt;github: &lt;a href="https://github.com/Contrastive-LM/CLM"&gt;https://github.com/Contrastive-LM/CLM&lt;/a&gt;&lt;/p&gt; &lt;p&gt;hf: &lt;a href="https://huggingface.co/Contrastive-LM"&gt;https://huggingface.co/Contrastive-LM&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;At the API and functional interface level, CLM supports everything Jev does—it is not a subset.&lt;/strong&gt; However, there are important trade-offs in generalization, context scale, and architecture between the two.&lt;/p&gt; &lt;h1&gt;1. Functional Parity (Same Primitives)&lt;/h1&gt; &lt;p&gt;CLM was specifically engineered as an open-weights, self-hostable alternative to &lt;strong&gt;TypeSafe AI's Jev&lt;/strong&gt;. It implements the exact same &amp;quot;System One&amp;quot; decision interface and supports all three of Jev’s core question primitives:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Choice&lt;/strong&gt;: Evaluates a discrete set of candidates and returns a categorical probability distribution.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Noul&lt;/strong&gt;: Outputs a calibrated true/false probability for a proposition or guardrail check.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Score&lt;/strong&gt;: Scores an input against an ordered rubric or scale.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Code written for the TypeSafe Jev client can be pointed directly at a clm-serve endpoint with drop-in compatibility (from clm import CLMClient, Choice, Noul, Score).&lt;/p&gt; &lt;h1&gt;2. Where CLM Outperforms Jev&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Latency and Disaggregated Caching:&lt;/strong&gt; Jev is a proprietary cloud model that evaluates state and question choices jointly. CLM separates the &lt;strong&gt;state head&lt;/strong&gt; from the &lt;strong&gt;action head&lt;/strong&gt;. If an agent has a persistent set of tools or actions, CLM embeds those actions once and caches them. In benchmarks like interactive browser agents and gaming (T-Rex, Super Mario), CLM is &lt;strong&gt;4× to 13× faster&lt;/strong&gt; than Jev.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Open Weights &amp;amp; Fine-Tunability:&lt;/strong&gt; Jev is a closed API with no user fine-tuning (you can only prompt it via state and question instructions). Because CLM’s heads are tiny open weights (~75 MB), you can fine-tune them on your own agent trajectories.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Coding Benchmark Verifiers:&lt;/strong&gt; When fine-tuned on agent trajectories, CLM achieves state-of-the-art verifier performance on &lt;strong&gt;Terminal-Bench 2.1 (87.6%)&lt;/strong&gt; and &lt;strong&gt;DeepSWE (81.6%)&lt;/strong&gt;, whereas zero-shot Jev struggled on those exact benchmarks (scoring ~71% on DeepSWE).&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;3. Where Jev Still Has the Edge (CLM-8B Limitations)&lt;/h1&gt; &lt;p&gt;While CLM covers the entire feature surface of Jev, the current CLM-v0.1-8B release trails Jev in a few areas:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Zero-Shot Broad Knowledge:&lt;/strong&gt; Jev is backed by a larger, proprietary model On zero-shot open-domain tasks, Jev still holds an edge in edge-case accuracy (e.g., Berkeley Function Calling Leaderboard v4: Jev scored 99.2% vs. CLM-8B’s 95.2%; WikiRacing: Jev 30/30 vs. CLM-8B 26/30).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Context Budget:&lt;/strong&gt; Jev accepts requests up to a &lt;strong&gt;64K token context&lt;/strong&gt; out-of-the-box. CLM-8B was tested and calibrated at &lt;strong&gt;2K to 8K context&lt;/strong&gt;. While its Qwen3 backbone can accept longer prompts, representations past 8K haven't been calibrated for the reference head.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Probability Normalization:&lt;/strong&gt; CLM calculates probabilities via dot products and softmax over the candidates passed in that request Its probabilities are inherently relative to the candidate set provided, whereas Jev’s scoring is calibrated internally against absolute criteria.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;Summary&lt;/h1&gt; &lt;p&gt;If you are asking if you will lose API features by using CLM instead of Jev: &lt;strong&gt;No, you get the full primitive set (Choice, Noul, Score) with massive latency gains and zero API costs.&lt;/strong&gt; You only sacrifice some zero-shot generalization on niche out-of-domain tasks compared to TypeSafe's hosted service.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/R_Duncan"&gt; /u/R_Duncan &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wouby6/jev_almost_dead_clm_vs_jev/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wouby6/jev_almost_dead_clm_vs_jev/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wouby6/jev_almost_dead_clm_vs_jev/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T06:40:15+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wovkw5/folks_have_you_purchased_the_mac_m5_ultra_with/</id>
+    <title>Folks, have you purchased the Mac M5 Ultra with 256GB yet? We need serious benchmarks, because we only get YouTube clowns influencers results</title>
+    <updated>2026-09-24T07:55:48+00:00</updated>
+    <author>
+      <name>/u/More-Curious816</name>
+      <uri>https://www.reddit.com/user/More-Curious816</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ok, so the Mac M5 Ultra (256GB) hit the market, but the only publicly available benchmarks material are flashy YouTube &amp;quot;clown influencers&amp;quot; videos. We need serious numbers to evaluate whether Apple’s silicon can actually compete with Nvidia’s current GPU‑centric workflows or not. Every damn video I watched, it was from somebody who only know the bare basics and use 8b models, like wtf.&lt;/p&gt; &lt;p&gt;I know it's seriously fucked up price, but following this sub I know some of you already owned it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/More-Curious816"&gt; /u/More-Curious816 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wovkw5/folks_have_you_purchased_the_mac_m5_ultra_with/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wovkw5/folks_have_you_purchased_the_mac_m5_ultra_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wovkw5/folks_have_you_purchased_the_mac_m5_ultra_with/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T07:55:48+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1woe70t/jev_isnt_new_tech_its_marketing_targets_people/</id>
     <title>Jev isn't new tech. Its marketing targets people who think AI started with LLMs.</title>
     <updated>2026-09-23T18:33:21+00:00</updated>
@@ -32,19 +58,6 @@
     <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woe70t/jev_isnt_new_tech_its_marketing_targets_people/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-09-23T18:33:21+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/</id>
-    <title>Mods: can we do something about half the forum getting filled with these advertising posts for Jev?</title>
-    <updated>2026-09-23T13:54:12+00:00</updated>
-    <author>
-      <name>/u/Acrobatic_Stress1388</name>
-      <uri>https://www.reddit.com/user/Acrobatic_Stress1388</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jev is a paid product that dumped a lot of venture capitol money into shill their product here and in other subreddits. Obvious shill posts are obvious. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Acrobatic_Stress1388"&gt; /u/Acrobatic_Stress1388 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T13:54:12+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1wol7zc/using_uncensored_models_makes_working_less_of_a/</id>
@@ -60,6 +73,45 @@
     <published>2026-09-23T23:08:47+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/</id>
+    <title>Mods: can we do something about half the forum getting filled with these advertising posts for Jev?</title>
+    <updated>2026-09-23T13:54:12+00:00</updated>
+    <author>
+      <name>/u/Acrobatic_Stress1388</name>
+      <uri>https://www.reddit.com/user/Acrobatic_Stress1388</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Jev is a paid product that dumped a lot of venture capitol money into shill their product here and in other subreddits. Obvious shill posts are obvious. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Acrobatic_Stress1388"&gt; /u/Acrobatic_Stress1388 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo6o0f/mods_can_we_do_something_about_half_the_forum/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T13:54:12+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wou3gr/my_foray_into_local_ai_two_bc250_ex_mining_apus/</id>
+    <title>My foray into local ai. Two BC-250 ex mining apus running Qwen3.6-35B-A3B Q4_K_M at 60 tok/s with 64k context</title>
+    <updated>2026-09-24T06:25:59+00:00</updated>
+    <author>
+      <name>/u/Ok-Breadfruit-3523</name>
+      <uri>https://www.reddit.com/user/Ok-Breadfruit-3523</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wou3gr/my_foray_into_local_ai_two_bc250_ex_mining_apus/"&gt; &lt;img alt="My foray into local ai. Two BC-250 ex mining apus running Qwen3.6-35B-A3B Q4_K_M at 60 tok/s with 64k context" src="https://preview.redd.it/lvml3r4dwerh1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=54006ff2b97b8e194f6f4f75abf929e078f3b1dd" title="My foray into local ai. Two BC-250 ex mining apus running Qwen3.6-35B-A3B Q4_K_M at 60 tok/s with 64k context" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;These boards cost me $115 each and I have them connected using llama.cpp with Vulkan and RPC on Bazzite. The boards have roughly 27GB of combined GPU memory and communicate over 1gb Ethernet. For around $300 including psu I’m loving the performance. I have a few more and want to see what 6 looks like trying to run qwen 3.8 flash.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Ok-Breadfruit-3523"&gt; /u/Ok-Breadfruit-3523 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/lvml3r4dwerh1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wou3gr/my_foray_into_local_ai_two_bc250_ex_mining_apus/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wou3gr/my_foray_into_local_ai_two_bc250_ex_mining_apus/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T06:25:59+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woxw7s/lesson_learned_dont_blindly_trust_repos_and_make/</id>
+    <title>Lesson learned. Don't blindly trust repos and make sure everything is stable for a long running (multi weeks) benchmark.</title>
+    <updated>2026-09-24T10:22:04+00:00</updated>
+    <author>
+      <name>/u/WonderRico</name>
+      <uri>https://www.reddit.com/user/WonderRico</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woxw7s/lesson_learned_dont_blindly_trust_repos_and_make/"&gt; &lt;img alt="Lesson learned. Don't blindly trust repos and make sure everything is stable for a long running (multi weeks) benchmark." src="https://preview.redd.it/liy5hw6uxfrh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9da52ce06a543ce24d693e4ea1dec703ab8333db" title="Lesson learned. Don't blindly trust repos and make sure everything is stable for a long running (multi weeks) benchmark." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I posted previously my &lt;a href="https://wonderrico.github.io/local_llm_benchmark/benchmark-main.html"&gt;swe-verified django 100 tasks benchmark&lt;/a&gt; comparing different local models and quantization. &lt;/p&gt; &lt;p&gt;No new models for now, but a fix in my evaluation workflow that was unfortunately not stable during the weeks/months of me using it. I redid the evaluation on all runs and here are some noticeable changes:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Flash Next is still king, but the benefit of xhigh vs medium reasoning effort is now properly showing.&lt;/li&gt; &lt;li&gt;Same for 3.8 27B (however in everyday tasks I personally still prefer using medium)&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/WonderRico"&gt; /u/WonderRico &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/liy5hw6uxfrh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woxw7s/lesson_learned_dont_blindly_trust_repos_and_make/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woxw7s/lesson_learned_dont_blindly_trust_repos_and_make/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T10:22:04+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1wof9kk/introducing_support_for_local_ai_models_in_the/</id>
     <title>Introducing Support for Local AI Models in the Antigravity SDK</title>
     <updated>2026-09-23T19:12:18+00:00</updated>
@@ -71,227 +123,6 @@
     <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wof9kk/introducing_support_for_local_ai_models_in_the/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
     <published>2026-09-23T19:12:18+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/</id>
-    <title>Please Google, for the love of God.</title>
-    <updated>2026-09-23T19:56:04+00:00</updated>
-    <author>
-      <name>/u/CriticallyCarmelized</name>
-      <uri>https://www.reddit.com/user/CriticallyCarmelized</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Gemma 5, 220B A18B QAT plus ngrams please. Thank you very much!&lt;/p&gt; &lt;p&gt;Will settle for 120B A16B plus ngrams.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/CriticallyCarmelized"&gt; /u/CriticallyCarmelized &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T19:56:04+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/</id>
-    <title>MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today.</title>
-    <updated>2026-09-23T14:31:12+00:00</updated>
-    <author>
-      <name>/u/Recoil42</name>
-      <uri>https://www.reddit.com/user/Recoil42</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"&gt; &lt;img alt="MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today." src="https://preview.redd.it/qfo9y90z5arh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=064bfe9b15ec8940c17d15e7164e5cdd123b1304" title="MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://arxiv.org/pdf/2609.26368"&gt;https://arxiv.org/pdf/2609.26368&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Recoil42"&gt; /u/Recoil42 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/qfo9y90z5arh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T14:31:12+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/</id>
-    <title>What TPS is too slow for you?</title>
-    <updated>2026-09-24T02:49:14+00:00</updated>
-    <author>
-      <name>/u/MasterNomie</name>
-      <uri>https://www.reddit.com/user/MasterNomie</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I keep reading about extreme ends of TPS what people consider running their models at. Some are happy to run huge quality models at merely sub 30 tps, while others sacrifice/compromise the quality and pursue absolutely spectacular tps, often above 100-150.&lt;/p&gt; &lt;p&gt;Where do you draw the line? Whats absolute minimum tps you will accept running local model at?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/MasterNomie"&gt; /u/MasterNomie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-24T02:49:14+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/</id>
-    <title>Qwen 3.8 Flash Next q4_k_m, 130k context, q8 cache on 16GB VRAM ann 64GB RAM, 15-20 t/s on 4080</title>
-    <updated>2026-09-23T23:46:41+00:00</updated>
-    <author>
-      <name>/u/AvidCyclist250</name>
-      <uri>https://www.reddit.com/user/AvidCyclist250</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Thought it's about time to share after testing for a week. You need four things most people miss: the right quant, the right model, the right branch, and the right cache flags. &lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/dtm-beep/qwen38-flash-next-mtp-16gb"&gt;https://github.com/dtm-beep/qwen38-flash-next-mtp-16gb&lt;/a&gt; &lt;/p&gt; &lt;p&gt;TLDR: AtomicChat AD-4.27bpw Q4_K_M target + the shared Unsloth MTP head, build from my pr-mtp-fix branch (plain master can't load this MTP head yet, it's PR #28243 + one fix commit), and --spec-draft-cpu-moe is the trick that makes 16 GB work. Draft experts live in RAM so the target's hot experts get the GPU. IQ4_XS ~10 t/s → 16.5 tg / 350 pp at 131k, q8 KV. &lt;/p&gt; &lt;p&gt;Hope it helps someone.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AvidCyclist250"&gt; /u/AvidCyclist250 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T23:46:41+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/</id>
-    <title>Pirate Face - pirate bay for LLMs</title>
-    <updated>2026-09-23T05:50:38+00:00</updated>
-    <author>
-      <name>/u/Atagor</name>
-      <uri>https://www.reddit.com/user/Atagor</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"&gt; &lt;img alt="Pirate Face - pirate bay for LLMs" src="https://external-preview.redd.it/2SkGI_y86ru8cGKrvkNdXkMQVkzRf_fbnmvlfriJt3U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb4cccd124f265efc91900c33cf271c1836148a" title="Pirate Face - pirate bay for LLMs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The title says for itself&lt;/p&gt; &lt;p&gt;In case someone desides to censor huggingface, we'll have an alternative &lt;/p&gt; &lt;p&gt;Edit:&lt;/p&gt; &lt;p&gt;A lot of responses so I'll leave it here: &lt;/p&gt; &lt;ol&gt; &lt;li&gt;I'm not the author. &lt;/li&gt; &lt;li&gt;If I were the author I wouldn't use the word &amp;quot;piracy&amp;quot;. &lt;/li&gt; &lt;li&gt;If you're the author, please, rename the domain! What is free in the first place must be named as such, we're not pirating anything. &lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Atagor"&gt; /u/Atagor &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://pirateface.co/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T05:50:38+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wosany/what_in_the_fck_is_an_ngram/</id>
-    <title>what in the fck is an ngram</title>
-    <updated>2026-09-24T04:44:34+00:00</updated>
-    <author>
-      <name>/u/Maglcite</name>
-      <uri>https://www.reddit.com/user/Maglcite</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I just lurk here mostly. i enjoy my 30tps on q3 3.8 27b and stop messing with it,&lt;/p&gt; &lt;p&gt;but recently ive heard people talking about ngrams and im curious about what they do/are&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Maglcite"&gt; /u/Maglcite &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wosany/what_in_the_fck_is_an_ngram/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wosany/what_in_the_fck_is_an_ngram/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wosany/what_in_the_fck_is_an_ngram/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-24T04:44:34+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/</id>
-    <title>this is not even a competition at this point ... this is embarrassing</title>
-    <updated>2026-09-23T07:54:00+00:00</updated>
-    <author>
-      <name>/u/johnnyApplePRNG</name>
-      <uri>https://www.reddit.com/user/johnnyApplePRNG</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"&gt; &lt;img alt="this is not even a competition at this point ... this is embarrassing" src="https://preview.redd.it/pmvoj43z68rh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cd5cafb495bb0d8980717c594a8e8284112821f5" title="this is not even a competition at this point ... this is embarrassing" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pmvoj43z68rh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T07:54:00+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/</id>
-    <title>Qwen FN vs 27B --- Think I'm saturated.</title>
-    <updated>2026-09-23T20:58:59+00:00</updated>
-    <author>
-      <name>/u/OvertaxedOne</name>
-      <uri>https://www.reddit.com/user/OvertaxedOne</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Got QFN up and running on our Strix box this past weekend and have been running on it for a few days now. Big thank you/shout out to the Halogen team, it's running fantastic on the Strix, this is clearly &amp;quot;the setup&amp;quot; right now for this hardware with this model, really impressive performance for such a large model (~30-40TPS generation, ~900-1000TPS prefill on real world use, not benchmarks, over the past few days)!&lt;/p&gt; &lt;p&gt;However, that said, I kind of feel like 27B saturated my personal use cases. QFN is a great model, but I'm not really noticing much where I think &amp;quot;Wow, 27B would never get this and QFN just one shot it&amp;quot;. They feel very similar in capabilities (IE, both are amazing!) and I kind of feel like I'm reaching the end of the runway for what I can realistically make use of in my day to day use cases, I'm just asking questions that really require more than 27B the majority of the time. &lt;/p&gt; &lt;p&gt;It really feels more to me like a very similar level of smart, one that runs well with limited memory bandwidth (QFN) and one that runs well with limited GPU memory (27B). It's an interesting result, and I guess maybe I should have expected it because I was really struggling already to find things that I actually need to do day to day professionally that 27B couldn't do. When I escalate to the cloud now it's nearly always for either speed or context, rarely intelligence. &lt;/p&gt; &lt;p&gt;Surprising result, at least to me, I was expecting to have my hair blown back, but I guess this is just yet another data point that &amp;quot;good enough is good enough&amp;quot;.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/OvertaxedOne"&gt; /u/OvertaxedOne &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T20:58:59+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/</id>
-    <title>Cost of intelligence is dropping fast</title>
-    <updated>2026-09-23T09:38:19+00:00</updated>
-    <author>
-      <name>/u/Terminator857</name>
-      <uri>https://www.reddit.com/user/Terminator857</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt; &lt;img alt="Cost of intelligence is dropping fast" src="https://preview.redd.it/43n0bhiap8rh1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=2be1b32611e59f9bce9835fe212912620ddd9849" title="Cost of intelligence is dropping fast" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/43n0bhiap8rh1.png?width=960&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=776785f6eb39e3eba519b85f8be8eb7453318a4f"&gt;https://preview.redd.it/43n0bhiap8rh1.png?width=960&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=776785f6eb39e3eba519b85f8be8eb7453318a4f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;50% per quarter is amazing. 4× faster than DNA sequencing, 6× faster than compute, 18× faster than lithium batteries, and (up to 1973) 54× faster than electricity. &lt;a href="https://x.com/EpochAIResearch/status/2102510281176023529"&gt;https://x.com/EpochAIResearch/status/2102510281176023529&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Every year moving forward is going to be significantly different that the prior year. What do you think? We will be running coding agents on our phones pretty soon.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T09:38:19+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/</id>
-    <title>apple/LensVLM-9B · Hugging Face</title>
-    <updated>2026-09-23T18:04:25+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-      <uri>https://www.reddit.com/user/jacek2023</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"&gt; &lt;img alt="apple/LensVLM-9B · Hugging Face" src="https://external-preview.redd.it/28Q3wD1n-PoRxG7GTQQSSNlpNDxO14gggulfl36nP4U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9524b558d1febd7789a4deac12282a4ceca1a8e1" title="apple/LensVLM-9B · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/bartowski/LensVLM-9B-GGUF"&gt;https://huggingface.co/bartowski/LensVLM-9B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B#lensvlm-9b"&gt;&lt;/a&gt;LensVLM-9B&lt;/h1&gt; &lt;p&gt;LensVLM is a 9B Vision Language Model (VLM) that scans compressed images of text, then selectively expands only the relevant pages to their uncompressed form via learned tools.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Paper: &lt;a href="https://arxiv.org/abs/2605.07019"&gt;LensVLM: Selective Context Expansion for Compressed Visual Representation of Text&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Code: &lt;a href="https://github.com/apple-aiml-research/ml-lensvlm"&gt;https://github.com/apple-aiml-research/ml-lensvlm&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B#license"&gt;&lt;/a&gt;License&lt;/h1&gt; &lt;p&gt;All ML model files in this repository, including Apple's modifications to the Qwen model, are provided under the terms of the &lt;a href="https://huggingface.co/apple/LensVLM-9B/blob/main/LICENSE"&gt;Apple Machine Learning Research Model License&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;The source code that accompanies this model is distributed separately and is provided under the terms of the Apple Sample Code License.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T18:04:25+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/</id>
-    <title>Do y'all remember the snake model evaluation test?</title>
-    <updated>2026-09-24T01:18:52+00:00</updated>
-    <author>
-      <name>/u/Mr_Moonsilver</name>
-      <uri>https://www.reddit.com/user/Mr_Moonsilver</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just watched a video from three years ago where Matt Berman tested Bard (yes, remember Bard?) and most of the tests were like summarization or logic tests.&lt;/p&gt; &lt;p&gt;If it ever came to coding, it was the snake test, or pong, and those from three years ago could barely get them right. Now with Qwen 27B locally or Opus 5.5 via subscription it's just so far away. And I'm wondering with which eyes I will see this post three years from now. Probably robot eyes.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Mr_Moonsilver"&gt; /u/Mr_Moonsilver &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-24T01:18:52+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/</id>
-    <title>Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan</title>
-    <updated>2026-09-23T20:16:51+00:00</updated>
-    <author>
-      <name>/u/Fcking_Chuck</name>
-      <uri>https://www.reddit.com/user/Fcking_Chuck</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"&gt; &lt;img alt="Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan" src="https://external-preview.redd.it/BvZbjDIx7hq-WYd7XU42EbHZrELozxEZvqrb4btP7nc.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fde885abf6dee796e35a0ee351a25637748afcb9" title="Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Fcking_Chuck"&gt; /u/Fcking_Chuck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.phoronix.com/news/Lemonade-2026.40-RC"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T20:16:51+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woa5d3/mimov26_both_pro_and_flash_is_a_benchmaxxed_scam/</id>
-    <title>MiMo-V2.6 (both Pro and Flash) is a benchmaxxed scam</title>
-    <updated>2026-09-23T16:05:14+00:00</updated>
-    <author>
-      <name>/u/crusaderky</name>
-      <uri>https://www.reddit.com/user/crusaderky</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;MiMo-V2.6-Pro has an insanely high score of 46 on AA, putting it at the head of the opensource models available. It also costs pennies. Flash is not out on AA yet, but it costs less than half on datacenter and is slightly below on Xiaomi's own benchmarks. It also fits in 192GB, which makes it the first real use case for Gorgon Halo.&lt;/p&gt; &lt;p&gt;So I tried both models. This is not a benchmark; it's an educated impression from a senior SWE.&lt;/p&gt; &lt;h1&gt;MiMo-V2.6-Pro&lt;/h1&gt; &lt;p&gt;I gave it a security-focused task: enable a bubblewrap sandbox to do git push to github, but not git push --force or other destructive commands. Optional flag --no-git when starting the sandbox completely disables github write access.&lt;/p&gt; &lt;p&gt;It stopped to ask me questions as it spotted unclear corner cases in the design 🥇 , then moved on to implementing.&lt;/p&gt; &lt;p&gt;It was slow, but that's just an inference issue (~25 tok/s) that should be fixed in a few days as more providers come online.&lt;/p&gt; &lt;p&gt;Then I read its output and I had to pick up my jaw from the floor, where it had dropped.&lt;/p&gt; &lt;p&gt;With an extremely quick glance at the code, I immediately spotted that, in order to bypass --no-git, you would have to perform this extremely complicated and exotic command inside the sandbox:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;$ git push (fails) $ echo GIT_STATUS blocked $ GIT_STATUS=&amp;quot;p0wn3d by l33t h4xx0r&amp;quot; git push (successful) &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;This is 15-year-old script kiddie level.&lt;/p&gt; &lt;p&gt;I didn't read further. I asked GLM-5.3 (full-fat) to do a security review of the change.&lt;/p&gt; &lt;p&gt;In 3 minutes, it found &lt;strong&gt;NINE&lt;/strong&gt; glaring security holes that allow bypassing git and gh restrictions. A few examples that made me want to rip my hair out:&lt;/p&gt; &lt;p&gt;In the default restricted mode,&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;git push&lt;/code&gt; works 🥇&lt;/li&gt; &lt;li&gt;&lt;code&gt;git push --force&lt;/code&gt; is blocked 🥇&lt;/li&gt; &lt;li&gt;&lt;code&gt;git push -f&lt;/code&gt; is blocked 🥇&lt;/li&gt; &lt;li&gt;&lt;code&gt;git push -uf&lt;/code&gt; lets you happily wipe out the git remote. ☠️&lt;/li&gt; &lt;li&gt;&lt;code&gt;git config alias.fp 'push --force --no-verify &amp;amp;&amp;amp; git fp&lt;/code&gt; goes through too ☠️&lt;/li&gt; &lt;li&gt;&lt;code&gt;env -u GIT_CONFIG_COUNT /usr/bin/git push --force&lt;/code&gt;blasts through ☠️&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Again. This is an intern-with-acne level kind of incompetence.&lt;/p&gt; &lt;p&gt;To seal the lid on the coffin, MiMo's prose in the chat is infuriating. Not quite Opus-level infuriating, but it gets close. It hurts the eyes and it frequently takes 2 reads to understand what the hell it's saying. GLM, DeepSeek, and Qwen are much more pleasant to work with.&lt;/p&gt; &lt;h1&gt;MiMo-V2.6-Flash&lt;/h1&gt; &lt;p&gt;I asked MiMo-V2.6-Flash to do a very simple git surgery: create a new branch off master and cherry-pick a single commit from another branch.&lt;/p&gt; &lt;p&gt;However, I didn't realise that the git worktree I pointed it to was corrupted (the branch on the main git repo was fine).&lt;/p&gt; &lt;ul&gt; &lt;li&gt;A &lt;strong&gt;dumb&lt;/strong&gt; model would have just returned &amp;quot;there's no git here, I have no idea what you're talking about&amp;quot;&lt;/li&gt; &lt;li&gt;A &lt;strong&gt;smarter&lt;/strong&gt; model would have noticed that there was a /worktrees/ in the path, come up with an educated guess about what happened, and gave me a hint on how to fix it&lt;/li&gt; &lt;li&gt;A &lt;strong&gt;very smart&lt;/strong&gt; model would have noticed that the only other directory existing in the sandbox was the main git repo, which had a branch with the same name as the broken worktree directory, and recovered it from there.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;MiMo-V2.6-Flash went on 80k tokens worth of acid trip. It first attempted to find the main git repo, failed, and then panicked and went down a rabbit hole which involved tampering with /tmp, &lt;code&gt;mount --bind&lt;/code&gt;, and other insanity. I noticed after a while as I was wondering what the heck was wrong. I suspect that given enough time it may have nuked my main git repo and I tremble at the idea of what it could have done if not sandboxed.&lt;/p&gt; &lt;p&gt;If you scale down Pro's intelligence on AA by comparing the available self-published benchmarks against those of Pro (which is a very crude method but gives a ballpark idea), MiMo-V2.6-Flash comes out on par with GLM-5.3-Flash (high) and Qwen3.8-Flash.&lt;/p&gt; &lt;p&gt;Which is absolutely, categorically, not.&lt;/p&gt; &lt;p&gt;DO NOT shell out the money for a Gorgon Halo for MiMo-V2.6-Flash. Qwen3.8-Flash on a Strix Halo is vastly better.&lt;/p&gt; &lt;p&gt;I'm going to stick with my previous models:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;DSv4.1 Flash as the default&lt;/li&gt; &lt;li&gt;GLM-5.3-Flash (high) as the dirt cheap option&lt;/li&gt; &lt;li&gt;GLM-5.3 when the big guns are needed&lt;/li&gt; &lt;li&gt;Qwen3.8-Flash and Qwen3.8-27B to run locally (I have a 3080 so Flash is very slow).&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/crusaderky"&gt; /u/crusaderky &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woa5d3/mimov26_both_pro_and_flash_is_a_benchmaxxed_scam/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woa5d3/mimov26_both_pro_and_flash_is_a_benchmaxxed_scam/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woa5d3/mimov26_both_pro_and_flash_is_a_benchmaxxed_scam/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T16:05:14+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/</id>
-    <title>New DeepThink built on GLM</title>
-    <updated>2026-09-24T01:15:02+00:00</updated>
-    <author>
-      <name>/u/krzonkalla</name>
-      <uri>https://www.reddit.com/user/krzonkalla</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"&gt; &lt;img alt="New DeepThink built on GLM" src="https://preview.redd.it/34b3tzymbdrh1.png?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=c7489700cfafbe9dac6937af263171240b7b38b3" title="New DeepThink built on GLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://rogueon.ai/blog/rogue-deep-think-preview/tecnica"&gt;https://rogueon.ai/blog/rogue-deep-think-preview/tecnica&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Could this kinda stuff be the way for open models to prevail? Since open models are so much cheaper than, say, Astra and Fable, maybe just cranking up reasoning to the max can get us a bit closer.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/krzonkalla"&gt; /u/krzonkalla &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1woo22j"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-24T01:15:02+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo07r8/jev_in_25_lines_of_python/</id>
-    <title>Jev in 25 lines of Python</title>
-    <updated>2026-09-23T08:31:25+00:00</updated>
-    <author>
-      <name>/u/johnnyApplePRNG</name>
-      <uri>https://www.reddit.com/user/johnnyApplePRNG</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo07r8/jev_in_25_lines_of_python/"&gt; &lt;img alt="Jev in 25 lines of Python" src="https://external-preview.redd.it/C6gEdTLkvNZj5x2XGlCdx36cUHhfTWuizPaijcQGRD8.png?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=73846cd00b7f67684021c36a0f0c98e72bda4596" title="Jev in 25 lines of Python" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.nobodywho.ai/posts/jev-in-25-lines/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo07r8/jev_in_25_lines_of_python/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo07r8/jev_in_25_lines_of_python/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T08:31:25+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wod7l0/bfl_releases_flux_3_action_a_7b_robot_model/</id>
-    <title>BFL releases FLUX 3 Action: a 7B robot model</title>
-    <updated>2026-09-23T17:56:52+00:00</updated>
-    <author>
-      <name>/u/paf1138</name>
-      <uri>https://www.reddit.com/user/paf1138</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wod7l0/bfl_releases_flux_3_action_a_7b_robot_model/"&gt; &lt;img alt="BFL releases FLUX 3 Action: a 7B robot model" src="https://external-preview.redd.it/gAZY9cK1JEve7k89uskn1aKd29lq_JGBwq6RZnowqDw.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6e9cf26733dbf9ba041c522d43e3b3d6b2e1dd7f" title="BFL releases FLUX 3 Action: a 7B robot model" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;read more: &lt;a href="https://bfl.ai/models/flux-3-action"&gt;https://bfl.ai/models/flux-3-action&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/paf1138"&gt; /u/paf1138 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/collections/black-forest-labs/flux-3-action"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wod7l0/bfl_releases_flux_3_action_a_7b_robot_model/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wod7l0/bfl_releases_flux_3_action_a_7b_robot_model/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T17:56:52+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo8tr5/streaming_nemotron_3_diarization/</id>
-    <title>Streaming Nemotron 3 Diarization</title>
-    <updated>2026-09-23T15:16:30+00:00</updated>
-    <author>
-      <name>/u/futterneid</name>
-      <uri>https://www.reddit.com/user/futterneid</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo8tr5/streaming_nemotron_3_diarization/"&gt; &lt;img alt="Streaming Nemotron 3 Diarization" src="https://external-preview.redd.it/cnRscG1zeHJkYXJoMUqQpCr9qjqLnGSDQ8JUskYC8Pavqrbn6cljR4TMkINB.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=99db12ece90476ad1be6bb588c842dac3053b195" title="Streaming Nemotron 3 Diarization" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’ve been playing with &lt;a href="https://huggingface.co/nvidia/Nemotron-3-Diarization"&gt;Nemotron 3 Diarization&lt;/a&gt;, and it fills a gap I’ve had with local voice agents: keeping track of &lt;em&gt;who&lt;/em&gt; is speaking.&lt;/p&gt; &lt;p&gt;It’s a diarization model, so it gives you speaker labels rather than transcriptions or people’s names. It can stream its output and track up to eight speakers. I’ve been trying it with one-second streaming chunks, and the quality has been really good in my tests.&lt;/p&gt; &lt;p&gt;I plugged it into my &lt;a href="https://github.com/huggingface/speech-to-speech"&gt;speech-to-speech&lt;/a&gt; setup on a DGX Spark and connected it to a Reachy Mini. The fun part is watching someone new speak, then seeing the robot ask their name and remember it for the conversation (that's the video!).&lt;/p&gt; &lt;p&gt;It has day-zero Transformers integration and is getting a commercial-friendly license.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/futterneid"&gt; /u/futterneid &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/o75a3utrdarh1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo8tr5/streaming_nemotron_3_diarization/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo8tr5/streaming_nemotron_3_diarization/"/>
-    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T15:16:30+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1woscea/contrastive_language_models/</id>
@@ -307,29 +138,198 @@
     <published>2026-09-24T04:47:11+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wogz1a/nvfp4_what_does_the_quality_usually_equate_to_5090/</id>
-    <title>NVFP4 - what does the quality usually equate to? (5090)</title>
-    <updated>2026-09-23T20:16:30+00:00</updated>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/</id>
+    <title>Please Google, for the love of God.</title>
+    <updated>2026-09-23T19:56:04+00:00</updated>
     <author>
-      <name>/u/nirurin</name>
-      <uri>https://www.reddit.com/user/nirurin</uri>
+      <name>/u/CriticallyCarmelized</name>
+      <uri>https://www.reddit.com/user/CriticallyCarmelized</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;i keep seeing people recommending, for people with Blackwell/ 5090 cards, that using nvfp4 is &amp;quot;a no brainer&amp;quot; because of the big speed benefits. &lt;/p&gt; &lt;p&gt;but my response is always... but that means trading down from Q5 or Q6 quality (depending on how much context I want) down to... what? &lt;/p&gt; &lt;p&gt;ive assumed nvfp4 was basically Q4 or less, but people seem to think it competes with Q8, and its hard to find actual quantitative comparisons. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/nirurin"&gt; /u/nirurin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogz1a/nvfp4_what_does_the_quality_usually_equate_to_5090/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogz1a/nvfp4_what_does_the_quality_usually_equate_to_5090/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wogz1a/nvfp4_what_does_the_quality_usually_equate_to_5090/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Gemma 5, 220B A18B QAT plus ngrams please. Thank you very much!&lt;/p&gt; &lt;p&gt;Will settle for 120B A16B plus ngrams.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/CriticallyCarmelized"&gt; /u/CriticallyCarmelized &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wogfjx/please_google_for_the_love_of_god/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T20:16:30+00:00</published>
+    <published>2026-09-23T19:56:04+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo7sfo/perhaps_the_highest_quality_mainline_quants_of/</id>
-    <title>Perhaps the highest quality mainline quants of Qwen3.8 27B?</title>
-    <updated>2026-09-23T14:37:26+00:00</updated>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/</id>
+    <title>What TPS is too slow for you?</title>
+    <updated>2026-09-24T02:49:14+00:00</updated>
     <author>
-      <name>/u/Dutchnamn</name>
-      <uri>https://www.reddit.com/user/Dutchnamn</uri>
+      <name>/u/MasterNomie</name>
+      <uri>https://www.reddit.com/user/MasterNomie</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am proud to release these quants of Qwen 3.8 27B. They beat the excellent ISTA and Unsloth quants byte-for-byte on three corpora. Both KLD and top 1% were tested 3x. It took a week of continuous GPU and CPU time to generate these, all done on a single Strix Halo.&lt;/p&gt; &lt;p&gt;&lt;a href="https://huggingface.co/agentionai/Qwen3.8-27B-AP-GGUF"&gt;https://huggingface.co/agentionai/Qwen3.8-27B-AP-GGUF&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Hope you like it. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Dutchnamn"&gt; /u/Dutchnamn &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7sfo/perhaps_the_highest_quality_mainline_quants_of/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7sfo/perhaps_the_highest_quality_mainline_quants_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7sfo/perhaps_the_highest_quality_mainline_quants_of/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I keep reading about extreme ends of TPS what people consider running their models at. Some are happy to run huge quality models at merely sub 30 tps, while others sacrifice/compromise the quality and pursue absolutely spectacular tps, often above 100-150.&lt;/p&gt; &lt;p&gt;Where do you draw the line? Whats absolute minimum tps you will accept running local model at?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/MasterNomie"&gt; /u/MasterNomie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woq1yg/what_tps_is_too_slow_for_you/"/>
     <category term="LocalLLaMA" label="r/LocalLLaMA"/>
-    <published>2026-09-23T14:37:26+00:00</published>
+    <published>2026-09-24T02:49:14+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/</id>
+    <title>MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today.</title>
+    <updated>2026-09-23T14:31:12+00:00</updated>
+    <author>
+      <name>/u/Recoil42</name>
+      <uri>https://www.reddit.com/user/Recoil42</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"&gt; &lt;img alt="MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today." src="https://preview.redd.it/qfo9y90z5arh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=064bfe9b15ec8940c17d15e7164e5cdd123b1304" title="MiMo-V3 is getting a new architecture. The core of it, HySparse2, is out today." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://arxiv.org/pdf/2609.26368"&gt;https://arxiv.org/pdf/2609.26368&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Recoil42"&gt; /u/Recoil42 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/qfo9y90z5arh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo7mr6/mimov3_is_getting_a_new_architecture_the_core_of/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T14:31:12+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wow7nt/model_add_ling_30_vl_support_by_aetherbird_pull/</id>
+    <title>model : add Ling 3.0 VL support by aetherbird · Pull Request #29151 · ggml-org/llama.cpp</title>
+    <updated>2026-09-24T08:36:31+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://www.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wow7nt/model_add_ling_30_vl_support_by_aetherbird_pull/"&gt; &lt;img alt="model : add Ling 3.0 VL support by aetherbird · Pull Request #29151 · ggml-org/llama.cpp" src="https://external-preview.redd.it/6T_yHJ8P1MJw70K1Y7rDtjTMw1pT1N98w4QYX5V312I.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=5a5cbd41b0797a05c97cf23f1387e4bf92f36485" title="model : add Ling 3.0 VL support by aetherbird · Pull Request #29151 · ggml-org/llama.cpp" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;h1&gt;&lt;a href="https://huggingface.co/inclusionAI/Ling-3.0-flash-VL#model-overview"&gt;&lt;/a&gt;Model Overview&lt;/h1&gt; &lt;p&gt;Ling-3.0-flash-VL inherits the language, reasoning, and long-context capabilities of Ling-3.0-flash, while extending them with native image and video understanding. The model has 124B total parameters, with only 5.5B parameters activated per token, and supports a context window of up to 256K tokens.&lt;/p&gt; &lt;p&gt;The architecture of Ling-3.0-flash-VL is designed to integrate visual information into real-world reasoning and agentic workflows.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;A ViT visual encoder extracts features from images and videos, while a two-layer MLP projector aligns visual features with text representations for unified multimodal understanding and reasoning;&lt;/li&gt; &lt;li&gt;VideoRoPE encodes both spatial positions and temporal order, enabling the model to understand visual changes over time and supporting tasks such as event localization, long-video question answering, and video clip editing;&lt;/li&gt; &lt;li&gt;A 42-layer hybrid backbone alternates KDA and Gated MLA layers at a 5:1 ratio, enabling efficient long-context processing across text, images, videos, and extended agent task histories;&lt;/li&gt; &lt;li&gt;A sparse MoE architecture maintains a total model capacity of 124B parameters while activating only 5.5B parameters per token, balancing strong multimodal capabilities with inference efficiency.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Overall, these designs make vision more than just an input, integrating it into the complete process of understanding, reasoning, planning, acting, and verification.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/ggml-org/llama.cpp/pull/29151"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wow7nt/model_add_ling_30_vl_support_by_aetherbird_pull/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wow7nt/model_add_ling_30_vl_support_by_aetherbird_pull/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T08:36:31+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/</id>
+    <title>Qwen 3.8 Flash Next q4_k_m, 130k context, q8 cache on 16GB VRAM ann 64GB RAM, 15-20 t/s on 4080</title>
+    <updated>2026-09-23T23:46:41+00:00</updated>
+    <author>
+      <name>/u/AvidCyclist250</name>
+      <uri>https://www.reddit.com/user/AvidCyclist250</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Thought it's about time to share after testing for a week. You need four things most people miss: the right quant, the right model, the right branch, and the right cache flags. &lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/dtm-beep/qwen38-flash-next-mtp-16gb"&gt;https://github.com/dtm-beep/qwen38-flash-next-mtp-16gb&lt;/a&gt; &lt;/p&gt; &lt;p&gt;TLDR: AtomicChat AD-4.27bpw Q4_K_M target + the shared Unsloth MTP head, build from my pr-mtp-fix branch (plain master can't load this MTP head yet, it's PR #28243 + one fix commit), and --spec-draft-cpu-moe is the trick that makes 16 GB work. Draft experts live in RAM so the target's hot experts get the GPU. IQ4_XS ~10 t/s → 16.5 tg / 350 pp at 131k, q8 KV. &lt;/p&gt; &lt;p&gt;Hope it helps someone.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AvidCyclist250"&gt; /u/AvidCyclist250 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wom3fe/qwen_38_flash_next_q4_k_m_130k_context_q8_cache/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T23:46:41+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woutxp/macbook_pro_m5_max_lse_llm_running_an_amd_radeon/</id>
+    <title>MacBook Pro M5 Max LSE LLM running an AMD Radeon AI PRO R9700 over Thunderbolt 5 in a Razer enclosure</title>
+    <updated>2026-09-24T07:09:45+00:00</updated>
+    <author>
+      <name>/u/TheOriginalG2</name>
+      <uri>https://www.reddit.com/user/TheOriginalG2</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woutxp/macbook_pro_m5_max_lse_llm_running_an_amd_radeon/"&gt; &lt;img alt="MacBook Pro M5 Max LSE LLM running an AMD Radeon AI PRO R9700 over Thunderbolt 5 in a Razer enclosure" src="https://external-preview.redd.it/c2dvbXlnejQ0ZnJoMWe2utwGVe2rZ6pUHg4E5fpMjXztHZrSgXX1_Ua_4cJb.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f06bcb3c056d4c606b00c0c9657e2428456275db" title="MacBook Pro M5 Max LSE LLM running an AMD Radeon AI PRO R9700 over Thunderbolt 5 in a Razer enclosure" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hello Everyone!&lt;/p&gt; &lt;p&gt;Good news for anyone who can compile code on apple, you can now experience using a &lt;strong&gt;AMD Radeon AI Pro R9700&lt;/strong&gt; on a &lt;strong&gt;MacBook Pro&lt;/strong&gt; or Mac mini, Mac Studio or any &lt;strong&gt;OSX&lt;/strong&gt; variant as long as it has &lt;strong&gt;Thunderbolt, next up is a iPad with a M series processor&lt;/strong&gt;!&lt;/p&gt; &lt;p&gt;The driver seems to be working pretty sound now, and I am continuing to optimize my engine LSE or LemonSeed-Engine. It supports Qwen3.6 - 3.8 Dense and/or MoE with MTP, it works on Mac only through amdgpu driver I ported to mac from Linux and the engine works on linux. The HIPC backend works best on linux and the Loom / HRX backend works best on Mac, only the LOOM / HRX Combo can run on Mac.&lt;/p&gt; &lt;p&gt;Both HIPC and &lt;strong&gt;Loom&lt;/strong&gt; use &lt;strong&gt;HRX&lt;/strong&gt; its a new &lt;strong&gt;AMD&lt;/strong&gt; system that allows us to run hipc and/or loom kernels on a amdgpu.&lt;/p&gt; &lt;p&gt;I hope you like my setup, if you are anything like me you will think this is super cool and if your not you will hate it, haha!&lt;/p&gt; &lt;p&gt;P.S. You may or may not find this in lemonade later.&lt;/p&gt; &lt;p&gt;MacBook Pro M5 Max - 128GB&lt;br /&gt; AMD Radeon AI Pro R9700&lt;br /&gt; &lt;strong&gt;Razer&lt;/strong&gt; Core X V2&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/lemonade-sdk/mac-amdgpu"&gt;https://github.com/lemonade-sdk/mac-amdgpu&lt;/a&gt; - Driver&lt;br /&gt; &lt;a href="https://github.com/Geramy/LSE"&gt;https://github.com/Geramy/LSE&lt;/a&gt; - LLM Engine&lt;br /&gt; &lt;a href="https://github.com/lemonade-sdk/lemonade"&gt;https://github.com/lemonade-sdk/lemonade&lt;/a&gt; - Lemonade SDK Org&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/TheOriginalG2"&gt; /u/TheOriginalG2 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/wktnrez44frh1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woutxp/macbook_pro_m5_max_lse_llm_running_an_amd_radeon/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woutxp/macbook_pro_m5_max_lse_llm_running_an_amd_radeon/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T07:09:45+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/</id>
+    <title>Qwen FN vs 27B --- Think I'm saturated.</title>
+    <updated>2026-09-23T20:58:59+00:00</updated>
+    <author>
+      <name>/u/OvertaxedOne</name>
+      <uri>https://www.reddit.com/user/OvertaxedOne</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Got QFN up and running on our Strix box this past weekend and have been running on it for a few days now. Big thank you/shout out to the Halogen team, it's running fantastic on the Strix, this is clearly &amp;quot;the setup&amp;quot; right now for this hardware with this model, really impressive performance for such a large model (~30-40TPS generation, ~900-1000TPS prefill on real world use, not benchmarks, over the past few days)!&lt;/p&gt; &lt;p&gt;However, that said, I kind of feel like 27B saturated my personal use cases. QFN is a great model, but I'm not really noticing much where I think &amp;quot;Wow, 27B would never get this and QFN just one shot it&amp;quot;. They feel very similar in capabilities (IE, both are amazing!) and I kind of feel like I'm reaching the end of the runway for what I can realistically make use of in my day to day use cases, I'm just asking questions that really require more than 27B the majority of the time. &lt;/p&gt; &lt;p&gt;It really feels more to me like a very similar level of smart, one that runs well with limited memory bandwidth (QFN) and one that runs well with limited GPU memory (27B). It's an interesting result, and I guess maybe I should have expected it because I was really struggling already to find things that I actually need to do day to day professionally that 27B couldn't do. When I escalate to the cloud now it's nearly always for either speed or context, rarely intelligence. &lt;/p&gt; &lt;p&gt;Surprising result, at least to me, I was expecting to have my hair blown back, but I guess this is just yet another data point that &amp;quot;good enough is good enough&amp;quot;.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/OvertaxedOne"&gt; /u/OvertaxedOne &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woi2ho/qwen_fn_vs_27b_think_im_saturated/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T20:58:59+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/</id>
+    <title>Pirate Face - pirate bay for LLMs</title>
+    <updated>2026-09-23T05:50:38+00:00</updated>
+    <author>
+      <name>/u/Atagor</name>
+      <uri>https://www.reddit.com/user/Atagor</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"&gt; &lt;img alt="Pirate Face - pirate bay for LLMs" src="https://external-preview.redd.it/2SkGI_y86ru8cGKrvkNdXkMQVkzRf_fbnmvlfriJt3U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cbb4cccd124f265efc91900c33cf271c1836148a" title="Pirate Face - pirate bay for LLMs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;The title says for itself&lt;/p&gt; &lt;p&gt;In case someone desides to censor huggingface, we'll have an alternative &lt;/p&gt; &lt;p&gt;Edit:&lt;/p&gt; &lt;p&gt;A lot of responses so I'll leave it here: &lt;/p&gt; &lt;ol&gt; &lt;li&gt;I'm not the author. &lt;/li&gt; &lt;li&gt;If I were the author I wouldn't use the word &amp;quot;piracy&amp;quot;. &lt;/li&gt; &lt;li&gt;If you're the author, please, rename the domain! What is free in the first place must be named as such, we're not pirating anything. &lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Atagor"&gt; /u/Atagor &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://pirateface.co/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wnxhji/pirate_face_pirate_bay_for_llms/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T05:50:38+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/</id>
+    <title>this is not even a competition at this point ... this is embarrassing</title>
+    <updated>2026-09-23T07:54:00+00:00</updated>
+    <author>
+      <name>/u/johnnyApplePRNG</name>
+      <uri>https://www.reddit.com/user/johnnyApplePRNG</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"&gt; &lt;img alt="this is not even a competition at this point ... this is embarrassing" src="https://preview.redd.it/pmvoj43z68rh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=cd5cafb495bb0d8980717c594a8e8284112821f5" title="this is not even a competition at this point ... this is embarrassing" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/johnnyApplePRNG"&gt; /u/johnnyApplePRNG &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/pmvoj43z68rh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wnzlav/this_is_not_even_a_competition_at_this_point_this/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T07:54:00+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/</id>
+    <title>Cost of intelligence is dropping fast</title>
+    <updated>2026-09-23T09:38:19+00:00</updated>
+    <author>
+      <name>/u/Terminator857</name>
+      <uri>https://www.reddit.com/user/Terminator857</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt; &lt;img alt="Cost of intelligence is dropping fast" src="https://preview.redd.it/43n0bhiap8rh1.png?width=140&amp;amp;height=140&amp;amp;crop=1:1,smart&amp;amp;auto=webp&amp;amp;s=2be1b32611e59f9bce9835fe212912620ddd9849" title="Cost of intelligence is dropping fast" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://preview.redd.it/43n0bhiap8rh1.png?width=960&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=776785f6eb39e3eba519b85f8be8eb7453318a4f"&gt;https://preview.redd.it/43n0bhiap8rh1.png?width=960&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=776785f6eb39e3eba519b85f8be8eb7453318a4f&lt;/a&gt;&lt;/p&gt; &lt;p&gt;50% per quarter is amazing. 4× faster than DNA sequencing, 6× faster than compute, 18× faster than lithium batteries, and (up to 1973) 54× faster than electricity. &lt;a href="https://x.com/EpochAIResearch/status/2102510281176023529"&gt;https://x.com/EpochAIResearch/status/2102510281176023529&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Every year moving forward is going to be significantly different that the prior year. What do you think? We will be running coding agents on our phones pretty soon.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Terminator857"&gt; /u/Terminator857 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wo1bct/cost_of_intelligence_is_dropping_fast/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T09:38:19+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/</id>
+    <title>Do y'all remember the snake model evaluation test?</title>
+    <updated>2026-09-24T01:18:52+00:00</updated>
+    <author>
+      <name>/u/Mr_Moonsilver</name>
+      <uri>https://www.reddit.com/user/Mr_Moonsilver</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Just watched a video from three years ago where Matt Berman tested Bard (yes, remember Bard?) and most of the tests were like summarization or logic tests.&lt;/p&gt; &lt;p&gt;If it ever came to coding, it was the snake test, or pong, and those from three years ago could barely get them right. Now with Qwen 27B locally or Opus 5.5 via subscription it's just so far away. And I'm wondering with which eyes I will see this post three years from now. Probably robot eyes.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Mr_Moonsilver"&gt; /u/Mr_Moonsilver &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woo52a/do_yall_remember_the_snake_model_evaluation_test/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T01:18:52+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/</id>
+    <title>apple/LensVLM-9B · Hugging Face</title>
+    <updated>2026-09-23T18:04:25+00:00</updated>
+    <author>
+      <name>/u/jacek2023</name>
+      <uri>https://www.reddit.com/user/jacek2023</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"&gt; &lt;img alt="apple/LensVLM-9B · Hugging Face" src="https://external-preview.redd.it/28Q3wD1n-PoRxG7GTQQSSNlpNDxO14gggulfl36nP4U.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=9524b558d1febd7789a4deac12282a4ceca1a8e1" title="apple/LensVLM-9B · Hugging Face" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;a href="https://huggingface.co/bartowski/LensVLM-9B-GGUF"&gt;https://huggingface.co/bartowski/LensVLM-9B-GGUF&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B#lensvlm-9b"&gt;&lt;/a&gt;LensVLM-9B&lt;/h1&gt; &lt;p&gt;LensVLM is a 9B Vision Language Model (VLM) that scans compressed images of text, then selectively expands only the relevant pages to their uncompressed form via learned tools.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Paper: &lt;a href="https://arxiv.org/abs/2605.07019"&gt;LensVLM: Selective Context Expansion for Compressed Visual Representation of Text&lt;/a&gt;&lt;/li&gt; &lt;li&gt;Code: &lt;a href="https://github.com/apple-aiml-research/ml-lensvlm"&gt;https://github.com/apple-aiml-research/ml-lensvlm&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B#license"&gt;&lt;/a&gt;License&lt;/h1&gt; &lt;p&gt;All ML model files in this repository, including Apple's modifications to the Qwen model, are provided under the terms of the &lt;a href="https://huggingface.co/apple/LensVLM-9B/blob/main/LICENSE"&gt;Apple Machine Learning Research Model License&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;The source code that accompanies this model is distributed separately and is provided under the terms of the Apple Sample Code License.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/jacek2023"&gt; /u/jacek2023 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://huggingface.co/apple/LensVLM-9B"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wodf84/applelensvlm9b_hugging_face/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T18:04:25+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woxa4h/are_there_any_dflash_heads_for_cybertiel/</id>
+    <title>Are there any DFlash heads for CyberTiel?</title>
+    <updated>2026-09-24T09:45:48+00:00</updated>
+    <author>
+      <name>/u/Aggravating-Push-207</name>
+      <uri>https://www.reddit.com/user/Aggravating-Push-207</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;If not, would any old Qwen 3.6 35B A3B or Ornith 1.5 35B A3B head work? I would like even faster speeds.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Aggravating-Push-207"&gt; /u/Aggravating-Push-207 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woxa4h/are_there_any_dflash_heads_for_cybertiel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woxa4h/are_there_any_dflash_heads_for_cybertiel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woxa4h/are_there_any_dflash_heads_for_cybertiel/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T09:45:48+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/</id>
+    <title>New DeepThink built on GLM</title>
+    <updated>2026-09-24T01:15:02+00:00</updated>
+    <author>
+      <name>/u/krzonkalla</name>
+      <uri>https://www.reddit.com/user/krzonkalla</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"&gt; &lt;img alt="New DeepThink built on GLM" src="https://preview.redd.it/34b3tzymbdrh1.png?width=140&amp;amp;height=105&amp;amp;auto=webp&amp;amp;s=c7489700cfafbe9dac6937af263171240b7b38b3" title="New DeepThink built on GLM" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Source: &lt;a href="https://rogueon.ai/blog/rogue-deep-think-preview/tecnica"&gt;https://rogueon.ai/blog/rogue-deep-think-preview/tecnica&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Could this kinda stuff be the way for open models to prevail? Since open models are so much cheaper than, say, Astra and Fable, maybe just cranking up reasoning to the max can get us a bit closer.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/krzonkalla"&gt; /u/krzonkalla &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1woo22j"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1woo22j/new_deepthink_built_on_glm/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-24T01:15:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/</id>
+    <title>Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan</title>
+    <updated>2026-09-23T20:16:51+00:00</updated>
+    <author>
+      <name>/u/Fcking_Chuck</name>
+      <uri>https://www.reddit.com/user/Fcking_Chuck</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"&gt; &lt;img alt="Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan" src="https://external-preview.redd.it/BvZbjDIx7hq-WYd7XU42EbHZrELozxEZvqrb4btP7nc.jpeg?width=320&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fde885abf6dee796e35a0ee351a25637748afcb9" title="Lemonade fixes AMD APU model streaming, drops OpenMOSS ROCm as ~40x slower than Vulkan" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Fcking_Chuck"&gt; /u/Fcking_Chuck &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.phoronix.com/news/Lemonade-2026.40-RC"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1wogzdm/lemonade_fixes_amd_apu_model_streaming_drops/"/>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <published>2026-09-23T20:16:51+00:00</published>
   </entry>
 </feed>
