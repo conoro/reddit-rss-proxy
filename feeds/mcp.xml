@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-10-03T10:05:57+00:00</updated>
+  <updated>2026-10-03T14:46:28+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,6 +34,32 @@
     <published>2024-12-06T02:04:10+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wwkor1/how_are_you_fixing_production_errors_with_your/</id>
+    <title>How are you fixing production errors with your agent?</title>
+    <updated>2026-10-03T11:13:46+00:00</updated>
+    <author>
+      <name>/u/pauljasperdev</name>
+      <uri>https://www.reddit.com/user/pauljasperdev</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I have a daily Hermes job that reads sentry issues, checks the current codebase for existing fixes, looks for related Linear tickets and then creates a ticket when there’s work to do.&lt;/p&gt; &lt;p&gt;It usually works, but sometimes it fails to run. I also lose track of which fixes are still in staging and which have actually reached production.&lt;/p&gt; &lt;p&gt;When my agent starts working on a ticket, it sometimes “forgets” how to access the cloudflare logs or the original sentry issue.&lt;/p&gt; &lt;p&gt;It’s held together with duct tape and kind of works but I'm not very happy with it. Would be interested how you're solving this.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/pauljasperdev"&gt; /u/pauljasperdev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwkor1/how_are_you_fixing_production_errors_with_your/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwkor1/how_are_you_fixing_production_errors_with_your/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wwkor1/how_are_you_fixing_production_errors_with_your/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-03T11:13:46+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wwjuq9/mcp_for_tour_guides_a_remote_server_with_100/</id>
+    <title>MCP for tour guides: a remote server with ~100 tools and OAuth, and what broke along the way</title>
+    <updated>2026-10-03T10:22:48+00:00</updated>
+    <author>
+      <name>/u/AdPitiful4816</name>
+      <uri>https://www.reddit.com/user/AdPitiful4816</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wwjuq9/mcp_for_tour_guides_a_remote_server_with_100/"&gt; &lt;img alt="MCP for tour guides: a remote server with ~100 tools and OAuth, and what broke along the way" src="https://preview.redd.it/73ewec7qa8th1.png?width=140&amp;amp;height=78&amp;amp;auto=webp&amp;amp;s=f9f21152ffbe1711bc76d4b9e839a81cfd7bab9b" title="MCP for tour guides: a remote server with ~100 tools and OAuth, and what broke along the way" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I run Your Next Tours, an app tour guides use to broadcast live audio to their group from a phone. We just shipped a remote MCP server so guides can plug their own Claude, ChatGPT or Cursor into their account. The main use case is pretty mundane: a guide drops an itinerary PDF into the chat and the model builds the tour program, the trip departure and the guest list through tools, instead of the guide retyping it in our panel.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Endpoint: &lt;code&gt;https://api.yournext.tours/api/mcp/guide&lt;/code&gt; (Streamable HTTP, stateless)&lt;/li&gt; &lt;li&gt;Registry: &lt;code&gt;tours.yournext/guide&lt;/code&gt;&lt;/li&gt; &lt;li&gt;Auth: OAuth 2.1 + PKCE (self-hosted Ory Hydra as the AS), or a per-user API key for clients that only do headers&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/73ewec7qa8th1.png?width=3200&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=09886977d7210ac978bf466e04f57381dc7e89c9"&gt;Tour Guide MCP Server&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Things that cost us time and might save you some:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1. Answer GET with 405, not 404.&lt;/strong&gt; Stateless server, no SSE stream, so GET had no handler and returned 404. Cursor and Gemini CLI showed that as &amp;quot;Failed to open SSE stream&amp;quot; and gave up. The SDK client treats 405 as &amp;quot;no stream here, fine&amp;quot;. Return 405 with &lt;code&gt;Allow: POST&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;2. The status has to be 401.&lt;/strong&gt; For Claude to start the OAuth flow you need an actual 401 with &lt;code&gt;WWW-Authenticate: Bearer resource_metadata=&amp;quot;...&amp;quot;&lt;/code&gt;. The same header on a 200 is ignored. And a &lt;code&gt;sub&lt;/code&gt; that isn't a valid UUID must be rejected before it reaches the DB: ours hit Postgres, came back as a 400, and the client never re-authorized.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;3. Some clients read scopes from the AS, not from you.&lt;/strong&gt; We advertised a narrow, safe scope set in the RFC 9728 resource metadata. Gemini CLI ignored it and built its request from &lt;code&gt;scopes_supported&lt;/code&gt; in the AS's &lt;code&gt;openid-configuration&lt;/code&gt;. Hydra's default there is basically &lt;code&gt;openid offline&lt;/code&gt;, so the consent screen came up empty and no token was issued. Fix: keep that list identical to your resource metadata. Don't put the full catalog there either, because consent pre-checks everything requested, including the scopes that expose guest PII.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;4. Write tools have to state their annotations explicitly.&lt;/strong&gt; Per spec, a missing &lt;code&gt;destructiveHint&lt;/code&gt; means &lt;code&gt;true&lt;/code&gt;. We wanted forgetting one to fail loudly, not quietly turn into a &amp;quot;safe&amp;quot; tool. Write tools don't compile without annotations, and there's a boot-time assert as a backstop. Read tools can't carry overrides at all. The Claude and ChatGPT directory reviews check these per tool, so it paid off.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;5. Tell the model who it is talking to.&lt;/strong&gt; Tools are filtered by scope, role and plan. When an org tool was missing, the model invented a reason for it. We now put the account, org, role, plan and granted scopes in &lt;code&gt;initialize.instructions&lt;/code&gt;, so it can give the real reason instead.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;6. Models fill empty forms with fiction.&lt;/strong&gt; Asked to &amp;quot;build my company website&amp;quot;, the model filled every section with made-up content without asking a single question. Now &lt;code&gt;get_website_overview&lt;/code&gt; returns a list of open questions (what's missing and what to ask the user), plus rules against inventing prices, licence numbers, reviews or addresses. It interviews the user first now.&lt;/p&gt; &lt;p&gt;Scope design, in case it's useful: every tool needs a scope, reads included. Editing a trip (&lt;code&gt;trips:write&lt;/code&gt;) can never notify guests. Delay or cancel announcements, which email people, are a separate scope (&lt;code&gt;trips:announce&lt;/code&gt;), so there's no such thing as a silent cancel. The guest list is masked by default, and getting full data is an explicit parameter that gets logged.&lt;/p&gt; &lt;p&gt;Happy to answer questions about the OAuth setup or tool design. If you know of a client that breaks against it, I'd like to hear about it.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AdPitiful4816"&gt; /u/AdPitiful4816 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwjuq9/mcp_for_tour_guides_a_remote_server_with_100/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwjuq9/mcp_for_tour_guides_a_remote_server_with_100/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wwjuq9/mcp_for_tour_guides_a_remote_server_with_100/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-03T10:22:48+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wwgojn/one_thought_too_many_is_there_a_place/</id>
     <title>“One Thought Too Many” - Is there a place formula-based decisions should just stop?</title>
     <updated>2026-10-03T07:01:57+00:00</updated>
@@ -45,6 +71,19 @@
     <link href="https://www.reddit.com/r/mcp/comments/1wwgojn/one_thought_too_many_is_there_a_place/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-03T07:01:57+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wwn1z2/1509_rows_in_my_mcp_servers_audit_log_and_every/</id>
+    <title>1,509 rows in my MCP server's audit log and every one says "allowed". I don't trust that zero.</title>
+    <updated>2026-10-03T13:17:37+00:00</updated>
+    <author>
+      <name>/u/QuanTradin</name>
+      <uri>https://www.reddit.com/user/QuanTradin</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1wwn1z2/1509_rows_in_my_mcp_servers_audit_log_and_every/"&gt; &lt;img alt="1,509 rows in my MCP server's audit log and every one says &amp;quot;allowed&amp;quot;. I don't trust that zero." src="https://preview.redd.it/kqqhmnhz59th1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f44c715c63c0fb593473e0e81f806b2fa4a7525b" title="1,509 rows in my MCP server's audit log and every one says &amp;quot;allowed&amp;quot;. I don't trust that zero." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: I built the server this log comes from (Quantradin, a paper trading desk an agent drives over MCP; free, paper money only). No link here.&lt;/p&gt; &lt;p&gt;Every call through the agent door writes a row: who (a browser session or an agent key), what (submit a backtest, deploy a bot, pause one), and an outcome column. I went to count the refusals this week, because &amp;quot;what did the agent try and get told no&amp;quot; is the number people building on MCP keep asking me for.&lt;/p&gt; &lt;p&gt;There aren't any. Not one, in 1,509 rows since Aug 19.&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;last 30 days, agent keys only&lt;/th&gt; &lt;th&gt;count&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;backtests submitted&lt;/td&gt; &lt;td&gt;245&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;bots deployed&lt;/td&gt; &lt;td&gt;6&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;bots paused&lt;/td&gt; &lt;td&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;regrades&lt;/td&gt; &lt;td&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;refused&lt;/td&gt; &lt;td&gt;0&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;(Some of those agent rows are my own testing and I haven't split them out cleanly. The zero holds for every account though.)&lt;/p&gt; &lt;p&gt;Two stories fit that zero and I can't tell them apart from the table alone:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Nobody hit a wall. Plausible-ish. Read-only keys went live on 2026-09-25: a read-only key can look and step back (close, cancel, pause) but can't open a trade or switch a bot on. If every agent with a read-only key only ever read, there'd be nothing to refuse.&lt;/li&gt; &lt;li&gt;The refusal happens before the audit write. The permission check returns a 403 and the request never reaches the code that writes the row. So the log is a record of what succeeded, not of what was attempted, and I've been reading it as the second thing.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;My bet is (2), and it's embarrassing, because the whole pitch of scoping a credential is that you can show what the scope stopped. A log that only records the yeses can't show that.&lt;/p&gt; &lt;p&gt;What it should look like: the attempt gets a row before the permission check runs, and the outcome is filled in after (allowed, refused with the reason, or errored). That isn't how it works today and it hasn't shipped.&lt;/p&gt; &lt;p&gt;The check that settles it is boring: take a read-only key, ask it to deploy, confirm the 403, then look for the row. I haven't run it yet. If there's no row, the log has been lying by omission since August.&lt;/p&gt; &lt;p&gt;For those of you running MCP servers with any kind of permission layer: do you log at the gate or at the tool, and have you ever caught a refusal that didn't leave a trace.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/QuanTradin"&gt; /u/QuanTradin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/kqqhmnhz59th1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwn1z2/1509_rows_in_my_mcp_servers_audit_log_and_every/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wwn1z2/1509_rows_in_my_mcp_servers_audit_log_and_every/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-03T13:17:37+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1wwjhjp/cimcmcp_an_mcp_server_for_managing_standalone/</id>
@@ -71,6 +110,19 @@
     <link href="https://www.reddit.com/r/mcp/comments/1wwjhis/crickettravel_bespoke_cricket_and_golf_tours_tour/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-03T10:00:01+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/</id>
+    <title>Free self-hosted MCP gateway with argument-level policy: "refunds up to $100" instead of just "may call create_refund"</title>
+    <updated>2026-10-03T02:18:10+00:00</updated>
+    <author>
+      <name>/u/ToBeContinuedHermit</name>
+      <uri>https://www.reddit.com/user/ToBeContinuedHermit</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: I built this. Obol is a gateway for agent traffic, and it's now&lt;br /&gt; free to self-host.&lt;/p&gt; &lt;p&gt;Most MCP gateways I've looked at decide per tool: an agent can call&lt;br /&gt; `create_refund` or it can't. I wanted the decision to depend on the&lt;br /&gt; arguments. Policies are Cedar, default-deny, and evaluated in-process before&lt;br /&gt; the call leaves.&lt;/p&gt; &lt;p&gt;What else it does:&lt;/p&gt; &lt;p&gt;- **`tools/list` only shows tools the key can actually call.** The model&lt;br /&gt; never sees the rest.&lt;br /&gt; - **Destructive tools in prod require approval.** An approved call runs once,&lt;br /&gt; against its idempotency record, so a retrying agent can't double-refund.&lt;br /&gt; - **Every tool call gets a receipt** with the policy that decided it, the&lt;br /&gt; upstream id, the vendor status, and an **evidence class**. On a native route&lt;br /&gt; the gateway observed the call itself. On a federated or third-party MCP&lt;br /&gt; route, the receipt is labeled as unverified rather than pretending.&lt;br /&gt; - **Vendor credentials stay in a vault.** They're decrypted only on the&lt;br /&gt; outbound hop, so the agent only ever holds an Obol key.&lt;br /&gt; - **You can bring your own tools.** Import a remote MCP server or an OpenAPI&lt;br /&gt; spec; it also ships with 100+ reviewed native connector packs.&lt;br /&gt; - **Model calls go through the same key.** `/v1` is OpenAI-compatible, uses&lt;br /&gt; your own provider keys, and supports per-key monthly budgets that are&lt;br /&gt; reserved before dispatch.&lt;/p&gt; &lt;p&gt;Self-host is a single Docker Compose bundle with prebuilt images. It's free,&lt;br /&gt; with no call quota; your vendor bills stay with you. It's not open source (the&lt;br /&gt; source repo isn't public) and it's single-host only.&lt;/p&gt; &lt;p&gt;Guide: &lt;a href="https://docs.tryobol.dev/get-started/self-hosting"&gt;https://docs.tryobol.dev/get-started/self-hosting&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Website: &lt;a href="https://www.tryobol.dev"&gt;https://www.tryobol.dev&lt;/a&gt;&lt;/p&gt; &lt;p&gt;What argument-level conditions would you want that per-tool allowlists can't&lt;br /&gt; express?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ToBeContinuedHermit"&gt; /u/ToBeContinuedHermit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-03T02:18:10+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1ww9u7g/remote_mcp_server_with_8_readonly_tools_headlines/</id>
@@ -110,19 +162,6 @@
     <link href="https://www.reddit.com/r/mcp/comments/1wwen60/reddit_mcp_server_provides_ai_assistants_with/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-03T05:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/</id>
-    <title>Free self-hosted MCP gateway with argument-level policy: "refunds up to $100" instead of just "may call create_refund"</title>
-    <updated>2026-10-03T02:18:10+00:00</updated>
-    <author>
-      <name>/u/ToBeContinuedHermit</name>
-      <uri>https://www.reddit.com/user/ToBeContinuedHermit</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: I built this. Obol is a gateway for agent traffic, and it's now&lt;br /&gt; free to self-host.&lt;/p&gt; &lt;p&gt;Most MCP gateways I've looked at decide per tool: an agent can call&lt;br /&gt; `create_refund` or it can't. I wanted the decision to depend on the&lt;br /&gt; arguments. Policies are Cedar, default-deny, and evaluated in-process before&lt;br /&gt; the call leaves.&lt;/p&gt; &lt;p&gt;What else it does:&lt;/p&gt; &lt;p&gt;- **`tools/list` only shows tools the key can actually call.** The model&lt;br /&gt; never sees the rest.&lt;br /&gt; - **Destructive tools in prod require approval.** An approved call runs once,&lt;br /&gt; against its idempotency record, so a retrying agent can't double-refund.&lt;br /&gt; - **Every tool call gets a receipt** with the policy that decided it, the&lt;br /&gt; upstream id, the vendor status, and an **evidence class**. On a native route&lt;br /&gt; the gateway observed the call itself. On a federated or third-party MCP&lt;br /&gt; route, the receipt is labeled as unverified rather than pretending.&lt;br /&gt; - **Vendor credentials stay in a vault.** They're decrypted only on the&lt;br /&gt; outbound hop, so the agent only ever holds an Obol key.&lt;br /&gt; - **You can bring your own tools.** Import a remote MCP server or an OpenAPI&lt;br /&gt; spec; it also ships with 100+ reviewed native connector packs.&lt;br /&gt; - **Model calls go through the same key.** `/v1` is OpenAI-compatible, uses&lt;br /&gt; your own provider keys, and supports per-key monthly budgets that are&lt;br /&gt; reserved before dispatch.&lt;/p&gt; &lt;p&gt;Self-host is a single Docker Compose bundle with prebuilt images. It's free,&lt;br /&gt; with no call quota; your vendor bills stay with you. It's not open source (the&lt;br /&gt; source repo isn't public) and it's single-host only.&lt;/p&gt; &lt;p&gt;Guide: &lt;a href="https://docs.tryobol.dev/get-started/self-hosting"&gt;https://docs.tryobol.dev/get-started/self-hosting&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Website: &lt;a href="https://www.tryobol.dev"&gt;https://www.tryobol.dev&lt;/a&gt;&lt;/p&gt; &lt;p&gt;What argument-level conditions would you want that per-tool allowlists can't&lt;br /&gt; express?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ToBeContinuedHermit"&gt; /u/ToBeContinuedHermit &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wwbpzn/free_selfhosted_mcp_gateway_with_argumentlevel/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-03T02:18:10+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1ww5upy/showcase_an_mcpcontrolled_backend_runtime_for/</id>
@@ -292,44 +331,5 @@
     <link href="https://www.reddit.com/r/mcp/comments/1ww3lt7/sports_betting_mcp_provides_aipowered_sports/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-02T20:00:02+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1ww3lsg/follow_on_tours_bespoke_cricket_and_golf_travel/</id>
-    <title>Follow On Tours – Bespoke cricket and golf travel. Tour operator and package organiser — you contract with us and we take payment. ABTOT bonded (5718). Not a broker. Darren Gough MBE ambassador &amp; shareholder. Public MCP: list tours (incl. holding), destinations, golf trips, Cape Town experiences, fi</title>
-    <updated>2026-10-02T20:00:01+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1ww3lsg/follow_on_tours_bespoke_cricket_and_golf_travel/"&gt; &lt;img alt="Follow On Tours – Bespoke cricket and golf travel. Tour operator and package organiser — you contract with us and we take payment. ABTOT bonded (5718). Not a broker. Darren Gough MBE ambassador &amp;amp; shareholder. Public MCP: list tours (incl. holding), destinations, golf trips, Cape Town experiences, fi" src="https://external-preview.redd.it/LKkz-yG8yD8Jn6kLEFxck1Y7RFqjO5bdNkd-USAnfjk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=49630c3d845c5ac7dd8c39b248dbb10a5cc28548" title="Follow On Tours – Bespoke cricket and golf travel. Tour operator and package organiser — you contract with us and we take payment. ABTOT bonded (5718). Not a broker. Darren Gough MBE ambassador &amp;amp; shareholder. Public MCP: list tours (incl. holding), destinations, golf trips, Cape Town experiences, fi" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.followontours/follow-on-tours"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1ww3lsg/follow_on_tours_bespoke_cricket_and_golf_travel/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1ww3lsg/follow_on_tours_bespoke_cricket_and_golf_travel/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-02T20:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1ww25hi/super_trouper_v040_more_frida_tools_for_ios_app/</id>
-    <title>Super Trouper v0.4.0 — more Frida tools for iOS app reverse engineering</title>
-    <updated>2026-10-02T19:01:30+00:00</updated>
-    <author>
-      <name>/u/neathack</name>
-      <uri>https://www.reddit.com/user/neathack</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1ww25hi/super_trouper_v040_more_frida_tools_for_ios_app/"&gt; &lt;img alt="Super Trouper v0.4.0 — more Frida tools for iOS app reverse engineering" src="https://external-preview.redd.it/iwDE6GTqqX_Ypy4NW0Up4OMklap5pNNePshvclG01dA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=f61da4611387ed72b66a80fefc70b95abd3e937b" title="Super Trouper v0.4.0 — more Frida tools for iOS app reverse engineering" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m the author of &lt;strong&gt;Super Trouper&lt;/strong&gt;, a single-binary MCP server that exposes Frida to coding agents for authorized app reverse engineering. It lets an agent connect to a device, inspect apps and processes, manage sessions, and run instrumentation scripts without a Python-based Frida setup.&lt;/p&gt; &lt;p&gt;We released v0.4.0 a few days ago; it updates the bundled Frida Core DevKit to v17.19.0 and adds four MCP tools: &lt;code&gt;memory_read&lt;/code&gt; and &lt;code&gt;memory_write&lt;/code&gt; for working with memory in an attached process, plus &lt;code&gt;module_list&lt;/code&gt; and &lt;code&gt;thread_list&lt;/code&gt; for inspecting loaded modules and threads. &lt;code&gt;app_list&lt;/code&gt; and others now have several query scopes, and we renamed the MCP tools into clearer namespaces. If you already have workflows built around the old tool names, check them when updating.&lt;/p&gt; &lt;p&gt;Quick catch-up on the two previous releases: v0.3.0 added npm installation, Frida CodeShare snippet search/use, and general cleanup. v0.2.0 moved the project to the MIT license, added first-party Frida language bridges for ObjC, Java, and Swift, and enabled TypeScript in scripts and evaluations.&lt;/p&gt; &lt;p&gt;I’d appreciate feedback from people using Frida in iOS research: are these tool boundaries and the new app-list scopes useful in practice? What’s missing or awkward in your workflow, and which features would you like to see next? Let me know what you think.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/neathack"&gt; /u/neathack &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://github.com/crissyfield/super-trouper"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1ww25hi/super_trouper_v040_more_frida_tools_for_ios_app/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1ww25hi/super_trouper_v040_more_frida_tools_for_ios_app/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-02T19:01:30+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1wvvumd/750_stars_one_maintainer_and_looking_for/</id>
-    <title>750+ stars, one maintainer and looking for contributors</title>
-    <updated>2026-10-02T14:52:46+00:00</updated>
-    <author>
-      <name>/u/likann22</name>
-      <uri>https://www.reddit.com/user/likann22</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I maintain arcticdb-mcp, an MCP server for querying and updating time-series data.&lt;/p&gt; &lt;p&gt;Looking for help with pagination, staged ingestion, read-only mode, and testing (cant do it on my own not its growing and it was also referenced by the actual repo of man group which got 2k+ stars).&lt;/p&gt; &lt;p&gt;Scoped issues ready:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/YMuskrat/arcticdb%5C_mcp"&gt;https://github.com/YMuskrat/arcticdb\_mcp&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/likann22"&gt; /u/likann22 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wvvumd/750_stars_one_maintainer_and_looking_for/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1wvvumd/750_stars_one_maintainer_and_looking_for/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1wvvumd/750_stars_one_maintainer_and_looking_for/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-02T14:52:46+00:00</published>
   </entry>
 </feed>
