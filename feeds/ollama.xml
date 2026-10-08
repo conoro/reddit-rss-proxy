@@ -2,24 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-10-07T20:11:39+00:00</updated>
+  <updated>2026-10-08T00:14:01+00:00</updated>
   <link href="https://www.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/</id>
-    <title>Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)</title>
-    <updated>2026-10-07T11:13:54+00:00</updated>
-    <author>
-      <name>/u/VanillaOk4593</name>
-      <uri>https://www.reddit.com/user/VanillaOk4593</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt; &lt;img alt="Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)" src="https://preview.redd.it/m77vacug31uh1.png?width=140&amp;amp;height=98&amp;amp;auto=webp&amp;amp;s=f15530769879263467c2afa1826510d5c2a3cde9" title="Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure first: I work at Vstorm and I build AgenticOS, an open-source (Apache-2.0), self-hosted platform for building AI agents in a browser. This post was drafted with an LLM's help and edited by me. Can you run the whole thing on local models, with nothing leaving your network? Yes, but &amp;quot;self-hosted&amp;quot; alone doesn't get you there. Each piece is its own choice.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What a fully local setup needs&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Chat model.&lt;/strong&gt; An Ollama profile with no key, pointed at an endpoint you host, or a LiteLLM proxy you host that forwards only to local models. vLLM and LM Studio work through an OpenAI-compatible endpoint. A profile counts as self-hosted because of its endpoint, not because it has no key.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Embeddings.&lt;/strong&gt; An Ollama you host, registered as a local service and chosen per knowledge-base collection. The chunks and the search queries then go to that host and nowhere else. The embedding model is chosen per collection, and the docs treat it as a permanent choice.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Document parsing.&lt;/strong&gt; PyMuPDF (the default) and LiteParse, with Tesseract OCR, run in the worker. LlamaParse is a cloud option and needs a key, so leave it off.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Traces.&lt;/strong&gt; Leave &lt;code&gt;LOGFIRE_TOKEN&lt;/code&gt; unset and don't set a tracing token on any agent or environment. Then the run traces stay local.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tools.&lt;/strong&gt; Don't bind web search, web fetch, browser automation, mem0 memory or any MCP server, because each of those calls out.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/m77vacug31uh1.png?width=1845&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=734c3c3d5e74e09c11a0c842d120b1f05d03140a"&gt;Agent Builder&lt;/a&gt;&lt;/p&gt; &lt;p&gt;There's also a HIPAA-oriented profile whose &lt;code&gt;local-model&lt;/code&gt; check parses the hostname of every model endpoint, so &lt;code&gt;https://ollama.vendor.example&lt;/code&gt; doesn't count as local. That's a configuration check, not a certification.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Two things that bite with local models&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Dollar budgets don't cover them.&lt;/strong&gt; Spend is attributed to the API key a run used, and a keyless local model records no spend. The per-agent step limit (&lt;code&gt;max_steps&lt;/code&gt;, a cap on model requests per run) is what stops a runaway tool loop. Set it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The agent is as good as the model's tool calling.&lt;/strong&gt; Planning, document search and the sandbox all go through tool calls. We have no local-model benchmark to share, so I won't claim one works well.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Setup&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Docker Compose 2.24 or later, two published images (amd64 and arm64), plus Postgres with pgvector, Redis and Prefect started by the same compose file. The installer has a &lt;code&gt;--check&lt;/code&gt; flag that only tests prerequisites. It only offers hosted providers, so pick &amp;quot;Decide later&amp;quot; (&lt;code&gt;--provider none&lt;/code&gt;) and add the Ollama or vLLM profile in the console afterwards. It also mirrors the public MCP server registry by default, so run it with &lt;code&gt;--no-mcp&lt;/code&gt; to skip that download. It's still 0.0.x, single host, no Kubernetes manifests, no reranker.&lt;/p&gt; &lt;p&gt;Repo and docs: &lt;a href="https://github.com/vstorm-co/agenticos"&gt;https://github.com/vstorm-co/agenticos&lt;/a&gt;. The local setup is described in &lt;a href="https://vstorm-co.github.io/agenticos/data-protection/"&gt;https://vstorm-co.github.io/agenticos/data-protection/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The question I'd actually like answered: which local models are you getting reliable multi-step tool calling from right now, at what size and on what hardware?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0epopufi31uh1.png?width=1678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3430efc992cbea1ed3b9105015a949c990ec5de2"&gt;Internal Chat Interface&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/VanillaOk4593"&gt; /u/VanillaOk4593 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-07T11:13:54+00:00</published>
-  </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x02pdu/looking_for_1020_people_for_a_coordinated_llm_test/</id>
     <title>Looking for 10–20 people for a coordinated LLM test</title>
@@ -34,6 +21,19 @@
     <published>2026-10-07T17:29:37+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/</id>
+    <title>Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)</title>
+    <updated>2026-10-07T11:13:54+00:00</updated>
+    <author>
+      <name>/u/VanillaOk4593</name>
+      <uri>https://www.reddit.com/user/VanillaOk4593</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt; &lt;img alt="Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)" src="https://preview.redd.it/m77vacug31uh1.png?width=140&amp;amp;height=98&amp;amp;auto=webp&amp;amp;s=f15530769879263467c2afa1826510d5c2a3cde9" title="Running an open-source agent platform with no third party in the chain: what each piece needs (Ollama/vLLM, local embeddings, local OCR)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure first: I work at Vstorm and I build AgenticOS, an open-source (Apache-2.0), self-hosted platform for building AI agents in a browser. This post was drafted with an LLM's help and edited by me. Can you run the whole thing on local models, with nothing leaving your network? Yes, but &amp;quot;self-hosted&amp;quot; alone doesn't get you there. Each piece is its own choice.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What a fully local setup needs&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Chat model.&lt;/strong&gt; An Ollama profile with no key, pointed at an endpoint you host, or a LiteLLM proxy you host that forwards only to local models. vLLM and LM Studio work through an OpenAI-compatible endpoint. A profile counts as self-hosted because of its endpoint, not because it has no key.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Embeddings.&lt;/strong&gt; An Ollama you host, registered as a local service and chosen per knowledge-base collection. The chunks and the search queries then go to that host and nowhere else. The embedding model is chosen per collection, and the docs treat it as a permanent choice.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Document parsing.&lt;/strong&gt; PyMuPDF (the default) and LiteParse, with Tesseract OCR, run in the worker. LlamaParse is a cloud option and needs a key, so leave it off.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Traces.&lt;/strong&gt; Leave &lt;code&gt;LOGFIRE_TOKEN&lt;/code&gt; unset and don't set a tracing token on any agent or environment. Then the run traces stay local.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Tools.&lt;/strong&gt; Don't bind web search, web fetch, browser automation, mem0 memory or any MCP server, because each of those calls out.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/m77vacug31uh1.png?width=1845&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=734c3c3d5e74e09c11a0c842d120b1f05d03140a"&gt;Agent Builder&lt;/a&gt;&lt;/p&gt; &lt;p&gt;There's also a HIPAA-oriented profile whose &lt;code&gt;local-model&lt;/code&gt; check parses the hostname of every model endpoint, so &lt;code&gt;https://ollama.vendor.example&lt;/code&gt; doesn't count as local. That's a configuration check, not a certification.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Two things that bite with local models&lt;/strong&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Dollar budgets don't cover them.&lt;/strong&gt; Spend is attributed to the API key a run used, and a keyless local model records no spend. The per-agent step limit (&lt;code&gt;max_steps&lt;/code&gt;, a cap on model requests per run) is what stops a runaway tool loop. Set it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The agent is as good as the model's tool calling.&lt;/strong&gt; Planning, document search and the sandbox all go through tool calls. We have no local-model benchmark to share, so I won't claim one works well.&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&lt;strong&gt;Setup&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Docker Compose 2.24 or later, two published images (amd64 and arm64), plus Postgres with pgvector, Redis and Prefect started by the same compose file. The installer has a &lt;code&gt;--check&lt;/code&gt; flag that only tests prerequisites. It only offers hosted providers, so pick &amp;quot;Decide later&amp;quot; (&lt;code&gt;--provider none&lt;/code&gt;) and add the Ollama or vLLM profile in the console afterwards. It also mirrors the public MCP server registry by default, so run it with &lt;code&gt;--no-mcp&lt;/code&gt; to skip that download. It's still 0.0.x, single host, no Kubernetes manifests, no reranker.&lt;/p&gt; &lt;p&gt;Repo and docs: &lt;a href="https://github.com/vstorm-co/agenticos"&gt;https://github.com/vstorm-co/agenticos&lt;/a&gt;. The local setup is described in &lt;a href="https://vstorm-co.github.io/agenticos/data-protection/"&gt;https://vstorm-co.github.io/agenticos/data-protection/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The question I'd actually like answered: which local models are you getting reliable multi-step tool calling from right now, at what size and on what hardware?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/0epopufi31uh1.png?width=1678&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=3430efc992cbea1ed3b9105015a949c990ec5de2"&gt;Internal Chat Interface&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/VanillaOk4593"&gt; /u/VanillaOk4593 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wztska/running_an_opensource_agent_platform_with_no/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-07T11:13:54+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wzpp1b/three_ai_agents_research_a_4day_week_and_build/</id>
     <title>Three AI agents research a 4-day week and build the deck | Row-Bot + GPT 6.1 Sol</title>
     <updated>2026-10-07T06:50:18+00:00</updated>
@@ -45,6 +45,19 @@
     <link href="https://www.reddit.com/r/ollama/comments/1wzpp1b/three_ai_agents_research_a_4day_week_and_build/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-07T06:50:18+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/</id>
+    <title>Small uncensored model for everyday questions on a CPU-only laptop?</title>
+    <updated>2026-10-07T07:41:13+00:00</updated>
+    <author>
+      <name>/u/Jaywolfy02</name>
+      <uri>https://www.reddit.com/user/Jaywolfy02</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I'm looking for a small uncensored model to run locally with Ollama. Nothing fancy. I just want something I can ask everyday questions without it refusing or lecturing me every other message. Quick explanations, help with phrasing stuff, general &amp;quot;what's the deal with X&amp;quot; questions. It doesn't need to be perfect or great at coding.&lt;/p&gt; &lt;p&gt;My setup is a Lenovo ThinkPad L14 Gen 3 with a Ryzen 5 PRO 5675U, 32 GB RAM and no dedicated GPU, so everything runs on the CPU. I'm fine with it being a bit slow, but it should stay usable and not take a minute per answer.&lt;/p&gt; &lt;p&gt;Which models would you recommend for this? Is it worth going for something around 7-8B with my RAM, or are 3-4B models good enough for casual use? Also curious whether you prefer abliterated models or proper uncensored fine-tunes, and which quantization you'd pick.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Jaywolfy02"&gt; /u/Jaywolfy02 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-07T07:41:13+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wzs41h/qwen_36_35b_and_indentation/</id>
@@ -71,19 +84,6 @@
     <link href="https://www.reddit.com/r/ollama/comments/1wzz4i4/i_got_so_tired_of_chatgpt_browser_tabs_eating_2gb/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-07T15:13:08+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/</id>
-    <title>Small uncensored model for everyday questions on a CPU-only laptop?</title>
-    <updated>2026-10-07T07:41:13+00:00</updated>
-    <author>
-      <name>/u/Jaywolfy02</name>
-      <uri>https://www.reddit.com/user/Jaywolfy02</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt; &lt;p&gt;I'm looking for a small uncensored model to run locally with Ollama. Nothing fancy. I just want something I can ask everyday questions without it refusing or lecturing me every other message. Quick explanations, help with phrasing stuff, general &amp;quot;what's the deal with X&amp;quot; questions. It doesn't need to be perfect or great at coding.&lt;/p&gt; &lt;p&gt;My setup is a Lenovo ThinkPad L14 Gen 3 with a Ryzen 5 PRO 5675U, 32 GB RAM and no dedicated GPU, so everything runs on the CPU. I'm fine with it being a bit slow, but it should stay usable and not take a minute per answer.&lt;/p&gt; &lt;p&gt;Which models would you recommend for this? Is it worth going for something around 7-8B with my RAM, or are 3-4B models good enough for casual use? Also curious whether you prefer abliterated models or proper uncensored fine-tunes, and which quantization you'd pick.&lt;/p&gt; &lt;p&gt;Thanks!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Jaywolfy02"&gt; /u/Jaywolfy02 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wzqh5f/small_uncensored_model_for_everyday_questions_on/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-07T07:41:13+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wzyvb8/built_an_sqlite_memory_engine_for_ollama_that/</id>
@@ -255,19 +255,6 @@
     <published>2026-10-06T06:06:09+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/</id>
-    <title>Which Ollama MLX model for medical stuff, charts etc?</title>
-    <updated>2026-10-06T05:01:02+00:00</updated>
-    <author>
-      <name>/u/just_another_leddito</name>
-      <uri>https://www.reddit.com/user/just_another_leddito</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;I'm on M4 Pro 64GB Mac, I'm using Qwen3.8 27B for coding related stuff, but it's quite slow.&lt;br /&gt; I want a fast model that will be good when it comes to reasoning, medical stuff, would be nice if it could do stuff like generating charts and even analyse screenshots.&lt;/p&gt; &lt;p&gt;I'm using Ollama on Mac so preferably MLX model.&lt;/p&gt; &lt;p&gt;Thanks in advance&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/just_another_leddito"&gt; /u/just_another_leddito &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-06T05:01:02+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wyucws/a_local_27b_model_reads_my_lease_and_finds_a_leak/</id>
     <title>A local 27B model reads my lease and finds a leak in my bills | Row-Bot + qwen3.8 on Ollama</title>
     <updated>2026-10-06T05:19:30+00:00</updated>
@@ -279,6 +266,19 @@
     <link href="https://www.reddit.com/r/ollama/comments/1wyucws/a_local_27b_model_reads_my_lease_and_finds_a_leak/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-06T05:19:30+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/</id>
+    <title>Which Ollama MLX model for medical stuff, charts etc?</title>
+    <updated>2026-10-06T05:01:02+00:00</updated>
+    <author>
+      <name>/u/just_another_leddito</name>
+      <uri>https://www.reddit.com/user/just_another_leddito</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi,&lt;/p&gt; &lt;p&gt;I'm on M4 Pro 64GB Mac, I'm using Qwen3.8 27B for coding related stuff, but it's quite slow.&lt;br /&gt; I want a fast model that will be good when it comes to reasoning, medical stuff, would be nice if it could do stuff like generating charts and even analyse screenshots.&lt;/p&gt; &lt;p&gt;I'm using Ollama on Mac so preferably MLX model.&lt;/p&gt; &lt;p&gt;Thanks in advance&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/just_another_leddito"&gt; /u/just_another_leddito &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1wyu1i8/which_ollama_mlx_model_for_medical_stuff_charts/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-06T05:01:02+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1wyzzyl/httpsclaudeaichat834491a20f6c44be9cc953211c8b8405/</id>
