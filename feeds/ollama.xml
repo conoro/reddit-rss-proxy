@@ -2,11 +2,37 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-10-11T19:08:04+00:00</updated>
+  <updated>2026-10-11T22:57:28+00:00</updated>
   <link href="https://www.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/</id>
+    <title>Ollama 0.35+ now reports a prefill tok/s on the OpenAI endpoint. On a warm cache it's off by the cache hit ratio (3875 vs 125 tok/s). Plus two other things I measured on 0.40.3.</title>
+    <updated>2026-10-11T20:54:43+00:00</updated>
+    <author>
+      <name>/u/GuruCsharp</name>
+      <uri>https://www.reddit.com/user/GuruCsharp</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ollama 0.33.3 quietly started reporting &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;, and poking at it taught me something about prompt caching that I'd been getting wrong for a long time.&lt;/p&gt; &lt;p&gt;The KV cache only survives on a shared &lt;strong&gt;prefix&lt;/strong&gt;. It holds for exactly as long as the prompt still matches from the very first token. The moment one token differs, everything after it is discarded and re-evaluated — however identical the rest of it was.&lt;/p&gt; &lt;p&gt;Which means a single timestamp at the top of a system prompt costs you the entire system prompt, every single turn.&lt;/p&gt; &lt;p&gt;I measured it. Same model (qwen2.5:7b), same system prompt, same 324 tokens. The only difference is where one 21-token timestamp sits:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Timestamp position&lt;/th&gt; &lt;th&gt;Prompt tokens&lt;/th&gt; &lt;th&gt;Reused from cache&lt;/th&gt; &lt;th&gt;Prefill&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;At the start&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;64.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;At the end&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;290&lt;/td&gt; &lt;td&gt;18.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Same words, same token count, &lt;strong&gt;3.5x the prefill time&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;A few things that surprised me while testing this:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The obvious measurement is the wrong one.&lt;/strong&gt; My first attempt compared &amp;quot;how much of layout A's cache does layout B reuse&amp;quot; and produced a completely inverted result. That's not what real traffic does. Real traffic re-sends the &lt;em&gt;same&lt;/em&gt; layout every turn with a &lt;em&gt;fresh&lt;/em&gt; value. So you have to send each layout twice — once with its own values, once with the value changed — and measure the second send. Measuring the first only tells you how well a prompt matches itself, which is ~100% for any layout and tells you nothing.&lt;/p&gt; &lt;p&gt;**&lt;code&gt;prompt_eval_duration&lt;/code&gt; changed meaning in 0.33.3** and it's easy to miss. It now times only the &lt;em&gt;uncached&lt;/em&gt; tokens, while &lt;code&gt;prompt_eval_count&lt;/code&gt; is still the total. So if you compute prefill throughput as count/duration the way everyone always has, you now over-report it by the cache hit ratio. On that warm run above, the naive formula reads 4375 tok/s instead of 115. Worth checking if you have dashboards doing this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The practical fix costs nothing.&lt;/strong&gt; Stable stuff first — role, rules, style, examples. Anything that changes per turn goes last: current time, user id, session id, retrieved chunks. Also keep RAG chunks in a stable order; re-ranking them between turns invalidates the cache from the first chunk that moved. None of this changes what the model is told, only where.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;Disclosure: I build &lt;a href="https://github.com/LogneBudo/llmxray"&gt;LLMxRay&lt;/a&gt;, a local observability UI for Ollama, and I added a page that automates the measurement above — it finds the values in your prompt that change between turns, shows where the shared prefix breaks, and measures what moving them actually saves against your own daemon. Apache-2.0, runs entirely on localhost, &lt;code&gt;npx llmxray&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;But the finding stands on its own and you don't need the tool for it. If you have a system prompt with a timestamp near the top, you can check this with two curl calls and &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;. I'd be curious whether the ratio holds on larger prompts and other models — mine is a fairly small test.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/GuruCsharp"&gt; /u/GuruCsharp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T20:54:43+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3kvuf/local_coding_assistant_for_unity_godot_and_unreal/</id>
+    <title>Local coding assistant for Unity, Godot, and Unreal: what works well with Ollama today?</title>
+    <updated>2026-10-11T22:04:54+00:00</updated>
+    <author>
+      <name>/u/zimmer550king</name>
+      <uri>https://www.reddit.com/user/zimmer550king</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m exploring a local coding assistant for game development. My plan would be to run the model on a dedicated machine and connect to it from my main development PC over my home network.&lt;/p&gt; &lt;p&gt;I’d like to use it for code explanations, debugging, small feature changes, and project-aware questions. For people who use Ollama with coding tools, which models are dependable enough for real repositories, and which IDE or agent integrations have worked well for you?&lt;/p&gt; &lt;p&gt;I’m also trying to decide whether to build this now or wait about six months. Have recent open-weight coding models become noticeably more useful in practice, or do you still rely on hosted models for most substantial coding work?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/zimmer550king"&gt; /u/zimmer550king &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3kvuf/local_coding_assistant_for_unity_godot_and_unreal/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3kvuf/local_coding_assistant_for_unity_godot_and_unreal/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3kvuf/local_coding_assistant_for_unity_godot_and_unreal/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T22:04:54+00:00</published>
+  </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3buc0/web_browsing_was_implemented_using_only_the/</id>
     <title>Web browsing was implemented using only the **Clef-Flash 9B decision model**, running locally.</title>
@@ -19,6 +45,45 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x3buc0/web_browsing_was_implemented_using_only_the/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-11T16:00:39+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/</id>
+    <title>I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn</title>
+    <updated>2026-10-11T21:59:03+00:00</updated>
+    <author>
+      <name>/u/Grouchy-Excitement28</name>
+      <uri>https://www.reddit.com/user/Grouchy-Excitement28</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt; &lt;img alt="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" src="https://preview.redd.it/a173o214uwuh1.gif?width=640&amp;amp;crop=smart&amp;amp;s=98d57c1cd64e7e8295752b6e6b66e6eef8f3acb0" title="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Grouchy-Excitement28"&gt; /u/Grouchy-Excitement28 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/a173o214uwuh1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T21:59:03+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/</id>
+    <title>GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context</title>
+    <updated>2026-10-11T03:43:45+00:00</updated>
+    <author>
+      <name>/u/JuanixVentures</name>
+      <uri>https://www.reddit.com/user/JuanixVentures</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"&gt; &lt;img alt="GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context" src="https://external-preview.redd.it/xkf4DFGJJVQAcOm-gRv1XUfT76S6eJbOZ5vCHrldqoM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0f656ffd07e1fc84f2c67c820634d95c13752753" title="GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Test machine: M5 ultra. 36/80. 256GB.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;~61 tok/s&lt;/strong&gt; generation with GLM’s built-in MTP head (probabilistic drafting, 3 draft tokens), up from &lt;strong&gt;39.7&lt;/strong&gt; without it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Prompt reading is the weak spot:&lt;/strong&gt; ~765 tok/s at 4K tokens and ~630 tok/s at 59K. A 29K-token prompt takes 45 s.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The full 262K context fits&lt;/strong&gt; with ~15 GiB to spare, and long-context recall was correct at 58.8K tokens.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The catches:&lt;/strong&gt; images and MTP can’t be on at the same time, and deep context on Metal needs a fix has yet to be merged.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/JuanixVentures"&gt; /u/JuanixVentures &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://jvlewis.dev/glm-5-3-flash-320b-on-an-m5-ultra-mac-studio-with-llama-cpp-61-tok-s-262k-context-c184f21f6286"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T03:43:45+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3hh50/command_to_check_default_parameter/</id>
+    <title>Command to check default parameter</title>
+    <updated>2026-10-11T19:43:03+00:00</updated>
+    <author>
+      <name>/u/Hedgehog_Dapper</name>
+      <uri>https://www.reddit.com/user/Hedgehog_Dapper</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted to check the default temperature for the &lt;a href="https://ollama.com/library/nemotron3:33b"&gt;Nemotron3&lt;/a&gt;, usually it's written in params, if not how can I check it? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Hedgehog_Dapper"&gt; /u/Hedgehog_Dapper &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3hh50/command_to_check_default_parameter/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3hh50/command_to_check_default_parameter/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3hh50/command_to_check_default_parameter/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T19:43:03+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3b9hg/opencode_ollamaqwen354b_just_stoppend_while/</id>
@@ -34,17 +99,17 @@
     <published>2026-10-11T15:37:02+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/</id>
-    <title>GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context</title>
-    <updated>2026-10-11T03:43:45+00:00</updated>
+    <id>https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/</id>
+    <title>I tested 14 "decision models" against local LLMs on 56 real triage tasks. Qwen3.5-9B beat every one of them.</title>
+    <updated>2026-10-11T11:26:53+00:00</updated>
     <author>
-      <name>/u/JuanixVentures</name>
-      <uri>https://www.reddit.com/user/JuanixVentures</uri>
+      <name>/u/jeeleelee</name>
+      <uri>https://www.reddit.com/user/jeeleelee</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"&gt; &lt;img alt="GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context" src="https://external-preview.redd.it/xkf4DFGJJVQAcOm-gRv1XUfT76S6eJbOZ5vCHrldqoM.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0f656ffd07e1fc84f2c67c820634d95c13752753" title="GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Test machine: M5 ultra. 36/80. 256GB.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;~61 tok/s&lt;/strong&gt; generation with GLM’s built-in MTP head (probabilistic drafting, 3 draft tokens), up from &lt;strong&gt;39.7&lt;/strong&gt; without it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Prompt reading is the weak spot:&lt;/strong&gt; ~765 tok/s at 4K tokens and ~630 tok/s at 59K. A 29K-token prompt takes 45 s.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The full 262K context fits&lt;/strong&gt; with ~15 GiB to spare, and long-context recall was correct at 58.8K tokens.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The catches:&lt;/strong&gt; images and MTP can’t be on at the same time, and deep context on Metal needs a fix has yet to be merged.&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/JuanixVentures"&gt; /u/JuanixVentures &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://jvlewis.dev/glm-5-3-flash-320b-on-an-m5-ultra-mac-studio-with-llama-cpp-61-tok-s-262k-context-c184f21f6286"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"/>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/jeeleelee"&gt; /u/jeeleelee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1x35tkp/i_tested_14_decision_models_against_local_llms_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-10-11T03:43:45+00:00</published>
+    <published>2026-10-11T11:26:53+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/</id>
@@ -84,19 +149,6 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x3awog/openclaw_qwen_practicality/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-11T15:22:18+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/</id>
-    <title>I tested 14 "decision models" against local LLMs on 56 real triage tasks. Qwen3.5-9B beat every one of them.</title>
-    <updated>2026-10-11T11:26:53+00:00</updated>
-    <author>
-      <name>/u/jeeleelee</name>
-      <uri>https://www.reddit.com/user/jeeleelee</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/jeeleelee"&gt; /u/jeeleelee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1x35tkp/i_tested_14_decision_models_against_local_llms_on/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-11T11:26:53+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x2vg85/here_you_go_a_very_basic_open_source_ollama_flask/</id>
@@ -242,19 +294,6 @@
     <published>2026-10-10T20:20:47+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x2shrq/i_tried_three_ways_of_getting_gemma_and_qwen_to/</id>
-    <title>I tried three ways of getting Gemma and Qwen to update a notes file in Ollama</title>
-    <updated>2026-10-10T22:56:47+00:00</updated>
-    <author>
-      <name>/u/tjqscott</name>
-      <uri>https://www.reddit.com/user/tjqscott</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x2shrq/i_tried_three_ways_of_getting_gemma_and_qwen_to/"&gt; &lt;img alt="I tried three ways of getting Gemma and Qwen to update a notes file in Ollama" src="https://preview.redd.it/870dq8tozpuh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4542fffd4e415a4cfa9f5e884645be151d8bcea2" title="I tried three ways of getting Gemma and Qwen to update a notes file in Ollama" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I ran a small test for Dory to see whether a local model could update one fact in a synthetic notes file without losing any of the others. I asked Gemma and Qwen to rewrite the file, return a patch, or append the change, with 20 trials per method at 20, 60 and 150 facts. At 150 facts, Gemma 4 12B QAT got 20/20 for each method, while Qwen3 8B got 7/20 for rewriting, 0/20 for patches and 17/20 for appending.&lt;/p&gt; &lt;p&gt;The run used Ollama 0.34.1 on an M5 Max with 128 GB memory: gemma4:12b-it-qat (Q4_0, temperature 1.0) and qwen3:8b (Q4_K_M, temperature 0.6). Context was 8,192 tokens at 20/60 facts and 16,384 at 150, with output caps of 1,600/4,000/9,400. Thinking stayed at the defaults.&lt;/p&gt; &lt;p&gt;The original run allowed one retry with scorer feedback. I later rescored the recorded replies for content rather than formatting; I didn't rerun the models. Their sizes, quantisation and temperatures differ, so I wouldn't take this as a general model ranking. Claude wrote the runner; the &lt;a href="https://github.com/tjqscott/dory/tree/faadbda68915fa1d70c4c2512196d82180630956/bench"&gt;benchmark details&lt;/a&gt; include the settings, prompts, replies and scoring.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/tjqscott"&gt; /u/tjqscott &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/870dq8tozpuh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2shrq/i_tried_three_ways_of_getting_gemma_and_qwen_to/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x2shrq/i_tried_three_ways_of_getting_gemma_and_qwen_to/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-10T22:56:47+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x2lz5w/glm53flash_320b_on_an_m5_ultra_mac_studio_with/</id>
     <title>GLM-5.3-Flash (320B) on an M5 Ultra Mac Studio with llama.cpp: 61 tok/s, 262K context</title>
     <updated>2026-10-10T18:11:33+00:00</updated>
@@ -292,44 +331,5 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-10T18:01:31+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x27obv/recommendations_for_local_ai_longterm_memory_and/</id>
-    <title>Recommendations for Local AI Long-Term Memory and User Personalization Modules</title>
-    <updated>2026-10-10T06:03:12+00:00</updated>
-    <author>
-      <name>/u/kangteam</name>
-      <uri>https://www.reddit.com/user/kangteam</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I am developing a Windows-based local AI virtual spouse application that supports adult roleplay. My goal is to run it without a server or external AI APIs.&lt;/p&gt; &lt;p&gt;I am looking for existing open-source modules or integrated code that can extract a user's preferences, personality traits, habits, promises, and shared experiences from conversations, store them as long-term memories, and retrieve and naturally incorporate relevant information into future conversations.&lt;/p&gt; &lt;p&gt;Please recommend projects that can connect to Ollama and a local database, and provide repository links and the exact locations of the relevant code.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/kangteam"&gt; /u/kangteam &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x27obv/recommendations_for_local_ai_longterm_memory_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x27obv/recommendations_for_local_ai_longterm_memory_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x27obv/recommendations_for_local_ai_longterm_memory_and/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-10T06:03:12+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x2nk2n/qual_é_o_melhor_llm_para_rodar_localmente_em_uma/</id>
-    <title>Qual é o melhor LLM para rodar localmente em uma RX 5500 XT 8 GB + 32 GB RAM, priorizando raciocínio, precisão e baixa alucinação?</title>
-    <updated>2026-10-10T19:17:53+00:00</updated>
-    <author>
-      <name>/u/Commercial_Ad_8852</name>
-      <uri>https://www.reddit.com/user/Commercial_Ad_8852</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Commercial_Ad_8852"&gt; /u/Commercial_Ad_8852 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/LocalLLM/comments/1x2nhvx/qual_é_o_melhor_llm_para_rodar_localmente_em_uma/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2nk2n/qual_é_o_melhor_llm_para_rodar_localmente_em_uma/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x2nk2n/qual_é_o_melhor_llm_para_rodar_localmente_em_uma/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-10T19:17:53+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x1xdrk/web_automation_with_ollama_on_a_4_gb_gpu_qwen_35/</id>
-    <title>Web automation with Ollama on a 4 GB GPU: Qwen 3.5 4B plans, a heuristic clicks, and saved tasks replay with no model at all</title>
-    <updated>2026-10-09T21:21:19+00:00</updated>
-    <author>
-      <name>/u/RepresentativeKey122</name>
-      <uri>https://www.reddit.com/user/RepresentativeKey122</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x1xdrk/web_automation_with_ollama_on_a_4_gb_gpu_qwen_35/"&gt; &lt;img alt="Web automation with Ollama on a 4 GB GPU: Qwen 3.5 4B plans, a heuristic clicks, and saved tasks replay with no model at all" src="https://preview.redd.it/jt290ycldiuh1.gif?width=640&amp;amp;crop=smart&amp;amp;s=64c1566a9ba42baf22ae95534660c1341d733dbc" title="Web automation with Ollama on a 4 GB GPU: Qwen 3.5 4B plans, a heuristic clicks, and saved tasks replay with no model at all" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building ANCHOR, a web automation agent that runs entirely on Ollama. You describe a task in plain language (&amp;quot;Register Maria Silva, IT department, contractor, and save&amp;quot;), point it at a site, and it runs the task in the browser with Playwright. Everything runs on a GTX 1050 Ti with 4 GB: no cloud, no API keys.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;How it uses the models&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The LLM only plans.&lt;/strong&gt; Qwen 3.5 (4B or 9B) turns the request into goals and steps, using the names of the elements on the page. A deterministic heuristic finds each element and refuses when it isn't sure; then the user picks, and the choice is remembered. The model never clicks anything directly.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Small context, by design.&lt;/strong&gt; The model gets a short summary of the page (numbered elements), not the HTML: a plan uses about 3,000 tokens and 2 model calls on average.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Vision, from the same model.&lt;/strong&gt; Qwen 3.5 has the vision capability in Ollama, so ANCHOR uses it as a last check when the other checks doubt that a step worked: at 640 px, a question about a screenshot takes about 5.5 s on the 4B and 9.5 s on the 9B, and got all 6 probe questions right.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Model profiles&lt;/strong&gt; are a small JSON file (&lt;code&gt;ollama-small&lt;/code&gt; for the 4B, &lt;code&gt;ollama-medium&lt;/code&gt; for the 9B), with temperature 0.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Times on the 1050 Ti&lt;/strong&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;a full task with planning: about 30 s with the 4B, 50 s with the 9B;&lt;/li&gt; &lt;li&gt;a saved automation, replayed without the model: about 3 s, including one run per row of a spreadsheet.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;What's in so far (0.1 to 0.3):&lt;/strong&gt; the engine with user disambiguation and choice memory, the planner and agent loop with replanning, saved automations with parameters and spreadsheets, recovery when the site changes (with a reviewable, undoable record), checks of each action's effect, confirmation before sensitive actions, and defenses against prompt injection from page content.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;A benchmark:&lt;/strong&gt; on 30 tasks with pages altered in 5 levels (renamed IDs, synonyms, restructured layouts, cookie banners, lookalike decoys and injected instructions), ANCHOR completed 82% (4B) and 84% (9B) of the runs, vs 53% for a fixed-selector script and 68–72% for an agent where the LLM controls everything. It claimed success without doing the task 2 and 1 times in 150 runs, vs 33 and 41 for the LLM-in-control agent. These are development numbers; a closed test set is waiting for the 1.0 run.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What's next:&lt;/strong&gt; uploads, downloads, new tabs and data extraction (0.4), then a local web interface with a &amp;quot;Run&amp;quot; button per saved automation (0.5).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;I'd love people to try it&lt;/strong&gt; with their own models and hardware, and tell me what breaks. I'm especially curious how other small models do as planners, and how it runs on CPU only (I haven't measured that).&lt;/p&gt; &lt;p&gt;Repo (source-available, PolyForm Strict): &lt;a href="https://github.com/LucasDantas2701/ANCHOR"&gt;https://github.com/LucasDantas2701/ANCHOR&lt;/a&gt;&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;&lt;em&gt;Disclosure: this is my own project (a research project at my university in Brazil). I designed the system and the evaluation, and wrote the code with heavy help from an AI assistant (Claude). English isn't my first language, so I also used it to help write this post.&lt;/em&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/RepresentativeKey122"&gt; /u/RepresentativeKey122 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/jt290ycldiuh1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x1xdrk/web_automation_with_ollama_on_a_4_gb_gpu_qwen_35/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x1xdrk/web_automation_with_ollama_on_a_4_gb_gpu_qwen_35/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-09T21:21:19+00:00</published>
   </entry>
 </feed>
