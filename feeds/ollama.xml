@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/ollama/.rss</id>
   <title>ollama</title>
-  <updated>2026-10-11T22:57:28+00:00</updated>
+  <updated>2026-10-12T02:14:02+00:00</updated>
   <link href="https://www.reddit.com/r/ollama/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
   <subtitle>Atom feed for r/ollama</subtitle>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/</id>
-    <title>Ollama 0.35+ now reports a prefill tok/s on the OpenAI endpoint. On a warm cache it's off by the cache hit ratio (3875 vs 125 tok/s). Plus two other things I measured on 0.40.3.</title>
-    <updated>2026-10-11T20:54:43+00:00</updated>
+    <id>https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/</id>
+    <title>I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn</title>
+    <updated>2026-10-11T21:59:03+00:00</updated>
     <author>
-      <name>/u/GuruCsharp</name>
-      <uri>https://www.reddit.com/user/GuruCsharp</uri>
+      <name>/u/Grouchy-Excitement28</name>
+      <uri>https://www.reddit.com/user/Grouchy-Excitement28</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ollama 0.33.3 quietly started reporting &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;, and poking at it taught me something about prompt caching that I'd been getting wrong for a long time.&lt;/p&gt; &lt;p&gt;The KV cache only survives on a shared &lt;strong&gt;prefix&lt;/strong&gt;. It holds for exactly as long as the prompt still matches from the very first token. The moment one token differs, everything after it is discarded and re-evaluated — however identical the rest of it was.&lt;/p&gt; &lt;p&gt;Which means a single timestamp at the top of a system prompt costs you the entire system prompt, every single turn.&lt;/p&gt; &lt;p&gt;I measured it. Same model (qwen2.5:7b), same system prompt, same 324 tokens. The only difference is where one 21-token timestamp sits:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Timestamp position&lt;/th&gt; &lt;th&gt;Prompt tokens&lt;/th&gt; &lt;th&gt;Reused from cache&lt;/th&gt; &lt;th&gt;Prefill&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;At the start&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;64.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;At the end&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;290&lt;/td&gt; &lt;td&gt;18.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Same words, same token count, &lt;strong&gt;3.5x the prefill time&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;A few things that surprised me while testing this:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The obvious measurement is the wrong one.&lt;/strong&gt; My first attempt compared &amp;quot;how much of layout A's cache does layout B reuse&amp;quot; and produced a completely inverted result. That's not what real traffic does. Real traffic re-sends the &lt;em&gt;same&lt;/em&gt; layout every turn with a &lt;em&gt;fresh&lt;/em&gt; value. So you have to send each layout twice — once with its own values, once with the value changed — and measure the second send. Measuring the first only tells you how well a prompt matches itself, which is ~100% for any layout and tells you nothing.&lt;/p&gt; &lt;p&gt;**&lt;code&gt;prompt_eval_duration&lt;/code&gt; changed meaning in 0.33.3** and it's easy to miss. It now times only the &lt;em&gt;uncached&lt;/em&gt; tokens, while &lt;code&gt;prompt_eval_count&lt;/code&gt; is still the total. So if you compute prefill throughput as count/duration the way everyone always has, you now over-report it by the cache hit ratio. On that warm run above, the naive formula reads 4375 tok/s instead of 115. Worth checking if you have dashboards doing this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The practical fix costs nothing.&lt;/strong&gt; Stable stuff first — role, rules, style, examples. Anything that changes per turn goes last: current time, user id, session id, retrieved chunks. Also keep RAG chunks in a stable order; re-ranking them between turns invalidates the cache from the first chunk that moved. None of this changes what the model is told, only where.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;Disclosure: I build &lt;a href="https://github.com/LogneBudo/llmxray"&gt;LLMxRay&lt;/a&gt;, a local observability UI for Ollama, and I added a page that automates the measurement above — it finds the values in your prompt that change between turns, shows where the shared prefix breaks, and measures what moving them actually saves against your own daemon. Apache-2.0, runs entirely on localhost, &lt;code&gt;npx llmxray&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;But the finding stands on its own and you don't need the tool for it. If you have a system prompt with a timestamp near the top, you can check this with two curl calls and &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;. I'd be curious whether the ratio holds on larger prompts and other models — mine is a fairly small test.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/GuruCsharp"&gt; /u/GuruCsharp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt; &lt;img alt="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" src="https://preview.redd.it/a173o214uwuh1.gif?width=640&amp;amp;crop=smart&amp;amp;s=98d57c1cd64e7e8295752b6e6b66e6eef8f3acb0" title="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Grouchy-Excitement28"&gt; /u/Grouchy-Excitement28 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/a173o214uwuh1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-10-11T20:54:43+00:00</published>
+    <published>2026-10-11T21:59:03+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3kvuf/local_coding_assistant_for_unity_godot_and_unreal/</id>
@@ -34,6 +34,32 @@
     <published>2026-10-11T22:04:54+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/</id>
+    <title>Ollama 0.35+ now reports a prefill tok/s on the OpenAI endpoint. On a warm cache it's off by the cache hit ratio (3875 vs 125 tok/s). Plus two other things I measured on 0.40.3.</title>
+    <updated>2026-10-11T20:54:43+00:00</updated>
+    <author>
+      <name>/u/GuruCsharp</name>
+      <uri>https://www.reddit.com/user/GuruCsharp</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Ollama 0.33.3 quietly started reporting &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;, and poking at it taught me something about prompt caching that I'd been getting wrong for a long time.&lt;/p&gt; &lt;p&gt;The KV cache only survives on a shared &lt;strong&gt;prefix&lt;/strong&gt;. It holds for exactly as long as the prompt still matches from the very first token. The moment one token differs, everything after it is discarded and re-evaluated — however identical the rest of it was.&lt;/p&gt; &lt;p&gt;Which means a single timestamp at the top of a system prompt costs you the entire system prompt, every single turn.&lt;/p&gt; &lt;p&gt;I measured it. Same model (qwen2.5:7b), same system prompt, same 324 tokens. The only difference is where one 21-token timestamp sits:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th&gt;Timestamp position&lt;/th&gt; &lt;th&gt;Prompt tokens&lt;/th&gt; &lt;th&gt;Reused from cache&lt;/th&gt; &lt;th&gt;Prefill&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td&gt;At the start&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;4&lt;/td&gt; &lt;td&gt;64.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;At the end&lt;/td&gt; &lt;td&gt;324&lt;/td&gt; &lt;td&gt;290&lt;/td&gt; &lt;td&gt;18.6 ms&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Same words, same token count, &lt;strong&gt;3.5x the prefill time&lt;/strong&gt;.&lt;/p&gt; &lt;p&gt;A few things that surprised me while testing this:&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The obvious measurement is the wrong one.&lt;/strong&gt; My first attempt compared &amp;quot;how much of layout A's cache does layout B reuse&amp;quot; and produced a completely inverted result. That's not what real traffic does. Real traffic re-sends the &lt;em&gt;same&lt;/em&gt; layout every turn with a &lt;em&gt;fresh&lt;/em&gt; value. So you have to send each layout twice — once with its own values, once with the value changed — and measure the second send. Measuring the first only tells you how well a prompt matches itself, which is ~100% for any layout and tells you nothing.&lt;/p&gt; &lt;p&gt;**&lt;code&gt;prompt_eval_duration&lt;/code&gt; changed meaning in 0.33.3** and it's easy to miss. It now times only the &lt;em&gt;uncached&lt;/em&gt; tokens, while &lt;code&gt;prompt_eval_count&lt;/code&gt; is still the total. So if you compute prefill throughput as count/duration the way everyone always has, you now over-report it by the cache hit ratio. On that warm run above, the naive formula reads 4375 tok/s instead of 115. Worth checking if you have dashboards doing this.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The practical fix costs nothing.&lt;/strong&gt; Stable stuff first — role, rules, style, examples. Anything that changes per turn goes last: current time, user id, session id, retrieved chunks. Also keep RAG chunks in a stable order; re-ranking them between turns invalidates the cache from the first chunk that moved. None of this changes what the model is told, only where.&lt;/p&gt; &lt;hr /&gt; &lt;p&gt;Disclosure: I build &lt;a href="https://github.com/LogneBudo/llmxray"&gt;LLMxRay&lt;/a&gt;, a local observability UI for Ollama, and I added a page that automates the measurement above — it finds the values in your prompt that change between turns, shows where the shared prefix breaks, and measures what moving them actually saves against your own daemon. Apache-2.0, runs entirely on localhost, &lt;code&gt;npx llmxray&lt;/code&gt;.&lt;/p&gt; &lt;p&gt;But the finding stands on its own and you don't need the tool for it. If you have a system prompt with a timestamp near the top, you can check this with two curl calls and &lt;code&gt;prompt_eval_cached_count&lt;/code&gt;. I'd be curious whether the ratio holds on larger prompts and other models — mine is a fairly small test.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/GuruCsharp"&gt; /u/GuruCsharp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3j8sz/ollama_035_now_reports_a_prefill_toks_on_the/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T20:54:43+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3oubi/opencode_keeps_stalling/</id>
+    <title>Opencode keeps stalling</title>
+    <updated>2026-10-12T01:16:17+00:00</updated>
+    <author>
+      <name>/u/ImpossibleBother5133</name>
+      <uri>https://www.reddit.com/user/ImpossibleBother5133</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x3oubi/opencode_keeps_stalling/"&gt; &lt;img alt="Opencode keeps stalling" src="https://preview.redd.it/a7wpi4hbtxuh1.png?width=140&amp;amp;height=68&amp;amp;auto=webp&amp;amp;s=9737628b91d267d38444528e99dd04a68c842ad2" title="Opencode keeps stalling" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ImpossibleBother5133"&gt; /u/ImpossibleBother5133 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/opencode/comments/1x3ou8t/opencode_keeps_stalling/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3oubi/opencode_keeps_stalling/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3oubi/opencode_keeps_stalling/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-12T01:16:17+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3buc0/web_browsing_was_implemented_using_only_the/</id>
     <title>Web browsing was implemented using only the **Clef-Flash 9B decision model**, running locally.</title>
     <updated>2026-10-11T16:00:39+00:00</updated>
@@ -47,17 +73,17 @@
     <published>2026-10-11T16:00:39+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/</id>
-    <title>I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn</title>
-    <updated>2026-10-11T21:59:03+00:00</updated>
+    <id>https://www.reddit.com/r/ollama/comments/1x3nx49/hey_guys_quick_dumb_question_about_qwen38b/</id>
+    <title>Hey guys, quick dumb question about Qwen3-8B</title>
+    <updated>2026-10-12T00:29:22+00:00</updated>
     <author>
-      <name>/u/Grouchy-Excitement28</name>
-      <uri>https://www.reddit.com/user/Grouchy-Excitement28</uri>
+      <name>/u/nakoncujutuba</name>
+      <uri>https://www.reddit.com/user/nakoncujutuba</uri>
     </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt; &lt;img alt="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" src="https://preview.redd.it/a173o214uwuh1.gif?width=640&amp;amp;crop=smart&amp;amp;s=98d57c1cd64e7e8295752b6e6b66e6eef8f3acb0" title="I built EpochGo: A 100% offline, local-first multi-agent AutoML platform powered by Ollama (Qwen2.5-Coder:7B) and Scikit-Learn" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Grouchy-Excitement28"&gt; /u/Grouchy-Excitement28 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/a173o214uwuh1.gif"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x3kqu5/i_built_epochgo_a_100_offline_localfirst/"/>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x3nx49/hey_guys_quick_dumb_question_about_qwen38b/"&gt; &lt;img alt="Hey guys, quick dumb question about Qwen3-8B" src="https://preview.redd.it/l7tpnxue4vuh1.jpeg?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=6ccb786a4d3860936ca6158683c457b026e1d602" title="Hey guys, quick dumb question about Qwen3-8B" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/nakoncujutuba"&gt; /u/nakoncujutuba &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/l7tpnxue4vuh1.jpeg"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3nx49/hey_guys_quick_dumb_question_about_qwen38b/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3nx49/hey_guys_quick_dumb_question_about_qwen38b/"/>
     <category term="ollama" label="r/ollama"/>
-    <published>2026-10-11T21:59:03+00:00</published>
+    <published>2026-10-12T00:29:22+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x2y2ao/glm53flash_320b_on_an_m5_ultra_mac_studio_with/</id>
@@ -110,19 +136,6 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x35tup/i_tested_14_decision_models_against_local_llms_on/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-11T11:26:53+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/</id>
-    <title>I'm 14, spent the last 5 days locking myself in my room writing a cross-platform Rust/PyQt6 orchestrator to run 32B LLMs on my consumer 8GB GPU without crashing. Open-sourcing AeroMind v0.2 "Tusk"! 🌋</title>
-    <updated>2026-10-11T16:20:49+00:00</updated>
-    <author>
-      <name>/u/KunagoRu</name>
-      <uri>https://www.reddit.com/user/KunagoRu</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;Hey guys&lt;/strong&gt;,&lt;/p&gt; &lt;p&gt;So I got really mad at Nvidia and corporate cloud companies telling us that we NEED a $1500 card just to run decent coding models locally. &lt;/p&gt; &lt;p&gt;I’m 14, and for the last 5 days I did nothing but write pure asynchronous Rust (Tokio) for a backend daemon and PyQt6 for a desktop app. Today I finally uploaded the pre-alpha to my GitHub: AeroMind v0.2 &amp;quot;Tusk&amp;quot;.&lt;/p&gt; &lt;p&gt;It bypasses all heavy web-ui garbage and talks directly to Ollama via local TCP loop (port 9091), letting you change VRAM layer limits and compression on the fly.&lt;/p&gt; &lt;p&gt;Why it's kinda unique:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Dynamic Axis (VRAM Limit % x AeroMemory Stage Act 1-4)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Instead of throwing a dumb Out-of-Memory error, Tusk shards and compresses the KV-cache down to 2-bits (Act 4) on the fly. It frees up video memory for the actual attention layers.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Inference Profiles (Speed, Balanced, Overdrive)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Speed keeps everything in VRAM for max tokens/sec. But Overdrive forces a 2.6x virtual density multiplier. Yes, it means you can actually launch a 32B model on an 8GB card (like my old RX 6600) with hybrid DDR RAM overflow without getting an OOM crash. 14B models on 6GB are also working fine.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Personality Matrices (Comrade, Ronin, Architect)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I hated robotic corporate guardrails, so I injected personas at the socket layer:&lt;/p&gt; &lt;p&gt;- Comrade (Gemini vibe): Supportive tech mentor, guides you through bad code logic gently.&lt;/p&gt; &lt;p&gt;- Ronin (Rebel/Hacker): Chaotic assistant. Uses text emoticons (￣▽￣), caps for emotions, and mirrors your profanity if you swear in the prompt.&lt;/p&gt; &lt;p&gt;- Architect (Strict Senior): Cold, zero-fluff code refactoring unit. Raw technical output.&lt;/p&gt; &lt;p&gt;It's fully cross-platform (tested on Ubuntu Linux and Windows 11). &lt;/p&gt; &lt;p&gt;GitHub Link: &lt;a href="https://github.com/artemsamoylov495-gif/AeroMind%5C_Engine"&gt;https://github.com/artemsamoylov495-gif/AeroMind\_Engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm currently waiting for my second test node (ASUS Dual RX 6600) to arrive so I can start benchmarking distributed layer splitting across local P2P networks for the v0.5 &amp;quot;Minazuki&amp;quot; update.&lt;/p&gt; &lt;p&gt;Let me know what you think or if something breaks on your hardware, drop logs in GitHub Issues! Corporate cloud subscriptions can officially go screw themselves. Tusk is written in silence 🥀&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/KunagoRu"&gt; /u/KunagoRu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-11T16:20:49+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x3bokz/best_way_to_handle_memory_in_a_local_ai_agent/</id>
@@ -201,6 +214,19 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x33ctq/diy_opencode_distillation_and_qwen_38_reasoning/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-11T08:59:13+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/</id>
+    <title>I'm 14, spent the last 5 days locking myself in my room writing a cross-platform Rust/PyQt6 orchestrator to run 32B LLMs on my consumer 8GB GPU without crashing. Open-sourcing AeroMind v0.2 "Tusk"! 🌋</title>
+    <updated>2026-10-11T16:20:49+00:00</updated>
+    <author>
+      <name>/u/KunagoRu</name>
+      <uri>https://www.reddit.com/user/KunagoRu</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;Hey guys&lt;/strong&gt;,&lt;/p&gt; &lt;p&gt;So I got really mad at Nvidia and corporate cloud companies telling us that we NEED a $1500 card just to run decent coding models locally. &lt;/p&gt; &lt;p&gt;I’m 14, and for the last 5 days I did nothing but write pure asynchronous Rust (Tokio) for a backend daemon and PyQt6 for a desktop app. Today I finally uploaded the pre-alpha to my GitHub: AeroMind v0.2 &amp;quot;Tusk&amp;quot;.&lt;/p&gt; &lt;p&gt;It bypasses all heavy web-ui garbage and talks directly to Ollama via local TCP loop (port 9091), letting you change VRAM layer limits and compression on the fly.&lt;/p&gt; &lt;p&gt;Why it's kinda unique:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Dynamic Axis (VRAM Limit % x AeroMemory Stage Act 1-4)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Instead of throwing a dumb Out-of-Memory error, Tusk shards and compresses the KV-cache down to 2-bits (Act 4) on the fly. It frees up video memory for the actual attention layers.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Inference Profiles (Speed, Balanced, Overdrive)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Speed keeps everything in VRAM for max tokens/sec. But Overdrive forces a 2.6x virtual density multiplier. Yes, it means you can actually launch a 32B model on an 8GB card (like my old RX 6600) with hybrid DDR RAM overflow without getting an OOM crash. 14B models on 6GB are also working fine.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Personality Matrices (Comrade, Ronin, Architect)&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;I hated robotic corporate guardrails, so I injected personas at the socket layer:&lt;/p&gt; &lt;p&gt;- Comrade (Gemini vibe): Supportive tech mentor, guides you through bad code logic gently.&lt;/p&gt; &lt;p&gt;- Ronin (Rebel/Hacker): Chaotic assistant. Uses text emoticons (￣▽￣), caps for emotions, and mirrors your profanity if you swear in the prompt.&lt;/p&gt; &lt;p&gt;- Architect (Strict Senior): Cold, zero-fluff code refactoring unit. Raw technical output.&lt;/p&gt; &lt;p&gt;It's fully cross-platform (tested on Ubuntu Linux and Windows 11). &lt;/p&gt; &lt;p&gt;GitHub Link: &lt;a href="https://github.com/artemsamoylov495-gif/AeroMind%5C_Engine"&gt;https://github.com/artemsamoylov495-gif/AeroMind\_Engine&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm currently waiting for my second test node (ASUS Dual RX 6600) to arrive so I can start benchmarking distributed layer splitting across local P2P networks for the v0.5 &amp;quot;Minazuki&amp;quot; update.&lt;/p&gt; &lt;p&gt;Let me know what you think or if something breaks on your hardware, drop logs in GitHub Issues! Corporate cloud subscriptions can officially go screw themselves. Tusk is written in silence 🥀&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/KunagoRu"&gt; /u/KunagoRu &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/ollama/comments/1x3ccum/im_14_spent_the_last_5_days_locking_myself_in_my/"/>
+    <category term="ollama" label="r/ollama"/>
+    <published>2026-10-11T16:20:49+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/ollama/comments/1x2xwic/anybody_else_running_ollama_on_old_hardware_got_a/</id>
@@ -305,31 +331,5 @@
     <link href="https://www.reddit.com/r/ollama/comments/1x2lz5w/glm53flash_320b_on_an_m5_ultra_mac_studio_with/"/>
     <category term="ollama" label="r/ollama"/>
     <published>2026-10-10T18:11:33+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x2lqo5/new_marauder_v8_gui_with_ollama_integration/</id>
-    <title>New Marauder V8 GUI with Ollama Integration</title>
-    <updated>2026-10-10T18:01:38+00:00</updated>
-    <author>
-      <name>/u/GasMammoth7766</name>
-      <uri>https://www.reddit.com/user/GasMammoth7766</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/ollama/comments/1x2lqo5/new_marauder_v8_gui_with_ollama_integration/"&gt; &lt;img alt="New Marauder V8 GUI with Ollama Integration" src="https://external-preview.redd.it/L_KvQ-EpUY1jbWcLK7V8WWIdfNwzxL9iEaRJzUkma2Y.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=d7bb5ddc4cd722a841c32a96f7782e7c918f6b5a" title="New Marauder V8 GUI with Ollama Integration" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/GasMammoth7766"&gt; /u/GasMammoth7766 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2lqo5/new_marauder_v8_gui_with_ollama_integration/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x2lqo5/new_marauder_v8_gui_with_ollama_integration/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-10T18:01:38+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/</id>
-    <title>New Marauder V8 GUI with Ollama Integration</title>
-    <updated>2026-10-10T18:01:31+00:00</updated>
-    <author>
-      <name>/u/GasMammoth7766</name>
-      <uri>https://www.reddit.com/user/GasMammoth7766</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey guys!&lt;/p&gt; &lt;p&gt;Just wanted to share an Ollama integrated Marauder V8 GUI for some peoples lab testing needs!&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Anon0ne/marauder-v8-gui"&gt;https://github.com/Anon0ne/marauder-v8-gui&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/GasMammoth7766"&gt; /u/GasMammoth7766 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/ollama/comments/1x2lqk0/new_marauder_v8_gui_with_ollama_integration/"/>
-    <category term="ollama" label="r/ollama"/>
-    <published>2026-10-10T18:01:31+00:00</published>
   </entry>
 </feed>
