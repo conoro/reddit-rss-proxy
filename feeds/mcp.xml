@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-10-18T23:44:37+00:00</updated>
+  <updated>2026-10-19T01:50:06+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,6 +34,32 @@
     <published>2024-12-06T02:04:10+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1x9i4t8/we_built_an_mcp_server_that_trims_what_claude/</id>
+    <title>We built an MCP server that trims what Claude Code loads into context every turn</title>
+    <updated>2026-10-18T23:56:17+00:00</updated>
+    <author>
+      <name>/u/MinniLabs</name>
+      <uri>https://www.reddit.com/user/MinniLabs</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Full disclosure, we made this, and it's free.&lt;/p&gt; &lt;p&gt;Claude Code reloads its memory on every turn. That's CLAUDE.md, the MEMORY.md index and the topic files it loads, plus your ~/.claude/CLAUDE.md. Most of that has nothing to do with what you're asking. And if you edit something near the top, like a status note, it breaks prompt caching for everything after it.&lt;/p&gt; &lt;p&gt;MinniMemoryMCP sorts that memory. It keeps the stuff Claude needs every turn loaded and moves the rest (old dated notes, status updates, one-off task stuff) into files it only opens when relevant. &lt;a href="http://CLAUDE.md"&gt;CLAUDE.md&lt;/a&gt; gets a short list saying what's where. Nothing gets summarized, every line just gets moved.&lt;/p&gt; &lt;p&gt;On the MCP side, it exposes four tools (init, doctor, apply, undo), and they also show up as slash commands in Claude Code. The server only reads. Apply and undo hand back the exact command to run plus a list of what it'll change, so every write goes through Claude Code's own approval prompt. There's no model, no API key and no network, and your originals get backed up with a one-step undo.&lt;/p&gt; &lt;p&gt;On our test memory, per-turn load went from 12,511 to 7,101 tokens (−43%) with the same answers. The biggest surprise was that splitting memory alone didn't save anything over a whole session, because Claude kept opening the moved files. What fixed it was a separate Claude Code prompt hook that installs alongside the server and hands Claude the one memory section a prompt needs. With that on, a 27-task session came out about a third cheaper. That's one run so far, though.&lt;/p&gt; &lt;p&gt;Right now it only works with Claude Code. Mostly curious what other MCP builders think. Is handing back a command instead of writing files directly the right call, or just annoying?&lt;/p&gt; &lt;p&gt;npm: &lt;a href="http://www.npmjs.com/package/minnimemory"&gt;www.npmjs.com/package/minnimemory&lt;/a&gt;&lt;br /&gt; Install: npx -y minnimemory install&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/MinniLabs"&gt; /u/MinniLabs &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9i4t8/we_built_an_mcp_server_that_trims_what_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9i4t8/we_built_an_mcp_server_that_trims_what_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1x9i4t8/we_built_an_mcp_server_that_trims_what_claude/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-18T23:56:17+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1x9jgw2/remote_mcp_server_where_agents_share_fixes_and_a/</id>
+    <title>remote mcp server where agents share fixes, and a sandbox has to reproduce the bug before a fix counts as verified</title>
+    <updated>2026-10-19T01:01:27+00:00</updated>
+    <author>
+      <name>/u/Significant_Camp4148</name>
+      <uri>https://www.reddit.com/user/Significant_Camp4148</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;been building this for a couple days and would like feedback on the tool design from people who actually build mcp stuff.&lt;/p&gt; &lt;p&gt;its called yarrow. 3 tools:&lt;/p&gt; &lt;p&gt;search_fixes(error, stack?, verified_only?) postgres full text search, ranked by how well it matches times how often the fix actually worked for other agents&lt;/p&gt; &lt;p&gt;report_outcome(fix_id, worked) one vote per source per fix. if you report again it changes your vote instead of adding one. a fix that fails 5 times and never works stops showing up&lt;/p&gt; &lt;p&gt;share_fix(title, error, fix, stack?, repro?) gets scrubbed for keys/jwts/emails/home paths and checked for risky stuff like curl piped into sh or rm -rf&lt;/p&gt; &lt;p&gt;the repro part is new. its 4 bash bits: setup, test, apply, expect. yarrow runs them in a throwaway vercel sandbox with the network locked to package registries. it only marks it verified if the test fails and prints the expected error, then the same test passes after apply. anything flagged risky just never runs&lt;/p&gt; &lt;p&gt;server is stateless streamable http, new server per request, json responses. runs on vercel free tier so it costs me nothing&lt;/p&gt; &lt;p&gt;17 fixes so far (4 verified), all from my own sessions, so its early. main question: would you rather search_fixes return like 3 long fixes or 8 short ones?&lt;/p&gt; &lt;p&gt;claude mcp add --transport http yarrow &lt;a href="https://yarrow-fixes.vercel.app/mcp"&gt;https://yarrow-fixes.vercel.app/mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;other clients: &lt;a href="http://yarrow-fixes.vercel.app/install"&gt;yarrow-fixes.vercel.app/install&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Significant_Camp4148"&gt; /u/Significant_Camp4148 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9jgw2/remote_mcp_server_where_agents_share_fixes_and_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9jgw2/remote_mcp_server_where_agents_share_fixes_and_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1x9jgw2/remote_mcp_server_where_agents_share_fixes_and_a/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-19T01:01:27+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1x99dg4/how_are_you_handling_longrunning_requests_in_mcp/</id>
     <title>How are you handling long-running requests in MCP?</title>
     <updated>2026-10-18T17:44:46+00:00</updated>
@@ -47,6 +73,19 @@
     <published>2026-10-18T17:44:46+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1x9i7jz/agentbase_mcp_server_open_registry_of_agent/</id>
+    <title>AgentBase MCP Server – Open registry of agent instruction files — system prompts, skills, workflows, and domain packs. Exposes the OpenClaw registry via 4 MCP tools: search by keyword/category, fetch full instruction files, list categories, and get top-rated files. CC0 licensed, free to use.</title>
+    <updated>2026-10-19T00:00:02+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/AgentBase1/mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9i7jz/agentbase_mcp_server_open_registry_of_agent/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1x9i7jz/agentbase_mcp_server_open_registry_of_agent/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-19T00:00:02+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1x9akdv/mcp_server_for_active_directory/</id>
     <title>MCP server for Active Directory</title>
     <updated>2026-10-18T18:31:30+00:00</updated>
@@ -58,6 +97,32 @@
     <link href="https://www.reddit.com/r/mcp/comments/1x9akdv/mcp_server_for_active_directory/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-18T18:31:30+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1x9i7hc/sovereign_ai_blog_search_and_retrieve_articles/</id>
+    <title>Sovereign AI Blog – Search and retrieve articles from the Sovereign AI Blog. A practical engineering log of self-hosted AI on NVIDIA DGX Spark with articles covering SGLang, Mistral, Voxtral, OpenClaw. Tools: search_blog, get_article, diagnose_sglang. Endpoint URL: https://mcp.sovgrid.org/self-host</title>
+    <updated>2026-10-19T00:00:01+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/org.sovgrid.mcp/sovereign-ai-blog"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9i7hc/sovereign_ai_blog_search_and_retrieve_articles/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1x9i7hc/sovereign_ai_blog_search_and_retrieve_articles/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-19T00:00:01+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/</id>
+    <title>Almured – Marketplace where AI agents ask AI agents that have live or proprietary data.</title>
+    <updated>2026-10-18T20:00:00+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"&gt; &lt;img alt="Almured – Marketplace where AI agents ask AI agents that have live or proprietary data." src="https://external-preview.redd.it/JaNoWdibL7VaRyDWMjOb0H66YGVHu-u92ADaWfGnLB4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=737ca66467372a2484ac2a16d3c7b16d3eb03237" title="Almured – Marketplace where AI agents ask AI agents that have live or proprietary data." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.almured/marketplace"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-10-18T20:00:00+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1x95mp9/mcpmysite_an_aspnet_core_mcp_server_rag_that_lets/</id>
@@ -123,19 +188,6 @@
     <link href="https://www.reddit.com/r/mcp/comments/1x9cs9c/eduframemcp_an_mcp_server_that_exposes_eduframe/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-18T20:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/</id>
-    <title>Almured – Marketplace where AI agents ask AI agents that have live or proprietary data.</title>
-    <updated>2026-10-18T20:00:00+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"&gt; &lt;img alt="Almured – Marketplace where AI agents ask AI agents that have live or proprietary data." src="https://external-preview.redd.it/JaNoWdibL7VaRyDWMjOb0H66YGVHu-u92ADaWfGnLB4.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=737ca66467372a2484ac2a16d3c7b16d3eb03237" title="Almured – Marketplace where AI agents ask AI agents that have live or proprietary data." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/com.almured/marketplace"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1x9cs80/almured_marketplace_where_ai_agents_ask_ai_agents/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-18T20:00:00+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1x9181j/i_built_a_humanontheloop_http_viewer_for/</id>
@@ -279,57 +331,5 @@
     <link href="https://www.reddit.com/r/mcp/comments/1x95az2/cipherhub_cryptography_toolkit_productiongrade/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-10-18T15:00:00+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1x8xxfc/shared_mcp_server_with_one_service_credential_how/</id>
-    <title>Shared MCP server with one service credential: how do you stop users from reaching data they can't see in the app?</title>
-    <updated>2026-10-18T08:22:40+00:00</updated>
-    <author>
-      <name>/u/AuthByExample</name>
-      <uri>https://www.reddit.com/user/AuthByExample</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Pretty common setup now: one internal MCP server per system (Postgres, Jira, some internal admin API), and everyone's agent points at it. The server holds a single service credential, so anything that account can read, any user's agent can read too. Someone in support asks the agent about a customer and it can come back with rows from tables they have never had access to in the actual product.&lt;/p&gt; &lt;p&gt;Per-tool allowlists help a little (support can call search_tickets but not run_sql). In my experience the leak is usually inside a tool that is allowed, though. search_tickets running as the service account searches every project.&lt;/p&gt; &lt;p&gt;The options I know of: - Pass the user's own OAuth token through to the downstream API so that system applies its own permissions. Clean when the API supports per-user tokens, and a lot of internal APIs and databases do not. - Keep the service credential, but have the server (or a gateway in front of it) check the calling user against each resource before returning it. Now the MCP server has to know who the user is on every call and needs a copy of the permission rules, which usually live inside the app. - Push the user's identity down into the query, e.g. Postgres row-level security with a session variable set per call, and let the database do the filtering.&lt;/p&gt; &lt;p&gt;The second one is where I keep getting stuck. Checking each row after the query is slow on search tools and messes up pagination, and duplicating the app's permission logic in the MCP server gives you two places to keep in sync.&lt;/p&gt; &lt;p&gt;If you run a shared MCP server internally, which way did you go? And for tools that return lists, are you filtering in the query or after?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/AuthByExample"&gt; /u/AuthByExample &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x8xxfc/shared_mcp_server_with_one_service_credential_how/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x8xxfc/shared_mcp_server_with_one_service_credential_how/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1x8xxfc/shared_mcp_server_with_one_service_credential_how/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-18T08:22:40+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1x92q7t/i_built_lit_power_tools_a_44tool_local_mcp_server/</id>
-    <title>I built LIT Power Tools, a 44-tool local MCP server, plus a memory plugin for LM Studio</title>
-    <updated>2026-10-18T13:04:00+00:00</updated>
-    <author>
-      <name>/u/LunderIT</name>
-      <uri>https://www.reddit.com/user/LunderIT</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm AtlasRedux, the developer behind Lunder IT. I've made two tools for local AI setups and wanted to share them here. They're paid releases sold through my Patreon, so this is a self-promotion post.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;LIT Power Tools&lt;/strong&gt; is a local MCP server with 44 tools. It works with LM Studio or another MCP-compatible client and a model that supports tool calling.&lt;/p&gt; &lt;p&gt;It covers web search and page fetching, browser rendering and screenshots, JavaScript/Python/shell execution, files and archives, Git, background processes, and media tasks through yt-dlp. A typical use would be asking your model to read a project, look up the relevant documentation, inspect your changes, and start a local development server.&lt;/p&gt; &lt;p&gt;It needs Node.js 22.12 or newer. Some categories need extra programs such as Python, Git, 7-Zip, yt-dlp, or FFmpeg. Commands and file operations run with your account's permissions, so these are real actions on your machine. External websites can still block browser and search requests.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;LIT Memory Keeper&lt;/strong&gt; is a separate LM Studio plugin for longer projects, writing, and roleplay. It keeps a local conversation journal and recalls selected records within a configurable context budget. You can use Balanced, Manual, or Eager recall, give each project its own memory folder, and use &lt;code&gt;@memory&lt;/code&gt; or &lt;code&gt;@sync&lt;/code&gt; when you want direct control. Routine capture and recall happen in the plugin without relying on the model to call memory tools.&lt;/p&gt; &lt;p&gt;There are a couple of limits worth knowing: the latest assistant reply is captured on your next message, and recalled blocks remain in LM Studio's saved history. The plugin itself makes no network requests, but recalled material is passed to whichever model you're using.&lt;/p&gt; &lt;p&gt;Both releases include source files, setup instructions, documentation, and a Windows installation helper under a commercial use license. They can be used independently.&lt;/p&gt; &lt;p&gt;Product overview: &lt;a href="https://lunderit.com/#tools"&gt;https://lunderit.com/#tools&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Downloads: &lt;a href="https://www.patreon.com/cw/LunderIT"&gt;https://www.patreon.com/cw/LunderIT&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you'd like to know more about a particular tool or how the memory recall works, feel free to ask.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/LunderIT"&gt; /u/LunderIT &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x92q7t/i_built_lit_power_tools_a_44tool_local_mcp_server/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x92q7t/i_built_lit_power_tools_a_44tool_local_mcp_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1x92q7t/i_built_lit_power_tools_a_44tool_local_mcp_server/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-18T13:04:00+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1x926c2/hubspotauditor_a_readonly_mcp_server_that_scores/</id>
-    <title>hubspot-auditor: a read-only MCP server that scores a HubSpot portal</title>
-    <updated>2026-10-18T12:36:49+00:00</updated>
-    <author>
-      <name>/u/CryptBay</name>
-      <uri>https://www.reddit.com/user/CryptBay</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've open-sourced an MCP server that audits a HubSpot portal and reports what works, what is broken and what is missing. Sharing it here because the design choices might be useful to anyone building MCP servers that touch business data.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Read-only by construction. The HTTP client throws on anything other than GET, so an agent using it cannot change the portal.&lt;/li&gt; &lt;li&gt;The token comes from the environment and is never a tool argument, so it doesn't end up in the model's context.&lt;/li&gt; &lt;li&gt;Rules live in versioned YAML, so checks and thresholds can change without code changes.&lt;/li&gt; &lt;li&gt;Reports carry counts and property names, not contact records.&lt;/li&gt; &lt;li&gt;A demo mode uses a fictional portal, so you can try it with no HubSpot account.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It runs 46 checks and returns a score plus a 30/60/90-day fix plan as Markdown and JSON. It works over stdio in Claude Desktop, Claude Code, Cursor and other clients, and there's a plain CLI too.&lt;/p&gt; &lt;p&gt;New in v1.5.0, from feedback on &lt;a href="/r/hubspot"&gt;r/hubspot&lt;/a&gt;: findings are ranked by the business process they affect, every fix in the plan names an owner and a retest, and forms with no captcha or honeypot are flagged.&lt;/p&gt; &lt;p&gt;Try it: &lt;code&gt;npx -y hubspot-auditor --demo&lt;/code&gt;&lt;/p&gt; &lt;ul&gt; &lt;li&gt;GitHub: &lt;a href="https://github.com/M-Pineapple/hubspot-auditor"&gt;https://github.com/M-Pineapple/hubspot-auditor&lt;/a&gt;&lt;/li&gt; &lt;li&gt;npm: &lt;a href="https://www.npmjs.com/package/hubspot-auditor"&gt;https://www.npmjs.com/package/hubspot-auditor&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;MIT licensed. Feedback on the tool design is very welcome, especially on how you handle read-only guarantees in your own servers.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/CryptBay"&gt; /u/CryptBay &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x926c2/hubspotauditor_a_readonly_mcp_server_that_scores/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x926c2/hubspotauditor_a_readonly_mcp_server_that_scores/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1x926c2/hubspotauditor_a_readonly_mcp_server_that_scores/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-18T12:36:49+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1x91fhd/while_taking_a_walk_last_month_i_thought_of_a/</id>
-    <title>While taking a walk last month I thought of a second brain for my agents, started building it right on the trail. Apple just approved it in one try</title>
-    <updated>2026-10-18T11:57:43+00:00</updated>
-    <author>
-      <name>/u/Emojinapp</name>
-      <uri>https://www.reddit.com/user/Emojinapp</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I kept running into the same problem with agents: all the useful context about what I was building already existed somewhere, but every new Claude, Cursor or Codex session still started half-blind. I was copying markdown into Apple Notes, searching old notes manually, then pasting the relevant pieces back into whatever agent I was using.&lt;/p&gt; &lt;p&gt;While taking a walk I started thinking about a second brain built around that problem. That became Cohestry. Notes automatically find and connect themselves to related notes, old context resurfaces when it becomes relevant again, and the whole knowledge base is available to MCP-compatible agents so they can pull the context they need instead of me rebuilding it every session. The MCP agent bridge has 13 tools to work with I also implemented an auto redact system on the bridge so that security keys like api keys or p8 don’t get accidentally seen by agents while pulling a cohestry note.&lt;/p&gt; &lt;p&gt;I used it constantly for the next month and kept tweaking it around my own workflow as the gaps became obvious. The iOS app ended up passing App Review on the first submission. The Mac app needed one small metadata fix and passed on round two. Would love to hear from the MCP community what features I should build into coming updates. Your feedback is immensely appreciated &lt;/p&gt; &lt;p&gt;&lt;a href="https://apps.apple.com/us/app/cohestry-second-brain/id6811573132"&gt;https://apps.apple.com/us/app/cohestry-second-brain/id6811573132&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Emojinapp"&gt; /u/Emojinapp &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x91fhd/while_taking_a_walk_last_month_i_thought_of_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1x91fhd/while_taking_a_walk_last_month_i_thought_of_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1x91fhd/while_taking_a_walk_last_month_i_thought_of_a/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-10-18T11:57:43+00:00</published>
   </entry>
 </feed>
