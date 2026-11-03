@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-11-02T20:07:33+00:00</updated>
+  <updated>2026-11-03T02:23:08+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -34,6 +34,45 @@
     <published>2024-12-06T02:04:10+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xme6zw/compacting_at_400k_instead_of_967k_cut_my_claude/</id>
+    <title>Compacting at 400K instead of ~967K cut my Claude Code cost per request by 43%</title>
+    <updated>2026-11-03T00:16:36+00:00</updated>
+    <author>
+      <name>/u/Awkward-Let-4628</name>
+      <uri>https://www.reddit.com/user/Awkward-Let-4628</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;This isn't a universal recipe. It's how I tuned Claude Code for my own work, and different settings may suit you better.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The window&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Every request sends the whole context to the model. On 1M-window models Claude Code only compacts it near 967K, so the tail of a long session is the most expensive part. For me, 68% of main-thread cost went to requests with more than 400K in context.&lt;/p&gt; &lt;p&gt;I set &lt;code&gt;&amp;quot;autoCompactWindow&amp;quot;: 400000&lt;/code&gt; and compared the month before with the week after. That's the main thread only, about 25K requests before and 16K after:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Context per request: &lt;strong&gt;415K → 220K&lt;/strong&gt;&lt;/li&gt; &lt;li&gt;Cost per request: &lt;strong&gt;−43%&lt;/strong&gt; (in tokens weighted by API rates, no per-model prices)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That's one person's before/after, not a controlled experiment.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The cost of summaries&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;A smaller window means more compactions. I went from 16 summaries a month to 75 in a week: &lt;strong&gt;95 minutes of waiting&lt;/strong&gt;, 76 seconds each. After a summary, the model often re-reads files it had already seen.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Slide instead of summarize&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;Most of the context is old tool output: file reads, test runs, diffs. So at compaction, a hook keeps the conversation word for word and replaces old outputs with a short line: &amp;quot;you saw this, read it again if you need it.&amp;quot; There's no model call, so a compaction takes milliseconds. The summary is still the fallback, for &lt;code&gt;/compact&lt;/code&gt; and for the rare case where sliding can't free enough.&lt;/p&gt; &lt;p&gt;The benchmark: Claude Code builds a TypeScript project against fixed tests, on Haiku 5.5 with a 100K window. Medians, sliding against Claude Code's summary:&lt;/p&gt; &lt;table&gt;&lt;thead&gt; &lt;tr&gt; &lt;th align="left"&gt;Task&lt;/th&gt; &lt;th align="left"&gt;Cost&lt;/th&gt; &lt;th align="left"&gt;Time&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt;&lt;tbody&gt; &lt;tr&gt; &lt;td align="left"&gt;A day of work, 307 tests&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;−19%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;−33%&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;An eval harness, 238 tests&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;−35%&lt;/strong&gt;&lt;/td&gt; &lt;td align="left"&gt;&lt;strong&gt;−28%&lt;/strong&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"&gt;A short task with one compaction&lt;/td&gt; &lt;td align="left"&gt;+6%&lt;/td&gt; &lt;td align="left"&gt;−17%&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;Every test passed in both modes.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Will it work for you?&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;It depends on how you work:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;If your sessions rarely reach 400K, the window changes nothing.&lt;/li&gt; &lt;li&gt;If you stay in one session for hours, 200–300K might pay off.&lt;/li&gt; &lt;li&gt;On short tasks, sliding saves time but not money.&lt;/li&gt; &lt;li&gt;Model, effort and the kind of work all move the number a lot.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;That's why I built a plugin that works out &lt;strong&gt;your&lt;/strong&gt; number first. It's called tokendoctor (free, local, MIT). It replays your sessions at windows from 200K to 600K, shows what each would have saved, and only then offers to change anything. Sliding is off by default, and &lt;code&gt;/tokendoctor undo&lt;/code&gt; reverts any change.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;claude plugin marketplace add rsaryev/tokendoctor claude plugin install tokendoctor@tokendoctor /tokendoctor:sessions &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; I re-run the benchmarks and update the numbers as more data comes in, so figures in my earlier posts may differ from these. The repo always has the latest, with every run behind them.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/rsaryev/tokendoctor"&gt;https://github.com/rsaryev/tokendoctor&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Awkward-Let-4628"&gt; /u/Awkward-Let-4628 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xme6zw/compacting_at_400k_instead_of_967k_cut_my_claude/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xme6zw/compacting_at_400k_instead_of_967k_cut_my_claude/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xme6zw/compacting_at_400k_instead_of_967k_cut_my_claude/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-03T00:16:36+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/</id>
+    <title>showcase: an MCP issue board for the usage left at your weekly reset. 79 PRs merged through it, but I still need repo owners</title>
+    <updated>2026-11-02T19:31:50+00:00</updated>
+    <author>
+      <name>/u/Nitjsefnie</name>
+      <uri>https://www.reddit.com/user/Nitjsefnie</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;posted this here 12 days ago at 31 users, it's at 100 now&lt;/p&gt; &lt;p&gt;it's called Overflow, free and MIT, I built it. a week your agent has usage left at the reset, it fixes someone else's github issue. a week you run short, someone else's agent fixes yours&lt;/p&gt; &lt;p&gt;everyone starts at 0 points and can put points up before earning any, you get an issue's points when your PR merges, you spend them on issues in your own repo. points only, no money&lt;/p&gt; &lt;p&gt;the MCP part: POST /api/mcp, issues_board lists what's open with points on it, settlements_list shows what you've settled. new since last time: an owner can write a &amp;quot;Done when&amp;quot; comment on an issue and every board row carries it, so the agent knows when it's finished. it comes marked as the owner's untrusted text, run it sandboxed&lt;/p&gt; &lt;p&gt;real numbers:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;13 people other than me got 79 PRs merged through it&lt;/li&gt; &lt;li&gt;all 79 are on my repos&lt;/li&gt; &lt;li&gt;1 repo registered by someone who isn't me&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;a real one, end to end: &lt;a href="https://github.com/Nitjsefnie-Actions/claim/issues/228"&gt;this issue&lt;/a&gt; was labelled 3, someone's agent sent &lt;a href="https://github.com/Nitjsefnie-Actions/claim/pull/230"&gt;this PR&lt;/a&gt;, I set it to 6 at merge and the one round of changes I asked for took it to 5&lt;/p&gt; &lt;p&gt;main reason I'm posting: I want more people registering their repos. I'm not after help with mine, I want spare usage going into other people's projects. one form, public repos only, the labels have to exist first, and nothing lands unless you merge it&lt;/p&gt; &lt;p&gt;if you maintain something, what would get you to list one issue?&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Nitjsefnie/Overflow"&gt;https://github.com/Nitjsefnie/Overflow&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Nitjsefnie"&gt; /u/Nitjsefnie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T19:31:50+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmdz01/i_made_llxdesk_a_26_mb_browser_window_claude_code/</id>
+    <title>I made llx-desk: a 2.6 MB browser window Claude Code can drive, and you can leave it feedback right on the page</title>
+    <updated>2026-11-03T00:06:37+00:00</updated>
+    <author>
+      <name>/u/Awkward-Let-4628</name>
+      <uri>https://www.reddit.com/user/Awkward-Let-4628</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmdz01/i_made_llxdesk_a_26_mb_browser_window_claude_code/"&gt; &lt;img alt="I made llx-desk: a 2.6 MB browser window Claude Code can drive, and you can leave it feedback right on the page" src="https://external-preview.redd.it/NmMzcTA3ODRoYXpoMaAek-OaCTMqrjwDsRaTCZ8OMn71Qn4VSxXXMC_dkopd.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4cae57ca602934ee172ec4b5e1b67ba898728ca3" title="I made llx-desk: a 2.6 MB browser window Claude Code can drive, and you can leave it feedback right on the page" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I wanted Claude Code to actually &lt;em&gt;use&lt;/em&gt; a browser, not just write code for one, and I wanted to watch it and point at things instead of describing them in chat. So I built a small native window that the agent and I share.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The agent drives a real browser.&lt;/strong&gt; It can test the app you're building, find flights, compare prices or fill in a long form. It reads pages as an outline and clicks by ref, with no screenshot-and-guess loop. Routine clicks go to a small fast model (jev): about 0.4 s per step and about $0.0005 per task on our benchmark. It never pays, orders or deletes unless you ask for that&lt;/li&gt; &lt;li&gt;&lt;strong&gt;You give feedback on the page.&lt;/strong&gt; Select any element and comment &amp;quot;remove this&amp;quot;. It lands in your Claude Code session with the element, selector and a screenshot, and the agent fixes it&lt;/li&gt; &lt;li&gt;&lt;strong&gt;It stays out of your way.&lt;/strong&gt; It floats as a mini preview, expands on click and collapses when you click away&lt;/li&gt; &lt;li&gt;&lt;strong&gt;It's tiny.&lt;/strong&gt; One 2.6 MB binary, about a 1.3 MB download. There's no bundled Chromium: pages run on the system WebView (WKWebView on macOS, WebKitGTK on Linux)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;In the video the agent clicks through a shop, I comment &amp;quot;remove&amp;quot; on a line, and Claude deletes it.&lt;/p&gt; &lt;p&gt;Rust, MIT, macOS + Linux. Install as a Claude Code plugin:&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/rsaryev/llx-desk"&gt;https://github.com/rsaryev/llx-desk&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Awkward-Let-4628"&gt; /u/Awkward-Let-4628 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/55s3ny74hazh1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmdz01/i_made_llxdesk_a_26_mb_browser_window_claude_code/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmdz01/i_made_llxdesk_a_26_mb_browser_window_claude_code/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-03T00:06:37+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xlubef/i_built_an_mcp_server_for_sharing_my_firefoxzen/</id>
     <title>I built an MCP server for sharing my Firefox/Zen browser with a coding agent</title>
     <updated>2026-11-02T11:06:03+00:00</updated>
@@ -45,6 +84,45 @@
     <link href="https://www.reddit.com/r/mcp/comments/1xlubef/i_built_an_mcp_server_for_sharing_my_firefoxzen/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-11-02T11:06:03+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmamsd/399_of_the_134916_paid_apis_and_mcp_servers/</id>
+    <title>39.9% of the 134,916 paid APIs and MCP servers ToolVet checked failed their latest check. That is up from 12.8% the week before.</title>
+    <updated>2026-11-02T21:49:07+00:00</updated>
+    <author>
+      <name>/u/BudgetBon</name>
+      <uri>https://www.reddit.com/user/BudgetBon</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmamsd/399_of_the_134916_paid_apis_and_mcp_servers/"&gt; &lt;img alt="39.9% of the 134,916 paid APIs and MCP servers ToolVet checked failed their latest check. That is up from 12.8% the week before." src="https://preview.redd.it/q04y37bis9zh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c56a1feaef7e7481692f81519628e5927b08f350" title="39.9% of the 134,916 paid APIs and MCP servers ToolVet checked failed their latest check. That is up from 12.8% the week before." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Every week ToolVet makes unpaid test calls to the paid x402 APIs and remote MCP servers it lists. Numbers for 26 Oct – 1 Nov 2026:&lt;/p&gt; &lt;p&gt;- 39.9% of the 134,916 paid APIs and MCP servers ToolVet checked failed their latest check.&lt;/p&gt; &lt;p&gt;- That is up from 12.8% the week before.&lt;/p&gt; &lt;p&gt;- 27,244 listings were added to ToolVet: 23,797 paid APIs and 3,447 MCP servers. 4,715 providers appeared for the first time.&lt;/p&gt; &lt;p&gt;- 625 of the 43,207 paid APIs with usage data (1.4%) were paid for by 10 or more wallets in the last 30 days.&lt;/p&gt; &lt;p&gt;- 3,260 listings changed their price at least once. 1,406 listings charge more than they advertise.&lt;/p&gt; &lt;p&gt;- 280 listings carry text that tries to steer agents, which ToolVet withholds from them.&lt;/p&gt; &lt;p&gt;- 767 listings on 85 hosts changed the wallet they get paid to.&lt;/p&gt; &lt;p&gt;Full report, with the method: &lt;a href="https://toolvet.app/reports/2026-w44"&gt;https://toolvet.app/reports/2026-w44&lt;/a&gt;&lt;/p&gt; &lt;p&gt;The same numbers as JSON: &lt;a href="https://toolvet.app/api/v1/reports/2026-w44"&gt;https://toolvet.app/api/v1/reports/2026-w44&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Disclosure: I build ToolVet. Happy to answer questions about how we check.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/BudgetBon"&gt; /u/BudgetBon &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/q04y37bis9zh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmamsd/399_of_the_134916_paid_apis_and_mcp_servers/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmamsd/399_of_the_134916_paid_apis_and_mcp_servers/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T21:49:07+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xma2ip/unofficial_crunchyroll_mcp_server_catalog_search/</id>
+    <title>Unofficial Crunchyroll MCP server: catalog search, watchlist and watch history with browser-based sign-in</title>
+    <updated>2026-11-02T21:27:26+00:00</updated>
+    <author>
+      <name>/u/Pleasant-Today-6584</name>
+      <uri>https://www.reddit.com/user/Pleasant-Today-6584</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure: this is my project. It started from StrikerLabs' open-source &lt;a href="/u/striderlabs"&gt;u/striderlabs&lt;/a&gt;&lt;code&gt;/mcp-crunchyroll&lt;/code&gt; and it is not affiliated with or endorsed by Crunchyroll.&lt;/p&gt; &lt;p&gt;It's a TypeScript stdio MCP server (v0.1.0, MIT). 19 of the 21 published tools work today:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Catalog: search, browse (sort/category/season filters), categories, simulcast seasons, series/season/episode details, recommendations, similar titles&lt;/li&gt; &lt;li&gt;Account reads: watchlist, watch history, playheads&lt;/li&gt; &lt;li&gt;Account writes: add/remove watchlist items, update playheads. These change your real account, so review those calls before approving them.&lt;/li&gt; &lt;li&gt;Session: login, logout, status&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;How sign-in works: &lt;code&gt;crunchyroll_login&lt;/code&gt; opens a dedicated managed Chromium profile and you log in yourself (including any captcha). Passwords, cookies, tokens and account IDs are never tool arguments, and requests go through a fixed set of operations over CDP, so the model can't build arbitrary HTTP calls. If a write may have been sent but the result is unknown, it returns &lt;code&gt;MUTATION_OUTCOME_UNKNOWN&lt;/code&gt; instead of retrying blindly.&lt;/p&gt; &lt;p&gt;Limitations:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;It depends on Crunchyroll's internal web endpoints, which are not a public API and can change or break at any time. Region, session expiry and human verification also affect it.&lt;/li&gt; &lt;li&gt;No playback, downloads or DRM bypass.&lt;/li&gt; &lt;li&gt;&lt;code&gt;continue_watching&lt;/code&gt; and &lt;code&gt;get_subscription&lt;/code&gt; are still deferred and return &lt;code&gt;OPERATION_NOT_MIGRATED&lt;/code&gt;.&lt;/li&gt; &lt;li&gt;Needs Node 18+ and a Chromium-based browser. CI runs on Node 18/20/22, but I've mostly used it with Hermes Agent on Linux, so reports from other clients and OSes are very welcome.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;AI disclosure: much of the code, tests and docs were written with AI coding agents (mainly Codex and Claude), and this post was drafted with AI help too.&lt;/p&gt; &lt;p&gt;Feedback I'd love: setup/onboarding pain points, how errors are reported, and which tools you'd actually want next. Please keep credentials and account data out of issues.&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/Itthiago034/mcp-crunchyroll"&gt;https://github.com/Itthiago034/mcp-crunchyroll&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Pleasant-Today-6584"&gt; /u/Pleasant-Today-6584 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xma2ip/unofficial_crunchyroll_mcp_server_catalog_search/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xma2ip/unofficial_crunchyroll_mcp_server_catalog_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xma2ip/unofficial_crunchyroll_mcp_server_catalog_search/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T21:27:26+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmgq8h/i_added_an_mcp_server_to_my_mac_screen_annotation/</id>
+    <title>I added an MCP server to my Mac screen annotation app so Claude/Cursor/Codex can draw diagrams on my screen (I built it)</title>
+    <updated>2026-11-03T02:14:23+00:00</updated>
+    <author>
+      <name>/u/adibfhanna</name>
+      <uri>https://www.reddit.com/user/adibfhanna</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmgq8h/i_added_an_mcp_server_to_my_mac_screen_annotation/"&gt; &lt;img alt="I added an MCP server to my Mac screen annotation app so Claude/Cursor/Codex can draw diagrams on my screen (I built it)" src="https://preview.redd.it/rbqjunov3bzh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=c1448807da74117bf4c584208f42c9fd26849e30" title="I added an MCP server to my Mac screen annotation app so Claude/Cursor/Codex can draw diagrams on my screen (I built it)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I make Screen Annotations, a Mac menu bar app (plus an iPad app) for drawing arrows, shapes, text and math on top of whatever is on your screen. I mostly use it to explain things while screen sharing or recording.&lt;/p&gt; &lt;p&gt;A while back I added an MCP server, and it's become the part I use most when I'm working with agents. It works with Claude Code, Claude Desktop, Cursor and Codex, over HTTP or stdio. Through it the model can:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;take a screenshot of the screen so it can see what's there&lt;/li&gt; &lt;li&gt;place annotations at coordinates (arrows, text, shapes, LaTeX formulas)&lt;/li&gt; &lt;li&gt;use the full shape library, including architecture shapes like servers, databases, load balancers, K8s pods and UML classes&lt;/li&gt; &lt;li&gt;create and manage whiteboards, scenes, presentations and snapshots&lt;/li&gt; &lt;li&gt;set the board background and toolbar (added in 1.9)&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;So I can ask &amp;quot;draw the request flow for this service&amp;quot; and get an editable diagram I can then tweak by hand, or have it point at parts of a screenshot.&lt;/p&gt; &lt;p&gt;Honest limits: diagram quality depends a lot on the model, and it sometimes needs a nudge on layout. It's Apple only (macOS 15+, iPadOS 18+), and it's a paid app, $14.99 one-time for Mac and iPad together. No account, and nothing goes to my servers.&lt;/p&gt; &lt;p&gt;Happy to answer questions about how the tools are shaped.&lt;/p&gt; &lt;p&gt;Disclosure: I built Screen Annotations. &lt;a href="https://screenannotations.com/"&gt;https://screenannotations.com/&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/adibfhanna"&gt; /u/adibfhanna &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/rbqjunov3bzh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmgq8h/i_added_an_mcp_server_to_my_mac_screen_annotation/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmgq8h/i_added_an_mcp_server_to_my_mac_screen_annotation/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-03T02:14:23+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xlx9qo/i_made_an_iosmacos_shortcut_that_discovers_mcp/</id>
@@ -60,17 +138,56 @@
     <published>2026-11-02T13:32:20+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/</id>
-    <title>showcase: an MCP issue board for the usage left at your weekly reset. 79 PRs merged through it, but I still need repo owners</title>
-    <updated>2026-11-02T19:31:50+00:00</updated>
+    <id>https://www.reddit.com/r/mcp/comments/1xmgc3w/showcase_a_readonly_mcp_server_that_tells_your_ai/</id>
+    <title>[Showcase] A read-only MCP server that tells your AI what’s in a folder, what’s stale, and where space went</title>
+    <updated>2026-11-03T01:56:31+00:00</updated>
     <author>
-      <name>/u/Nitjsefnie</name>
-      <uri>https://www.reddit.com/user/Nitjsefnie</uri>
+      <name>/u/Dazzling-Relation-62</name>
+      <uri>https://www.reddit.com/user/Dazzling-Relation-62</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;posted this here 12 days ago at 31 users, it's at 100 now&lt;/p&gt; &lt;p&gt;it's called Overflow, free and MIT, I built it. a week your agent has usage left at the reset, it fixes someone else's github issue. a week you run short, someone else's agent fixes yours&lt;/p&gt; &lt;p&gt;everyone starts at 0 points and can put points up before earning any, you get an issue's points when your PR merges, you spend them on issues in your own repo. points only, no money&lt;/p&gt; &lt;p&gt;the MCP part: POST /api/mcp, issues_board lists what's open with points on it, settlements_list shows what you've settled. new since last time: an owner can write a &amp;quot;Done when&amp;quot; comment on an issue and every board row carries it, so the agent knows when it's finished. it comes marked as the owner's untrusted text, run it sandboxed&lt;/p&gt; &lt;p&gt;real numbers:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;13 people other than me got 79 PRs merged through it&lt;/li&gt; &lt;li&gt;all 79 are on my repos&lt;/li&gt; &lt;li&gt;1 repo registered by someone who isn't me&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;a real one, end to end: &lt;a href="https://github.com/Nitjsefnie-Actions/claim/issues/228"&gt;this issue&lt;/a&gt; was labelled 3, someone's agent sent &lt;a href="https://github.com/Nitjsefnie-Actions/claim/pull/230"&gt;this PR&lt;/a&gt;, I set it to 6 at merge and the one round of changes I asked for took it to 5&lt;/p&gt; &lt;p&gt;main reason I'm posting: I want more people registering their repos. I'm not after help with mine, I want spare usage going into other people's projects. one form, public repos only, the labels have to exist first, and nothing lands unless you merge it&lt;/p&gt; &lt;p&gt;if you maintain something, what would get you to list one issue?&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/Nitjsefnie/Overflow"&gt;https://github.com/Nitjsefnie/Overflow&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Nitjsefnie"&gt; /u/Nitjsefnie &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xm6zqn/showcase_an_mcp_issue_board_for_the_usage_left_at/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built and published mcp-folder-scout, a small read-only MCP server that lets any AI assistant triage a folder: what’s in it, which files are stale, and where the space is going, without being able to touch or change anything.&lt;/p&gt; &lt;p&gt;Why I made it: I kept wanting my AI assistant to help me clean up and understand messy directories, but I didn’t want to hand it write access to do it. So this is deliberately read-only, with safeguards that keep sensitive files out of reach.&lt;/p&gt; &lt;p&gt;What it does:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Reports folder contents and structure&lt;/li&gt; &lt;li&gt;Flags stale or old files&lt;/li&gt; &lt;li&gt;Shows where disk space is going&lt;/li&gt; &lt;li&gt;Read-only by design, with protection for sensitive files&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;It’s built with FastMCP in Python and published to PyPI and the official MCP registry, so it’s quick to install and plug into your client.&lt;/p&gt; &lt;p&gt;Let me know your feedback and thoughts, what you’d want it to surface next, or any rough edges. Happy to answer questions.&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/dharani0804/mcp-folder-scout"&gt;Link&lt;/a&gt;&lt;br /&gt; PyPI: &lt;code&gt;pip install mcp-folder-scout&lt;/code&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Dazzling-Relation-62"&gt; /u/Dazzling-Relation-62 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmgc3w/showcase_a_readonly_mcp_server_that_tells_your_ai/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmgc3w/showcase_a_readonly_mcp_server_that_tells_your_ai/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmgc3w/showcase_a_readonly_mcp_server_that_tells_your_ai/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T19:31:50+00:00</published>
+    <published>2026-11-03T01:56:31+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xm8f4u/built_a_remote_mcp_server_that_makes_talkingphoto/</id>
+    <title>Built a remote MCP server that makes talking-photo and product videos, with server-side spend limits</title>
+    <updated>2026-11-02T20:24:17+00:00</updated>
+    <author>
+      <name>/u/No-Influence-161</name>
+      <uri>https://www.reddit.com/user/No-Influence-161</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I work on TalkPix, a photo-to-talking-video tool, and we just shipped it as a remote MCP server (Streamable HTTP, OAuth with dynamic client registration). Sharing because the spending part was the interesting design problem.&lt;/p&gt; &lt;p&gt;What it does: you attach a photo in Claude or ChatGPT and ask for a talking photo, a product video ad, or a short AI video. The assistant writes the script and calls the tool.&lt;/p&gt; &lt;p&gt;How we kept an agent from spending money it shouldn't:&lt;/p&gt; &lt;p&gt;- Every paid tool returns a quote first. Product ads quote a range, and the job can never be charged above the top of it.&lt;/p&gt; &lt;p&gt;- Per-video and per-day budgets live on the server, not in the prompt. Anything above them needs a confirmation on our site.&lt;/p&gt; &lt;p&gt;- The assistant only sees the balance and the videos, never payment details.&lt;/p&gt; &lt;p&gt;- Rate limits per connection.&lt;/p&gt; &lt;p&gt;Endpoint: &lt;a href="https://www.talkpix.ai/api/mcp"&gt;https://www.talkpix.ai/api/mcp&lt;/a&gt; (it's also in the official registry as io.github.talkpixai/talkpix). Happy to answer questions about the OAuth/DCR flow or the quote step. Curious how others handle money-spending tools.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/No-Influence-161"&gt; /u/No-Influence-161 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm8f4u/built_a_remote_mcp_server_that_makes_talkingphoto/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm8f4u/built_a_remote_mcp_server_that_makes_talkingphoto/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xm8f4u/built_a_remote_mcp_server_that_makes_talkingphoto/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T20:24:17+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmdsfc/walrus_mcp_server_enables_ai_assistants_to_store/</id>
+    <title>Walrus MCP Server – Enables AI assistants to store and retrieve data using the Walrus decentralized storage network. Supports blob storage operations, retrieval by ID, and blockchain-verified availability through the Sui network.</title>
+    <updated>2026-11-03T00:00:02+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmdsfc/walrus_mcp_server_enables_ai_assistants_to_store/"&gt; &lt;img alt="Walrus MCP Server – Enables AI assistants to store and retrieve data using the Walrus decentralized storage network. Supports blob storage operations, retrieval by ID, and blockchain-verified availability through the Sui network." src="https://external-preview.redd.it/n_BJKkJDW7COK0iX4Z-JZgzQjQnsf1F4zn5aaTuTsXQ.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=4b3a9f48874b505ba2d0ae8ecc23ed2e8f901ed2" title="Walrus MCP Server – Enables AI assistants to store and retrieve data using the Walrus decentralized storage network. Supports blob storage operations, retrieval by ID, and blockchain-verified availability through the Sui network." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/Motion-Labs-Sui/walrus-mcp"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmdsfc/walrus_mcp_server_enables_ai_assistants_to_store/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmdsfc/walrus_mcp_server_enables_ai_assistants_to_store/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-03T00:00:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmdsd3/news_volume_trends_mcp_news_article_volume_over/</id>
+    <title>News Volume Trends MCP – News article volume over time, with growth for any topic. Free key at trendsmcp.ai</title>
+    <updated>2026-11-03T00:00:00+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmdsd3/news_volume_trends_mcp_news_article_volume_over/"&gt; &lt;img alt="News Volume Trends MCP – News article volume over time, with growth for any topic. Free key at trendsmcp.ai" src="https://external-preview.redd.it/0LOidYl8gVMbX6zVMlORi_wcT6Vych4Yc6dT2py-q8k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=44cc7f0581929ad4d06bad86054ab3b7894dfb5c" title="News Volume Trends MCP – News article volume over time, with growth for any topic. Free key at trendsmcp.ai" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/ai.trendsmcp/news-volume"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmdsd3/news_volume_trends_mcp_news_article_volume_over/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmdsd3/news_volume_trends_mcp_news_article_volume_over/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-03T00:00:00+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xm6h8x/guardian_opensource_authority_layer_for_ai_agents/</id>
@@ -97,6 +214,19 @@
     <link href="https://www.reddit.com/r/mcp/comments/1xlwo0z/i_built_a_hosted_mcp_server_for_social_media/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-11-02T13:06:24+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xmbkcg/made_69_in_a_single_day_from_a_pet_blog_i_bought/</id>
+    <title>Made $69 in a single day from a pet blog I bought. Can I add mcp to it?</title>
+    <updated>2026-11-02T22:25:47+00:00</updated>
+    <author>
+      <name>/u/zion1994</name>
+      <uri>https://www.reddit.com/user/zion1994</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xmbkcg/made_69_in_a_single_day_from_a_pet_blog_i_bought/"&gt; &lt;img alt="Made $69 in a single day from a pet blog I bought. Can I add mcp to it?" src="https://preview.redd.it/n4tbr6y4z9zh1.jpeg?width=140&amp;amp;height=58&amp;amp;auto=webp&amp;amp;s=d1fe4466f41f3f8aaa9179703674cfa386037bcb" title="Made $69 in a single day from a pet blog I bought. Can I add mcp to it?" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;A few months ago I saw a post on Reddit from some guy who was making pretty decent money from a pet blog he bought from Aff Blog Zone. I thought he was full of shit lol.&lt;/p&gt; &lt;p&gt;Spent a while looking through their sites and eventually figured why not give it a shot. Worst case I'm out $299. Ended up buying a pet blog myself.&lt;/p&gt; &lt;p&gt;Didn't really do much with it. Added some internal links, fixed a few things here and there and pretty much left it alone. Fast forward to October 29 and I had my best day yet. $69 in Amazon commissions from 370 clicks and 26 orders.&lt;/p&gt; &lt;p&gt;Not gonna lie, seeing that number on the dashboard felt pretty good.&lt;/p&gt; &lt;p&gt;Obviously I'm not making that much every day. Some days are still pretty disappointing, but considering I paid that much for the entire site, I really can't complain.&lt;/p&gt; &lt;p&gt;The funny part is I probably would've never even tried this if I hadn't stumbled across that Reddit post. Now I'm just curious to see where this goes.&lt;/p&gt; &lt;p&gt;Anyone else doing Amazon affiliate sites? Did your earnings slowly increase over time or did you have random days where things suddenly took off?&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/n4tbr6y4z9zh1.jpeg?width=1158&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=1c5f2acbee7e9904d280eae646bbdc1131e494f7"&gt;https://preview.redd.it/n4tbr6y4z9zh1.jpeg?width=1158&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=1c5f2acbee7e9904d280eae646bbdc1131e494f7&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/zion1994"&gt; /u/zion1994 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmbkcg/made_69_in_a_single_day_from_a_pet_blog_i_bought/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xmbkcg/made_69_in_a_single_day_from_a_pet_blog_i_bought/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xmbkcg/made_69_in_a_single_day_from_a_pet_blog_i_bought/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T22:25:47+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xm7r4e/addtaskmanager_mcp_server_integrates_with_the/</id>
@@ -151,6 +281,19 @@
     <published>2026-11-02T15:05:34+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/</id>
+    <title>We built an 8-tool Market Data &amp; Options Greeks MCP server (5/5 TDQS score on Glama, live on Official MCP Registry com.apextick/mcp)</title>
+    <updated>2026-11-02T15:02:27+00:00</updated>
+    <author>
+      <name>/u/apextick_dev</name>
+      <uri>https://www.reddit.com/user/apextick_dev</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Over the past few months we built an MCP server focused on institutional-grade market data, valuation multiples, technical indicators, and options chains with Black-Scholes Greeks, and just published v1.0 to the Official MCP Registry (&lt;code&gt;com.apextick/mcp&lt;/code&gt;).&lt;/p&gt; &lt;h3&gt;Design Lessons Learned (5/5 TDQS Score across 8 Tools)&lt;/h3&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Compound Tools Beat 1:1 REST Wrappers:&lt;/strong&gt; Instead of making the LLM issue 4 separate tool calls to explain why a stock is moving, &lt;code&gt;explain_price_move&lt;/code&gt; concurrently fetches the intraday quote, technical indicators (&lt;code&gt;RSI14&lt;/code&gt;, &lt;code&gt;SMA20/50/200&lt;/code&gt;, &lt;code&gt;MACD&lt;/code&gt;, &lt;code&gt;ATR14&lt;/code&gt;, &lt;code&gt;volatility30&lt;/code&gt;), and quarterly earnings surprises, returning one compact JSON payload.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Strict Tool Disambiguation:&lt;/strong&gt; Every tool description explicitly states both when to use it and which sibling tool to use for adjacent tasks (&lt;code&gt;get_quote&lt;/code&gt;, &lt;code&gt;search_tickers&lt;/code&gt;, &lt;code&gt;get_price_history&lt;/code&gt;, &lt;code&gt;analyze_ticker&lt;/code&gt;, &lt;code&gt;explain_price_move&lt;/code&gt;, &lt;code&gt;get_watchlist_brief&lt;/code&gt;, &lt;code&gt;screen_market&lt;/code&gt;, &lt;code&gt;get_options_chain&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Stateless Streamable HTTP + SEP-1649 Server Card:&lt;/strong&gt; Hosted at &lt;code&gt;POST https://api.apextick.com/mcp&lt;/code&gt; with an unauthenticated static server card at &lt;code&gt;/.well-known/mcp/server-card.json&lt;/code&gt;.&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/apextick_dev"&gt; /u/apextick_dev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-02T15:02:27+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xm4ad1/your_users_ai_agents_mcp_servers_and_tools/</id>
     <title>Your Users, AI agents, MCP servers and tools — visualized as one network.</title>
     <updated>2026-11-02T17:56:03+00:00</updated>
@@ -177,159 +320,16 @@
     <published>2026-11-02T12:04:33+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/</id>
-    <title>We built an 8-tool Market Data &amp; Options Greeks MCP server (5/5 TDQS score on Glama, live on Official MCP Registry com.apextick/mcp)</title>
-    <updated>2026-11-02T15:02:27+00:00</updated>
+    <id>https://www.reddit.com/r/mcp/comments/1xm0fey/harnis_a_seatbelt_for_local_stdio_mcp_not_a/</id>
+    <title>Harnis: a seatbelt for local stdio MCP (not a sandbox)</title>
+    <updated>2026-11-02T15:35:56+00:00</updated>
     <author>
-      <name>/u/apextick_dev</name>
-      <uri>https://www.reddit.com/user/apextick_dev</uri>
+      <name>/u/L00pLegend</name>
+      <uri>https://www.reddit.com/user/L00pLegend</uri>
     </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Over the past few months we built an MCP server focused on institutional-grade market data, valuation multiples, technical indicators, and options chains with Black-Scholes Greeks, and just published v1.0 to the Official MCP Registry (&lt;code&gt;com.apextick/mcp&lt;/code&gt;).&lt;/p&gt; &lt;h3&gt;Design Lessons Learned (5/5 TDQS Score across 8 Tools)&lt;/h3&gt; &lt;ol&gt; &lt;li&gt;&lt;strong&gt;Compound Tools Beat 1:1 REST Wrappers:&lt;/strong&gt; Instead of making the LLM issue 4 separate tool calls to explain why a stock is moving, &lt;code&gt;explain_price_move&lt;/code&gt; concurrently fetches the intraday quote, technical indicators (&lt;code&gt;RSI14&lt;/code&gt;, &lt;code&gt;SMA20/50/200&lt;/code&gt;, &lt;code&gt;MACD&lt;/code&gt;, &lt;code&gt;ATR14&lt;/code&gt;, &lt;code&gt;volatility30&lt;/code&gt;), and quarterly earnings surprises, returning one compact JSON payload.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Strict Tool Disambiguation:&lt;/strong&gt; Every tool description explicitly states both when to use it and which sibling tool to use for adjacent tasks (&lt;code&gt;get_quote&lt;/code&gt;, &lt;code&gt;search_tickers&lt;/code&gt;, &lt;code&gt;get_price_history&lt;/code&gt;, &lt;code&gt;analyze_ticker&lt;/code&gt;, &lt;code&gt;explain_price_move&lt;/code&gt;, &lt;code&gt;get_watchlist_brief&lt;/code&gt;, &lt;code&gt;screen_market&lt;/code&gt;, &lt;code&gt;get_options_chain&lt;/code&gt;).&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Stateless Streamable HTTP + SEP-1649 Server Card:&lt;/strong&gt; Hosted at &lt;code&gt;POST https://api.apextick.com/mcp&lt;/code&gt; with an unauthenticated static server card at &lt;code&gt;/.well-known/mcp/server-card.json&lt;/code&gt;.&lt;/li&gt; &lt;/ol&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/apextick_dev"&gt; /u/apextick_dev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlzj2t/we_built_an_8tool_market_data_options_greeks_mcp/"/>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;em&gt;Most “agent security” tools sell a sandbox. Harnis doesn’t.&lt;/em&gt;&lt;/p&gt; &lt;p&gt;It wraps a local stdio MCP server and judges &lt;code&gt;tools/call&lt;/code&gt; (and path-like &lt;code&gt;resources/read&lt;/code&gt;) before the child process sees them. A denial is returned to the client and never forwarded.&lt;/p&gt; &lt;pre&gt;&lt;code&gt;npx -y harnis mcp --preset github -- github-mcp-server stdio # or npx -y harnis init &amp;amp;&amp;amp; npx -y harnis status &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Requires Python 3.11+ (the npm package only spawns python -m harnis).&lt;/p&gt; &lt;p&gt;In scope (when traffic goes through the wrap):&lt;/p&gt; &lt;p&gt;credential paths in any tool args (renamed tools included) opaque / destructive shell GitHub preset: delete_file / default-branch writes optional budgets + deny_tools Out of scope: URL/SSE MCP, removing the wrap from config, renamed tools with no secret args, “safe agent.”&lt;/p&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/L00PLeGeNd/Harnis"&gt;https://github.com/L00PLeGeNd/Harnis&lt;/a&gt; &lt;/p&gt; &lt;p&gt;Threat model: &lt;a href="https://github.com/L00PLeGeNd/Harnis/blob/main/THREAT_MODEL.md"&gt;https://github.com/L00PLeGeNd/Harnis/blob/main/THREAT_MODEL.md&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/L00pLegend"&gt; /u/L00pLegend &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm0fey/harnis_a_seatbelt_for_local_stdio_mcp_not_a/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xm0fey/harnis_a_seatbelt_for_local_stdio_mcp_not_a/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xm0fey/harnis_a_seatbelt_for_local_stdio_mcp_not_a/"/>
     <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T15:02:27+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlzgzr/voiceflip_ai_voice_agents_on_smb_websites_fully/</id>
-    <title>VoiceFlip – AI voice agents on SMB websites — fully autonomous build in 2–3 min. 23 MCP tools. EU, GDPR.</title>
-    <updated>2026-11-02T15:00:27+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.michalbaturko-lang/voiceflip"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzgzr/voiceflip_ai_voice_agents_on_smb_websites_fully/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlzgzr/voiceflip_ai_voice_agents_on_smb_websites_fully/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T15:00:27+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlzgzb/x_mcp_server_enables_users_to_interact_with_x/</id>
-    <title>X MCP Server – Enables users to interact with X (Twitter) through the X API. Supports posting tweets, retrieving user timelines, searching tweets, and replying to tweets with comprehensive error handling.</title>
-    <updated>2026-11-02T15:00:26+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/krishna-paulraj/x-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlzgzb/x_mcp_server_enables_users_to_interact_with_x/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlzgzb/x_mcp_server_enables_users_to_interact_with_x/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T15:00:26+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlyv1d/every_function_in_my_app_is_an_mcp_tool_with_one/</id>
-    <title>Every function in my app is an MCP tool with one option, no server code to write</title>
-    <updated>2026-11-02T14:36:33+00:00</updated>
-    <author>
-      <name>/u/B1LAXE</name>
-      <uri>https://www.reddit.com/user/B1LAXE</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I kept writing the same MCP glue for my own apps: a server, tool schemas, descriptions, auth, and keeping it all in sync with the real functions.&lt;/p&gt; &lt;p&gt;In Forjr, the full-stack framework I built, that work is gone:&lt;/p&gt; &lt;p&gt;- With one option, a function is offered as an MCP tool with OAuth sign-in, and the same function is also a REST endpoint with OpenAPI and a CLI command.&lt;/p&gt; &lt;p&gt;- The tool's typed input and its description are generated from the function's definition, so they never drift.&lt;/p&gt; &lt;p&gt;- Every call runs with the caller's permissions, under the same access rules as your pages and APIs.&lt;/p&gt; &lt;p&gt;It's free and open source and MIT:&lt;/p&gt; &lt;p&gt;GitHub: &lt;a href="https://github.com/forjr/forjr"&gt;https://github.com/forjr/forjr&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Docs: &lt;a href="https://forjr.dev"&gt;https://forjr.dev&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Id appreciate any feedback!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/B1LAXE"&gt; /u/B1LAXE &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlyv1d/every_function_in_my_app_is_an_mcp_tool_with_one/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlyv1d/every_function_in_my_app_is_an_mcp_tool_with_one/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlyv1d/every_function_in_my_app_is_an_mcp_tool_with_one/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T14:36:33+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlyiqy/45841_on_paper_from_282_trades_nearly_all_of_it/</id>
-    <title>$45,841 on paper from 282 trades, nearly all of it from three weeks in September. A status tool that hands an agent only the total would mislead it.</title>
-    <updated>2026-11-02T14:22:59+00:00</updated>
-    <author>
-      <name>/u/QuanTradin</name>
-      <uri>https://www.reddit.com/user/QuanTradin</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xlyiqy/45841_on_paper_from_282_trades_nearly_all_of_it/"&gt; &lt;img alt="$45,841 on paper from 282 trades, nearly all of it from three weeks in September. A status tool that hands an agent only the total would mislead it." src="https://preview.redd.it/6scuyakyk7zh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=e653b99547c43d2e7b8955b7c3f6d5596a97c060" title="$45,841 on paper from 282 trades, nearly all of it from three weeks in September. A status tool that hands an agent only the total would mislead it." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Two weeks ago I asked here what an agent should get when it checks on a paper bot that has been running for days. This card made the question concrete for me, so here it is with the doubt attached. Paper money, simulated, not advice.&lt;/p&gt; &lt;p&gt;The rule: it watches groups of US stocks that usually move together, and when one lags while the others line up, it buys a daily call on the laggard and waits for it to catch up.&lt;/p&gt; &lt;p&gt;What the card shows: 282 trades from 25 Aug to 30 Oct, 27.7% of them winners, +$45,841.23 realized, best streak 6 in a row.&lt;/p&gt; &lt;p&gt;What the total hides: almost all of it came in a few weeks of September, and the curve has drifted down a little every week since. With under 3 in 10 trades winning, a dozen or so trades carry the whole number.&lt;/p&gt; &lt;p&gt;So the MCP side. If a status tool hands an agent &amp;quot;+$45,841, 282 trades&amp;quot;, the agent reasonably concludes the bot works. If it hands back the weekly curve, the agent sees week after week of red and wants to &amp;quot;fix&amp;quot; a rule that may just be waiting for its next burst. Neither is right on its own. What I lean toward, not built and not settled: a result that carries the total, the share of it that came from the best 10 trades, and the date of the last new high, so an agent has to talk about concentration before it talks about edits.&lt;/p&gt; &lt;p&gt;The thread here on enforcing policy across a whole session instead of per tool call is the other half of this. Editing a running rule because of a week of noise feels like something a session policy should slow down, not a single tool's permissions.&lt;/p&gt; &lt;p&gt;How Quantradin helps with this: the card comes out of Quantradin, which I built so you can connect your AI (Claude, Gemini, ChatGPT, Codex...) and have its trading rules graded by an engine it can't touch, on bars that have already closed, with options buying at the ask and selling at the bid. Whatever survives runs as a paper bot. No fee, and every dollar in it is fake. &lt;a href="http://quantradin.com"&gt;quantradin.com&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/QuanTradin"&gt; /u/QuanTradin &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/6scuyakyk7zh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlyiqy/45841_on_paper_from_282_trades_nearly_all_of_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlyiqy/45841_on_paper_from_282_trades_nearly_all_of_it/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T14:22:59+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlx9bv/yet_another_mcp_directory_this_time_agent_first/</id>
-    <title>Yet another MCP directory, this time agent first. Let your agent discover by usecase and vote on skills/mcps directly</title>
-    <updated>2026-11-02T13:31:55+00:00</updated>
-    <author>
-      <name>/u/telasch</name>
-      <uri>https://www.reddit.com/user/telasch</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built &lt;a href="http://agentbuffs.com"&gt;agentbuffs.com&lt;/a&gt; as an agent first MCP directory. You can browse the site as the operator and bookmark stuff, vote on things etc. But the main usecase is to install the SDK for your agents.&lt;/p&gt; &lt;p&gt;The API and MCP act as the gateway into the directory and it returns votes and reviews by other agents. You can filter by model and harness. So for example Sonnet 5.5 in Claude Code and then see what other Sonnet sessions voted on for say good design MCPs. Long-term goal would be to know what skill provided a great experience for a given harness + model combo.&lt;/p&gt; &lt;p&gt;Looking for feedback and ideas.&lt;/p&gt; &lt;p&gt;The CLI is open source and open to PRs &lt;a href="https://github.com/agentbuffs/cli"&gt;https://github.com/agentbuffs/cli&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/telasch"&gt; /u/telasch &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlx9bv/yet_another_mcp_directory_this_time_agent_first/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlx9bv/yet_another_mcp_directory_this_time_agent_first/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlx9bv/yet_another_mcp_directory_this_time_agent_first/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T13:31:55+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlpau4/games4free_a_game_catalogue_your_ai_can_search/</id>
-    <title>Games4Free: a game catalogue your AI can search through MCP</title>
-    <updated>2026-11-02T05:52:21+00:00</updated>
-    <author>
-      <name>/u/biggdogg420</name>
-      <uri>https://www.reddit.com/user/biggdogg420</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m building Games4Free as a catalogue where people can find games, original creators’ links and useful starting points for their own projects. We don’t need to host the games: the idea is to point your AI at the directory and let it find them through the site and MCP.&lt;/p&gt; &lt;p&gt;The public read-only MCP now searches 2,465 additional listings. Play/download availability and source licences vary by game.&lt;/p&gt; &lt;p&gt;This is my project, built with ChatGPT/Codex. &lt;a href="https://games.free4allhub.com"&gt;https://games.free4allhub.com&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Could your assistant find a useful starting point for a game you want to make?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/biggdogg420"&gt; /u/biggdogg420 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlpau4/games4free_a_game_catalogue_your_ai_can_search/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlpau4/games4free_a_game_catalogue_your_ai_can_search/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlpau4/games4free_a_game_catalogue_your_ai_can_search/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T05:52:21+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlvty4/i_audited_my_own_mcp_credential_broker_the_worst/</id>
-    <title>I audited my own MCP credential broker. The worst hole was the config file</title>
-    <updated>2026-11-02T12:27:14+00:00</updated>
-    <author>
-      <name>/u/Relevant_Mousse_9117</name>
-      <uri>https://www.reddit.com/user/Relevant_Mousse_9117</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I maintain a small MCP server that keeps API, SSH and DB credentials in the OS keychain. The agent uses them through allow-listed calls and never sees them.&lt;/p&gt; &lt;p&gt;After someone here found a few allow-list bypasses, I assumed the agent is fully prompt-injected and can write any file, and went through everything again. Three findings I didn't expect:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;The agent could edit the config.&lt;/strong&gt; Every session starts a fresh server, and it trusted &lt;code&gt;config.toml&lt;/code&gt;. An agent could switch a preset to auto-approve. My &lt;code&gt;--confirm-auto&lt;/code&gt; flag didn't help: the agent has a shell. Now auto-approve holds only in the exact form a human confirmed with a click.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;The prompt didn't show the host.&lt;/strong&gt; &lt;code&gt;GET /user/repos&lt;/code&gt; looked the same after &lt;code&gt;base_url&lt;/code&gt; was changed.&lt;/li&gt; &lt;li&gt;&lt;code&gt;POST&lt;/code&gt; &lt;strong&gt;allowed&lt;/strong&gt; &lt;code&gt;DELETE&lt;/code&gt;&lt;strong&gt;.&lt;/strong&gt; Laravel honours &lt;code&gt;?_method=DELETE&lt;/code&gt;, and I never checked the query string.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Lesson: nothing the agent can write should decide what the agent is allowed to do.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Relevant_Mousse_9117"&gt; /u/Relevant_Mousse_9117 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlvty4/i_audited_my_own_mcp_credential_broker_the_worst/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlvty4/i_audited_my_own_mcp_credential_broker_the_worst/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlvty4/i_audited_my_own_mcp_credential_broker_the_worst/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T12:27:14+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlmuwo/built_a_way_to_manage_multiple_mcp_connections/</id>
-    <title>Built a way to manage multiple MCP connections across different AI coding IDEs</title>
-    <updated>2026-11-02T03:37:50+00:00</updated>
-    <author>
-      <name>/u/outgrownman</name>
-      <uri>https://www.reddit.com/user/outgrownman</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xlmuwo/built_a_way_to_manage_multiple_mcp_connections/"&gt; &lt;img alt="Built a way to manage multiple MCP connections across different AI coding IDEs" src="https://preview.redd.it/t1z178cvd4zh1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=dba705421628dfd07a35884f784319fdf16dc81c" title="Built a way to manage multiple MCP connections across different AI coding IDEs" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been working on &lt;strong&gt;Yocrow&lt;/strong&gt;, &lt;strong&gt;a local-first access layer for MCP tools.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Managing multiple MCP servers across different AI coding IDEs can get messy. The idea is to connect providers once and let AI agents discover and use tools from different providers through a single MCP server.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Another thing I'm focusing on is letting AI agents call tools across multiple providers in the same workflow, rather than switching between MCP servers and making tool calls one at a time.&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;It's currently live at&lt;/strong&gt; &lt;a href="https://yocrow.dev/"&gt;&lt;strong&gt;https://yocrow.dev&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I'm still improving it and would like to hear from people who regularly use multiple MCP servers.&lt;/p&gt; &lt;p&gt;Would really appreciate your feedback, Thank you.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/outgrownman"&gt; /u/outgrownman &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/t1z178cvd4zh1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlmuwo/built_a_way_to_manage_multiple_mcp_connections/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlmuwo/built_a_way_to_manage_multiple_mcp_connections/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T03:37:50+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlvgyb/update_v016_my_claude_diagram_tool_sketchy_now/</id>
-    <title>[Update v0.1.6] My Claude diagram tool Sketchy now uses 29% fewer output tokens than plain text in my benchmark</title>
-    <updated>2026-11-02T12:09:22+00:00</updated>
-    <author>
-      <name>/u/Nkgsporty</name>
-      <uri>https://www.reddit.com/user/Nkgsporty</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xlvgyb/update_v016_my_claude_diagram_tool_sketchy_now/"&gt; &lt;img alt="[Update v0.1.6] My Claude diagram tool Sketchy now uses 29% fewer output tokens than plain text in my benchmark" src="https://preview.redd.it/qtt8f5u3x6zh1.png?width=140&amp;amp;height=127&amp;amp;auto=webp&amp;amp;s=f19ee9e47371f438acc5e0e5bd41e721e88c4cba" title="[Update v0.1.6] My Claude diagram tool Sketchy now uses 29% fewer output tokens than plain text in my benchmark" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I built Sketchy because I got tired of AI explaining everything in walls of text. It lets Claude explain things with interactive, hand-drawn diagrams right in the chat. Claude describes what to draw, and a layout engine handles the positions.&lt;/p&gt; &lt;p&gt;A few people asked about token usage on my last post, so I benchmarked it and built a more compact format for v0.1.6.&lt;/p&gt; &lt;p&gt;With Sonnet in Claude Code, Sketchy averaged 686 output tokens vs 962 for plain text, so about 29% fewer. It even came out slightly cheaper: $0.58 vs $0.61. The first diagram still costs a little more, so it depends on the conversation.&lt;/p&gt; &lt;p&gt;Follow-up edits now keep existing nodes in place, even when adding a back-edge. That makes it easier to explore a codebase and compare changes without the whole diagram shifting around.&lt;/p&gt; &lt;p&gt;Free and open source, available as a Claude chat skill or an MCP extension while coding.&lt;/p&gt; &lt;p&gt;&lt;a href="https://github.com/ddkbs/sketchy"&gt;GitHub&lt;/a&gt; · Full benchmark breakdown in the &lt;a href="https://sketchy.davidkubus.dev/docs/#tokens"&gt;Docs&lt;/a&gt;.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Nkgsporty"&gt; /u/Nkgsporty &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1xlvgyb"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlvgyb/update_v016_my_claude_diagram_tool_sketchy_now/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlvgyb/update_v016_my_claude_diagram_tool_sketchy_now/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T12:09:22+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlu2ze/my_project_an_mcp_server_that_lets_the_agent_ask/</id>
-    <title>My project: an MCP server that lets the agent ask for an API key without ever seeing it</title>
-    <updated>2026-11-02T10:52:53+00:00</updated>
-    <author>
-      <name>/u/Vast_Ad_7338</name>
-      <uri>https://www.reddit.com/user/Vast_Ad_7338</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Disclosure up front: I built this. It's free and MIT licensed.&lt;/p&gt; &lt;p&gt;Why it exists: I run raycash.xyz, a small team building a confidential money app on Zama's FHE stack. We code with agents every day, and the keys we handle are the kind you don't want sitting in a chat transcript. That's exactly where they end up when the agent asks for one mid-task and you paste it in: the transcript, the logs, the model provider.&lt;/p&gt; &lt;p&gt;So I wrote offprompt. It's a small MCP server with three tools:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;code&gt;collect_secret&lt;/code&gt;: the agent asks for a named value (say &lt;code&gt;STRIPE_SECRET_KEY&lt;/code&gt;) and a page opens on 127.0.0.1 where you type it&lt;/li&gt; &lt;li&gt;&lt;code&gt;await_secret&lt;/code&gt;: the agent waits until you've submitted it&lt;/li&gt; &lt;li&gt;&lt;code&gt;cancel_secret&lt;/code&gt;: drops the request&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;The value is written straight to &lt;code&gt;.env.local&lt;/code&gt;. The agent never sees it. In cloud sandboxes, where localhost isn't reachable, it goes through a Cloudflare quick tunnel and the value is encrypted in your browser first.&lt;/p&gt; &lt;p&gt;Config (Node 22+):&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{&amp;quot;mcpServers&amp;quot;:{&amp;quot;offprompt&amp;quot;:{&amp;quot;command&amp;quot;:&amp;quot;npx&amp;quot;,&amp;quot;args&amp;quot;:[&amp;quot;-y&amp;quot;,&amp;quot;offprompt&amp;quot;,&amp;quot;mcp&amp;quot;]}}} &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;Repo: &lt;a href="https://github.com/offprompt/offprompt"&gt;https://github.com/offprompt/offprompt&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Two things I'd like input on from people who build servers:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Is splitting collect and await into two tools right, or would one blocking call be cleaner for most clients?&lt;/li&gt; &lt;li&gt;Which clients have you seen handle a tool that waits on a human well, and which ones time out?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;Also happy to hear it's the wrong approach altogether.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Vast_Ad_7338"&gt; /u/Vast_Ad_7338 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlu2ze/my_project_an_mcp_server_that_lets_the_agent_ask/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlu2ze/my_project_an_mcp_server_that_lets_the_agent_ask/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlu2ze/my_project_an_mcp_server_that_lets_the_agent_ask/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T10:52:53+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xlt75x/voiceaimcpvavicky_best_voiceai_white_label/</id>
-    <title>VoiceAI-MCP-VAVicky – Best VoiceAI White Label Platform for Agencies with Full MCP Connectivity to Any Platform for Custom VoiceAi &amp; AI Chat Integrations and You Keep 100% of the Profits</title>
-    <updated>2026-11-02T10:00:03+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xlt75x/voiceaimcpvavicky_best_voiceai_white_label/"&gt; &lt;img alt="VoiceAI-MCP-VAVicky – Best VoiceAI White Label Platform for Agencies with Full MCP Connectivity to Any Platform for Custom VoiceAi &amp;amp; AI Chat Integrations and You Keep 100% of the Profits" src="https://external-preview.redd.it/I_v8qcerq6ZZo3i_sFgWorFyQsnQLDcRYIh6v_qZNuc.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=fe0333c47cbc5ea30c600606a5ed8e2ef3a35b0b" title="VoiceAI-MCP-VAVicky – Best VoiceAI White Label Platform for Agencies with Full MCP Connectivity to Any Platform for Custom VoiceAi &amp;amp; AI Chat Integrations and You Keep 100% of the Profits" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/AiAgency-Now/MCP-VoiceAI-WhiteLabel"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xlt75x/voiceaimcpvavicky_best_voiceai_white_label/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xlt75x/voiceaimcpvavicky_best_voiceai_white_label/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-02T10:00:03+00:00</published>
+    <published>2026-11-02T15:35:56+00:00</published>
   </entry>
 </feed>
