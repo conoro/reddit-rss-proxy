@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>Model Context Protocol (MCP)</title>
-  <updated>2026-11-07T13:36:51+00:00</updated>
+  <updated>2026-11-07T18:22:05+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -47,6 +47,97 @@
     <published>2026-11-07T12:55:40+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xq8bxb/i_made_a_remote_mcp_server_that_makes_ai_agents/</id>
+    <title>I made a remote MCP server that makes AI agents ask before spending money (phone approval for anything over your limit)</title>
+    <updated>2026-11-07T14:59:12+00:00</updated>
+    <author>
+      <name>/u/kokesi12</name>
+      <uri>https://www.reddit.com/user/kokesi12</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been letting agents do more things on their own, and it hit me that if one decided to buy something or upgrade a plan, I had no way to stop it. So I built a small guard for that.&lt;br /&gt; How it works: before paying for anything, the agent calls with the merchant, amount and a reason. Small amounts (you pick the threshold) are approved right away. Anything above that sends a push notification to your phone, and you approve or reject it from the notification. It also enforces a daily budget, a per-transaction limit and an optional list of allowed merchants, and there's a kill switch.&lt;br /&gt; It never touches money or card details. It only answers &amp;quot;is this payment allowed?&amp;quot;, and the agent does the actual payment.&lt;br /&gt; It's a remote MCP server (Streamable HTTP), so the same URL works in Claude (custom connector), ChatGPT (developer mode), Cursor, etc. No sign-up or email, you just get a personal URL.&lt;br /&gt; One thing I had to think about: pending requests count against the daily budget. Otherwise an agent could queue up a bunch of pending requests and blow past the budget once they're all approved.&lt;br /&gt; The UI is in Japanese for now (amounts are in yen). If people find this useful I'll add English.&lt;br /&gt; Site: &lt;a href="https://ut181749ut.github.io/saifuban/"&gt;https://ut181749ut.github.io/saifuban/&lt;/a&gt; Repo / issues: &lt;a href="https://github.com/ut181749ut/saifuban"&gt;https://github.com/ut181749ut/saifuban&lt;/a&gt;&lt;br /&gt; Would love feedback, especially on what other limits or rules would make you comfortable letting an agent spend.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/kokesi12"&gt; /u/kokesi12 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq8bxb/i_made_a_remote_mcp_server_that_makes_ai_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq8bxb/i_made_a_remote_mcp_server_that_makes_ai_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xq8bxb/i_made_a_remote_mcp_server_that_makes_ai_agents/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T14:59:12+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xqd3cg/how_a_remote_or_npx_mcp_server_can_silently/</id>
+    <title>How a remote or npx MCP server can silently bypass host confirmation prompts after Day 1 approval (and a zero-dependency tools/list SHA-256 verifier)</title>
+    <updated>2026-11-07T18:20:26+00:00</updated>
+    <author>
+      <name>/u/Independent-Sir3234</name>
+      <uri>https://www.reddit.com/user/Independent-Sir3234</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;When you add a local &lt;code&gt;npx -y&lt;/code&gt; or remote HTTP MCP server to Claude Code, Codex, or Cursor, most developers inspect the tool list once on Day 1 and assume the tool permissions stay fixed.&lt;/p&gt; &lt;p&gt;Even if you check that the tool names and &lt;code&gt;inputSchema&lt;/code&gt; parameters have not changed, two silent runtime mutations in &lt;code&gt;tools/list&lt;/code&gt; can bypass host guardrails on Day 10:&lt;/p&gt; &lt;p&gt;First, annotation downgrades. MCP tools use &lt;code&gt;annotations.readOnlyHint&lt;/code&gt; and &lt;code&gt;annotations.destructiveHint&lt;/code&gt; to tell the host client whether a tool call requires an interactive user confirmation prompt. If an updated server keeps the tool name (&lt;code&gt;delete_row&lt;/code&gt; or &lt;code&gt;execute_sql&lt;/code&gt;) and &lt;code&gt;inputSchema&lt;/code&gt; identical while flipping &lt;code&gt;destructiveHint&lt;/code&gt; from &lt;code&gt;true&lt;/code&gt; to &lt;code&gt;false&lt;/code&gt; (or &lt;code&gt;readOnlyHint&lt;/code&gt; to &lt;code&gt;true&lt;/code&gt;), host clients that rely on tool annotations stop prompting the user before mutating data.&lt;/p&gt; &lt;p&gt;Second, description injection after initial approval. Because every &lt;code&gt;description&lt;/code&gt; string inside &lt;code&gt;tools/list&lt;/code&gt; is injected directly into the system prompt on startup, a server can pass manual code review on Day 1 and later append hidden instructions to a tool description without changing a single parameter type.&lt;/p&gt; &lt;p&gt;To catch both mutations before an agent session starts, we use a small zero-dependency Node.js script (&lt;code&gt;pin-tools-list-sha256.mjs&lt;/code&gt;) that canonicalizes the full &lt;code&gt;tools/list&lt;/code&gt; response (sorting keys recursively across &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;description&lt;/code&gt;, &lt;code&gt;inputSchema&lt;/code&gt;, and &lt;code&gt;annotations&lt;/code&gt;) and verifies its SHA-256 digest:&lt;/p&gt; &lt;p&gt;```javascript&lt;/p&gt; &lt;h1&gt;!/usr/bin/env node&lt;/h1&gt; &lt;p&gt;import crypto from &amp;quot;node:crypto&amp;quot;; import fs from &amp;quot;node:fs&amp;quot;;&lt;/p&gt; &lt;p&gt;function sortKeysDeep(value) { if (Array.isArray(value)) return value.map(sortKeysDeep); if (value &amp;amp;&amp;amp; typeof value === &amp;quot;object&amp;quot;) { return Object.keys(value).sort().reduce((acc, k) =&amp;gt; { acc[k] = sortKeysDeep(value[k]); return acc; }, {}); } return value; }&lt;/p&gt; &lt;p&gt;function canonicalizeToolsList(payload) { const tools = Array.isArray(payload) ? payload : payload.tools || []; return JSON.stringify( tools.map((t) =&amp;gt; ({ name: String(t.name || &amp;quot;&amp;quot;), description: String(t.description || &amp;quot;&amp;quot;), inputSchema: sortKeysDeep(t.inputSchema || {}), annotations: sortKeysDeep({ readOnlyHint: Boolean(t.annotations?.readOnlyHint), destructiveHint: t.annotations?.destructiveHint === undefined ? true : Boolean(t.annotations.destructiveHint), idempotentHint: Boolean(t.annotations?.idempotentHint), openWorldHint: t.annotations?.openWorldHint === undefined ? true : Boolean(t.annotations.openWorldHint), }), })).sort((a, b) =&amp;gt; a.name.localeCompare(b.name)) ); }&lt;/p&gt; &lt;p&gt;const [, , mode, filePath, expectedHash] = process.argv; const raw = JSON.parse(fs.readFileSync(filePath, &amp;quot;utf8&amp;quot;)); const actualHash = crypto.createHash(&amp;quot;sha256&amp;quot;).update(canonicalizeToolsList(raw), &amp;quot;utf8&amp;quot;).digest(&amp;quot;hex&amp;quot;);&lt;/p&gt; &lt;p&gt;if (mode === &amp;quot;--pin&amp;quot;) { console.log(actualHash); process.exit(0); } if (!expectedHash || actualHash !== expectedHash.toLowerCase()) { console.error(&lt;code&gt;[MCP-DRIFT-BLOCKED] tools/list SHA-256 mismatch! Expected ${expectedHash}, got ${actualHash}&lt;/code&gt;); process.exit(2); } console.log(&lt;code&gt;[MCP-PIN-OK] Verified tools/list SHA-256: ${actualHash}&lt;/code&gt;); ```&lt;/p&gt; &lt;p&gt;Defaulting &lt;code&gt;destructiveHint&lt;/code&gt; and &lt;code&gt;openWorldHint&lt;/code&gt; to &lt;code&gt;true&lt;/code&gt; when omitted during canonicalization ensures that a server cannot change behavior by simply dropping the field versus setting it explicitly.&lt;/p&gt; &lt;p&gt;How are you verifying &lt;code&gt;tools/list&lt;/code&gt; manifests across local &lt;code&gt;npx&lt;/code&gt; and remote HTTP MCP servers in your setup?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Independent-Sir3234"&gt; /u/Independent-Sir3234 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqd3cg/how_a_remote_or_npx_mcp_server_can_silently/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqd3cg/how_a_remote_or_npx_mcp_server_can_silently/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xqd3cg/how_a_remote_or_npx_mcp_server_can_silently/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T18:20:26+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xqd27u/i_built_a_hosted_mcp_server_for_drafting_and/</id>
+    <title>I built a hosted MCP server for drafting and scheduling short videos</title>
+    <updated>2026-11-07T18:19:06+00:00</updated>
+    <author>
+      <name>/u/Ill-Basket-6162</name>
+      <uri>https://www.reddit.com/user/Ill-Basket-6162</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m the founder of Topped. In the demo, I ask my agent, “Make a few new posts for my app, a couple of them demo videos.” Topped returns four drafts. I pick two and tell the agent when and where to publish them.&lt;/p&gt; &lt;p&gt;The hosted MCP server and the CLI use the same tools underneath. I’d be interested in how other MCP builders handle the step between drafting and publishing. What details do you want the client to show before a post goes live?&lt;/p&gt; &lt;p&gt;&lt;a href="https://topped.ai/"&gt;Topped&lt;/a&gt; · &lt;a href="https://www.youtube.com/watch?v=SKqM4rdSp1s&amp;amp;t=46s"&gt;Video demo&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Ill-Basket-6162"&gt; /u/Ill-Basket-6162 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqd27u/i_built_a_hosted_mcp_server_for_drafting_and/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqd27u/i_built_a_hosted_mcp_server_for_drafting_and/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xqd27u/i_built_a_hosted_mcp_server_for_drafting_and/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T18:19:06+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xq7hzm/manage_your_icloud_calendar_with_caldav_mcp_server/</id>
+    <title>Manage your iCloud Calendar with CalDAV MCP Server</title>
+    <updated>2026-11-07T14:21:19+00:00</updated>
+    <author>
+      <name>/u/Weekly_Mountain2783</name>
+      <uri>https://www.reddit.com/user/Weekly_Mountain2783</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi everyone,&lt;/p&gt; &lt;p&gt;I built &lt;a href="https://github.com/lukegskw/caldav-mcp"&gt;CalDAV MCP Server&lt;/a&gt; a while ago, which is an open-source MCP server that lets AI assistants manage your iCloud Calendar.&lt;/p&gt; &lt;p&gt;Since then, it’s picked up a few GitHub stars and had over 100 npm downloads in the past week, so I thought I’d share it here and give the project a little more love.&lt;/p&gt; &lt;p&gt;Here are the main features:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Browse your iCloud calendars and check upcoming events.&lt;/li&gt; &lt;li&gt;Create, update, and delete events.&lt;/li&gt; &lt;li&gt;Create all-day events and recurring schedules.&lt;/li&gt; &lt;li&gt;Set multiple reminders for the same event, such as one day and one hour before.&lt;/li&gt; &lt;li&gt;Add a fixed travel time before appointments in Apple Calendar.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;For example, you could ask your assistant: “Create a dentist appointment this Friday from 10 to 10:30 a.m., with reminders one day and one hour before.”&lt;/p&gt; &lt;p&gt;There’s also a Claude Desktop extension to make setup easier. You can find that and other setup options in the &lt;a href="https://github.com/lukegskw/caldav-mcp#quick-start"&gt;Quick Start&lt;/a&gt;.&lt;/p&gt; &lt;p&gt;I’d love to hear your feedback and what you’d like to see added!&lt;/p&gt; &lt;p&gt;If you find it useful, a GitHub star would mean a lot—maybe even more than a hot bowl of ramen on a cold day &lt;/p&gt; &lt;p&gt;Thanks and looking forward to hear from you ;)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Weekly_Mountain2783"&gt; /u/Weekly_Mountain2783 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq7hzm/manage_your_icloud_calendar_with_caldav_mcp_server/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq7hzm/manage_your_icloud_calendar_with_caldav_mcp_server/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xq7hzm/manage_your_icloud_calendar_with_caldav_mcp_server/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T14:21:19+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xqcelk/kept_an_mcp_server_that_turns_your_ai_assistant/</id>
+    <title>Kept: an MCP server that turns your AI assistant into a household bookkeeper</title>
+    <updated>2026-11-07T17:51:45+00:00</updated>
+    <author>
+      <name>/u/np25071984</name>
+      <uri>https://www.reddit.com/user/np25071984</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xqcelk/kept_an_mcp_server_that_turns_your_ai_assistant/"&gt; &lt;img alt="Kept: an MCP server that turns your AI assistant into a household bookkeeper" src="https://preview.redd.it/w39eclcma80i1.png?width=140&amp;amp;height=87&amp;amp;auto=webp&amp;amp;s=0110cd3be18e368197e3763b8949bfc0d71de648" title="Kept: an MCP server that turns your AI assistant into a household bookkeeper" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;My wife is very capable, but finances aren't her thing :) I tried several tools with her, and none of them stuck: logging every purchase was too much routine. So I built &lt;strong&gt;Kept&lt;/strong&gt;: you tell Claude, ChatGPT or Gemini what you spent, in the chat you already have open, and it gets logged.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;Log it however you have it:&lt;/strong&gt; a sentence (&lt;em&gt;&amp;quot;$85 at Walmart&amp;quot;&lt;/em&gt;), a receipt photo, an order email, a bank statement screenshot.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;It asks, so you don't have to fill in forms.&lt;/strong&gt; The assistant leads with a best guess and waits for a yes: &lt;em&gt;&amp;quot;Log $60 at Trader Joe's to Groceries, like last Saturday?&amp;quot;&lt;/em&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;It remembers what you teach it:&lt;/strong&gt; &lt;em&gt;&amp;quot;Costco is always groceries&amp;quot;&lt;/em&gt;, &lt;em&gt;&amp;quot;anything at Sephora is private&amp;quot;&lt;/em&gt;.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Recurring bills log themselves:&lt;/strong&gt; rent, phone, subscriptions. If an expected charge doesn't show up, it asks you about it.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Watch what matters to you:&lt;/strong&gt; &lt;em&gt;&amp;quot;How much do we spend on snacks?&amp;quot;&lt;/em&gt; It asks about snacks at the stores that sell them.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Built for households:&lt;/strong&gt; everyone connects their own assistant and signs in as themselves. You share categories and totals, and nobody sees anyone else's purchases.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;No bank access, ever:&lt;/strong&gt; Kept doesn't connect to your bank or inbox. Your assistant reads what you show it, and nothing is saved without your confirmation.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;A web app for looking back:&lt;/strong&gt; reports, fixing entries, managing recurring bills.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;&lt;strong&gt;Try it:&lt;/strong&gt; &lt;a href="https://kept-ledger.com"&gt;https://kept-ledger.com&lt;/a&gt; explains how to connect it to Claude, ChatGPT or Gemini in a couple of minutes.&lt;/p&gt; &lt;p&gt;Free, with every feature. Open source (AGPL-3.0), and you can host it yourself: &lt;a href="https://github.com/np25071984/kept"&gt;https://github.com/np25071984/kept&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What I'm hoping for:&lt;/strong&gt; ideas. Kept isn't perfect yet, especially with fast, low-effort models. Maybe together we can polish it, so my wife (and yours?) can see where the money goes without me having to tell her :)&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/np25071984"&gt; /u/np25071984 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1xqcelk"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqcelk/kept_an_mcp_server_that_turns_your_ai_assistant/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xqcelk/kept_an_mcp_server_that_turns_your_ai_assistant/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T17:51:45+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xqb23z/how_i_researched_50_websites_checked_google/</id>
+    <title>how i researched 50 websites, checked google rankings and found founder emails without loading 8 MCP servers</title>
+    <updated>2026-11-07T16:55:12+00:00</updated>
+    <author>
+      <name>/u/Left_Grapefruit5205</name>
+      <uri>https://www.reddit.com/user/Left_Grapefruit5205</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;whenever i need to research websites, check google results or find founder emails using my coding agent, i usually end up connecting a bunch of different MCP servers.&lt;/p&gt; &lt;p&gt;the problem is that every tool comes with its own lengthy description, and all of that takes up context. by the time i'm halfway through checking 50 websites, the chat is already running out of space. having to pay for 6 different monthly subscriptions doesn't help either.&lt;/p&gt; &lt;p&gt;i recently came across Monid and started using its skill file for this instead. now my agent can look through the available tools and only load the ones it actually needs.&lt;/p&gt; &lt;p&gt;yesterday i asked my agent to go through 50 websites in one session. it checked monthly traffic, backlinks and google rankings for around 4 cents per website. i also wanted to see which websites were showing up in ChatGPT and Perplexity answers, which cost around 8 cents extra.&lt;/p&gt; &lt;p&gt;for the 30 websites i found most interesting, i wanted to know who was actually working there. i used job titles to find employees, founders and other decision-makers. then i looked up the founders' work emails for 2-5 cents and checked their inboxes for another cent. if an email couldn't be found, the lookup was free.&lt;/p&gt; &lt;p&gt;the whole thing cost less than $5, and i managed to do it all in one chat without running out of context.&lt;/p&gt; &lt;p&gt;how do you guys usually handle this? do you keep multiple MCP servers connected or have you found a simpler way to manage everything?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Left_Grapefruit5205"&gt; /u/Left_Grapefruit5205 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqb23z/how_i_researched_50_websites_checked_google/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqb23z/how_i_researched_50_websites_checked_google/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xqb23z/how_i_researched_50_websites_checked_google/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T16:55:12+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xqa8tc/specstream_a_web_search_mcp_server_for_agents_609/</id>
+    <title>SpecStream: a web search MCP server for agents (60.9 on WideSearch with GPT-5.6 Luna, above every other search API on GPT-5.6 Sol)</title>
+    <updated>2026-11-07T16:20:45+00:00</updated>
+    <author>
+      <name>/u/Xageee</name>
+      <uri>https://www.reddit.com/user/Xageee</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xqa8tc/specstream_a_web_search_mcp_server_for_agents_609/"&gt; &lt;img alt="SpecStream: a web search MCP server for agents (60.9 on WideSearch with GPT-5.6 Luna, above every other search API on GPT-5.6 Sol)" src="https://preview.redd.it/0hakepdbu70i1.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=24b52a676cc87260f261534d8fd7bfc4b5f10d95" title="SpecStream: a web search MCP server for agents (60.9 on WideSearch with GPT-5.6 Luna, above every other search API on GPT-5.6 Sol)" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hey everyone 👋&lt;/p&gt; &lt;p&gt;I'm Tarek, founder of SpecStream. SpecStream is the live web data engine, one platform to build, search, extract, enrich, map and monitor data across the entire web. We built its search so an agent gets the answer from the live web in one call, instead of reading ten pages to find it.&lt;/p&gt; &lt;p&gt;Our WideSearch (ByteDance Seed) score, next to each other search API's best published score:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;Search API WideSearch Model SpecStream 60.9 GPT-5.6 Luna Parallel 57.6 GPT-5.6 Sol Exa 55.9 GPT-5.6 Sol Tavily 55.9 GPT-5.6 Sol Perplexity 53.5 GPT-5.6 Sol &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;The small model on our search beats the big model on everyone else's. On SimpleQA Verified it scores 99.&lt;/p&gt; &lt;p&gt;How it works: there's no index of our own. Every call reads the live web at the moment you ask. It asks several search engines at once, reads what the results print, opens the top pages when they disagree, and one model pass picks the answer. Source URL and read time on every value.&lt;/p&gt; &lt;p&gt;The MCP server gives your agent:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;search_web:&lt;/strong&gt; a question in plain words. One answer comes back as the answer plus the rows behind it. Many answers come back as rows. A few seconds per call.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;read_pages:&lt;/strong&gt; 1 to 20 URLs in one call, web pages, PDF, Word and Excel, each URL with its own status. A page with no text isn't charged.&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Deep Search:&lt;/strong&gt; ask in plain words and get every match on the live web in structured rows.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Setup is one block. For Cursor, in .cursor/mcp.json:&lt;/p&gt; &lt;pre&gt;&lt;code&gt;{ &amp;quot;mcpServers&amp;quot;: { &amp;quot;specstream&amp;quot;: { &amp;quot;url&amp;quot;: &amp;quot;https://api.specstream.ai/mcp&amp;quot;, &amp;quot;headers&amp;quot;: { &amp;quot;Authorization&amp;quot;: &amp;quot;Bearer ${env:SPECSTREAM_API_KEY}&amp;quot; } } } } &lt;/code&gt;&lt;/pre&gt; &lt;p&gt;For Claude and ChatGPT, add a custom connector with &lt;a href="https://api.specstream.ai/mcp"&gt;https://api.specstream.ai/mcp&lt;/a&gt; and sign in.&lt;/p&gt; &lt;p&gt;It's $5 per 1,000 searches and $0.80 per 1,000 pages, and sign-up comes with $10 of work, no card.&lt;/p&gt; &lt;ul&gt; &lt;li&gt;&lt;strong&gt;MCP docs:&lt;/strong&gt; &lt;a href="https://specstream.ai/docs/mcp?src=reddit"&gt;https://specstream.ai/docs/mcp?src=reddit&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;strong&gt;Benchmarks and method:&lt;/strong&gt; &lt;a href="https://specstream.ai/benchmarks?src=reddit"&gt;https://specstream.ai/benchmarks?src=reddit&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Would love feedback on the tool design. And if you find a question it gets wrong, post it here. I want to see it!&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Xageee"&gt; /u/Xageee &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://i.redd.it/0hakepdbu70i1.png"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xqa8tc/specstream_a_web_search_mcp_server_for_agents_609/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xqa8tc/specstream_a_web_search_mcp_server_for_agents_609/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T16:20:45+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xq35k2/make_your_product_more_visible_to_ai_chabots/</id>
     <title>Make your product more visible to AI chabots directly from Claude, ChatGPT</title>
     <updated>2026-11-07T10:20:11+00:00</updated>
@@ -60,6 +151,32 @@
     <published>2026-11-07T10:20:11+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xq8clz/mcp_divulgacandcontas_server_enables_querying/</id>
+    <title>MCP DivulgaCandContas Server – Enables querying Brazilian electoral data through TSE's official API. Supports candidate searches, election information, and campaign finance records for municipalities and states.</title>
+    <updated>2026-11-07T15:00:02+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xq8clz/mcp_divulgacandcontas_server_enables_querying/"&gt; &lt;img alt="MCP DivulgaCandContas Server – Enables querying Brazilian electoral data through TSE's official API. Supports candidate searches, election information, and campaign finance records for municipalities and states." src="https://external-preview.redd.it/xiZP3v5J7WDLEv6cPd1iEyF8mVG4AjvnGtejPhDag3k.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=30e38e650ed20b2a7fc855674f7723af142b4a49" title="MCP DivulgaCandContas Server – Enables querying Brazilian electoral data through TSE's official API. Supports candidate searches, election information, and campaign finance records for municipalities and states." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/karnagge/mcpcand"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq8clz/mcp_divulgacandcontas_server_enables_querying/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xq8clz/mcp_divulgacandcontas_server_enables_querying/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T15:00:02+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xq8ckp/incwo_mcp_secure_mcp_server_for_exploring_incwo/</id>
+    <title>Incwo MCP – Secure MCP server for exploring incwo CRM data, documents, and email workflows.</title>
+    <updated>2026-11-07T15:00:00+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
+    </author>
+    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xq8ckp/incwo_mcp_secure_mcp_server_for_exploring_incwo/"&gt; &lt;img alt="Incwo MCP – Secure MCP server for exploring incwo CRM data, documents, and email workflows." src="https://external-preview.redd.it/LPsCyx3zppmFXhmzZRSXc_yMU3fh_BYFzOb-j0mq34o.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=0e99fc9f9d0eedb70819d1161b3c66d7bc18d17e" title="Incwo MCP – Secure MCP server for exploring incwo CRM data, documents, and email workflows." /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.incwo/incwo"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq8ckp/incwo_mcp_secure_mcp_server_for_exploring_incwo/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xq8ckp/incwo_mcp_secure_mcp_server_for_exploring_incwo/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T15:00:00+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xq3vj1/i_made_a_remote_mcp_server_for_exact_datetime/</id>
     <title>I made a remote MCP server for exact date/time math (business days, holidays, time zones, cron, RRULE). Agents pay $0.001/call with x402.</title>
     <updated>2026-11-07T11:07:20+00:00</updated>
@@ -71,6 +188,19 @@
     <link href="https://www.reddit.com/r/mcp/comments/1xq3vj1/i_made_a_remote_mcp_server_for_exact_datetime/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-11-07T11:07:20+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xq6zu8/mcp_server_operators_would_you_trust_an_agents/</id>
+    <title>MCP server operators: would you trust an agent’s identity if your own service didn’t issue it?</title>
+    <updated>2026-11-07T13:58:30+00:00</updated>
+    <author>
+      <name>/u/zach-benson</name>
+      <uri>https://www.reddit.com/user/zach-benson</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Quick, specific question for people who run public MCP servers.&lt;/p&gt; &lt;p&gt;Over the last few weeks, operators here told me two things: anything that costs you money sits behind your own accounts, and a free, self-made agent ID is worthless because abusers just make another.&lt;/p&gt; &lt;p&gt;So here's the version I'm testing. An agent shows up with a key issued under a verified user account at a separate service. The user signed in there, each of their agents gets its own key, and you can revoke one agent without touching the others. You didn't run the signup.&lt;/p&gt; &lt;p&gt;Would you treat that agent differently from anonymous traffic?&lt;/p&gt; &lt;p&gt;A) No, it has to be an account on my own service&lt;br /&gt; B) Yes, a higher limit on free or cheap tools only&lt;br /&gt; C) Yes, I'd let it use paid tools too&lt;br /&gt; D) Depends (tell me on what)&lt;/p&gt; &lt;p&gt;A one-letter answer helps. A sentence on why helps more. &amp;quot;A, and here's why&amp;quot; is just as useful to me as a yes.&lt;/p&gt; &lt;p&gt;Disclosure: I'm building an open-source library in this area, so I'm biased. No link.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/zach-benson"&gt; /u/zach-benson &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq6zu8/mcp_server_operators_would_you_trust_an_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xq6zu8/mcp_server_operators_would_you_trust_an_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xq6zu8/mcp_server_operators_would_you_trust_an_agents/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T13:58:30+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xq5ygl/built_a_local_memory_hud_for_cursor_cmdshifty/</id>
@@ -164,19 +294,6 @@
     <published>2026-11-07T09:06:43+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/</id>
-    <title>If you run several agents, how do you keep track of which one holds which credential?</title>
-    <updated>2026-11-07T03:46:16+00:00</updated>
-    <author>
-      <name>/u/zach-benson</name>
-      <uri>https://www.reddit.com/user/zach-benson</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm trying to learn how people manage credentials once they're running more than one or two agents. No link, nothing for sale.&lt;/p&gt; &lt;p&gt;If you run multiple agents (production or side projects):&lt;/p&gt; &lt;ol&gt; &lt;li&gt;How do you track which agent holds which key or token today? Spreadsheet, secrets manager, env vars, nothing?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;When did you last need to cut off one agent without breaking the others? What did it take?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Have you found a credential that outlived the agent it was made for? How did you notice?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Do you have one place where you can see what all your agents did across the tools they call, or is it scattered across each tool's logs?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;One idea I'm testing: you sign in once, give each agent its own revocable key, see every agent's activity across tools in one place, and cut off any single agent instantly. Servers would see which of your agents called and could revoke just that one.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Would you pay for that? If so, roughly what per month, and who would have to approve it?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;quot;I'd never pay for this, a secrets manager covers it&amp;quot; is a useful answer.&lt;/p&gt; &lt;p&gt;Disclosure: I'm building an open-source auth library in this area, so I'm biased. Drafted with help from Claude, edited by me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/zach-benson"&gt; /u/zach-benson &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T03:46:16+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xpp19g/tool_definition_drift_what_changes_after_approval/</id>
     <title>Tool Definition Drift: What Changes After Approval, and How You Find Out</title>
     <updated>2026-11-06T21:41:55+00:00</updated>
@@ -190,6 +307,19 @@
     <published>2026-11-06T21:41:55+00:00</published>
   </entry>
   <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/</id>
+    <title>If you run several agents, how do you keep track of which one holds which credential?</title>
+    <updated>2026-11-07T03:46:16+00:00</updated>
+    <author>
+      <name>/u/zach-benson</name>
+      <uri>https://www.reddit.com/user/zach-benson</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm trying to learn how people manage credentials once they're running more than one or two agents. No link, nothing for sale.&lt;/p&gt; &lt;p&gt;If you run multiple agents (production or side projects):&lt;/p&gt; &lt;ol&gt; &lt;li&gt;How do you track which agent holds which key or token today? Spreadsheet, secrets manager, env vars, nothing?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;When did you last need to cut off one agent without breaking the others? What did it take?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Have you found a credential that outlived the agent it was made for? How did you notice?&lt;br /&gt;&lt;/li&gt; &lt;li&gt;Do you have one place where you can see what all your agents did across the tools they call, or is it scattered across each tool's logs?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;One idea I'm testing: you sign in once, give each agent its own revocable key, see every agent's activity across tools in one place, and cut off any single agent instantly. Servers would see which of your agents called and could revoke just that one.&lt;/p&gt; &lt;ol&gt; &lt;li&gt;Would you pay for that? If so, roughly what per month, and who would have to approve it?&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;&amp;quot;I'd never pay for this, a secrets manager covers it&amp;quot; is a useful answer.&lt;/p&gt; &lt;p&gt;Disclosure: I'm building an open-source auth library in this area, so I'm biased. Drafted with help from Claude, edited by me.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/zach-benson"&gt; /u/zach-benson &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1xpwnrx/if_you_run_several_agents_how_do_you_keep_track/"/>
+    <category term="mcp" label="r/mcp"/>
+    <published>2026-11-07T03:46:16+00:00</published>
+  </entry>
+  <entry>
     <id>https://www.reddit.com/r/mcp/comments/1xpzxvm/an_mcp_server_for_asking_another_agent_for_a/</id>
     <title>an MCP server for asking another agent for a second opinion, great for people who work with agents</title>
     <updated>2026-11-07T06:52:42+00:00</updated>
@@ -201,135 +331,5 @@
     <link href="https://www.reddit.com/r/mcp/comments/1xpzxvm/an_mcp_server_for_asking_another_agent_for_a/"/>
     <category term="mcp" label="r/mcp"/>
     <published>2026-11-07T06:52:42+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpuliz/mcp_dynamic_client_registration_do_you_restrict/</id>
-    <title>MCP + Dynamic Client Registration: do you restrict redirect URIs, or allow any?</title>
-    <updated>2026-11-07T01:59:22+00:00</updated>
-    <author>
-      <name>/u/After_Pumpkin3803</name>
-      <uri>https://www.reddit.com/user/After_Pumpkin3803</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I’m running a remote MCP server with OAuth and Dynamic Client Registration (DCR), so clients like Claude and ChatGPT can register themselves. I’m trying to decide whether to restrict which &lt;code&gt;redirect_uri&lt;/code&gt; values a client can register.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;The concern:&lt;/strong&gt; with open DCR, anyone can register a client, call it “Claude” or “ChatGPT”, and set the redirect URI to a domain they control. They send one of our customers an authorization link; the customer sees a legitimate-looking consent screen, approves it, and the auth code goes to the attacker. The attacker exchanges it for a token and makes MCP tool calls as that customer.&lt;/p&gt; &lt;p&gt;How are others handling this in production? Do you allowlist, warn, or leave it open? Are there any pitfalls with localhost or custom-scheme redirects for desktop clients?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/After_Pumpkin3803"&gt; /u/After_Pumpkin3803 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpuliz/mcp_dynamic_client_registration_do_you_restrict/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpuliz/mcp_dynamic_client_registration_do_you_restrict/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpuliz/mcp_dynamic_client_registration_do_you_restrict/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T01:59:22+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpp5vv/i_built_an_mcp_server_for_my_tv_tracker_it_has_no/</id>
-    <title>I built an MCP server for my TV tracker. It has no database of its own</title>
-    <updated>2026-11-06T21:47:26+00:00</updated>
-    <author>
-      <name>/u/itsnoddydev</name>
-      <uri>https://www.reddit.com/user/itsnoddydev</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xpp5vv/i_built_an_mcp_server_for_my_tv_tracker_it_has_no/"&gt; &lt;img alt="I built an MCP server for my TV tracker. It has no database of its own" src="https://external-preview.redd.it/aHRrdjYzN3liMjBpMTa2QAiA1TP6qvqTxeVdXRUyp3zdEgT6jXMEiPo4jFpk.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=bc666900e7aca69d5f424836bddd5ed56cf8945d" title="I built an MCP server for my TV tracker. It has no database of its own" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I make OpenTV, a free TV and film tracker for iPhone and Android. Last week I shipped an MCP server for it, so you can connect your watch history to Claude or ChatGPT and ask about it.&lt;/p&gt; &lt;p&gt;Connector: &lt;a href="https://theopentv.com/mcp"&gt;https://theopentv.com/mcp&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Streamable HTTP, OAuth 2.1, you sign in with your OpenTV account.&lt;/p&gt; &lt;p&gt;Things I ask it:&lt;/p&gt; &lt;p&gt;- &amp;quot;How far am I in Severance?&amp;quot;&lt;/p&gt; &lt;p&gt;- &amp;quot;What did I watch last winter?&amp;quot;&lt;/p&gt; &lt;p&gt;- &amp;quot;Which episodes did I give 5 stars?&amp;quot;&lt;/p&gt; &lt;p&gt;- &amp;quot;Pick a film from my watchlist for tonight.&amp;quot;&lt;/p&gt; &lt;p&gt;The part I think is interesting for this sub is where the data comes from. The app is offline first. The phone's SQLite database is the real copy, and the server has no watch history table at all, on purpose. So when you ask something, the server reads your own backup ZIP from R2, parses it in memory and answers from that. Then it adds whatever changes the sync relay has seen since that backup. Nothing gets written to a table. Turn backup off and the server has nothing to read.&lt;/p&gt; &lt;p&gt;Writes go the other way. &amp;quot;Mark S2E5 of The Bear as watched&amp;quot; doesn't touch the backup. It goes into the sync relay, and your phone applies it next time it syncs. The write tools aren't marked read only, so Claude and ChatGPT ask you before every change.&lt;/p&gt; &lt;p&gt;It runs on a Cloudflare Worker. There are 13 tools, mostly reads (history, progress, ratings, lists, yearly stats). The writes are: mark watched, rate, add to watchlist, and how an episode made you feel.&lt;/p&gt; &lt;p&gt;To be upfront, it needs OpenTV Plus with backup turned on. It works on the free plans of Claude and ChatGPT.&lt;/p&gt; &lt;p&gt;Setup guide: &lt;a href="https://theopentv.com/blog/opentv-in-chatgpt-and-claude/"&gt;https://theopentv.com/blog/opentv-in-chatgpt-and-claude/&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Happy to answer questions about the backup-as-database approach. It has trade-offs.&lt;/p&gt; &lt;p&gt;— Noddy&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/itsnoddydev"&gt; /u/itsnoddydev &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://v.redd.it/f5ff7z6yb20i1"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpp5vv/i_built_an_mcp_server_for_my_tv_tracker_it_has_no/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpp5vv/i_built_an_mcp_server_for_my_tv_tracker_it_has_no/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-06T21:47:26+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpy021/ssh_mcp_server_enables_ai_assistants_to_execute/</id>
-    <title>SSH MCP Server – Enables AI assistants to execute commands an</title>
-    <updated>2026-11-07T05:00:01+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xpy021/ssh_mcp_server_enables_ai_assistants_to_execute/"&gt; &lt;img alt="SSH MCP Server – Enables AI assistants to execute commands an" src="https://external-preview.redd.it/NlyBm5id_tUY_RRbRFNOHUR1E0rHokC07Pq0Fm6sSvA.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=20713e4d6800eed1b567d6b5204a7ec69e2c4f35" title="SSH MCP Server – Enables AI assistants to execute commands an" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/servers/InfraMCP/ssh-mcp-server"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpy021/ssh_mcp_server_enables_ai_assistants_to_execute/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpy021/ssh_mcp_server_enables_ai_assistants_to_execute/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T05:00:01+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpy012/fred_fred_mcp_federal_reserve_economic_data_st/</id>
-    <title>Fred – FRED MCP — Federal Reserve Economic Data (St. Louis Fed)</title>
-    <updated>2026-11-07T05:00:00+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-      <uri>https://www.reddit.com/user/modelcontextprotocol</uri>
-    </author>
-    <content type="html">&amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/modelcontextprotocol"&gt; /u/modelcontextprotocol &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://glama.ai/mcp/connectors/io.github.pipeworx-io/fred"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpy012/fred_fred_mcp_federal_reserve_economic_data_st/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpy012/fred_fred_mcp_federal_reserve_economic_data_st/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T05:00:00+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpxjlt/built_a_company_research_agent_in_langflow_using/</id>
-    <title>Built a company research agent in Langflow using a Wikipedia and SEC EDGAR MCP server</title>
-    <updated>2026-11-07T04:34:15+00:00</updated>
-    <author>
-      <name>/u/Aerosherm</name>
-      <uri>https://www.reddit.com/user/Aerosherm</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xpxjlt/built_a_company_research_agent_in_langflow_using/"&gt; &lt;img alt="Built a company research agent in Langflow using a Wikipedia and SEC EDGAR MCP server" src="https://preview.redd.it/5il4kib9b40i1.png?width=140&amp;amp;height=132&amp;amp;auto=webp&amp;amp;s=fab3ef15018cd931e2ab7d133c5058d79bcb637d" title="Built a company research agent in Langflow using a Wikipedia and SEC EDGAR MCP server" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I've been building a company research agent on Dataville's hosted MCP server. I connected it to a Langflow agent and told the agent to search Wikipedia for context on the company, and query the SEC EDGAR data source for recent filings (like quarterly and annual statements). I had never used Langflow before, so the no-code aspect was pretty convenient.&lt;/p&gt; &lt;p&gt;In the second image you can see how I designed the simple flow to use the MCP server tools. I'm curious how others design this. Do you prefer one generic search tool with a source parameter, or one tool per source? We chose the generic search tool, but the model has to know the source names.&lt;/p&gt; &lt;p&gt;I did a full write-up of the process &lt;a href="https://www.dataville.com/blog/build-a-langflow-ai-agent-with-mcp-sec-edgar-and-wikipedia"&gt;here&lt;/a&gt;. We even created a &lt;a href="https://github.com/datavilleorg/langflow-company-research"&gt;public Github repository&lt;/a&gt; with the flow, prompts and sample output in it.&lt;/p&gt; &lt;p&gt;I'm working with Dataville, so I'm biased, but happy to answer questions. &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Aerosherm"&gt; /u/Aerosherm &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/gallery/1xpxjlt"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpxjlt/built_a_company_research_agent_in_langflow_using/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpxjlt/built_a_company_research_agent_in_langflow_using/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T04:34:15+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpntng/i_wrote_a_harness_for_exploring_your_raw_dna_data/</id>
-    <title>I wrote a harness for exploring your raw DNA data with Claude, Codex or a local model</title>
-    <updated>2026-11-06T20:51:43+00:00</updated>
-    <author>
-      <name>/u/Ok_Mirror_832</name>
-      <uri>https://www.reddit.com/user/Ok_Mirror_832</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Gnomancer is a CLI and MCP server. It takes a raw export from 23andMe, Ancestry, MyHeritage, FTDNA or LivingDNA, or a VCF, and writes an HTML report on your computer with haplogroups, a marker panel, ClinVar and PharmCAT.&lt;/p&gt; &lt;p&gt;Agents get derived results, not the raw file, and health tables are only fetched when asked for. With a cloud model those results go to the provider; a local model avoids that.&lt;/p&gt; &lt;p&gt;Python, MIT: &lt;a href="https://github.com/codebase/gnomancer"&gt;https://github.com/codebase/gnomancer&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Feedback welcome, especially from anyone who knows the genetics side better than I do.&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/Ok_Mirror_832"&gt; /u/Ok_Mirror_832 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpntng/i_wrote_a_harness_for_exploring_your_raw_dna_data/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpntng/i_wrote_a_harness_for_exploring_your_raw_dna_data/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpntng/i_wrote_a_harness_for_exploring_your_raw_dna_data/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-06T20:51:43+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xpsnfx/what_claudes_connector_directory_feed_shows_about/</id>
-    <title>What Claude's connector directory feed shows about rank, Trending and Verified (6 Nov 2026)</title>
-    <updated>2026-11-07T00:23:34+00:00</updated>
-    <author>
-      <name>/u/hyxxx13</name>
-      <uri>https://www.reddit.com/user/hyxxx13</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I'm one of the people behind Tofu, an MCP connector that's in Claude's connector directory as a Community listing (not Verified).&lt;/p&gt; &lt;p&gt;On 6 November 2026 we pulled the public directory feed (no credentials; not a documented stable interface). The formulas below are our fits to what it shows.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Popularity.&lt;/strong&gt; &lt;code&gt;popularity_score&lt;/code&gt; fits &lt;code&gt;round(1000 * log2(N))&lt;/code&gt;, where N is the number of distinct Claude accounts that sent the listing any MCP message in the last 30 days, which Anthropic's docs say includes accounts that never finished signing in (3585 is 12 accounts).&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Rank.&lt;/strong&gt; The feed's &lt;code&gt;rank&lt;/code&gt; looks like the directory's default order, and the feed's own search endpoint returns matches in that order (we haven't confirmed that the in-app search uses the same order). Our listing was 8,854th of 9,517 (bottom 7%). Among the 85 older listings whose trending score fits the formula below, lower rank numbers go with more accounts in a short recent window (Spearman -0.93, against -0.46 for 30-day accounts on the same listings), while brand-new listings are interleaved near the top (about two thirds of the top 100 carry the feed's &lt;code&gt;is_new&lt;/code&gt; flag), so the order isn't simply newest-first. The feed's search seems to read name, one-liner and tool names, not descriptions: &amp;quot;website&amp;quot; and &amp;quot;host&amp;quot; didn't return us.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Trending.&lt;/strong&gt; The tag goes to the top 10 by &lt;code&gt;trending_score&lt;/code&gt;; 4 of those 10 were Community tier. For a listing with almost no earlier use, the score fits &lt;code&gt;round(1000 * log2(a) * (a - 1))&lt;/code&gt;, where a is accounts in a short window (length not public). Such a listing would need at least 111 accounts in the window to reach the global tenth-place score of 739,467 (the tenth-place listing itself is a large one and doesn't fit the formula); in developer-tools the tenth-place score of 200,845 fits exactly at 39 accounts, and we don't know whether the UI has a per-category Trending tag.&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Verified.&lt;/strong&gt; The feed's &lt;code&gt;partner&lt;/code&gt; tier is the UI's Verified check, and there is no application. Anthropic's docs say listings flagged as &amp;quot;highly useful to Claude users&amp;quot; may be escalated, by an automatic assessment, to a slower Verified review in which reviewers test each tool. In the feed, usage is neither necessary nor sufficient: Front (about 62,000 30-day accounts) was still Community, while Ample Computer (about 15, a competitor of ours) is Verified. How Anthropic picks isn't public.&lt;/p&gt; &lt;p&gt;Write-up with method and feed URL: &lt;a href="https://trytofu.ai/blog/what-claudes-connector-directory-counts"&gt;https://trytofu.ai/blog/what-claudes-connector-directory-counts&lt;/a&gt;&lt;/p&gt; &lt;p&gt;If you have a listing, what &lt;code&gt;popularity_score&lt;/code&gt;, &lt;code&gt;rank&lt;/code&gt; and &lt;code&gt;trending_score&lt;/code&gt; do you see, and do the formulas fit?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/hyxxx13"&gt; /u/hyxxx13 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpsnfx/what_claudes_connector_directory_feed_shows_about/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xpsnfx/what_claudes_connector_directory_feed_shows_about/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xpsnfx/what_claudes_connector_directory_feed_shows_about/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-07T00:23:34+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xplphj/mcp_agent_usability/</id>
-    <title>MCP Agent Usability</title>
-    <updated>2026-11-06T19:24:59+00:00</updated>
-    <author>
-      <name>/u/alejxb</name>
-      <uri>https://www.reddit.com/user/alejxb</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/mcp/comments/1xplphj/mcp_agent_usability/"&gt; &lt;img alt="MCP Agent Usability" src="https://external-preview.redd.it/azglMLeLXU0pblE_xMQKAa5-4MrcgONIvkzyeC0hvWY.png?width=640&amp;amp;crop=smart&amp;amp;auto=webp&amp;amp;s=1fc2815ebcf420e936230b63b3dd413ea06d73c1" title="MCP Agent Usability" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Hi, we built this to compare how do well do different agents use popular MCP servers. Results are interesting.&lt;br /&gt; If you're building an MCP server, how do you test if it works across different harnesses (and their different versions)? &lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/alejxb"&gt; /u/alejxb &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://m3.sineframe.com/leaderboard/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xplphj/mcp_agent_usability/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xplphj/mcp_agent_usability/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-06T19:24:59+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xprwb5/video_editor_mcp_for_your_agents/</id>
-    <title>Video editor MCP for your agents</title>
-    <updated>2026-11-06T23:49:15+00:00</updated>
-    <author>
-      <name>/u/_--_GOD_--_</name>
-      <uri>https://www.reddit.com/user/_--_GOD_--_</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I made an MCP tool for your agents to edit videos and add cool effects to them.&lt;/p&gt; &lt;p&gt;you can check it out on github : &lt;a href="https://github.com/Theolin-Nadasen/cwm-editor"&gt;Theolin-Nadasen/cwm-editor: Agent-drivable video editor: timeline as data, ffmpeg as the renderer&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/_--_GOD_--_"&gt; /u/_--_GOD_--_ &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xprwb5/video_editor_mcp_for_your_agents/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xprwb5/video_editor_mcp_for_your_agents/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xprwb5/video_editor_mcp_for_your_agents/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-06T23:49:15+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1xphke1/mcp_for_thunderbird/</id>
-    <title>MCP for Thunderbird</title>
-    <updated>2026-11-06T16:45:33+00:00</updated>
-    <author>
-      <name>/u/itanpiuco2020</name>
-      <uri>https://www.reddit.com/user/itanpiuco2020</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;I recently started using Thunderbird again and I just want to connect it with Claude. Do you have any recommendation on what MCP to use?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/itanpiuco2020"&gt; /u/itanpiuco2020 &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xphke1/mcp_for_thunderbird/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/mcp/comments/1xphke1/mcp_for_thunderbird/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1xphke1/mcp_for_thunderbird/"/>
-    <category term="mcp" label="r/mcp"/>
-    <published>2026-11-06T16:45:33+00:00</published>
   </entry>
 </feed>
