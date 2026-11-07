@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/openclaw/.rss</id>
   <title>openclaw</title>
-  <updated>2026-11-07T00:46:29+00:00</updated>
+  <updated>2026-11-07T06:41:49+00:00</updated>
   <link href="https://www.reddit.com/r/openclaw/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <icon>https://www.redditstatic.com/icon.png/</icon>
@@ -32,6 +32,19 @@
     <link href="https://www.reddit.com/r/openclaw/comments/1xo702s/knowledge_a_new_approach_to_memory_in_openclaw/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-11-05T02:19:28+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/openclaw/comments/1xpysu1/cron_jobs_set_to_isolated_that_were_quietly/</id>
+    <title>Cron jobs set to isolated that were quietly reusing one session until the context was full (the tell and the fix)</title>
+    <updated>2026-11-07T05:44:34+00:00</updated>
+    <author>
+      <name>/u/haderach_ram</name>
+      <uri>https://www.reddit.com/user/haderach_ram</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;Sharing this in case it saves someone a few evenings.&lt;/p&gt; &lt;p&gt;A nightly cron job on my setup started timing out four nights running, always at the model-call-started phase. Not a tool stall, the model call just never began streaming. Token usage per run kept climbing instead of staying flat.&lt;/p&gt; &lt;p&gt;Cause: the job had sessionTarget set to isolated, but it also still carried an old top level sessionKey from when it targeted a persistent session. The explicit sessionKey wins. So every run appended to the same long lived session, which had grown to 200k of 200k context and millions of total tokens. A call against a window that saturated can stall before it starts.&lt;/p&gt; &lt;p&gt;The tell:&lt;/p&gt; &lt;ol&gt; &lt;li&gt;&lt;p&gt;Compare usage.total_tokens across the job's runs. A truly isolated job should stay roughly flat per run. If it climbs into the millions, suspect this.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Get the job object and look for a leftover top level sessionKey next to sessionTarget isolated.&lt;/p&gt;&lt;/li&gt; &lt;li&gt;&lt;p&gt;Check the context and total tokens of that session in your sessions list.&lt;/p&gt;&lt;/li&gt; &lt;/ol&gt; &lt;p&gt;What did not work: patching the job with sessionKey set to null. The update was accepted without error, but a follow up get showed the field unchanged.&lt;/p&gt; &lt;p&gt;What worked: remove the job and add it again with the same schedule, payload and delivery, with sessionTarget isolated and no sessionKey field at all. The recreated job ran clean on a forced run.&lt;/p&gt; &lt;p&gt;If you have jobs that predate the isolated setting, it is worth a one time audit of every cron for this mismatch. Has anyone seen the null patch clear the field on a newer build?&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/haderach_ram"&gt; /u/haderach_ram &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xpysu1/cron_jobs_set_to_isolated_that_were_quietly/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xpysu1/cron_jobs_set_to_isolated_that_were_quietly/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/openclaw/comments/1xpysu1/cron_jobs_set_to_isolated_that_were_quietly/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-11-07T05:44:34+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/openclaw/comments/1xp18ng/ai_agent_adoption_is_way_lower_than_i_expected/</id>
@@ -138,19 +151,6 @@
     <published>2026-11-04T19:14:46+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/</id>
-    <title>KrillMind - OpenClaw Deep Under The Sea</title>
-    <updated>2026-11-05T04:06:55+00:00</updated>
-    <author>
-      <name>/u/helixcyclic</name>
-      <uri>https://www.reddit.com/user/helixcyclic</uri>
-    </author>
-    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="https://github.com/jthweny/krillmind"&gt;https://github.com/jthweny/krillmind&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I made a desktop app for OpenClaw where the agent writes its replies in the condensation on a submarine window. You type at the bottom of the glass, each letter of the reply clears through the fog, and the sea outside is rendered live. The seabed is different every time you open the app.&lt;/p&gt; &lt;p&gt;Underneath, it's still OpenClaw: the same agents, models, memory, slash commands and settings file. If you already run OpenClaw, KrillMind reads your config, finds your gateway and connects without asking for a key. If you don't, Settings has an Install OpenClaw button.&lt;/p&gt; &lt;p&gt;- Tool use gets its own short line: a file read, a command run, a file made. Click a file the agent made and it opens in an editor on the glass.&lt;/p&gt; &lt;p&gt;- Pick the model and how hard it thinks from the bar, drop files on it, and approve or refuse commands there.&lt;/p&gt; &lt;p&gt;- Hold Right Option to talk, once a speech-to-text provider is set up.&lt;/p&gt; &lt;p&gt;- Settings brings in memory from Claude Code, Codex and Hermes, and MCP servers from Claude Code, Cursor, VS Code and others.&lt;/p&gt; &lt;p&gt;Free · macOS 13+ · Apple silicon and Intel&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What do you think of it? I'm looking for genuine feedback and feel free to ask any questions.&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/helixcyclic"&gt; /u/helixcyclic &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
-    <link href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-11-05T04:06:55+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/openclaw/comments/1xnoutb/painful_upgrade_to_1010/</id>
     <title>Painful upgrade to 10.10</title>
     <updated>2026-11-04T13:58:06+00:00</updated>
@@ -162,6 +162,19 @@
     <link href="https://www.reddit.com/r/openclaw/comments/1xnoutb/painful_upgrade_to_1010/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-11-04T13:58:06+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/</id>
+    <title>KrillMind - OpenClaw Deep Under The Sea</title>
+    <updated>2026-11-05T04:06:55+00:00</updated>
+    <author>
+      <name>/u/helixcyclic</name>
+      <uri>https://www.reddit.com/user/helixcyclic</uri>
+    </author>
+    <content type="html">&lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;&lt;strong&gt;GitHub:&lt;/strong&gt; &lt;a href="https://github.com/jthweny/krillmind"&gt;https://github.com/jthweny/krillmind&lt;/a&gt;&lt;/p&gt; &lt;p&gt;I made a desktop app for OpenClaw where the agent writes its replies in the condensation on a submarine window. You type at the bottom of the glass, each letter of the reply clears through the fog, and the sea outside is rendered live. The seabed is different every time you open the app.&lt;/p&gt; &lt;p&gt;Underneath, it's still OpenClaw: the same agents, models, memory, slash commands and settings file. If you already run OpenClaw, KrillMind reads your config, finds your gateway and connects without asking for a key. If you don't, Settings has an Install OpenClaw button.&lt;/p&gt; &lt;p&gt;- Tool use gets its own short line: a file read, a command run, a file made. Click a file the agent made and it opens in an editor on the glass.&lt;/p&gt; &lt;p&gt;- Pick the model and how hard it thinks from the bar, drop files on it, and approve or refuse commands there.&lt;/p&gt; &lt;p&gt;- Hold Right Option to talk, once a speech-to-text provider is set up.&lt;/p&gt; &lt;p&gt;- Settings brings in memory from Claude Code, Codex and Hermes, and MCP servers from Claude Code, Cursor, VS Code and others.&lt;/p&gt; &lt;p&gt;Free · macOS 13+ · Apple silicon and Intel&lt;/p&gt; &lt;p&gt;&lt;strong&gt;What do you think of it? I'm looking for genuine feedback and feel free to ask any questions.&lt;/strong&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/helixcyclic"&gt; /u/helixcyclic &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;</content>
+    <link href="https://www.reddit.com/r/openclaw/comments/1xo95e9/krillmind_openclaw_deep_under_the_sea/"/>
+    <category term="openclaw" label="r/openclaw"/>
+    <published>2026-11-05T04:06:55+00:00</published>
   </entry>
   <entry>
     <id>https://www.reddit.com/r/openclaw/comments/1xobtdj/is_openclaw_actually_useless/</id>
@@ -318,18 +331,5 @@
     <link href="https://www.reddit.com/r/openclaw/comments/1xkzv2a/what_the_hell_why/"/>
     <category term="openclaw" label="r/openclaw"/>
     <published>2026-11-01T10:35:20+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/openclaw/comments/1xkb3ek/i_ran_openclaws_browser_on_100_liveweb_tasks_it/</id>
-    <title>i ran openclaw's browser on 100 live-web tasks. it finished the most and cost the most</title>
-    <updated>2026-10-31T14:05:00+00:00</updated>
-    <author>
-      <name>/u/ldrx</name>
-      <uri>https://www.reddit.com/user/ldrx</uri>
-    </author>
-    <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href="https://www.reddit.com/r/openclaw/comments/1xkb3ek/i_ran_openclaws_browser_on_100_liveweb_tasks_it/"&gt; &lt;img alt="i ran openclaw's browser on 100 live-web tasks. it finished the most and cost the most" src="https://external-preview.redd.it/OAXSl8SY6T3JK9MGQyKxkoYbqZ71HQRYXLeB8CV0NXg.png?width=140&amp;amp;height=70&amp;amp;auto=webp&amp;amp;s=0bb984ff024de451ea8ab9603a0985fc6786fd8c" title="i ran openclaw's browser on 100 live-web tasks. it finished the most and cost the most" /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &lt;!-- SC_OFF --&gt;&lt;div class="md"&gt;&lt;p&gt;openclaw finished the most tasks of the five setups. it was also the slowest and cost the most.&lt;/p&gt; &lt;h1&gt;setup&lt;/h1&gt; &lt;p&gt;tasks come from Online-Mind2Web, a deliberately hard benchmark.&lt;/p&gt; &lt;p&gt;every setup used claude haiku 5.5, headed chrome, the same prompts, server and IP.&lt;/p&gt; &lt;p&gt;10-minute limit, one attempt per task.&lt;/p&gt; &lt;p&gt;&lt;a href="https://preview.redd.it/tov8djf8hsyh1.jpeg?width=1200&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=b84d2454e05fbb2ff10020f39d78c03bb3b75020"&gt;https://preview.redd.it/tov8djf8hsyh1.jpeg?width=1200&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=b84d2454e05fbb2ff10020f39d78c03bb3b75020&lt;/a&gt;&lt;/p&gt; &lt;p&gt;finished / median time / total cost:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;openclaw: 35, 141s, $4.80&lt;/li&gt; &lt;li&gt;5dive (claude code): 32, 105s, $1.39&lt;/li&gt; &lt;li&gt;claude in chrome: 29, 67s, $0.91 (an estimate, it runs on a subscription)&lt;/li&gt; &lt;li&gt;5dive (pi): 29, 105s, $0.65&lt;/li&gt; &lt;li&gt;hermes: 18, 86s, $0.72&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;the differences among the top weren't statistically significant in my paired tests.&lt;/p&gt; &lt;p&gt;raw results: &lt;a href="https://gist.github.com/lodar/7664986cb8799d4f82ea01e934fb5111"&gt;https://gist.github.com/lodar/7664986cb8799d4f82ea01e934fb5111&lt;/a&gt;&lt;/p&gt; &lt;h1&gt;why the gaps&lt;/h1&gt; &lt;ul&gt; &lt;li&gt;hermes stops sooner: 11.6 steps a task, against 23.5 for openclaw.&lt;/li&gt; &lt;li&gt;leaving out tasks it got blocked on, hermes still finished 22%, against 45% for openclaw.&lt;/li&gt; &lt;li&gt;openclaw's batching was on by default, and its agent used it in 5 of the 100 tasks.&lt;/li&gt; &lt;li&gt;in smaller tests, each openclaw call re-read 72K tokens, against 43K for claude code and 4.5K for pi.&lt;/li&gt; &lt;li&gt;claude in chrome was fastest (67s a task): its steps took 4s, against 8 to 10s for the others. my guess: they wait for each page to settle and double-check every click.&lt;/li&gt; &lt;li&gt;agents on a server get a datacenter IP, and some sites block it: each setup hit a bot wall on 20 to 26 of the 100 tasks.&lt;/li&gt; &lt;/ul&gt; &lt;h1&gt;how the browsers differ&lt;/h1&gt; &lt;p&gt;claude in chrome drives your own chrome through anthropic's extension.&lt;/p&gt; &lt;p&gt;5dive runs chrome on the agent's own server and stays logged in. when a site throws a robot check, the agent sends you a one-time link to that live window. you solve it, it carries on.&lt;/p&gt; &lt;h1&gt;limitations&lt;/h1&gt; &lt;p&gt;cheap model, one attempt per live task.&lt;/p&gt; &lt;p&gt;my agents built the test rig. the judge used haiku 5.5, so these scores don't compare to the benchmark's leaderboard.&lt;/p&gt; &lt;p&gt;claude in chrome and hermes ran a day or two after the others, and live sites change.&lt;/p&gt; &lt;p&gt;i built the browser, so i'm not neutral.&lt;/p&gt; &lt;p&gt;i'd rerun openclaw with any setting its users think cuts the calls.&lt;/p&gt; &lt;p&gt;5dive, open source (MIT): &lt;a href="https://github.com/5dive-ai/5dive"&gt;https://github.com/5dive-ai/5dive&lt;/a&gt;&lt;/p&gt; &lt;p&gt;browser plugin (Apache-2.0): &lt;a href="https://github.com/5dive-ai/5dive-browser"&gt;https://github.com/5dive-ai/5dive-browser&lt;/a&gt;&lt;/p&gt; &lt;/div&gt;&lt;!-- SC_ON --&gt; &amp;#32; submitted by &amp;#32; &lt;a href="https://www.reddit.com/user/ldrx"&gt; /u/ldrx &lt;/a&gt; &lt;br /&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xkb3ek/i_ran_openclaws_browser_on_100_liveweb_tasks_it/"&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32; &lt;span&gt;&lt;a href="https://www.reddit.com/r/openclaw/comments/1xkb3ek/i_ran_openclaws_browser_on_100_liveweb_tasks_it/"&gt;[comments]&lt;/a&gt;&lt;/span&gt; &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content>
-    <link href="https://www.reddit.com/r/openclaw/comments/1xkb3ek/i_ran_openclaws_browser_on_100_liveweb_tasks_it/"/>
-    <category term="openclaw" label="r/openclaw"/>
-    <published>2026-10-31T14:05:00+00:00</published>
   </entry>
 </feed>
