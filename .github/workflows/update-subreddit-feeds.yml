@@ -1,45 +1,43 @@
-name: Update Subreddit Feeds
+name: Test hosted Brave on r/ollama
 
-on:
-  schedule:
-    - cron: "*/15 * * * *"  # Runs every 15 minutes
-  workflow_dispatch:
+on: workflow_dispatch
 
 permissions:
-  contents: write
-
-concurrency:
-  group: update-subreddit-feeds
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  update_rss:
-    runs-on: ubuntu-latest
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
         with:
-          python-version: '3.x'
-
-      - name: Install dependencies
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Brave and scraper dependencies
         run: |
-          pip install -r requirements.txt
-
-      - name: Test feed validation
-        run: python -m unittest discover -s tests -v
-
-      - name: Run update_feeds script
+          sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+          sudo curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources
+          sudo apt-get update -qq
+          sudo apt-get install -y brave-browser xvfb xauth
+          python -m pip install -r requirements.txt
+          brave-browser --version
+      - name: Read and verify 25 posts
+        env:
+          REDDIT_STORAGE_STATE: ${{ secrets.REDDIT_BRAVE_PROBE_SESSION }}
+          REDDIT_BROWSER_EXECUTABLE: /usr/bin/brave-browser
         run: |
-          python scripts/update_feeds.py
-      - name: commit files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add feeds/*.xml
-          if ! git diff --cached --quiet; then
-            git commit -m "update Reddit feeds"
-            git push
-          fi
+          test -n "$REDDIT_STORAGE_STATE"
+          cd "$RUNNER_TEMP"
+          echo ollama > subreddits.csv
+          xvfb-run -a python "$GITHUB_WORKSPACE/scripts/update_feeds.py"
+          python - <<'PY'
+          import feedparser
+          feed = feedparser.parse("feeds/ollama.xml")
+          assert not feed.bozo
+          assert len(feed.entries) == len({post.id for post in feed.entries}) == 25
+          assert all(post.link.startswith("https://www.reddit.com/r/ollama/comments/") and post.published_parsed for post in feed.entries)
+          print("Verified 25 unique timestamped r/ollama entries.")
+          PY
