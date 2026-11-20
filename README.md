@@ -9,7 +9,7 @@ To use it:
 - Fork the repo
 - List the subreddit names you want in subreddits.csv
 - Give GitHub Actions Read/Write permissions on your repo in: https://github.com/yourusername/reddit-rss-proxy/settings/actions
-- GitHub Actions should run every 15 minutes
+- GitHub Actions schedules a refresh at minute 17 of every hour (UTC). Scheduled jobs wait a random 0–120 seconds before starting work. Manual runs skip this delay.
 - The feed files are then in /feeds
 - Give Feedly a feed URL for each one like:
 
