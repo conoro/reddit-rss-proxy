@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
   group: update-subreddit-feeds
@@ -14,27 +15,38 @@ concurrency:
 
 jobs:
   update_rss:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.13'
 
-      - name: Install dependencies
+      - name: Install Brave and scraper dependencies
         run: |
-          pip install -r requirements.txt
-
+          sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+          sudo curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources
+          sudo apt-get update -qq
+          sudo apt-get install -y brave-browser xvfb xauth
+          python -m pip install -r requirements.txt
+          brave-browser --version
       - name: Test feed validation
         run: python -m unittest discover -s tests -v
 
-      - name: Run update_feeds script
+      - name: Refresh feeds
+        env:
+          REDDIT_STORAGE_STATE: ${{ secrets.REDDIT_STORAGE_STATE }}
+          REDDIT_BROWSER_EXECUTABLE: /usr/bin/brave-browser
         run: |
-          python scripts/update_feeds.py
-      - name: commit files
+          test -n "$REDDIT_STORAGE_STATE" || { echo "Missing REDDIT_STORAGE_STATE"; exit 1; }
+          xvfb-run -a python scripts/update_feeds.py
+      - name: Publish updated feeds
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -42,4 +54,5 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "update Reddit feeds"
             git push
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --silent
           fi

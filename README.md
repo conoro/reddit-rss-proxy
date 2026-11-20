@@ -15,18 +15,48 @@ To use it:
 
 [https://conoro.github.io/reddit-rss-proxy/feeds/openclaw.xml](https://conoro.github.io/reddit-rss-proxy/feeds/openclaw.xml)
 
-The updater fetches `https://www.reddit.com/r/<subreddit>/.rss`.
-Old Reddit now redirects logged-out feed requests to a login page. Requests
-are spaced 65 seconds apart to respect Reddit's rate limit, with one bounded
-retry for HTTP 429. A run takes several minutes when multiple feeds are configured.
+### Use a personal Reddit login
 
-If any request fails or returns HTML, malformed XML, or no entries, the updater
-keeps all existing feed files and fails the Actions run instead of publishing
-empty feeds. Check the **Update Subreddit Feeds** Actions logs if feeds go stale.
+For a local refresh, install the Python requirements and sign in once using a
+dedicated Brave profile. Run these commands from the repository root:
 
-To refresh locally: `uv run scripts/update_feeds.py` (or install
-`requirements.txt` and run `python scripts/update_feeds.py`). The script only
-writes feed files; committing and pushing are handled by the workflow.
+```sh
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+mkdir -p playwright/.auth/brave-test
+brave --user-data-dir="$PWD/playwright/.auth/brave-test" https://www.reddit.com/login/
+```
+
+Close that Brave instance after signing in. With a graphical desktop available,
+run the updater using the same profile:
+
+```sh
+REDDIT_BRAVE_PROFILE=playwright/.auth/brave-test python scripts/update_feeds.py
+```
+
+The scraper opens each modern Reddit `/r/<subreddit>/new/` listing in a
+visible browser and scrolls for up to 25 unique posts. It preserves discussion
+permalinks as Atom entry IDs and writes the batch under `feeds/`.
+
+### GitHub Actions session
+
+After signing in with the dedicated Brave profile above, close its window and
+use the authenticated GitHub CLI to set the repository secret. Substitute your
+own repository name when using a fork.
+
+```sh
+python scripts/save_reddit_login.py conoro/reddit-rss-proxy
+```
+
+The helper sends the Reddit cookies directly to the repository's encrypted
+`REDDIT_STORAGE_STATE` secret. Repeat this step after renewing an expired
+session. The hosted workflow runs Brave on a virtual display and waits 65
+seconds between communities. A failed scrape preserves the previous batch.
+List only communities you intend to publish.
+
+Use **Actions → Update Subreddit Feeds → Run workflow** for an immediate refresh
+after deploying. The local updater writes XML and the workflow commits it.
 
 Run regression tests with `python -m unittest discover -s tests -v` after
 installing the requirements.
