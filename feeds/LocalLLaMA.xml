@@ -2,10 +2,164 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/LocalLLaMA/.rss</id>
   <title>r/LocalLLaMA</title>
-  <updated>2026-11-21T17:21:24.259000+00:00</updated>
+  <updated>2026-11-21T22:54:33.865000+00:00</updated>
   <link href="https://www.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <subtitle>Atom feed for r/LocalLLaMA</subtitle>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y29vsu/inkling_2_mini_26b_on_an_rtx_3060_12_gb_31_toks/</id>
+    <title>Inkling 2 Mini (26B) on an RTX 3060 12 GB: 31 tok/s in RustingStrata, 9 to 10 in llama.cpp</title>
+    <updated>2026-11-21T22:54:33.865000+00:00</updated>
+    <author>
+      <name>/u/Serious_Scarcity7818</name>
+    </author>
+    <content type="html">I got request to add it in RustingStrata in guthub and I kinda like this model.&lt;br&gt;Thinking Machines&amp;#x27; Inkling 2 Mini is a strange one: 24 layers, but 12 of them run three times per token, so every token is 48 layer runs. The IQ4_NL GGUF is 17.6 GB and my card has 12. &lt;br&gt;&lt;br&gt;I added it to RustingStrata, my Rust GGUF engine. It runs on CUDA, on Vulkan and on the CPU alone. &lt;br&gt;&lt;br&gt;Box: RTX 3060 12 GB, Ryzen 5 7600X, 30 GB RAM. Greedy, 64 tokens written, tok/s: &lt;br&gt;&lt;br&gt;Reads 512 tokens Reads 2048 Writes RustingStrata, CUDA 259 220 31.2 RustingStrata, Vulkan (same card) 227 183 27.5 RustingStrata, CPU only 50 48 11.6 llama.cpp CUDA, -ngl 18 384 323 8.7 llama.cpp CUDA, -ngl 0 378 312 10.5 &lt;br&gt;&lt;br&gt;So it writes 3 to 3.5 times as fast as llama.cpp on this card, and it reads the prompt slower: llama.cpp is 1.5 times faster there. &lt;br&gt;&lt;br&gt;Why writing is fast: the model does not fit, so the engine keeps the experts that are used most in VRAM and computes the others on the CPU, and it moves that split while it runs. Why reading is slower: the attention scores of a prompt chunk are still computed on the CPU. That is the next thing to move to the card. &lt;br&gt;&lt;br&gt;The RustingStrata &amp;quot;writes&amp;quot; numbers are after the 512-token prompt. llama-bench writes from an empty context. -ngl 99 runs out of VRAM; 12, 16 and 20 layers gave the same as 18. &lt;br&gt;&lt;br&gt;Long context: 40,960-token prompt, then 64 tokens written &lt;br&gt;&lt;br&gt;Reads Writes RAM RustingStrata, CUDA 78.0 16.7 16.6 GB RustingStrata, Vulkan 74.7 14.3 16.5 GB llama.cpp CUDA, -ngl 18 -ub 128 113.8 2.86 &lt;br&gt;&lt;br&gt;llama.cpp does not start at 40k with the default batch: it asks for a 13.2 GB compute buffer (11.3 GB with -fa on). -ub 128 is what fits on a 12 GB card. &lt;br&gt;&lt;br&gt;Writing drops from 31 to 17 tok/s at 40k. Some of that is the model: 8 of its 48 layer runs per token are full attention, and their cached rows are 32 KB per position, so every token reads about 1.3 GB of them at 40k. Qwen3.6-35B-A3B reads about a third of that, since most of its layers are linear attention. Some of it is mine: the attention kernel does not yet share those reads between the query heads of a group, and the cache takes VRAM from the experts. Both are next. &lt;br&gt;&lt;br&gt;Is it the same model? I fed llama.cpp&amp;#x27;s own greedy tokens through my forward and compared the top token at each step. Short prompt: 24 of 24. Prompt of several hundred tokens: 47 of 48, the one miss is a near tie. Same on CUDA, Vulkan and CPU. No perplexity table for this model yet. &lt;br&gt;&lt;br&gt;What is missing: text only (no vision projector), greedy only. Context goes up to the 1M the model was trained on, or --ctx; RAM and VRAM are the real limit. Vulkan was run on the 3060 only, so I would like to see numbers from an AMD or Intel card. &lt;br&gt;&lt;br&gt;rustingstrata chat --model Inkling-2-Mini-IQ4_NL.gguf&lt;br&gt;&lt;br&gt;No flags needed: CUDA on NVIDIA, Vulkan on everything else, STRATA_DS_GPU=0 for the CPU. &lt;br&gt;&lt;br&gt;Setup: llama.cpp c622f62, llama-bench -t 6 -r 2 -p 512,2048 -n 64. RustingStrata 9ef1dcf, bench --pp 512,2048 --tg 64 --reps 2, plus --backend vulkan for the Vulkan row. Mean of two runs each. 40k: bench --pp 40960 --tg 64 --reps 1; llama-bench -ngl 18 -ub 128 -t 6, -p 40960 and -n 64 -d 40960. One run each. &lt;br&gt;&lt;br&gt;Repo: RustingStrata &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y29vsu/inkling_2_mini_26b_on_an_rtx_3060_12_gb_31_toks/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y29vsu/inkling_2_mini_26b_on_an_rtx_3060_12_gb_31_toks/"/>
+    <published>2026-11-21T22:54:33.865000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y298nv/an_inkling_mini_warning_pair_it_with_a_search/</id>
+    <title>An Inkling Mini warning: pair it with a search provider</title>
+    <updated>2026-11-21T22:23:35.635000+00:00</updated>
+    <author>
+      <name>/u/NoFunk</name>
+    </author>
+    <content type="html">First, this is not a dis on the model, and hopefully doesn&amp;#x27;t come across that way. I&amp;#x27;m hugely supportive of seeing a new open weights model, especially with this interesting architecture. &lt;br&gt;&lt;br&gt;I think it&amp;#x27;s important to know that the general testing I have done compared to other smaller models people might use in the same VRAM class (Qwen 3.8 27B being an obvious one), Inkling seems shorter on world knowledge. And more importantly, it is WAY overconfident in its completely wrong answers, 2024 style. &lt;br&gt;&lt;br&gt;It&amp;#x27;s not a surprise a smaller model has iffy world knowledge, and my tests may bias strongly - it&amp;#x27;s a standard set of questions I go through with every model, but they are my questions, it might be brilliant outside my interest space. The bigger consideration for me is the return of the &amp;quot;I&amp;quot;m wildly wrong but just going to roll with it&amp;quot; delivery. Which to be fair, every model has, I just felt it was pretty extreme here. &lt;br&gt;&lt;br&gt;When I hook it up to a decent search, it does make the tool calls sometimes, but is still overconfident and ignores them when it should use them (the search part of my system prompt is &amp;quot;Use web search tools when the task needs knowledge you don&amp;#x27;t have: current events, real-time information, unfamiliar terms, or low confidence in your memory&amp;quot;). When it uses search it does well, comes back with appropriate information, and has excellent English writing style. Definitely better than Qwen on the writing for my tastes. &lt;br&gt;&lt;br&gt;Before it&amp;#x27;s asked, I&amp;#x27;m talking about the BF16 version of the weights here, this isn&amp;#x27;t quant loss. Knowledge does apply to code as well, I regularly have to guide small models into appropriate semantic usage. I haven&amp;#x27;t used Inkling on any heavy code yet but people seem enthusiastic. &lt;br&gt;&lt;br&gt;Probably not news worthy to many of you but we have some folks just dipping their toes in on local use, figured it was worth the call out. &lt;br&gt;&lt;br&gt;Edit: Since it has been asked, my standard environment is pi, I use per-project extensions and very few global, and my normal search extension is pi-exa. Unsloth studio behaved similarly, but I don&amp;#x27;t use that as much, and I don&amp;#x27;t do this kind of proving work in Visual Studio Code. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y298nv/an_inkling_mini_warning_pair_it_with_a_search/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y298nv/an_inkling_mini_warning_pair_it_with_a_search/"/>
+    <published>2026-11-21T22:23:35.635000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y2912s/nemotron_36_academia_soon/</id>
+    <title>Nemotron 3.6 Academia Soon</title>
+    <updated>2026-11-21T22:13:28.911000+00:00</updated>
+    <author>
+      <name>/u/maternion</name>
+    </author>
+    <content type="html">PR: https://github.com/ggml-org/llama.cpp/pull/32766 &lt;br&gt;&lt;br&gt;Adds support for Nemotron 3.6 Academia, a looped hybrid model combining Gated Delta Product (GDP), dense attention, and MLP layers. &lt;br&gt;&lt;br&gt;Also supports last_loop kv cache just like Dory did. There&amp;#x27;s also a PR for Rectangular GDN States pending beforethis gets merged. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y2912s/nemotron_36_academia_soon/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y2912s/nemotron_36_academia_soon/"/>
+    <published>2026-11-21T22:13:28.911000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y282m8/tiny_decision_model_in_425mb_on_cpu/</id>
+    <title>Tiny decision model in 425MB on CPU</title>
+    <updated>2026-11-21T21:30:30.133000+00:00</updated>
+    <author>
+      <name>/u/Danmoreng</name>
+    </author>
+    <content type="html">&lt;a href="https://www.reddit.com/gallery/1y282m8"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y282m8/tiny_decision_model_in_425mb_on_cpu/"/>
+    <published>2026-11-21T21:30:30.133000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y27vmb/inkling_is_slow_very_slow_and_a_very_very/</id>
+    <title>Inkling is slow, very slow, and a very, very resource-intensive console, but...</title>
+    <updated>2026-11-21T21:21:33.304000+00:00</updated>
+    <author>
+      <name>/u/CodeAnguish</name>
+    </author>
+    <content type="html">I can&amp;#x27;t stop thinking that this hype is somehow artificial. This is the first MoE that is heavier than a model with the same number of parameters but denser. Inkling 2 mini is MUCH heavier than Qwen 3.8 27B in the same quantization and context window size, in my opinion. &lt;br&gt;&lt;br&gt;BUT, if the idea is to &amp;quot;punish&amp;quot; Qwen for playing with our feelings by giving hype to someone else, I&amp;#x27;m in. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y27vmb/inkling_is_slow_very_slow_and_a_very_very/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y27vmb/inkling_is_slow_very_slow_and_a_very_very/"/>
+    <published>2026-11-21T21:21:33.304000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y27spf/this_could_be_one_of_the_best_models_for_lower/</id>
+    <title>This could be one of the best models for lower vram systems: Over 1300 tok/s aggregated for SenseNova-Loop-9B looped transformer on a laptop RTX 5090</title>
+    <updated>2026-11-21T21:17:57.198000+00:00</updated>
+    <author>
+      <name>/u/tebjan</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/eu4rzfl5c03i1.png"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y27spf/this_could_be_one_of_the_best_models_for_lower/"/>
+    <published>2026-11-21T21:17:57.198000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y27i16/inkling_2_mini_iq4_nl_on_rtx_5060_ti_16gb_44_toks/</id>
+    <title>Inkling 2 Mini IQ4_NL on RTX 5060 Ti 16GB, 44 tok/s</title>
+    <updated>2026-11-21T21:04:33.540000+00:00</updated>
+    <author>
+      <name>/u/bobaburger</name>
+    </author>
+    <content type="html">Finally got a chance to sit down and test Inkling 2 Mini on my PC (5060 Ti 16GB + 32 GB RAM). &lt;br&gt;&lt;br&gt;This is for the IQ4_NL gguf version from ggml-org on HF. I started out at 12 tok/s and the the final number I can reach is 44 tok/s. At 128k context window, without vision. With the latest llama.cpp (19bc41dbb). &lt;br&gt;&lt;br&gt;If you&amp;#x27;re here just for the llama params, here&amp;#x27;s how to run it: &lt;br&gt;&lt;br&gt;Best with q8_0 KV: 43.34 tok/s &lt;br&gt;&lt;br&gt;-c 131072 -np 1 -fa on --cache-ram 0 -ub 32 -b 512 -ctk q8_0 -ctv q8_0 -fitt 128 --spec-type ngram-mod&lt;br&gt;&lt;br&gt;Best with q4_0 KV: 44.35 tok/s &lt;br&gt;&lt;br&gt;-c 131072 -np 1 -fa on --cache-ram 0 -ub 32 -b 512 -ctk q4_0 -ctv q4_0 -fitt 64 &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y27i16/inkling_2_mini_iq4_nl_on_rtx_5060_ti_16gb_44_toks/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y27i16/inkling_2_mini_iq4_nl_on_rtx_5060_ti_16gb_44_toks/"/>
+    <published>2026-11-21T21:04:33.540000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y2775c/inkling2mini_quants_by_shinmegamiboson_54gb_and/</id>
+    <title>Inkling-2-Mini quants by shinmegamiboson - 5.4GB and 8.9GB at higher scores than Unsloth</title>
+    <updated>2026-11-21T20:51:14.427000+00:00</updated>
+    <author>
+      <name>/u/tiftik</name>
+    </author>
+    <content type="html">&lt;a href="https://github.com/ShinMegamiBoson/lookatmyquant"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y2775c/inkling2mini_quants_by_shinmegamiboson_54gb_and/"/>
+    <published>2026-11-21T20:51:14.427000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y26hhs/2_local_models_no_web_access_discover_and_program/</id>
+    <title>2 local models, no Web access, discover and program a vintage Motorola 68000 device</title>
+    <updated>2026-11-21T20:19:09.689000+00:00</updated>
+    <author>
+      <name>/u/breksyt</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/vmhnx7fjx03i1.jpeg"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y26hhs/2_local_models_no_web_access_discover_and_program/"/>
+    <published>2026-11-21T20:19:09.689000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y25lgo/strata_hy4_flash/</id>
+    <title>Strata Hy4 Flash</title>
+    <updated>2026-11-21T19:41:09.317000+00:00</updated>
+    <author>
+      <name>/u/Kruppenfield</name>
+    </author>
+    <content type="html">Strata have shipped Hy4 Flash support 3h ago &lt;br&gt;&lt;br&gt;https://github.com/Niko1221/Strata/releases/tag/v0.2.18 &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y25lgo/strata_hy4_flash/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y25lgo/strata_hy4_flash/"/>
+    <published>2026-11-21T19:41:09.317000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y24vqg/i_finetuned_a_15b_model_into_an_offline_linux/</id>
+    <title>I fine-tuned a 1.5B model into an offline Linux command helper that runs on CPU and checks its own answers against the man pages and tdlr</title>
+    <updated>2026-11-21T19:10:04.168000+00:00</updated>
+    <author>
+      <name>/u/Arch-r007</name>
+    </author>
+    <content type="html">&lt;a href="https://v.redd.it/2r34z92el03i1"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y24vqg/i_finetuned_a_15b_model_into_an_offline_linux/"/>
+    <published>2026-11-21T19:10:04.168000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y24rq0/capyflash_v016_inkling_2_mini_on_two_50xx_16_gb/</id>
+    <title>capy-flash v0.16: Inkling 2 Mini on two 50xx 16 GB gpus</title>
+    <updated>2026-11-21T19:05:18.409000+00:00</updated>
+    <author>
+      <name>/u/FeydRowan</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/arx996kfk03i1.png"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y24rq0/capyflash_v016_inkling_2_mini_on_two_50xx_16_gb/"/>
+    <published>2026-11-21T19:05:18.409000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y24m2k/light_design_help_math_server_teacher/</id>
+    <title>Light Design help math server (teacher)</title>
+    <updated>2026-11-21T18:59:04.322000+00:00</updated>
+    <author>
+      <name>/u/beekersavant</name>
+    </author>
+    <content type="html">Hi all, &lt;br&gt;&lt;br&gt;I am going to use Claude to design a local server and agent that has 1000&amp;#x27;s of math problems, serves tests to google classroom and reviews handwritten work for calculation errors. It does not have to be fast. Basically, take 20 tests answers are auto-graded by as multiple choice. Handwritten calculations for tests are reviewed and feedback spit out. New tests are made for upload and worksheets based on missed questions are created from a premade database of algebra questions. The agent does this and keeps track of questions used for class. The database and design will be done in clause. The computations for a large test run of say 20 students can be done in 12 hours (overnight from 3 pm). The workload is interpreting handwritten calculations and outputting feedback with new tests and worksheets. &lt;br&gt;&lt;br&gt;Here is what I have to run a local ai agent that does all my busywork so I just teach - Intel I5, 64gb ddr4, 3060 6gb (undervolted and stable), plenty of storage. &lt;br&gt;&lt;br&gt;Is this possible to run locally on my computer? I am very technically savvy, but I would rather not buy a new rig right now. I am offloading any truly heavy compute to a frontier model during design and local stuff seem okay with changing handwriting to digital text. I would be expecting to use an agent to switch between local models to do different jobs (data service vs algebra grading vs visual interpretation). Thanks in advance. I don&amp;#x27;t want to start design and found out I should have bought a new computer 2 months from now. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y24m2k/light_design_help_math_server_teacher/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y24m2k/light_design_help_math_server_teacher/"/>
+    <published>2026-11-21T18:59:04.322000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y22kzn/inkling2miniunbound_is_live_the_most_useful/</id>
+    <title>Inkling-2-Mini-Unbound is live: the most useful uncensored Inkling 2 Mini, via conv-aware abliteration</title>
+    <updated>2026-11-21T17:33:36.681000+00:00</updated>
+    <author>
+      <name>/u/Turbulent-Sky5396</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/126cndu7303i1.png"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y22kzn/inkling2miniunbound_is_live_the_most_useful/"/>
+    <published>2026-11-21T17:33:36.681000+00:00</published>
+  </entry>
   <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1y22avl/we_made_an_uncensored_inkling_2_mini_with_0/</id>
     <title>we made an uncensored inkling 2 mini with 0% refusals, from 16.53 gb down to 8.67 gb</title>
@@ -73,17 +227,6 @@
     <published>2026-11-21T15:37:38.245000+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1zua8/tencents_hy_team_says_a_hy4mini_and_a_flashlite/</id>
-    <title>Tencent's Hy team says a Hy4-mini and a "Flash-Lite" are both on the roadmap. What size do you actually want?</title>
-    <updated>2026-11-21T15:36:55.243000+00:00</updated>
-    <author>
-      <name>/u/allegedlyalienated</name>
-    </author>
-    <content type="html">Went through the Hy AMA and the small model stuff got more concrete answers than I expected.&lt;br&gt;What they said:&lt;br&gt;• Hy4-mini to replace qwen3.6-35b-a3b: &amp;quot;already on our roadmap&amp;quot;&lt;br&gt;• 24-31B dense: &amp;quot;under consideration&amp;quot;&lt;br&gt;• Flash-Lite around 35B-A3B: &amp;quot;stay tuned for a cutting-edge Flash-Lite model&amp;quot;&lt;br&gt;• smaller image model, since HyImage-3.0 is too big for most setups: they&amp;#x27;ll think about it&lt;br&gt;The answer I keep coming back to: someone asked whether Engram and iHC only pay off at 200B+ scale. They said both have even greater benefits for smaller models. If that&amp;#x27;s true, a ~30B model with the n-gram tables parked in system RAM could be really good on a single 24GB card.&lt;br&gt;They also said on-device models will use a different design, co-designed with edge GPU hardware, so a mini probably won&amp;#x27;t just be Flash shrunk down.&lt;br&gt;No dates on any of it. But half that thread was asking for the same thing, so I&amp;#x27;m curious where people here land. 35B-A3B MoE? 24-32B dense? Something that actually fits in 16GB? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1zua8/tencents_hy_team_says_a_hy4mini_and_a_flashlite/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1zua8/tencents_hy_team_says_a_hy4mini_and_a_flashlite/"/>
-    <published>2026-11-21T15:36:55.243000+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1zpjq/deepseekv41flash_running_at_30_toks_on_a_12_gb/</id>
     <title>DeepSeek-V4.1-Flash running at ~30 tok/s on a 12 GB card + 64 GB RAM — anyone interested in the details?</title>
     <updated>2026-11-21T15:30:56.471000+00:00</updated>
@@ -137,148 +280,5 @@
     <content type="html">&lt;a href="https://i.redd.it/gw0biak69z2i1.jpeg"&gt;[link]&lt;/a&gt;</content>
     <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ykkt/inking_2_mini_on_tesla_t4/"/>
     <published>2026-11-21T14:39:34.888000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1yan6/quad_channel_is_amaze/</id>
-    <title>Quad Channel is amaze</title>
-    <updated>2026-11-21T14:26:47.827000+00:00</updated>
-    <author>
-      <name>/u/Ne00n</name>
-    </author>
-    <content type="html">Some French Hosting company did a Sale.&lt;br&gt;They sold an EPYC 7351P with 128GB DDR4 for 31$/m &lt;br&gt;&lt;br&gt;Turns out its quad channel, so it holds 128k context at speed.&lt;br&gt;I tested it with Qwen 3.8 Flash Next 3bit Unsloth, the newest they released.&lt;br&gt;It runs at 3.6 to 3.8 röntgen/tokens per second. &lt;br&gt;&lt;br&gt;BUT, it runs that with 128k context, same speed, no matter how much context you throw at it, crazy for me GPU poor guy.&lt;br&gt;I have it coding a game right now, looks promising so far. &lt;br&gt;&lt;br&gt;Will try the 4bit quant next, no idea at what speeds or if it fits but 5bit would be to fat probably. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1yan6/quad_channel_is_amaze/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1yan6/quad_channel_is_amaze/"/>
-    <published>2026-11-21T14:26:47.827000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rz/inkling_simply_cheff_kiss/</id>
-    <title>Inkling simply *cheff kiss*</title>
-    <updated>2026-11-21T14:23:10.457000+00:00</updated>
-    <author>
-      <name>/u/Altruistic_Heat_9531</name>
-    </author>
-    <content type="html">FYI, if you daily-drive Qwen 3.8 or QFN, you know there&amp;#x27;s no way they would give an explanation like this. Inkling&amp;#x27;s are just butterysmooth, with natural rhythm and flow. &lt;br&gt;&lt;br&gt;The thing is that Qwen 3.8/QFN are notoriously &amp;quot;jumpy&amp;quot; in conversational mode. I&amp;#x27;ve had to ask &amp;quot;Please ELI5&amp;quot; or &amp;quot;What?&amp;quot; multiple times when discussing topics I don&amp;#x27;t fully understand. Hell, sometimes it even manages to confuse me about topics I already understand well. &lt;br&gt;&lt;br&gt;Qwen models are agentic monsters, that&amp;#x27;s a fact. But when it comes to technical heavy conversations, I&amp;#x27;ve found the Gemma4 models (yes, I&amp;#x27;ve tried the 12B, 26B-A4B, and 31B) unsurprisingly much better at explaining things. Unfortunately, more often than not, they don&amp;#x27;t quite have the reasoning capabilities needed for heavy technical discussions, although web search kinda help that. &lt;br&gt;&lt;br&gt;That being said, Inkling seems heavily English centric. I tried it in Indonesian, and the output felt more like a direct translation from English than something naturally written in Indonesian. It lacks the linguistic localization you&amp;#x27;d expect from a genuinely multilingual conversational model. &lt;br&gt;&lt;br&gt;So, to me, Inkling feels like a mix of Gemma4 conversational fluency and Qwen3_5 technical capabilities. &lt;br&gt;&lt;br&gt;And to be honest, its behavior reminds me a lot of the GPT OSS series, which happens to be the longest-running model I&amp;#x27;ve continuously served on my own servers. &lt;br&gt;&lt;br&gt;As for tok/s. it&amp;#x27;s slow, but that&amp;#x27;s understandable. It was released just 22 hours ago. On top of that, it uses a looped transformer arch with attn res (Kimi-style residual connections), which adds another layer of complexity. &lt;br&gt;&lt;br&gt;Inkling is currently running through my personal benchmarks, so these are just my initial impressions.&lt;br&gt;&lt;br&gt;Infra ApacheBigTop Bench (Building DataLakehouse from 0 using Apache BigTop package)&lt;br&gt;&lt;br&gt;Infra handle Bench (Overseeing the logs, and preemptive when there are dataskew or just error in Lakehouse)&lt;br&gt;&lt;br&gt;CK-FSDP impl Bench (ComfyKitchen FSDP packing unpacking tensor and dispatcher stuff)&lt;br&gt;&lt;br&gt;Tensor SubClass bench (Like above, but more so on TorchAO style)&lt;br&gt;&lt;br&gt;Mini SlopCode Bench (Repowide understanding and how much erosion, only in repo that i owned, since i know how each components work)&lt;br&gt;&lt;br&gt;Angrybird bench (More involved &amp;quot;SVG Pelican&amp;quot; bench, since it has to know physics)&lt;br&gt;&lt;br&gt;Spec:&lt;br&gt;3090, 128G VRAM Quad channel 2400 &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rz/inkling_simply_cheff_kiss/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rz/inkling_simply_cheff_kiss/"/>
-    <published>2026-11-21T14:23:10.457000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rr/bonsai_2_ternary_2b4b_vs_qwen352b/</id>
-    <title>Bonsai 2 (ternary 2B/4B) vs Qwen3.5-2B</title>
-    <updated>2026-11-21T14:23:10.071000+00:00</updated>
-    <author>
-      <name>/u/leo-k7v</name>
-    </author>
-    <content type="html">Bonsai 2 (ternary 2B/4B) vs Qwen3.5-2B on an A13, an A14 and an M3:&lt;br&gt;what I measured, and why your phone numbers may be half what they should be &lt;br&gt;&lt;br&gt;I added PrismML&amp;#x27;s Ternary-Bonsai-2 (2B and 4B, Q2_0 ternary weights with the Hadamard fold) to my own Swift + Metal inference engine (not llama.cpp) and ran it next to Qwen3.5-2B on three Apple chips: &lt;br&gt;&lt;br&gt;- A13, 3 GB RAM, no matrix units&lt;br&gt;- A14, 4 GB RAM&lt;br&gt;- M3 MacBook Air &lt;br&gt;&lt;br&gt;Setup for every phone row: Release build, a built-in 512-token prompt, a 128-token answer, a fixed seed, and two passes with 60 s of idle between them. The thermal state is logged during each run. Rates are tokens per second,&lt;br&gt;pp = prefill, tg = decode. &lt;br&gt;&lt;br&gt;Lesson 1: log the thermal state, or the numbers are worthless &lt;br&gt;&lt;br&gt;The same file on the same A14 decoded at 11.7 t/s in the morning and 23.6 t/s in the evening. No code change explains that. The morning runs sat at &amp;quot;serious&amp;quot; thermal state the whole time. I almost credited a kernel change with a 2x win. &lt;br&gt;&lt;br&gt;A14, 4 GB &lt;br&gt;&lt;br&gt;model pp t/s tg t/s thermal&lt;br&gt;----------------- -------- --------- -------&lt;br&gt;Bonsai2 2B 134-151 23.4-23.7 nominal&lt;br&gt;Bonsai2 2B 144 11.7-12.0 serious&lt;br&gt;Qwen3.5-2B IQ4_NL 110 17.9 nominal&lt;br&gt;Bonsai 1.7B 80-81 10.1-10.2 serious&lt;br&gt;Bonsai2 4B 54-61 7.0-9.7 nominal &lt;br&gt;&lt;br&gt;At the same nominal state, the 2B is about 22% faster on prefill and 32% faster on decode than Qwen3.5-2B at 4 bits. &lt;br&gt;&lt;br&gt;The 4B fits: its footprint peaks at 567 MB with 1.78 GB of headroom left before jetsam. The weights are mmapped, so they stay file-backed and are not counted in the footprint. It still feels slow: 9 s of prefill before the first token of a 512-token prompt. &lt;br&gt;&lt;br&gt;A13, 3 GB &lt;br&gt;&lt;br&gt;model pp t/s tg t/s thermal&lt;br&gt;----------- --------- -------- -------&lt;br&gt;Bonsai2 2B 24.5/22.8 10.4/7.9 rising&lt;br&gt;Bonsai2 2B 18.4-22.2 6.8-7.8 serious &lt;br&gt;&lt;br&gt;&amp;quot;rising&amp;quot; means the run started nominal and ended serious.&lt;br&gt;The A13 has no matrix units, so prefill runs token by token through the gemv path. That makes it about 6x slower than the A14 on prefill. Decode is usable. The phone hits &amp;quot;serious&amp;quot; within about one run. &lt;br&gt;&lt;br&gt;M3, command-line tool, cooled A B A B runs &lt;br&gt;&lt;br&gt;model prompt pp t/s tg t/s&lt;br&gt;----------------- ------ ------- -------&lt;br&gt;Bonsai2 2B 512 916-918 94-95&lt;br&gt;Bonsai2 2B 4096 877-878 85.5-87&lt;br&gt;Qwen3.5-2B IQ4_NL 512 884 60.8 &lt;br&gt;&lt;br&gt;On the Mac, prefill is level and the ternary 2B decodes about 55% faster. &lt;br&gt;&lt;br&gt;Quality, quickly (on the M3) &lt;br&gt;&lt;br&gt;The help test is 5 grounded questions with the help note in the prompt, thinking off, greedy. The puzzles run with thinking on, greedy. &lt;br&gt;&lt;br&gt;test Qwen3.5 2B Bonsai2 2B Bonsai2 4B&lt;br&gt;---------------- ---------- ---------- ----------&lt;br&gt;help, of 5 5 5 5&lt;br&gt;keywords, of 10 7 8 9&lt;br&gt;6 puzzles no finish 5, 493 s 6, 138 s &lt;br&gt;&lt;br&gt;The Qwen3.5-2B &amp;quot;no finish&amp;quot; is my gate&amp;#x27;s fault, not the model&amp;#x27;s. The gate caps the answer but not the reasoning, and Qwen reasoned for more than 35 minutes on puzzle one. &lt;br&gt;&lt;br&gt;Bonsai2 2B perplexity on an 80 KB text: 24.61 in my engine against 24.66 in upstream llama.cpp. So the ternary decode plus the Hadamard fold match upstream. &lt;br&gt;&lt;br&gt;Two optimizations, one of which did nothing &lt;br&gt;&lt;br&gt;- I fused the Hadamard transform into RMSNorm. That halves the transform dispatches per token, 98 down to 49. It made zero measurable difference on the M3, the A14 and the A13. These chips are not dispatch-bound on a 2B.&lt;br&gt;- I kept the attention tile&amp;#x27;s context sums in registers instead of thread memory. That gives +7% prefill at head dim 256 and about +20% at head dims 128 and 512, on 4096-token prompts on the M3. Decode did not move. &lt;br&gt;&lt;br&gt;Caveats &lt;br&gt;&lt;br&gt;One or two runs per row. The two 4B runs disagree by a fifth on decode, with no thermal cause. &lt;br&gt;&lt;br&gt;https://github.com/leok7v/ChatOKF &lt;br&gt;&lt;br&gt;Same files, same M3, ours vs llama.cpp &lt;br&gt;&lt;br&gt;llama.cpp c622f623fc, Metal. Alternating runs, 60 s idle between, two reps each (rep1/rep2). Decode is 128 tokens after a context of the prompt length (llama-bench -d N). &lt;br&gt;&lt;br&gt;Prefill, t/s &lt;br&gt;&lt;br&gt;    model            prompt  ours         llama.cpp&lt;br&gt;    ---------------  ------  -----------  -----------&lt;br&gt;    Bonsai2 2B Q2_0  512     918.9/902.9  858.3/848.4&lt;br&gt;    Bonsai2 2B Q2_0  4096    859.4/860.6  819.9/814.0&lt;br&gt;    Qwen3.5 2B IQ4   512     876.8/875.9  871.2/883.9&lt;br&gt;&lt;br&gt;Decode, t/s &lt;br&gt;&lt;br&gt;    model            prompt  ours       llama.cpp&lt;br&gt;    ---------------  ------  ---------  -----------&lt;br&gt;    Bonsai2 2B Q2_0  512     94.1/90.6  101.9/101.9&lt;br&gt;    Bonsai2 2B Q2_0  4096    85.0/84.0  93.3/92.8&lt;br&gt;    Qwen3.5 2B IQ4   512     60.5/61.0  58.0/60.4&lt;br&gt;&lt;br&gt;Ternary prefill: ours +5-7%. Ternary decode: llama.cpp +9%. Qwen 4-bit: level. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rr/bonsai_2_ternary_2b4b_vs_qwen352b/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1y7rr/bonsai_2_ternary_2b4b_vs_qwen352b/"/>
-    <published>2026-11-21T14:23:10.071000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1x7zo/basalt_inkling_2_mini_on_one_5090_at_up_to_613/</id>
-    <title>Basalt: Inkling 2 Mini on one 5090 at up to 613 tok/s decode and 14.100 tok/s prefill (NVFP4)</title>
-    <updated>2026-11-21T13:35:26.707000+00:00</updated>
-    <author>
-      <name>/u/jesdga95</name>
-    </author>
-    <content type="html">Thinking Machines dropped Inkling 2 Mini, a small MoE model that&amp;#x27;s getting a lot of attention for its architecture and performance, outperforming Qwen 3.8 27B at some tasks. Basalt 0.5.5 runs it on a single RTX 5090. &lt;br&gt;&lt;br&gt;Speed: 287 tok/s prose, 613 structured and 338 chat. Prefill is about 14K tok/s at 2K and 12K at 16K. llama.cpp with the IQ4_NL GGUF does around 95 decode and 3.1K prefill on the same card. &lt;br&gt;&lt;br&gt;Quality was the part I cared about most. The experts are NVFP4, and Basalt pack keeps them exactly as released. KLD against the release is about 0.003 with 97.8% top 1 (btw, if your NVFP4 GGUF gives you garbage output atm, that&amp;#x27;s a llama.cpp loop slot bug and Unsloth has a fix PR that just got merged: https://github.com/ggml-org/llama.cpp/pull/32704) &lt;br&gt;&lt;br&gt;What works:&lt;br&gt;&lt;br&gt;DSpark drafting&lt;br&gt;&lt;br&gt;Native image support&lt;br&gt;&lt;br&gt;Tool calls and reasoning effort&lt;br&gt;&lt;br&gt;1M context on one 5090, with cold experts moving to RAM only when a long chat needs the room. Needle tests pass at 131K and 400K&lt;br&gt;&lt;br&gt;16GB cards too, around 60 tok/s on my 5060 Ti&lt;br&gt;&lt;br&gt;3.4B active and it hangs with much bigger models on agentic coding in my testing. &lt;br&gt;&lt;br&gt;Pack: https://huggingface.co/jesdga/Inkling-2-Mini-Basalt&lt;br&gt;Engine: https://github.com/jesdga95/basalt &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1x7zo/basalt_inkling_2_mini_on_one_5090_at_up_to_613/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1x7zo/basalt_inkling_2_mini_on_one_5090_at_up_to_613/"/>
-    <published>2026-11-21T13:35:26.707000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1wz4u/stupid_qwestion_of_the_tinfoil_hat_variety_does/</id>
-    <title>Stupid Qwestion of the Tin-Foil Hat variety - Does Qwen 4 delay have anything to do with the stuff going on at Nvidia?</title>
-    <updated>2026-11-21T13:23:07.399000+00:00</updated>
-    <author>
-      <name>/u/xornullvoid</name>
-    </author>
-    <content type="html">Just a curious coincidence or there&amp;#x27;s more to it? 🤔 &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1wz4u/stupid_qwestion_of_the_tinfoil_hat_variety_does/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1wz4u/stupid_qwestion_of_the_tinfoil_hat_variety_does/"/>
-    <published>2026-11-21T13:23:07.399000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1wpv9/daisyrose27b_a_dropin_rl_finetune_of_qwen3827b_i/</id>
-    <title>DaisyRose-27B: a drop-in RL fine-tune of Qwen3.8-27B - I compared it against the base Qwen 3.8-27B model with same settings</title>
-    <updated>2026-11-21T13:09:57.215000+00:00</updated>
-    <author>
-      <name>/u/DerTomsn</name>
-    </author>
-    <content type="html">&lt;a href="https://llm-bench.io/benchmarks/cmwp2wz9m00db01qbt3ctwtq9"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1wpv9/daisyrose27b_a_dropin_rl_finetune_of_qwen3827b_i/"/>
-    <published>2026-11-21T13:09:57.215000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1wo9x/what_is_the_best_branchforkwhatever_to_run/</id>
-    <title>What is the best branch/fork/whatever to run Inkling 2 Mini as of right now?</title>
-    <updated>2026-11-21T13:07:30.850000+00:00</updated>
-    <author>
-      <name>/u/ckplscz</name>
-    </author>
-    <content type="html">As has been said multiple times here, the current llama.cpp implementation of the new Inkling 2 Mini model is very slow and kind of buggy (Flash Attention not working, unusually high VRAM usage to name a few). Does anyone know if there is an unmerged branch or something like that with fixes and/or optimizations? I could not find any. Thanks a lot! &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1wo9x/what_is_the_best_branchforkwhatever_to_run/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1wo9x/what_is_the_best_branchforkwhatever_to_run/"/>
-    <published>2026-11-21T13:07:30.850000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1we95/openrouter_requests_to_minimax_models_may_have/</id>
-    <title>OpenRouter requests to MiniMax models may have been read</title>
-    <updated>2026-11-21T12:53:46.636000+00:00</updated>
-    <author>
-      <name>/u/dwrz</name>
-    </author>
-    <content type="html">&lt;a href="https://www.reddit.com/r/MiniMax_AI/comments/1y1sbj0/openrouter_prompts_to_minimax_may_have_been_read/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1we95/openrouter_requests_to_minimax_models_may_have/"/>
-    <published>2026-11-21T12:53:46.636000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1vv9p/inkling2mini_do_not_quantize_your_kv_cache_in/</id>
-    <title>Inkling-2-Mini - Do not quantize your KV cache in llama.cpp - q8_0 uses more VRAM than f16</title>
-    <updated>2026-11-21T12:24:54.716000+00:00</updated>
-    <author>
-      <name>/u/Fancy-Snow7</name>
-    </author>
-    <content type="html">In unsloth build of llama.cpp I found that quantising KV actually uses more VRAM and not less. Using f16 also gives me up to 50% faster t/g possibly due to having more VRAM to cache experts. &lt;br&gt;&lt;br&gt;Does anyone else experience this? &lt;br&gt;&lt;br&gt;I am on Windows 11, with a 5070Ti. &lt;br&gt;&lt;br&gt;Here is an example using Inkling-2-Mini-UD-Q4_K_XL with dspark-Inkling-2-Mini-Q8_0 no vision and 131072 context and all experts offloaded to CPU: &lt;br&gt;&lt;br&gt;KV Quant Dedicated VRAM KB f16 8 778 372 q8_0 12 307 620 q4_0 11 197 596 &lt;br&gt;&lt;br&gt;I picked this up as I was getting CUDA out of memory errors with certain settings (higher context than above) on q8_0 then I switched to f16 and the model loaded. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1vv9p/inkling2mini_do_not_quantize_your_kv_cache_in/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1vv9p/inkling2mini_do_not_quantize_your_kv_cache_in/"/>
-    <published>2026-11-21T12:24:54.716000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1uqn7/dont_waste_your_time_by_downloading/</id>
-    <title>Don't waste your time by downloading Inkling-2-Mini-Q4 now</title>
-    <updated>2026-11-21T11:17:56.701000+00:00</updated>
-    <author>
-      <name>/u/EmilPi</name>
-    </author>
-    <content type="html">First it is slower than even Hy4-Flash on the same hardware, second, there are bugs detrimental to the quality. Either the model is dumb and benchmaxxed, or code support in llama.cpp is raw. &lt;br&gt;&lt;br&gt;Even with a lot of tradeoffs the 17GB IQ4_NL quant of size 17GB overflows 48 (!) GB of VRAM and is running at less than 20tps at 131072 ctx size. Due to (I guess obsolete) architecture choices the KV cache outgrows the weights themselves at the long enough context. &lt;br&gt;&lt;br&gt;On simple queries it overthings a lot, even more than Qwen. &lt;br&gt;&lt;br&gt;llama.cpp and unsloth teams also can&amp;#x27;t determine which fork to use. &lt;br&gt;&lt;br&gt;Wait and don&amp;#x27;t expect anything reaching Qwen/Hy4-Flash performance in the meantime. &lt;br&gt;&lt;br&gt;UPD.: slop bot suggested to use q8_0 kv cache quantization - of course I did. Yes, I&amp;#x27;ve ran official ggml-org quants on master branch. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1uqn7/dont_waste_your_time_by_downloading/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1uqn7/dont_waste_your_time_by_downloading/"/>
-    <published>2026-11-21T11:17:56.701000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1up79/local_deployment_notes_from_the_hy_ama_flash_runs/</id>
-    <title>Local deployment notes from the Hy AMA: Flash runs on 96GB VRAM + 128GB RAM, Engram lives in RAM, plus quant details</title>
-    <updated>2026-11-21T11:15:38.878000+00:00</updated>
-    <author>
-      <name>/u/allegedlyalienated</name>
-    </author>
-    <content type="html">Pulled the practical stuff out of the Hy AMA in case anyone&amp;#x27;s planning to run Hy4 Flash.&lt;br&gt;Hardware. Someone with 96GB VRAM + 128GB RAM asked if Flash fits. Answer was yes: keep the main weights and attention on GPU, offload some expert layers to system RAM, and the Engram tables can live in RAM too. Engram params aren&amp;#x27;t counted in the 12B active, and each layer gets its own n-gram table.&lt;br&gt;Quant notes (they gave a long answer to someone who works on MoE quantization):&lt;br&gt;• down projection is more sensitive because of activation outliers, so it gets more bits&lt;br&gt;• bit-widths chosen with Hessian-based sensitivity&lt;br&gt;• they prefer per-tensor allocation over per-expert mixed precision, since many engines treat all experts as one stacked matrix&lt;br&gt;• router gets trained along with the rest of the model during QAT&lt;br&gt;• full-parameter QAT over LoRA (they haven&amp;#x27;t run LoRA experiments)&lt;br&gt;• as active params drop toward 3B, they expect reasoning depth, long-context tracking and tool-call reliability to degrade first, and 2-bit PTQ to break well before ternary QAT does&lt;br&gt;Engines. llama.cpp support is in progress and should land &amp;quot;in the near future.&amp;quot; They&amp;#x27;re working closely with vLLM and SGLang right now.&lt;br&gt;If anyone&amp;#x27;s already running it, post your setup and tok/s. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1up79/local_deployment_notes_from_the_hy_ama_flash_runs/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1up79/local_deployment_notes_from_the_hy_ama_flash_runs/"/>
-    <published>2026-11-21T11:15:38.878000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1u4ac/at_the_risk_of_going_against_the_popular_grain/</id>
-    <title>At the risk of going against the popular grain here, Inkling-2-Mini suffers from over-writing (as opposed to over-thinking) Bash commands (happening multiple times) for me.</title>
-    <updated>2026-11-21T10:39:51.291000+00:00</updated>
-    <author>
-      <name>/u/jinnyjuice</name>
-    </author>
-    <content type="html">&lt;a href="https://i.redd.it/j7p9vz7i2y2i1.png"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1u4ac/at_the_risk_of_going_against_the_popular_grain/"/>
-    <published>2026-11-21T10:39:51.291000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1tkkh/lf_small_decisionrouting_model_for_tool_calls/</id>
-    <title>Lf small decision/routing model for tool calls</title>
-    <updated>2026-11-21T10:05:08.627000+00:00</updated>
-    <author>
-      <name>/u/looselyhuman</name>
-    </author>
-    <content type="html">Hey. I&amp;#x27;m working on an Auto mode for Pi, with a two-step inference check on tool calls. &lt;br&gt;&lt;br&gt;Qwen 3.5 4b is looking pretty good for step 2, escalation/judgment.~150ms per call, but only called for escalations. &lt;br&gt;&lt;br&gt;But step 1 needs to be quick and accurately decide if a tool call is risky enough to escalate. &lt;br&gt;&lt;br&gt;Currently evaluating Laya 421M. It takes a tool name + arguments, flags effects like deletion, credential access, or outbound transfer, and lets the judge handle authorization when needed. &lt;br&gt;&lt;br&gt;It&amp;#x27;s decent, given a solid prompt and a good ruleset. Currently running Q8_0 on a 3080 at about ~12 ms per call. On a small playback set, it caught 24/24 watched calls but also flagged 4/6 benign reads, including a literal search for rm -rf. &lt;br&gt;&lt;br&gt;I&amp;#x27;d like to have something to compare it to. What else is worth looking at? &lt;br&gt;&lt;br&gt;Questions welcome, input appreciated. &lt;br&gt;&lt;br&gt;Edit: Also open to alternatives to Qwen 3.5. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1tkkh/lf_small_decisionrouting_model_for_tool_calls/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1tkkh/lf_small_decisionrouting_model_for_tool_calls/"/>
-    <published>2026-11-21T10:05:08.627000+00:00</published>
   </entry>
 </feed>
