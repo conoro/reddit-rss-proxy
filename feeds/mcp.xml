@@ -2,10 +2,87 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/mcp/.rss</id>
   <title>r/mcp</title>
-  <updated>2026-11-21T01:43:53.705000+00:00</updated>
+  <updated>2026-11-21T09:48:29.518000+00:00</updated>
   <link href="https://www.reddit.com/r/mcp/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <subtitle>Atom feed for r/mcp</subtitle>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1tasa/an_e2e_encrypted_mcp_server_for_messaging_your/</id>
+    <title>An E2E encrypted MCP server for messaging your agent from your phone (no bot tokens or phone numbers)</title>
+    <updated>2026-11-21T09:48:29.518000+00:00</updated>
+    <author>
+      <name>/u/uriwa</name>
+    </author>
+    <content type="html">Giving an AI agent a way to talk to you on your phone usually turns into a chore. Setting up a Telegram bot, wiring Slack OAuth, dealing with WhatsApp business approvals, or exposing a local port with ngrok. On top of that, whatever you paste into that chat (stack traces, env details, screenshots of your app) sits in plaintext on someone else&amp;#x27;s server. &lt;br&gt;&lt;br&gt;I&amp;#x27;ve been working on Alice&amp;amp;Bot, an open source E2E encrypted messenger where an identity is just a keypair. The MCP server (alice-and-bot-mcp) generates a keypair locally on first run, stored in ~/.config/aliceandbot-mcp/. No account, no API keys, no phone number. &lt;br&gt;&lt;br&gt;It exposes three tools:&lt;br&gt;&lt;br&gt;aliceandbot_setup: generates the local keypair (first run only), registers a relay webhook, and prints a QR code + one-time pairing code.&lt;br&gt;&lt;br&gt;aliceandbot_read: reads incoming messages from the paired device. The server polls the relay every 3 seconds in the background and fires tools/list_changed when new messages land, and calling aliceandbot_read directly also polls on demand for clients that don&amp;#x27;t react to list changes.&lt;br&gt;&lt;br&gt;aliceandbot_reply: sends an encrypted reply back to the conversation.&lt;br&gt;&lt;br&gt;Two things that mattered a lot when wiring this up: &lt;br&gt;&lt;br&gt;First, prompt injection protection. If anyone with the link could message the MCP server, a stranger could feed instructions straight into a local coding agent. So the first message has to match a one-time pairing code, which pins that sender&amp;#x27;s public signing key in local state. After that, messages from any other key are dropped, and the pairing code can&amp;#x27;t be reused to hijack the session. &lt;br&gt;&lt;br&gt;Second, E2E encryption all the way to the local process. The relay at api.aliceandbot.com only ever holds ciphertext (1 hour TTL, drained on poll) and has no keys to decrypt it. Attachments like images or files sent from your phone are decrypted locally to temp files so the agent can inspect them directly. &lt;br&gt;&lt;br&gt;Tradeoffs to know up front: the compiled binary is ~100MB because Deno embeds its runtime, and right now one active session receives messages at a time (last session to call setup gets the webhook). &lt;br&gt;&lt;br&gt;Guide and source: https://aliceandbot.com/mcp / https://github.com/uriva/alice-and-bot &lt;a href="https://www.reddit.com/r/mcp/comments/1y1tasa/an_e2e_encrypted_mcp_server_for_messaging_your/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1tasa/an_e2e_encrypted_mcp_server_for_messaging_your/"/>
+    <published>2026-11-21T09:48:29.518000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1t761/hosted_whatsapp_mcp_server_for_claude_no_local/</id>
+    <title>Hosted WhatsApp MCP server for Claude (no local bridge, optional read-only mode)</title>
+    <updated>2026-11-21T09:41:33.146000+00:00</updated>
+    <author>
+      <name>/u/uriwa</name>
+    </author>
+    <content type="html">Disclosure up front: this is part of Supergreen, a service I run. &lt;br&gt;&lt;br&gt;Most WhatsApp MCP servers require running a local Go or Node bridge on your machine. That works until your laptop goes to sleep, your IP changes, or the session drops and you have to re-pair it. &lt;br&gt;&lt;br&gt;We already run isolated WhatsApp containers behind sticky residential proxies, so we added a stateless Streamable HTTP MCP endpoint on top of it: https://supergreen.cc/mcp &lt;br&gt;&lt;br&gt;A few design choices that came up while putting it together:&lt;br&gt;&lt;br&gt;Works directly in Claude.ai and Claude Desktop custom connectors via a single URL (no OAuth dance or local install), and with Bearer auth in Claude Code, Cursor, and OpenCode.&lt;br&gt;&lt;br&gt;Added local read endpoints (list_chats, search_contacts, search_messages) against each line&amp;#x27;s isolated 7-day sync buffer. Without contact and chat discovery, an LLM cannot turn &amp;quot;message Dan&amp;quot; or &amp;quot;summarize today&amp;#x27;s chats&amp;quot; into a JID.&lt;br&gt;&lt;br&gt;Curated tool surface instead of exposing the full API. Account-level stuff like wiping credentials, changing privacy settings, or modifying webhooks is excluded from MCP.&lt;br&gt;&lt;br&gt;Read-only mode (?readonly=1). Prompt injection over incoming WhatsApp messages is a real risk if an agent has unrestricted send access, so appending ?readonly=1 strips all write tools server-side and leaves only read and search tools.&lt;br&gt;&lt;br&gt;Pass-through storage model. No central archive of messages, just the isolated 7-day buffer per line.&lt;br&gt;&lt;br&gt;It has a 7-day free trial and is $10/month per connected line after that. Happy to answer questions about the Streamable HTTP implementation or the WhatsApp side of it. &lt;a href="https://www.reddit.com/r/mcp/comments/1y1t761/hosted_whatsapp_mcp_server_for_claude_no_local/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1t761/hosted_whatsapp_mcp_server_for_claude_no_local/"/>
+    <published>2026-11-21T09:41:33.146000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1t06k/mcp_starter_guide/</id>
+    <title>MCP starter guide</title>
+    <updated>2026-11-21T09:28:18.256000+00:00</updated>
+    <author>
+      <name>/u/Late_Profile_4534</name>
+    </author>
+    <content type="html">I wanted to really dig into mcps, so I built this guide which goes over all the core concepts. https://stackfable.blog/guides/mcp &lt;a href="https://www.reddit.com/r/mcp/comments/1y1t06k/mcp_starter_guide/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1t06k/mcp_starter_guide/"/>
+    <published>2026-11-21T09:28:18.256000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1ru29/i_built_an_mcp_server_that_automatically_checks/</id>
+    <title>I built an MCP server that automatically checks npm packages for slopsquatting before Claude installs them</title>
+    <updated>2026-11-21T08:12:08.875000+00:00</updated>
+    <author>
+      <name>/u/FunInflation3972</name>
+    </author>
+    <content type="html">AI coding assistants sometimes hallucinate npm package names that sound real but don&amp;#x27;t exist. Attackers have figured this out, they register those made-up names on npm and fill them with malware. So when Claude suggests npm install some-plausible-name and you run it, it installs cleanly... because the attacker&amp;#x27;s package is real. This attack is called slopsquatting. &lt;br&gt;&lt;br&gt;I built SquatScan, an MCP server that catches these packages before installation. It scores each package on 7 signals:&lt;br&gt;&lt;br&gt;How close the name is to a popular package (e.g. lodahs vs lodash)&lt;br&gt;&lt;br&gt;How new it is on npm&lt;br&gt;&lt;br&gt;Download count&lt;br&gt;&lt;br&gt;Whether it links to a source repo&lt;br&gt;&lt;br&gt;Number of versions and maintainers&lt;br&gt;&lt;br&gt;Each package gets a 0–100 risk score → GREEN / YELLOW / RED verdict with reasons explaining why. &lt;br&gt;&lt;br&gt;One command to install (needs Docker): &lt;br&gt;&lt;br&gt;claude mcp add -s user squatscan -- docker run -i --rm ghcr.io/haseeb-xd/squatscan:0.1.0&lt;br&gt;&lt;br&gt;Built in Java with the official MCP SDK. Runs entirely on your machine . no accounts, no data collection. &lt;br&gt;&lt;br&gt;GitHub: https://github.com/haseeb-xd/squatscan &lt;br&gt;&lt;br&gt;Would love feedback. This is my first open-source MCP project. &lt;a href="https://www.reddit.com/r/mcp/comments/1y1ru29/i_built_an_mcp_server_that_automatically_checks/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1ru29/i_built_an_mcp_server_that_automatically_checks/"/>
+    <published>2026-11-21T08:12:08.875000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1rbc8/i_built_a_hosted_mcp_workspace_where_agents_and/</id>
+    <title>I built a hosted MCP workspace where agents and people share folders. It's open now, 30-day free trial, no card</title>
+    <updated>2026-11-21T07:39:34.218000+00:00</updated>
+    <author>
+      <name>/u/DaveZaptronics</name>
+    </author>
+    <content type="html">Hi r/mcp. I&amp;#x27;ve been building Collumii, a place where AI agents and the people they work with share the same folders over MCP. &lt;br&gt;&lt;br&gt;What it does:&lt;br&gt;&lt;br&gt;One MCP server gives your agent (Claude, ChatGPT, anything that speaks MCP) spaces with read or read-write access.&lt;br&gt;&lt;br&gt;Every folder has its own AGENTS.md telling agents what it&amp;#x27;s for and how to work there, plus settings for rules and locks.&lt;br&gt;&lt;br&gt;Folder actions start an agent when a file arrives or on a schedule, so a folder can run a small process on its own.&lt;br&gt;&lt;br&gt;Everything is Git-backed, so you can see who changed what and for whom. Folders can mirror a GitHub repo.&lt;br&gt;&lt;br&gt;Token-friendly tools: search, read by line range, edit part of a file, append, list changes since.&lt;br&gt;&lt;br&gt;The core is open source (Metatrash, github.com/davezap/metatrash) if you&amp;#x27;d rather self-host. The hosted version is open today with a 30-day free trial and no card. After that it&amp;#x27;s US$10 a month, and nothing is charged unless you subscribe. &lt;br&gt;&lt;br&gt;https://collumii.com &lt;br&gt;&lt;br&gt;Happy to answer questions, and I&amp;#x27;d really like feedback on the tool design. &lt;a href="https://www.reddit.com/r/mcp/comments/1y1rbc8/i_built_a_hosted_mcp_workspace_where_agents_and/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1rbc8/i_built_a_hosted_mcp_workspace_where_agents_and/"/>
+    <published>2026-11-21T07:39:34.218000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1ol49/mcp_time_server_provides_time_and_date/</id>
+    <title>MCP Time Server – Provides time and date functionality with support for multiple formats and timezones, enabling users to get current time/date, format timestamps, and retrieve comprehensive datetime information.</title>
+    <updated>2026-11-21T05:00:06.919000+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+    </author>
+    <content type="html">&lt;a href="https://glama.ai/mcp/servers/PierreGode/timeMCP"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1ol49/mcp_time_server_provides_time_and_date/"/>
+    <published>2026-11-21T05:00:06.919000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/mcp/comments/1y1ol0p/shopify_unofficial_unofficial_shopify_mcp_pack/</id>
+    <title>Shopify (Unofficial) – Unofficial Shopify MCP Pack — wraps the Shopify Admin REST API (2024-01)</title>
+    <updated>2026-11-21T05:00:00.426000+00:00</updated>
+    <author>
+      <name>/u/modelcontextprotocol</name>
+    </author>
+    <content type="html">&lt;a href="https://glama.ai/mcp/connectors/io.github.pipeworx-io/shopify"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/mcp/comments/1y1ol0p/shopify_unofficial_unofficial_shopify_mcp_pack/"/>
+    <published>2026-11-21T05:00:00.426000+00:00</published>
+  </entry>
   <entry>
     <id>https://www.reddit.com/r/mcp/comments/1y1kwj6/lessons_from_getting_a_remote_mcp_server_for_a/</id>
     <title>Lessons from getting a remote MCP server for a travel marketplace listed (no auth, read-only)</title>
@@ -203,82 +280,5 @@
     <content type="html">Spent an evening last week chasing a bug where a client kept failing on a tool call that had nothing to do with the tool itself. The response for one call just never showed up, and a different response arrived in its place like the two had gotten crossed. &lt;br&gt;&lt;br&gt;The MCP stdio transport spec is blunt about why this happens. The server MUST NOT write anything to its stdout that is not a valid MCP message, and logging is supposed to go to stderr instead (the server MAY write UTF-8 strings to stderr for any logging purposes). None of that gets enforced by the transport itself, so when a dependency inside the server prints a stray line, the failure doesn&amp;#x27;t look like a transport error. It shows up as a JSON parse failure on whatever message happens to land next to it. &lt;br&gt;&lt;br&gt;The minimal repro I used to check what that looks like from the client side: &lt;br&gt;&lt;br&gt;import subprocess, json, sys&lt;br&gt;&lt;br&gt;proc = subprocess.run([sys.executable, &amp;quot;server.py&amp;quot;], capture_output=True, text=True)&lt;br&gt;for i, line in enumerate(proc.stdout.splitlines(), 1):&lt;br&gt;    try:&lt;br&gt;        msg = json.loads(line)&lt;br&gt;        print(f&amp;quot;line {i}: parsed OK -&amp;gt; {msg}&amp;quot;)&lt;br&gt;    except json.JSONDecodeError as e:&lt;br&gt;        print(f&amp;quot;line {i}: JSONDecodeError: {e} | raw={line!r}&amp;quot;)&lt;br&gt;&lt;br&gt;The server side sends two valid JSON-RPC messages with one print(&amp;quot;DB pool: opened 4 connections&amp;quot;) wedged in between them, copied from a database driver&amp;#x27;s default logging behavior. Output: &lt;br&gt;&lt;br&gt;line 1: parsed OK -&amp;gt; {&amp;#x27;jsonrpc&amp;#x27;: &amp;#x27;2.0&amp;#x27;, &amp;#x27;id&amp;#x27;: 1, &amp;#x27;result&amp;#x27;: {&amp;#x27;tools&amp;#x27;: [&amp;#x27;search_docs&amp;#x27;]}}&lt;br&gt;line 2: JSONDecodeError: Expecting value: line 1 column 1 (char 0) | raw=&amp;#x27;DB pool: opened 4 connections&amp;#x27;&lt;br&gt;line 3: parsed OK -&amp;gt; {&amp;#x27;jsonrpc&amp;#x27;: &amp;#x27;2.0&amp;#x27;, &amp;#x27;id&amp;#x27;: 2, &amp;#x27;result&amp;#x27;: {&amp;#x27;content&amp;#x27;: &amp;#x27;ok&amp;#x27;}}&lt;br&gt;&lt;br&gt;The server never threw. Line 2&amp;#x27;s real response just vanishes from the client&amp;#x27;s view, and line 3 shows up looking like the answer to a call that already failed. Any library the server imports that logs to stdout by default (database drivers and HTTP clients both do this a lot) trips this the moment that code path runs, usually somewhere that has nothing to do with the actual bug report. Redirecting every dependency&amp;#x27;s logger to stderr before the transport starts is cheaper than debugging the symptom twice. &lt;a href="https://www.reddit.com/r/mcp/comments/1y183xi/one_print_call_inside_an_mcp_stdio_server/"&gt;[link]&lt;/a&gt;</content>
     <link href="https://www.reddit.com/r/mcp/comments/1y183xi/one_print_call_inside_an_mcp_stdio_server/"/>
     <published>2026-11-20T16:38:49.029000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y17el6/why_are_we_still_making_ai_agents_navigate/</id>
-    <title>Why are we still making AI agents navigate websites instead of generating MCP servers?</title>
-    <updated>2026-11-20T16:10:52.058000+00:00</updated>
-    <author>
-      <name>/u/Adventurous-Ship-502</name>
-    </author>
-    <content type="html">I&amp;#x27;ve been building personal AI agents, and one of my biggest frustrations is getting them to interact with websites. &lt;br&gt;&lt;br&gt;Browser automation is painfully slow, expensive, and unreliable. Some websites don&amp;#x27;t have public APIs, and others restrict automated access entirely. &lt;br&gt;&lt;br&gt;It got me thinking: why can&amp;#x27;t an agent automatically figure out how a website&amp;#x27;s internal APIs work and generate a reusable MCP server? &lt;br&gt;&lt;br&gt;Instead of taking 50 screenshots and clicking through pages every time, the agent could discover the necessary requests once and use them directly afterward. &lt;br&gt;&lt;br&gt;Has anyone else run into this problem? How are you currently solving it? Have you tried existing solutions, or are you spending time maintaining custom integrations? &lt;a href="https://www.reddit.com/r/mcp/comments/1y17el6/why_are_we_still_making_ai_agents_navigate/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y17el6/why_are_we_still_making_ai_agents_navigate/"/>
-    <published>2026-11-20T16:10:52.058000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y16yza/i_built_a_local_docs_server_so_my_coding_agent/</id>
-    <title>I built a local docs server so my coding agent stops inventing our internal APIs</title>
-    <updated>2026-11-20T15:54:11.755000+00:00</updated>
-    <author>
-      <name>/u/sayboom</name>
-    </author>
-    <content type="html">Two things kept annoying me with Claude Code / Cursor/Opencode: they re-fetch the same public docs every session, and they know nothing about our internal docs, so they just make up method names. &lt;br&gt;&lt;br&gt;So I wrote VirtuDoc. You point it at a folder of docs (Markdown, RST, HTML, txt), it indexes them into SQLite FTS5 and serves fragments to your agent over MCP. Everything runs locally, no network, no API keys. &lt;br&gt;&lt;br&gt;pip install virtudoc&lt;br&gt;virtudoc add ./docs --name mylib --version 2.1.0&lt;br&gt;virtudoc search &amp;quot;how to handle authentication errors&amp;quot;&lt;br&gt;&lt;br&gt;virtudoc search returns exactly what the agent would get, so you can see what it sees. Then add virtudoc serve to your MCP config and the agent gets two tools: find-library and get-library-docs (with a token budget you control). &lt;br&gt;&lt;br&gt;A few details:&lt;br&gt;&lt;br&gt;BM25 instead of embeddings. Less magic, but the same query always returns the same fragments and there&amp;#x27;s no model to download.&lt;br&gt;&lt;br&gt;Smart chunking. Split on H2/H3, code blocks are never cut, and each chunk carries its section path.&lt;br&gt;&lt;br&gt;Team notes. Attach a note to a library (virtudoc note add mylib --text &amp;quot;Use the retry helper for outbound calls.&amp;quot;) and the agent receives it along with the docs.&lt;br&gt;&lt;br&gt;Version drift check. virtudoc doctor warns when the docs version you indexed doesn&amp;#x27;t match the dependency in your project.&lt;br&gt;&lt;br&gt;Python 3.11+, MIT: github.com/saromanov/virtudoc &lt;br&gt;&lt;br&gt;Curious which doc formats you&amp;#x27;d want next, and whether keyword search is enough for your docs or you&amp;#x27;d miss embeddings. &lt;a href="https://www.reddit.com/r/mcp/comments/1y16yza/i_built_a_local_docs_server_so_my_coding_agent/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y16yza/i_built_a_local_docs_server_so_my_coding_agent/"/>
-    <published>2026-11-20T15:54:11.755000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y15nul/ghost_in_the_droid_16_an_mcp_server_with_100/</id>
-    <title>Ghost in the Droid 1.6: an MCP server with 100+ Android skills, a reworked Skill Hub and captcha solving with a human in the loop</title>
-    <updated>2026-11-20T15:01:31.749000+00:00</updated>
-    <author>
-      <name>/u/CKL-IT</name>
-    </author>
-    <content type="html">If you build with MCP, here&amp;#x27;s a server that lets an agent operate a real Android phone, with a skill layer on top. &lt;br&gt;&lt;br&gt;Captcha solving with a human in the loop. A fresh agent opens the hCaptcha demo page, fills the form, pauses and calls you. You solve the captcha on the phone, then the agent finishes the job. The agent never solves it, it does everything around it. The clip is sped up, and all four vendor demos are here: https://ghostinthedroid.com/guides/human-in-the-loop/ &lt;br&gt;&lt;br&gt;100+ Android skills. The hub now has 117 skills for 113 apps. A hard skill replays a known route through an app with no LLM, so the agent stops relearning the same screens. The median is 90% fewer tokens with a hard skill (maintainer-run). New tools: find_skill, run_skill, run_skill_resume and get_skill_notes. &lt;br&gt;&lt;br&gt;A reworked Skill Hub. Search, install and run from one place, and every skill has a 0 to 100 score from signed run records. Downloads and likes earn nothing. The same skills are available from the ghost skill CLI. &lt;br&gt;&lt;br&gt;claude mcp add android-agent -- uvx --from ghost-in-the-droid android-agent-mcp&lt;br&gt;&lt;br&gt;Things to say to it:&lt;br&gt;&lt;br&gt;&amp;quot;Find a skill for NewPipe and search how solar panels work&amp;quot;&lt;br&gt;&lt;br&gt;&amp;quot;Make a note called Groceries&amp;quot;&lt;br&gt;&lt;br&gt;&amp;quot;Add a task called Buy milk&amp;quot;&lt;br&gt;&lt;br&gt;Why this clicks for you. 66 tools is a lot of surface. GHOST_MCP_PROFILE picks skills-first (17 tools), soft-only or hand-only, and GHOST_MCP_HIDE_TOOLS=a,b drops named ones. When a step needs a person, run_skill returns needs_input with a resume token and run_skill_resume continues. &lt;br&gt;&lt;br&gt;Skills: https://ghostinthedroid.com/skills/ &lt;br&gt;&lt;br&gt;Repo (MIT): https://github.com/ghost-in-the-droid/android-agent &lt;br&gt;&lt;br&gt;I&amp;#x27;m the author, happy to answer questions. Would you rather the server pick the tool set dynamically? &lt;a href="https://www.reddit.com/r/mcp/comments/1y15nul/ghost_in_the_droid_16_an_mcp_server_with_100/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y15nul/ghost_in_the_droid_16_an_mcp_server_with_100/"/>
-    <published>2026-11-20T15:01:31.749000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y15m6k/woocommerce_mcp_server_enables_interaction_with/</id>
-    <title>WooCommerce MCP Server – Enables interaction with WooCommerce stores through the WordPress REST API, supporting comprehensive management of products, orders, customers, shipping, taxes, discounts, and store configuration.</title>
-    <updated>2026-11-20T15:00:05.631000+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-    </author>
-    <content type="html">&lt;a href="https://glama.ai/mcp/servers/Kenan7/woocommerce-mcp"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y15m6k/woocommerce_mcp_server_enables_interaction_with/"/>
-    <published>2026-11-20T15:00:05.631000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y15m3p/stack_one_account_for_your_ai_agents_email_phone/</id>
-    <title>STACK – One account for your AI agents: email, phone, payments, post and more. One bill, one off switch.</title>
-    <updated>2026-11-20T15:00:01.258000+00:00</updated>
-    <author>
-      <name>/u/modelcontextprotocol</name>
-    </author>
-    <content type="html">&lt;a href="https://glama.ai/mcp/connectors/io.github.getstack-run/stack"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y15m3p/stack_one_account_for_your_ai_agents_email_phone/"/>
-    <published>2026-11-20T15:00:01.258000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y14ylj/asking_an_ai_who_sold_spacex_last_quarter_three/</id>
-    <title>Asking an AI who sold SpaceX last quarter: three 13F traps an MCP answer has to handle</title>
-    <updated>2026-11-20T14:32:24.931000+00:00</updated>
-    <author>
-      <name>/u/EquiblesAI</name>
-    </author>
-    <content type="html">I build Equibles, a financial-data MCP server, and this week I used it for our Q3 13F roundup. &amp;quot;Who bought and sold SpaceX in Q3?&amp;quot; looks like one table lookup. Three things decide whether the answer is right. &lt;br&gt;&lt;br&gt;1. A missing filing is not a sale. Some funds hadn&amp;#x27;t filed for September 30 yet, some filed for the first time, and Norges Bank withheld its Q3 positions under confidential treatment. Compare two quarters naively and each of those reads as a full exit or a new buy. The buyers-and-sellers tool only ranks filers with a 13F in both quarters and lists who it left out: 80 SpaceX holders, the largest with about 11.6 million shares. &lt;br&gt;&lt;br&gt;2. A value change is not trading. FMR&amp;#x27;s SpaceX position fell $14.2 billion in published value, but it cut 54.3 million shares, about $8.2 billion at the September 30 close of $150.86. The rest is the price, which closed at $170.86 on June 30. For &amp;quot;who sold&amp;quot;, rank by share change. &lt;br&gt;&lt;br&gt;3. Raw exit lists catch events nobody chose. In the raw Q3 rows, Electronic Arts had 990 exits, the most of any stock, because it was taken private on August 4. Paramount Skydance showed 430 exit-plus-new-position pairs from a ticker change. For the roundup I set those aside by hand, with the 8-K behind each, before ranking anything. &lt;br&gt;&lt;br&gt;Prompts that worked: &amp;quot;top buyers and sellers of SPCX for the quarter ended 2026-09-30, by share change&amp;quot;, then &amp;quot;which holders did you leave out, and why&amp;quot;. The second one is the one people skip. &lt;br&gt;&lt;br&gt;If you&amp;#x27;ve built on 13F data, how do you treat confidential-treatment filers: drop them, or carry the last quarter forward? &lt;br&gt;&lt;br&gt;Setup, free tier, works in Claude and ChatGPT: https://equibles.com/mcp &lt;a href="https://www.reddit.com/r/mcp/comments/1y14ylj/asking_an_ai_who_sold_spacex_last_quarter_three/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y14ylj/asking_an_ai_who_sold_spacex_last_quarter_three/"/>
-    <published>2026-11-20T14:32:24.931000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/mcp/comments/1y14hys/i_got_tired_of_ai_agents_hijacking_my_chrome/</id>
-    <title>I got tired of AI agents hijacking my Chrome window, so I built a zero-dependency tool to fork live Chrome sessions (Cookies + LocalStorage) into headless Playwright MCP</title>
-    <updated>2026-11-20T14:13:25.203000+00:00</updated>
-    <author>
-      <name>/u/Wasabigz</name>
-    </author>
-    <content type="html">Whenever I let Claude Code or Cursor check authenticated pages (GitHub PRs, Notion, Linear, internal web apps) via browser automation, I had to choose between two annoying options:&lt;br&gt;&lt;br&gt;Attach to my live Chrome -&amp;gt; the agent steals window focus and switches tabs while I&amp;#x27;m reading or coding.&lt;br&gt;&lt;br&gt;Run a fresh headless browser -&amp;gt; re-authenticate through SSO/2FA every single time.&lt;br&gt;&lt;br&gt;So I built **sessfork** (MIT, pure Python stdlib, zero runtime dependencies): &lt;br&gt;&lt;br&gt;- **What it does:** Takes a lock-free snapshot of your live Chrome `Cookies` (SQLite) + `LocalStorage` (LevelDB, handling SPA/JWT tokens), filters strictly by the domains you allowlist, writes a `0600` Playwright `storageState` file, and configures a background headless `sessfork-browser` MCP server. &lt;br&gt;&lt;br&gt;- **How it differs from dedicated AI browsers (like `ego-lite`):** You don&amp;#x27;t have to install or migrate to a second desktop browser, and you don&amp;#x27;t expose your entire Chrome profile (banking, primary email, corporate SSO, all open tabs) to the agent — you fork only the exact 1–2 domains you specify into standard Playwright `storageState`. &lt;br&gt;&lt;br&gt;**Quick try (no install needed):** &lt;br&gt;&lt;br&gt;uvx --from git+https://github.com/wasabihu/sessfork sessfork github.com &lt;br&gt;&lt;br&gt;Or one-line auto-setup for Claude Code / Cursor / Antigravity: &lt;br&gt;&lt;br&gt;curl -fsSL https://raw.githubusercontent.com/wasabihu/sessfork/main/install.sh | bash &lt;br&gt;&lt;br&gt;- GitHub: https://github.com/wasabihu/sessfork &lt;br&gt;&lt;br&gt;- Interactive visual guide: https://wasabihu.github.io/sessfork/ &lt;br&gt;&lt;br&gt;Would love feedback — especially if you run into sites with tricky auth setups or non-standard Chromium profiles. &lt;a href="https://www.reddit.com/r/mcp/comments/1y14hys/i_got_tired_of_ai_agents_hijacking_my_chrome/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/mcp/comments/1y14hys/i_got_tired_of_ai_agents_hijacking_my_chrome/"/>
-    <published>2026-11-20T14:13:25.203000+00:00</published>
   </entry>
 </feed>
