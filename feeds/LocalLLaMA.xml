@@ -2,10 +2,131 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://old.reddit.com/r/LocalLLaMA/.rss</id>
   <title>r/LocalLLaMA</title>
-  <updated>2026-11-20T20:49:49.263000+00:00</updated>
+  <updated>2026-11-21T02:04:19.714000+00:00</updated>
   <link href="https://www.reddit.com/r/LocalLLaMA/" rel="alternate"/>
   <generator uri="https://lkiesow.github.io/python-feedgen" version="1.0.0">python-feedgen</generator>
   <subtitle>Atom feed for r/LocalLLaMA</subtitle>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1lazi/gcmp_update_same_quality_as_lora_r8_r32_and_vera/</id>
+    <title>GCMP update: same quality as LoRA r=8, r=32 and VeRA, and it serves 256 adapters on one A40 without slowing down. Feedback appreciated</title>
+    <updated>2026-11-21T02:04:19.714000+00:00</updated>
+    <author>
+      <name>/u/textclf</name>
+    </author>
+    <content type="html">Hello, &lt;br&gt;&lt;br&gt;Last week I posted about GCMP, which is a LoRA replacement I built. On Qwen3.8-27B it trains 2.9M parameters (about 11 MB) on the same 7 projections LoRA uses. A few people in the comments asked me to compare it with smaller LoRA ranks and VeRA, and to actually test serving many adapters in vLLM instead of just estimating it. So I ran all of that and here are the results. &lt;br&gt;&lt;br&gt;Quality &lt;br&gt;&lt;br&gt;All adapters were trained on the full precision BF16 base on Alpaca for 500 steps with the same settings and seed, and evaluated with the same lm-evaluation-harness code: &lt;br&gt;&lt;br&gt;Adapter Params Answer loss GSM8K SQuAD MMLU IFEval s/step LoRA r=32 159M 1.480 0.903 0.776 0.844 0.825 1.37 LoRA r=8 40M 1.555 0.910 0.768 0.846 0.795 1.31 VeRA 2.89M 1.489 0.903 0.778 0.846 0.820 1.33 GCMP 2.9M 1.471 0.890 0.760 0.846 0.815 2.74 &lt;br&gt;&lt;br&gt;All four are tied on all 9 benchmarks I ran (paired McNemar tests, every p ≥ 0.15). The other 5 are on GitHub. GCMP has the lowest loss but that didn&amp;#x27;t turn into benchmark wins. Since r=8 is as good as r=32, the fair comparison is r=8, so GCMP is about 14x smaller, not 55x like I said last time. &lt;br&gt;&lt;br&gt;VeRA is honestly very close. It is the same size and same quality and trains 2x faster than GCMP right now. The difference is that vLLM can&amp;#x27;t serve VeRA, which is why the serving test below is against LoRA. &lt;br&gt;&lt;br&gt;On the NF4 base GCMP was tied with LoRA r=32 everywhere except GSM8K where it was 4 points higher (p=0.04). One task isn&amp;#x27;t enough to say it is better, so I&amp;#x27;m only claiming same quality. &lt;br&gt;&lt;br&gt;Serving many adapters &lt;br&gt;&lt;br&gt;This was run on one A40 48 GB with vLLM 0.27.1 and the CQ 4-bit Qwen3.8-27B base for every run. 32 concurrent requests, each request goes to a random adapter, 128 output tokens. Numbers are total output tok/s: &lt;br&gt;&lt;br&gt;Setup 1 16 64 256 p95 TTFT at 256 KV cache at 256 Time to ready at 256 Base, no adapter 93.3 111k GCMP 83.2 83.7 83.7 83.7 2.2 s 72k ~6 min LoRA r=8, max_loras 16 (default) 91.1 84.8 60.1 59.5 47.5 s 88k ~30 min LoRA r=8, max_loras 64 76.2 74.4 2.4 s 43k ~41 min LoRA r=32, max_loras 16 (default) 91.2 76.3 53.5 still running 43k ~77 min (est.) LoRA r=32, max_loras 32 won&amp;#x27;t start won&amp;#x27;t start &lt;br&gt;&lt;br&gt;With one adapter LoRA is about 9% faster than GCMP. With many adapters GCMP stays flat from 1 to 256 without any tuning. With the default settings LoRA drops 35-40% by 64 adapters and p95 time to first token goes to around 50 s. &lt;br&gt;&lt;br&gt;If you raise max_loras to 64, LoRA r=8 gets within about 12% of GCMP, but those 64 slots reduce the KV cache to 43k tokens compared to 72k for GCMP. LoRA r=32 can&amp;#x27;t do 32 slots on a 48 GB card at all. vLLM says there is negative memory left for KV cache and doesn&amp;#x27;t start. &lt;br&gt;&lt;br&gt;The other thing I didn&amp;#x27;t expect is startup time. vLLM loads LoRA adapters one by one, so 256 of them take 30 to 77 minutes before the server takes its first request. GCMP loads all 256 in about 6 minutes. &lt;br&gt;&lt;br&gt;One thing to keep in mind is that the absolute speed is low, about 2.6 tok/s per request at 32 concurrent. That&amp;#x27;s from my CQ 4-bit decode kernels on an A40, not from the adapters, since every row uses the same base. So look at it as a relative comparison. Making CQ decode faster is what I&amp;#x27;m working on next. &lt;br&gt;&lt;br&gt;CQ base &lt;br&gt;&lt;br&gt;The CQ 4-bit base still matches BF16 on all 9 benchmarks while NF4 loses 12 points on GSM8K. After fine-tuning with GCMP, CQ and NF4 end up about the same. I&amp;#x27;m re-running CQ + LoRA and CQ + GCMP with a fixed trainer and will post them when they&amp;#x27;re done. &lt;br&gt;&lt;br&gt;Limitations &lt;br&gt;&lt;br&gt;There are still some things I need to work on. The biggest one is training speed, GCMP takes about 2x the time per step compared to LoRA. I am working on it along with the decode speed. &lt;br&gt;&lt;br&gt;Also right now if you want to serve GCMP in vLLM you need to use a CQ base. I plan to add full precision bases soon. Tensor parallel is not supported yet but pipeline parallel works. You also need to restart the server if you want to add a new adapter (replacing an existing one doesn&amp;#x27;t need a restart). &lt;br&gt;&lt;br&gt;I only tested one model and one dataset on one GPU type so far, so I&amp;#x27;d like to know if people see the same thing on other models. &lt;br&gt;&lt;br&gt;The Python code is open source and the CUDA kernels are compiled with a license check, which is free during early access. Everything runs on your own GPUs. The repo has the commands to reproduce all the numbers above including the serving benchmark: https://github.com/thousandml/training-factory &lt;br&gt;&lt;br&gt;Full write-up: https://huggingface.co/blog/thousandml/cq-gcmp-4bit-finetuning &lt;br&gt;&lt;br&gt;If you serve more than a few fine-tunes, is the number of adapters or the startup time actually a problem for you, or is it something else? Let me know what you think. Your feedback is appreciated. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1lazi/gcmp_update_same_quality_as_lora_r8_r32_and_vera/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1lazi/gcmp_update_same_quality_as_lora_r8_r32_and_vera/"/>
+    <published>2026-11-21T02:04:19.714000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1l0nz/how_much_tokens_do_you_use_a_week/</id>
+    <title>How much tokens do you use a week?</title>
+    <updated>2026-11-21T01:49:49.999000+00:00</updated>
+    <author>
+      <name>/u/PeanutButterApricotS</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/wyzqqmuyfv2i1.jpeg"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1l0nz/how_much_tokens_do_you_use_a_week/"/>
+    <published>2026-11-21T01:49:49.999000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1kld7/saw_this_on_twitter_local_continual_learning_has/</id>
+    <title>Saw this on twitter, local continual learning, has someone seen anything like it before?</title>
+    <updated>2026-11-21T01:27:52.515000+00:00</updated>
+    <author>
+      <name>/u/AryanEmbered</name>
+    </author>
+    <content type="html">Here&amp;#x27;s a link and I am not related to whatever this is &lt;br&gt;&lt;br&gt;https://souslabs.ai/songe &lt;br&gt;&lt;br&gt;haven&amp;#x27;t tried it as I am away from my main machine atm &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1kld7/saw_this_on_twitter_local_continual_learning_has/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1kld7/saw_this_on_twitter_local_continual_learning_has/"/>
+    <published>2026-11-21T01:27:52.515000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1kbey/ai_autoformalism_197_tax_systems_in_1_lean/</id>
+    <title>(AI autoformalism) 197 tax systems in 1 lean equation</title>
+    <updated>2026-11-21T01:13:40.840000+00:00</updated>
+    <author>
+      <name>/u/SnooPeripherals5313</name>
+    </author>
+    <content type="html">&lt;a href="https://v.redd.it/4w2m4cnd9v2i1"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1kbey/ai_autoformalism_197_tax_systems_in_1_lean/"/>
+    <published>2026-11-21T01:13:40.840000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1iufw/inkling_2_mini_ties_opus_55_on_cyberbench_valsai/</id>
+    <title>Inkling 2 Mini ties Opus 5.5 on CyberBench (@ValsAI)</title>
+    <updated>2026-11-21T00:02:37.343000+00:00</updated>
+    <author>
+      <name>/u/iGermanProd</name>
+    </author>
+    <content type="html">&lt;a href="https://i.redd.it/j2dzl0gnwu2i1.png"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1iufw/inkling_2_mini_ties_opus_55_on_cyberbench_valsai/"/>
+    <published>2026-11-21T00:02:37.343000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1ip5f/discussion_in_the_age_of_loops_what_do_active/</id>
+    <title>[Discussion] In the age of loops, what do "active parameters" mean?</title>
+    <updated>2026-11-20T23:57:34.955000+00:00</updated>
+    <author>
+      <name>/u/z_latent</name>
+    </author>
+    <content type="html">Seems like looped models are gaining prominence (finally!), which raises a question about what the meaning of terms &amp;quot;total parameters&amp;quot; and &amp;quot;active parameters&amp;quot; are. &lt;br&gt;&lt;br&gt;Historically, it mostly applied to MoE models, as most experts would not be activated for a given token. The total parameters represented the amount of memory needed to hold the model weights, while active parameters represented the memory read per token (or similarly, FLOPs per token) &lt;br&gt;&lt;br&gt;With looped transformers, I argue the best way to extend the definition is to increase the active parameters in a way that preserves its use as an estimate of GB/token (TG) and FLOP/token (PP) &lt;br&gt;&lt;br&gt;I think it&amp;#x27;s OK to keep excluding PLE, Engrams and token embeddings (if no weight tying) from both those counts, since they are extremely sparse, and can even be off-loaded to the SSD. &lt;br&gt;&lt;br&gt;Now, an example: imagine a dense model with 4B individual parameters (excluding embeddings)&lt;br&gt;&lt;br&gt;If every layer runs twice, it&amp;#x27;s 4B total, 8B active*.&lt;br&gt;&lt;br&gt;If only 50% of layers run twice, it would be 4B total, 6B active.&lt;br&gt;&lt;br&gt;For other real examples:&lt;br&gt;&lt;br&gt;Inkling 2 Mini, an MoE, is 26B total, 5B active (50% of layers run thrice)**&lt;br&gt;&lt;br&gt;SenseNova-Loop-9B, a dense model, is 9B total, 15B active (75% of layers run twice)&lt;br&gt;&lt;br&gt;Nanbeige4.2-3B, a dense model, is 3B total, 5.5B active (100% of layers run twice)&lt;br&gt;&lt;br&gt;I argue this is more useful for what we care about, which is the cost or speed of running a given model, and will likely end up being a good proxy for the &amp;quot;intelligence&amp;quot; of the model as well. wdyt? &lt;br&gt;&lt;br&gt;* This is an overestimate, as it ignores the size of the output layer and assumes all layers are the same. If you know that size, you can exclude it from the multiplication, e.g. if it was 1B params, then the 50% case would actually be [4-1]*1.5+1 = 5.5B active. I did this for the real examples. &lt;br&gt;&lt;br&gt;** For Inkling 2 Mini, my math doesn&amp;#x27;t add up to their numbers, theirs seems too high? I get 2.7B ignoring loops and 4.9B with loops, while they state 3.4B and 5.4B, even after counting each tensor in their GGUF individually. Not sure where the difference is. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ip5f/discussion_in_the_age_of_loops_what_do_active/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ip5f/discussion_in_the_age_of_loops_what_do_active/"/>
+    <published>2026-11-20T23:57:34.955000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1ip1h/latest_strata_update_much_slower/</id>
+    <title>Latest strata update much slower?</title>
+    <updated>2026-11-20T23:57:26.418000+00:00</updated>
+    <author>
+      <name>/u/No_Cartographer3953</name>
+    </author>
+    <content type="html">Qwen FN Q8 was running 20 tps before and now it’s not even an option in the launch model section. I can still run via the existing download but now tps is around 5!!! Anyone else experiencing similar issues? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ip1h/latest_strata_update_much_slower/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ip1h/latest_strata_update_much_slower/"/>
+    <published>2026-11-20T23:57:26.418000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1ig9e/inkling_2_mini_uncensored/</id>
+    <title>Inkling 2 mini uncensored</title>
+    <updated>2026-11-20T23:45:23.849000+00:00</updated>
+    <author>
+      <name>/u/Ontopoftheworld_ay</name>
+    </author>
+    <content type="html">&lt;a href="https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1ig9e/inkling_2_mini_uncensored/"/>
+    <published>2026-11-20T23:45:23.849000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1h3qz/how_to_compile_llamacpp_in_ubuntu_2604/</id>
+    <title>How to compile llama.cpp in Ubuntu 26.04?</title>
+    <updated>2026-11-20T22:43:43.758000+00:00</updated>
+    <author>
+      <name>/u/Ok_Warning2146</name>
+    </author>
+    <content type="html">Wanted HDR, so upgraded to 26.04. But now I cannot compile llama.cpp with CUDA backend with this error. &lt;br&gt;&lt;br&gt;Call Stack (most recent call first):&lt;br&gt;  /usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)&lt;br&gt;  /usr/share/cmake-4.2/Modules/CMakeDetermineCompilerId.cmake:53 (__determine_compiler_id_test)&lt;br&gt;  /usr/share/cmake-4.2/Modules/CMakeDetermineCUDACompiler.cmake:163 (CMAKE_DETERMINE_COMPILER_ID)&lt;br&gt;  ggml/src/ggml-cuda/CMakeLists.txt:73 (enable_language)&lt;br&gt;&lt;br&gt;&lt;br&gt;-- Configuring incomplete, errors occurred!&lt;br&gt;&lt;br&gt;I asked AI and it says it is because the CUDA headers and my system’s glibc headers disagree. I suppose that means I need to upgrade my CUDA toolkit. I am running CUDA 13.0.2 and torch 2.9.1. I find that at Nvidia site, the only CUDA version that supports 26.04 is 13.4.x. Does that mean I need to upgrade to 13.4.x? As a result, since only torch 2.15.0 supports CUDA 13.4, I also need to upgrade torch to 2.15.0? &lt;br&gt;&lt;br&gt;Anyone else in the same boat? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1h3qz/how_to_compile_llamacpp_in_ubuntu_2604/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1h3qz/how_to_compile_llamacpp_in_ubuntu_2604/"/>
+    <published>2026-11-20T22:43:43.758000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1g9cr/inkling_2_llamacpp_support/</id>
+    <title>Inkling 2 Llama.cpp support!</title>
+    <updated>2026-11-20T22:06:47.911000+00:00</updated>
+    <author>
+      <name>/u/No_Algae1753</name>
+    </author>
+    <content type="html">&lt;a href="https://github.com/ggml-org/llama.cpp/pull/32694"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1g9cr/inkling_2_llamacpp_support/"/>
+    <published>2026-11-20T22:06:47.911000+00:00</published>
+  </entry>
+  <entry>
+    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1fph6/philolm_a_language_model_trained_only_on/</id>
+    <title>PhiloLM: a language model trained only on philosophy texts</title>
+    <updated>2026-11-20T21:42:54.764000+00:00</updated>
+    <author>
+      <name>/u/antcroca159</name>
+    </author>
+    <content type="html">Releasing PhiloLM, a 112M base model trained from scratch on open philosophy texts. &lt;br&gt;&lt;br&gt;PhiloLM was trained on PhiloText: 0.5B tokens of open philosophy encyclopedias (SEP, IEP), public-domain books, reviews, textbooks and educational web pages. &lt;br&gt;&lt;br&gt;PhiloLM builds on efficient methods: Muon optimizer, bigram embeddings, sliding-window attention, GQA. Trained on (only!) 1.5B tokens in 15 hours on a $350 GPU (Intel Arc A770). &lt;br&gt;&lt;br&gt;Optimized for efficient inference, reaching ~500 tokens/s on a $150 CPU (i5-14400F). &lt;br&gt;&lt;br&gt;Try it in your browser! &lt;br&gt;&lt;br&gt;Model: https://huggingface.co/gustavecortal/PhiloLM &lt;br&gt;&lt;br&gt;Data: https://huggingface.co/datasets/gustavecortal/PhiloText &lt;br&gt;&lt;br&gt;Happy to answer questions about everything :) &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y1fph6/philolm_a_language_model_trained_only_on/"&gt;[link]&lt;/a&gt;</content>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1fph6/philolm_a_language_model_trained_only_on/"/>
+    <published>2026-11-20T21:42:54.764000+00:00</published>
+  </entry>
   <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1egz9/sensenova_9b_update_for_ninfer4080/</id>
     <title>SenseNova 9B update for NInfer-4080</title>
@@ -117,17 +238,6 @@
     <published>2026-11-20T17:14:42.878000+00:00</published>
   </entry>
   <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y18qbs/unsloth_is_preparing_to_release_4_new_models/</id>
-    <title>Unsloth is preparing to release 4 new models</title>
-    <updated>2026-11-20T17:02:27.972000+00:00</updated>
-    <author>
-      <name>/u/coder543</name>
-    </author>
-    <content type="html">&lt;a href="https://huggingface.co/collections/unsloth/unsloth-dynamic-3-quants"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y18qbs/unsloth_is_preparing_to_release_4_new_models/"/>
-    <published>2026-11-20T17:02:27.972000+00:00</published>
-  </entry>
-  <entry>
     <id>https://www.reddit.com/r/LocalLLaMA/comments/1y18brw/cheaper_gpus_are_coming_next_year/</id>
     <title>Cheaper GPUs are coming next year!</title>
     <updated>2026-11-20T16:47:32.643000+00:00</updated>
@@ -170,115 +280,5 @@
     <content type="html">Fresh off launching Hy4 and Hy4 Flash, the Hy research team is here to discuss how they built the models, boosted efficiency, and made them better for everyday workflows. &lt;br&gt;&lt;br&gt;Our participants today: &lt;br&gt;&lt;br&gt;u/No-Cherry2850 &lt;br&gt;&lt;br&gt;u/DiWang01 &lt;br&gt;&lt;br&gt;u/aiden_agent &lt;br&gt;&lt;br&gt;u/lydellhuang &lt;br&gt;&lt;br&gt;u/edwardbai &lt;br&gt;&lt;br&gt;u/kkelvinchen &lt;br&gt;&lt;br&gt;u/maxmpan &lt;br&gt;&lt;br&gt;u/dick112233 &lt;br&gt;&lt;br&gt;u/kkelvinchen &lt;br&gt;&lt;br&gt;u/GeoMorax &lt;br&gt;&lt;br&gt;Blog: https://hy.tencent.ai/research/hy4-flash https://hy.tencent.ai/research/hy4 &lt;br&gt;&lt;br&gt;HF: https://huggingface.co/tencent/Hy4-flash https://huggingface.co/tencent/Hy4 &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y15w4a/tencent_hy_team_shunyu_yao_here_ask_us_anything/"&gt;[link]&lt;/a&gt;</content>
     <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y15w4a/tencent_hy_team_shunyu_yao_here_ask_us_anything/"/>
     <published>2026-11-20T15:10:58.609000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y148qj/omlx_directional_steering_ds4style_activation/</id>
-    <title>oMLX: Directional steering (DS4-style activation steering) for Qwen3.8 Flash Next</title>
-    <updated>2026-11-20T14:02:36.563000+00:00</updated>
-    <author>
-      <name>/u/Undici77</name>
-    </author>
-    <content type="html">Hi all, &lt;br&gt;&lt;br&gt;I ported the directional steering idea from antirez/ds4 to oMLX and measured it on Qwen3.8 Flash Next. &lt;br&gt;&lt;br&gt;Discussione: https://github.com/jundot/omlx/discussions/5461 &lt;br&gt;&lt;br&gt;What it does. A &amp;quot;pack&amp;quot; holds one direction per layer, learned from paired prompts (e.g. succinct vs verbose requests). At inference the hook shifts each layer&amp;#x27;s attention-branch output along that direction, with a strength you can change live in the model settings. No fine-tuning; nothing changes unless a pack is set. &lt;br&gt;&lt;br&gt;Results MacBook Pro 14&amp;quot; M4 Max 128 GB, Qwen3.8 Flash Next oQ4e+MTP, 100-pair verbosity pack (DS4 prompts), temperature 0: &lt;br&gt;&lt;br&gt;strength -0.5 strength -1 Answer length -24 … -30% -46 … -50% KL on neutral text (gate ≤ 0.05) 0.021 0.045 NLL change -0.3% +0.2% Repetition / valid JSON lower / unchanged lower / unchanged Scope Decode cost prompt + first 32 tokens (default) +0.2–0.4% (within noise) every token ~5% &lt;br&gt;&lt;br&gt;Branch: https://github.com/undici77/omlx/tree/steering-experimental &lt;br&gt;&lt;br&gt;If you are interested in it please take a look and vote the idea so starting from this experiment (Qwen 3.8 Next Flash only) maybe it will integrated &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y148qj/omlx_directional_steering_ds4style_activation/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y148qj/omlx_directional_steering_ds4style_activation/"/>
-    <published>2026-11-20T14:02:36.563000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y1435o/we_updated_the_hy4flash_quants_mlx_release_and/</id>
-    <title>We updated the Hy4-flash quants: MLX release and better GGUF</title>
-    <updated>2026-11-20T13:56:47.426000+00:00</updated>
-    <author>
-      <name>/u/0zyman23</name>
-    </author>
-    <content type="html">&lt;a href="https://huggingface.co/collections/nace-ai/hy4-family-nace-quants"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y1435o/we_updated_the_hy4flash_quants_mlx_release_and/"/>
-    <published>2026-11-20T13:56:47.426000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y13mj0/reverbtts_opensource_zeroshot_voice_cloning/</id>
-    <title>Reverb-TTS: open-source zero-shot voice cloning running in the browser on WebGPU, 22x realtime on M4 Pro (MLX)</title>
-    <updated>2026-11-20T13:35:26.572000+00:00</updated>
-    <author>
-      <name>/u/FinancialAd1961</name>
-    </author>
-    <content type="html">&lt;a href="https://v.redd.it/fkqx03zwsr2i1"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y13mj0/reverbtts_opensource_zeroshot_voice_cloning/"/>
-    <published>2026-11-20T13:35:26.572000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y135y5/today_marks_the_two_week_anniversary_of_the/</id>
-    <title>Today marks the two week anniversary of the becoming begins</title>
-    <updated>2026-11-20T13:14:21.148000+00:00</updated>
-    <author>
-      <name>/u/jacek2023</name>
-    </author>
-    <content type="html">&lt;a href="https://i.redd.it/oixttp23pr2i1.png"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y135y5/today_marks_the_two_week_anniversary_of_the/"/>
-    <published>2026-11-20T13:14:21.148000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y10uuo/sell_3090_buy_3080_20gb/</id>
-    <title>Sell 3090, buy 3080 20GB?</title>
-    <updated>2026-11-20T11:13:59.210000+00:00</updated>
-    <author>
-      <name>/u/themegadinesen</name>
-    </author>
-    <content type="html">Like the title says, is it a good idea to do that? since where i live are 3090s approaching the €2000 point and i somehow want ot lock that in. i wouldnt mind losing the extra 4gb and i still have a 5070ti that i use when im not gaming. What would you guys do? The 3090 is aging, i bought it used around 3 years ago, still runs flawless but for how long? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y10uuo/sell_3090_buy_3080_20gb/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y10uuo/sell_3090_buy_3080_20gb/"/>
-    <published>2026-11-20T11:13:59.210000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y10f71/best_semantic_search_ai/</id>
-    <title>Best semantic search AI</title>
-    <updated>2026-11-20T10:48:30.177000+00:00</updated>
-    <author>
-      <name>/u/Iwishlife</name>
-    </author>
-    <content type="html">What&amp;#x27;s the current SOTA for semantic search in large document (written story) database? &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y10f71/best_semantic_search_ai/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y10f71/best_semantic_search_ai/"/>
-    <published>2026-11-20T10:48:30.177000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y10d49/wemmvideo_by_tencent_2b_4b_9b_35ba3b/</id>
-    <title>WeMM-Video by Tencent (2B, 4B, 9B, 35B-A3B)</title>
-    <updated>2026-11-20T10:44:45.738000+00:00</updated>
-    <author>
-      <name>/u/ExponentialCookie</name>
-    </author>
-    <content type="html">&lt;a href="https://huggingface.co/collections/tencent/wemm-video"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y10d49/wemmvideo_by_tencent_2b_4b_9b_35ba3b/"/>
-    <published>2026-11-20T10:44:45.738000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y109xw/qwen35_2b_dense_converted_to_mixture_of_experts/</id>
-    <title>Qwen3.5 2B Dense converted to Mixture of Experts</title>
-    <updated>2026-11-20T10:39:18.373000+00:00</updated>
-    <author>
-      <name>/u/Bayliner1980</name>
-    </author>
-    <content type="html">Foreword&lt;br&gt;&lt;br&gt;Hello, been a while since I last posted. I have been hard at work (in my spare time) trying to improve the conversion method, and I have had a few small-ish victories. One was fixing dead experts, which apparently weren&amp;#x27;t dead just unused since I wasn&amp;#x27;t using a dataset with enough variety. Once I added stuff like maths, science, multilingual data those dead experts vanished. Doing this also fixed a few limitations involving code. &lt;br&gt;&lt;br&gt;Another thing was improving conversion speeds which is always nice. All that led me here to converting Qwen3.5 2B which is my largest converted model yet! &lt;br&gt;&lt;br&gt;What I have been mainly working on is trying to improve how much knowledge is retained through the conversion. Currently, not much is kept and a lot of factual knowledge is lost. This has led me to add a new metric to the evaluation which measures how many facts the model remembers after conversion, which I included with the evaluation.&lt;br&gt;&lt;br&gt;New Model&lt;br&gt;&lt;br&gt;So my latest conversion was of the Qwen/Qwen3.5-2B. The conversion can be found here bayliner1980/Qwen3.5-2B-MoE-A1.3B with GGUF version here bayliner1980/Qwen3.5-2B-MoE-A1.3B-GGUF.&lt;br&gt;&lt;br&gt;Evaluation&lt;br&gt;- Qwen3.5-2B dense Qwen3.5-2B MoE Wikitext-2 ppl 13.60 14.68 (+7.9%) C4 ppl 24.66 28.37 (+15.0%) - Qwen3.5-2B dense Qwen3.5-2B MoE HellaSwag 0.565 0.497 ARC-Easy 0.679 0.664 ARC-Challenge 0.413 0.370 WinoGrande 0.623 0.579 OpenBookQA 0.350 0.324 Task mean 0.526 0.487 Fact recall (287 facts) 0.948 0.760 &lt;br&gt;Support&lt;br&gt;&lt;br&gt;As always, if you find my stuff interesting consider supporting me on Ko-fi. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y109xw/qwen35_2b_dense_converted_to_mixture_of_experts/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y109xw/qwen35_2b_dense_converted_to_mixture_of_experts/"/>
-    <published>2026-11-20T10:39:18.373000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y0y5mn/arxiv_chorus_shared_ngram_embeddings_with/</id>
-    <title>[arXiv] Chorus: Shared N-gram Embeddings with Layer-wise Adaptation</title>
-    <updated>2026-11-20T08:24:26.835000+00:00</updated>
-    <author>
-      <name>/u/brown2green</name>
-    </author>
-    <content type="html">https://arxiv.org/abs/2611.23386 &lt;br&gt;&lt;br&gt;Chorus: Shared N-gram Embeddings with Layer-wise Adaptation&lt;br&gt;&lt;br&gt; Language models can gain capacity at little computational cost from n-gram embedding tables: large tables of learned vectors for short sequences of consecutive tokens, which are looked up and added to the model&amp;#x27;s input or to its intermediate layers. Recent designs commonly use a separate n-gram embedding table for each layer, which makes the tables costly in memory and prevents layers from sharing what they learn. However, a single shared table gives every layer the same embedding, leaves no room for layer-wise preferences, and performs poorly in practice. We propose Chorus, in which one set of n-gram embedding tables serves the whole network and every layer reads it in its own way. Each layer maps the refined embedding through its own projection layer, after rescaling its components by factors computed from its current hidden state. Chorus matches the quality of existing n-gram methods with 87% smaller tables: with 1.2B table parameters it predicts text better than FactorEngram and DeepSeek&amp;#x27;s Engram do with 9.6B. It outperforms Engram, TN-gram and FactorEngram in every setting where we compared them, across table sizes from 20M to 9.6B parameters. We also show that the recently proposed memory-efficient optimizer Ember works well with Chorus, saving 99.2% of table-optimizer memory compared with AdamW without degrading training performance. These results enable further scaling of n-gram embedding tables along the table-size axis by reducing memory use and allowing shared knowledge to be reused across layers. &lt;br&gt;&lt;br&gt;This paper shows experiments similar to some I&amp;#x27;ve done privately. They use a large shared N-gram table and give every backbone layer different trainable scaling factors to take advantage of it. Notably, they scale the N-gram table to a much larger size than the backbone, with performance (mainly in knowledge tasks and loss) only scaling up with size. Hopefully this also dispels the idea that only 25% of the weights or so can be N-gram embeddings. &lt;a href="https://www.reddit.com/r/LocalLLaMA/comments/1y0y5mn/arxiv_chorus_shared_ngram_embeddings_with/"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y0y5mn/arxiv_chorus_shared_ngram_embeddings_with/"/>
-    <published>2026-11-20T08:24:26.835000+00:00</published>
-  </entry>
-  <entry>
-    <id>https://www.reddit.com/r/LocalLLaMA/comments/1y0xs1f/sillytavern_v1191_released/</id>
-    <title>SillyTavern v1.19.1 released</title>
-    <updated>2026-11-20T08:00:29.400000+00:00</updated>
-    <author>
-      <name>/u/Fcking_Chuck</name>
-    </author>
-    <content type="html">&lt;a href="https://github.com/SillyTavern/SillyTavern/releases/tag/1.19.1"&gt;[link]&lt;/a&gt;</content>
-    <link href="https://www.reddit.com/r/LocalLLaMA/comments/1y0xs1f/sillytavern_v1191_released/"/>
-    <published>2026-11-20T08:00:29.400000+00:00</published>
   </entry>
 </feed>
